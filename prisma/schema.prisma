@@ -1,0 +1,197 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id             String              @id @default(cuid())
+  email          String              @unique
+  name           String
+  role           UserRole            @default(MEMBER)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  compensations  Compensation[]
+  courseProgress CourseProgress[]
+  events         EventRegistration[]
+  subscriptions  Subscription[]
+  fpPromotionApplications FPPromotionApplication[]
+
+  @@map("users")
+}
+
+model PendingUser {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("pending_users")
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String
+  stripeCustomerId     String?            @unique
+  stripeSubscriptionId String?            @unique
+  status               SubscriptionStatus @default(ACTIVE)
+  currentPeriodEnd     DateTime?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model Course {
+  id          String           @id @default(cuid())
+  title       String
+  description String?
+  category    CourseCategory
+  level       CourseLevel
+  isLocked    Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  progress    CourseProgress[]
+  lessons     Lesson[]
+
+  @@map("courses")
+}
+
+model Lesson {
+  id          String           @id @default(cuid())
+  courseId    String
+  title       String
+  description String?
+  duration    Int
+  order       Int
+  videoUrl    String?
+  pdfUrl      String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  progress    CourseProgress[]
+  course      Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@map("lessons")
+}
+
+model CourseProgress {
+  id          String    @id @default(cuid())
+  userId      String
+  courseId    String
+  lessonId    String?
+  isCompleted Boolean   @default(false)
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lesson      Lesson?   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId, lessonId])
+  @@map("course_progress")
+}
+
+model Event {
+  id            String              @id @default(cuid())
+  title         String
+  description   String?
+  date          DateTime
+  isRequired    Boolean             @default(false)
+  maxCapacity   Int?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  registrations EventRegistration[]
+
+  @@map("events")
+}
+
+model EventRegistration {
+  id        String   @id @default(cuid())
+  userId    String
+  eventId   String
+  createdAt DateTime @default(now())
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
+  @@map("event_registrations")
+}
+
+model Compensation {
+  id        String             @id @default(cuid())
+  userId    String
+  month     String
+  amount    Int
+  breakdown Json
+  status    CompensationStatus @default(PENDING)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, month])
+  @@map("compensations")
+}
+
+enum UserRole {
+  MEMBER
+  FP
+  MANAGER
+  ADMIN
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  UNPAID
+}
+
+enum CourseCategory {
+  BASIC
+  ADVANCED
+  PRACTICAL
+}
+
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum CompensationStatus {
+  PENDING
+  CONFIRMED
+  PAID
+}
+
+enum FPPromotionApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+model FPPromotionApplication {
+  id                String                        @id @default(cuid())
+  userId            String
+  status            FPPromotionApplicationStatus  @default(PENDING)
+  lpMeetingCompleted Boolean                       @default(false)
+  basicTestCompleted Boolean                       @default(false)
+  surveyCompleted   Boolean                        @default(false)
+  idDocumentUrl     String?
+  appliedAt         DateTime                       @default(now())
+  approvedAt        DateTime?
+  completedAt       DateTime?
+  createdAt         DateTime                      @default(now())
+  updatedAt         DateTime                      @updatedAt
+  user              User                           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
+  @@map("fp_promotion_applications")
+}
