@@ -31,7 +31,7 @@ export function PricingSection() {
               <div className="space-y-2">
                 <div className="flex items-center">
                   <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                  <span>全教材へのアクセス</span>
+                  <span>全教育コンテンツへのアクセス</span>
                 </div>
                 <div className="flex items-center">
                   <CheckCircle className="h-5 w-5 text-green-500 mr-2" />

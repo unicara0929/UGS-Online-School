@@ -14,6 +14,7 @@ export interface Lesson {
   title: string
   description: string
   videoUrl?: string
+  vimeoId?: string // Vimeo動画ID
   pdfUrl?: string
   duration: number
   isCompleted: boolean

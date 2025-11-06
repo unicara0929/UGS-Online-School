@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuth } from '@/contexts/auth-context'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export function RegisterForm() {
   const [formData, setFormData] = useState({
@@ -18,6 +19,7 @@ export function RegisterForm() {
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [logoError, setLogoError] = useState(false)
   const { register } = useAuth()
   const router = useRouter()
 
@@ -87,12 +89,31 @@ export function RegisterForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">アカウント作成</CardTitle>
-          <CardDescription>
-            UGSオンラインスクールに参加しましょう
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
+      <Card className="w-full max-w-md shadow-2xl border-0">
+        <CardHeader className="text-center space-y-4 pb-8">
+          <div className="flex items-center justify-center space-x-3">
+            {logoError ? (
+              <div className="w-8 h-8 rounded bg-slate-800 flex items-center justify-center">
+                <span className="text-white text-xs font-bold">UG</span>
+              </div>
+            ) : (
+              <Image 
+                src="/ロゴ1.jpg" 
+                alt="Unicara Growth Salon" 
+                width={32} 
+                height={32} 
+                className="object-contain"
+                priority
+                onError={() => setLogoError(true)}
+              />
+            )}
+            <CardTitle className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
+              Unicara Growth Salon
+            </CardTitle>
+          </div>
+          <CardDescription className="text-sm text-slate-600 pt-2">
+            学び → 実践 → 自立を一体化したFP育成プラットフォームに参加しよう
           </CardDescription>
         </CardHeader>
         <CardContent>

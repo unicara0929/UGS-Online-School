@@ -113,7 +113,7 @@ function Dashboard() {
           {/* ダッシュボード統計 */}
           <DashboardStats userRole={user?.role || 'member'} />
 
-          {/* 教材一覧 */}
+          {/* 教育コンテンツ一覧 */}
           <CourseList />
 
           {/* 報酬管理ダッシュボード */}

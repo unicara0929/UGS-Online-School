@@ -92,9 +92,14 @@ function ProfileSettingsPage() {
         if (user?.id) {
           localStorage.setItem(`profileImage_${user.id}`, imageDataUrl)
           // カスタムイベントを発火して他のコンポーネントに通知
-          window.dispatchEvent(new CustomEvent('profileImageUpdated', { 
+          const event = new CustomEvent('profileImageUpdated', { 
             detail: { userId: user.id, imageUrl: imageDataUrl } 
-          }))
+          })
+          window.dispatchEvent(event)
+          // 少し遅延させて再度発火（確実に通知）
+          setTimeout(() => {
+            window.dispatchEvent(event)
+          }, 100)
         }
         
         setIsUploading(false)
@@ -124,21 +129,36 @@ function ProfileSettingsPage() {
     // localStorageから削除
     if (user?.id) {
       localStorage.removeItem(`profileImage_${user.id}`)
-      // カスタムイベントを発火
-      window.dispatchEvent(new CustomEvent('profileImageUpdated', { 
+      // カスタムイベントを発火（確実に通知するため複数回発火）
+      const event = new CustomEvent('profileImageUpdated', { 
         detail: { userId: user.id, imageUrl: null } 
-      }))
+      })
+      window.dispatchEvent(event)
+      // 少し遅延させて再度発火（確実に通知）
+      setTimeout(() => {
+        window.dispatchEvent(event)
+      }, 100)
     }
   }
 
   const handleProfileUpdate = async () => {
     try {
-      // プロフィール画像も含めて保存
-      if (user?.id && profileImage) {
-        localStorage.setItem(`profileImage_${user.id}`, profileImage)
-        window.dispatchEvent(new CustomEvent('profileImageUpdated', { 
+      // プロフィール画像も含めて保存（削除の場合も含む）
+      if (user?.id) {
+        if (profileImage) {
+          localStorage.setItem(`profileImage_${user.id}`, profileImage)
+        } else {
+          localStorage.removeItem(`profileImage_${user.id}`)
+        }
+        // カスタムイベントを発火（確実に通知）
+        const event = new CustomEvent('profileImageUpdated', { 
           detail: { userId: user.id, imageUrl: profileImage } 
-        }))
+        })
+        window.dispatchEvent(event)
+        // 少し遅延させて再度発火（確実に通知）
+        setTimeout(() => {
+          window.dispatchEvent(event)
+        }, 100)
       }
 
       // 実際の実装では、APIに送信

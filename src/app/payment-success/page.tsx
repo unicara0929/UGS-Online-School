@@ -1,13 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { CheckCircle, Mail, Clock, ArrowRight } from "lucide-react"
 import Link from "next/link"
 
-export default function PaymentSuccessPage() {
+export const dynamic = 'force-dynamic'
+
+function PaymentSuccessContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [sessionData, setSessionData] = useState<any>(null)
   const [error, setError] = useState('')
@@ -225,5 +227,20 @@ export default function PaymentSuccessPage() {
         </div>
       </main>
     </div>
+  )
+}
+
+export default function PaymentSuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-700 mx-auto mb-4"></div>
+          <p className="text-slate-600">読み込み中...</p>
+        </div>
+      </div>
+    }>
+      <PaymentSuccessContent />
+    </Suspense>
   )
 }

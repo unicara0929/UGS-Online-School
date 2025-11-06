@@ -123,8 +123,7 @@ export function CourseList() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">教材一覧</h2>
-          <p className="text-slate-600">3カテゴリ × 2レベル = 6コンテンツ群</p>
+          <h2 className="text-2xl font-bold text-slate-900">教育コンテンツ一覧</h2>
         </div>
       </div>
 

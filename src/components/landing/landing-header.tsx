@@ -2,12 +2,11 @@
 
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import Image from "next/image"
 import { useState } from "react"
 
 export function LandingPageHeader() {
   const [markError, setMarkError] = useState(false)
-  const [fullError, setFullError] = useState(false)
+  const [fullError, setFullError] = useState(true) // デフォルトでtrueにして、画像が存在しない場合でもエラーを防ぐ
 
   return (
     <header className="bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b border-slate-200">
@@ -17,13 +16,18 @@ export function LandingPageHeader() {
             {markError ? (
               <div className="w-7 h-7 rounded bg-slate-800 text-white text-xs flex items-center justify-center">UG</div>
             ) : (
-              <Image src="/ロゴ1.jpg" alt="UGS mark" width={28} height={28} priority onError={() => setMarkError(true)} />
+              // eslint-disable-next-line @next/next/no-img-element
+              <img 
+                src="/ロゴ1.jpg" 
+                alt="UGS mark" 
+                width={28} 
+                height={28} 
+                onError={() => setMarkError(true)}
+                className="object-contain"
+                style={{ width: '28px', height: '28px' }}
+              />
             )}
-            {fullError ? (
-              <span className="hidden md:block text-sm font-bold text-slate-900">Unicara Growth Salon</span>
-            ) : (
-              <Image src="/ugs-logo-full.png" alt="Unicara Growth Salon" width={200} height={28} className="hidden md:block" onError={() => setFullError(true)} />
-            )}
+            <span className="hidden md:block text-sm font-bold text-slate-900">Unicara Growth Salon</span>
           </div>
           <div className="flex items-center space-x-3">
             <Link href="/login">

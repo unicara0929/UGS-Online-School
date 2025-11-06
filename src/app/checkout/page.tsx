@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -8,7 +8,9 @@ import { Badge } from "@/components/ui/badge"
 import { CheckCircle, CreditCard, Shield, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
-export default function CheckoutPage() {
+export const dynamic = 'force-dynamic'
+
+function CheckoutContent() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
@@ -190,7 +192,7 @@ export default function CheckoutPage() {
                 <div className="space-y-2">
                   <div className="flex items-center">
                     <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                    <span>全教材へのアクセス</span>
+                    <span>全教育コンテンツへのアクセス</span>
                   </div>
                   <div className="flex items-center">
                     <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
@@ -271,5 +273,20 @@ export default function CheckoutPage() {
         </div>
       </main>
     </div>
+  )
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-700 mx-auto mb-4"></div>
+          <p className="text-slate-600">読み込み中...</p>
+        </div>
+      </div>
+    }>
+      <CheckoutContent />
+    </Suspense>
   )
 }

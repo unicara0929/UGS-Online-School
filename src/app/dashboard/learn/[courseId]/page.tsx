@@ -33,6 +33,7 @@ interface Lesson {
   order: number
   content: string
   videoUrl?: string
+  vimeoId?: string // Vimeo動画ID
   materials?: string[]
 }
 
@@ -354,13 +355,24 @@ function LearningPage() {
                   {/* 動画プレイヤーエリア */}
                   <Card>
                     <CardContent className="p-0">
-                      <div className="aspect-video bg-slate-900 rounded-t-lg flex items-center justify-center">
-                        <div className="text-center text-white">
-                          <Video className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                          <p className="text-lg font-medium">動画プレイヤー</p>
-                          <p className="text-sm opacity-75">実際のアプリケーションでは動画が表示されます</p>
+                      {currentLesson.vimeoId ? (
+                        <iframe
+                          src={`https://player.vimeo.com/video/${currentLesson.vimeoId}`}
+                          loading="lazy"
+                          allow="autoplay; fullscreen; picture-in-picture"
+                          allowFullScreen
+                          className="w-full aspect-video rounded-t-lg"
+                          title={currentLesson.title}
+                        />
+                      ) : (
+                        <div className="aspect-video bg-slate-900 rounded-t-lg flex items-center justify-center">
+                          <div className="text-center text-white">
+                            <Video className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                            <p className="text-lg font-medium">動画プレイヤー</p>
+                            <p className="text-sm opacity-75">動画が設定されていません</p>
+                          </div>
                         </div>
-                      </div>
+                      )}
                       
                       {/* 動画コントロール */}
                       <div className="p-4 bg-slate-50 border-t">
@@ -431,13 +443,13 @@ function LearningPage() {
                     </CardContent>
                   </Card>
 
-                  {/* 教材・資料 */}
+                  {/* 教育コンテンツ・資料 */}
                   {currentLesson.materials && currentLesson.materials.length > 0 && (
                     <Card>
                       <CardHeader>
                         <CardTitle className="flex items-center">
                           <FileText className="h-5 w-5 mr-2" />
-                          教材・資料
+                          教育コンテンツ・資料
                         </CardTitle>
                       </CardHeader>
                       <CardContent>

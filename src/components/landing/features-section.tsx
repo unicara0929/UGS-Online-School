@@ -20,7 +20,7 @@ const features: Feature[] = [
   {
     icon: BookOpen,
     title: "体系的な学習プログラム",
-    description: "3カテゴリ × 2レベル = 6コンテンツ群で段階的にスキルアップ"
+    description: "段階的にスキルアップできる充実したコンテンツ"
   },
   {
     icon: TrendingUp,

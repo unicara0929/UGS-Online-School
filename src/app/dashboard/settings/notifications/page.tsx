@@ -88,8 +88,8 @@ function NotificationSettingsPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-medium">教材更新通知</h4>
-                    <p className="text-sm text-slate-600">新しい教材の追加通知</p>
+                    <h4 className="font-medium">教育コンテンツ更新通知</h4>
+                    <p className="text-sm text-slate-600">新しい教育コンテンツの追加通知</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input

@@ -23,16 +23,40 @@ export function DashboardHeader() {
     loadProfileImage()
 
     // プロフィール画像更新イベントをリッスン
-    const handleProfileImageUpdate = (event: CustomEvent) => {
-      if (event.detail?.userId === user?.id) {
-        setProfileImage(event.detail.imageUrl)
+    const handleProfileImageUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent
+      const eventUserId = customEvent.detail?.userId
+      
+      // userIdが一致する場合に更新（localStorageから最新の値を取得）
+      if (eventUserId === user?.id && user?.id && typeof window !== 'undefined') {
+        // 少し遅延させてlocalStorageから確実に読み込む
+        setTimeout(() => {
+          const savedImage = localStorage.getItem(`profileImage_${user.id}`)
+          setProfileImage(savedImage) // nullの場合も設定（削除された場合）
+        }, 50)
       }
     }
 
-    window.addEventListener('profileImageUpdated' as any, handleProfileImageUpdate as EventListener)
+    // storageイベントもリッスン（localStorageの変更を検知）
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === `profileImage_${user?.id}` && user?.id) {
+        const savedImage = localStorage.getItem(`profileImage_${user.id}`)
+        setProfileImage(savedImage)
+      }
+    }
+
+    window.addEventListener('profileImageUpdated', handleProfileImageUpdate)
+    window.addEventListener('storage', handleStorageChange)
+
+    // 定期的にチェック（他のタブからの変更にも対応、より効率的な間隔）
+    const interval = setInterval(() => {
+      loadProfileImage()
+    }, 2000)
 
     return () => {
-      window.removeEventListener('profileImageUpdated' as any, handleProfileImageUpdate as EventListener)
+      window.removeEventListener('profileImageUpdated', handleProfileImageUpdate)
+      window.removeEventListener('storage', handleStorageChange)
+      clearInterval(interval)
     }
   }, [user?.id])
 

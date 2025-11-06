@@ -15,12 +15,12 @@ const steps: Step[] = [
   {
     number: "02", 
     title: "基礎学習",
-    description: "3カテゴリの基礎編教材でマネーリテラシーを習得"
+    description: "基礎編の教育コンテンツでマネーリテラシーを習得"
   },
   {
     number: "03",
     title: "FPエイド昇格",
-    description: "条件達成後、FPエイドに昇格して実践編教材にアクセス"
+    description: "条件達成後、FPエイドに昇格して実践編の教育コンテンツにアクセス"
   },
   {
     number: "04",

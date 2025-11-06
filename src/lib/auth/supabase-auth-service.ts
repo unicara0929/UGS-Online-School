@@ -96,7 +96,7 @@ export class SupabaseAuthService {
       }
 
       // ユーザープロファイルを作成
-      const user = await this.createUserProfile(data.user.id, email, name, 'MEMBER')
+      const user = await this.createUserProfile(data.user.id, email, name, 'member')
       this.currentUser = user
 
       return user

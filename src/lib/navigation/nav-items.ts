@@ -21,7 +21,7 @@ export interface NavItem {
 
 export const navigation: NavItem[] = [
   { name: 'ダッシュボード', href: '/dashboard', icon: Home, roles: ['member', 'fp', 'manager', 'admin'] },
-  { name: '教材', href: '/dashboard/courses', icon: BookOpen, roles: ['member', 'fp', 'manager', 'admin'] },
+  { name: '教育コンテンツ', href: '/dashboard/courses', icon: BookOpen, roles: ['member', 'fp', 'manager', 'admin'] },
   { name: '学習', href: '/dashboard/learn/1', icon: GraduationCap, roles: ['member', 'fp', 'manager', 'admin'] },
   { name: '報酬管理', href: '/dashboard/compensation', icon: DollarSign, roles: ['fp', 'manager', 'admin'] },
   { name: '昇格管理', href: '/dashboard/promotion', icon: Award, roles: ['member', 'fp', 'manager'] },

@@ -173,7 +173,7 @@ export default function AdminUsersPage() {
     }
   }
 
-  const getSubscriptionStatus = (user: SupabaseUser) => {
+  const getSubscriptionStatus = (user: { id: string }) => {
     const subscription = subscriptions.find(sub => sub.userId === user.id)
     if (!subscription) {
       return { status: 'none', label: '未決済', variant: 'outline' as const }
@@ -551,7 +551,7 @@ export default function AdminUsersPage() {
                         </Badge>
                       ) : (
                         (() => {
-                          const subStatus = getSubscriptionStatus(user as SupabaseUser)
+                          const subStatus = getSubscriptionStatus(user)
                           return (
                             <Badge 
                               variant={subStatus.variant}

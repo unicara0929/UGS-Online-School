@@ -28,17 +28,20 @@ export async function GET(request: NextRequest) {
       subscriptions.map(async (sub) => {
         try {
           if (sub.stripeSubscriptionId) {
-            const stripeSubscription = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId) as Stripe.Subscription
+            const stripeSubscription = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId)
+            // Stripe.Subscription型のプロパティにアクセス
+            // TypeScriptの型定義が不完全なため、any型を使用
+            const subscription: any = stripeSubscription
             return {
               ...sub,
               stripeDetails: {
-                status: stripeSubscription.status,
-                currentPeriodEnd: new Date((stripeSubscription.current_period_end || 0) * 1000),
-                currentPeriodStart: new Date((stripeSubscription.current_period_start || 0) * 1000),
-                cancelAtPeriodEnd: !!stripeSubscription.cancel_at_period_end,
-                canceledAt: stripeSubscription.canceled_at ? new Date(stripeSubscription.canceled_at * 1000) : null,
-                amount: stripeSubscription.items.data[0]?.price?.unit_amount || 0,
-                currency: stripeSubscription.items.data[0]?.price?.currency || 'jpy',
+                status: subscription.status,
+                currentPeriodEnd: new Date((subscription.current_period_end || 0) * 1000),
+                currentPeriodStart: new Date((subscription.current_period_start || 0) * 1000),
+                cancelAtPeriodEnd: !!subscription.cancel_at_period_end,
+                canceledAt: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : null,
+                amount: subscription.items.data[0]?.price?.unit_amount || 0,
+                currency: subscription.items.data[0]?.price?.currency || 'jpy',
               }
             }
           }
