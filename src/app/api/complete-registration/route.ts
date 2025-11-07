@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       password: 'temp_password_' + Math.random().toString(36).substring(7),
       user_metadata: {
         name,
-        role: 'MEMBER'
+        role: 'member'
       },
       email_confirm: true
     })
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
         id: supabaseUser.user.id,
         email,
         name,
-        role: 'MEMBER'
+        role: 'member'
       }
     })
 

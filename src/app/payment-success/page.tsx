@@ -14,7 +14,7 @@ function PaymentSuccessContent() {
   const [sessionData, setSessionData] = useState<any>(null)
   const [error, setError] = useState('')
   const searchParams = useSearchParams()
-  const sessionId = searchParams.get('session_id')
+  const sessionId = searchParams?.get('session_id')
 
   useEffect(() => {
     if (sessionId) {
