@@ -56,7 +56,10 @@ export async function POST(request: NextRequest) {
     const fileName = `${userId}/${timestamp}_${sanitizedFileName}`
 
     // Supabase Storageにアップロード
-    const bucketName = process.env.SUPABASE_STORAGE_BUCKET_NAME || 'id-documents' // バケット名（環境変数で設定可能）
+    // バケット名を環境変数から取得、なければデフォルト値を使用
+    const bucketName = process.env.SUPABASE_STORAGE_BUCKET_NAME || 'UGS up load' // バケット名
+    
+    console.log('Uploading to bucket:', bucketName) // デバッグ用
     
     const { data, error: uploadError } = await supabaseAdmin.storage
       .from(bucketName)
@@ -72,12 +75,20 @@ export async function POST(request: NextRequest) {
       const errorMessage = uploadError.message || ''
       const errorStatus = (uploadError as any).status || (uploadError as any).statusCode
       
+      console.error('Upload error details:', {
+        message: errorMessage,
+        status: errorStatus,
+        bucketName: bucketName,
+        error: uploadError
+      })
+      
       if (errorMessage.includes('Bucket not found') || errorStatus === 404 || errorStatus === '404') {
         return NextResponse.json(
           { 
-            error: 'ストレージバケットが設定されていません',
-            details: 'Supabaseダッシュボードで「id-documents」という名前のバケットを作成してください。詳細はREADME-SUPABASE-STORAGE.mdを参照してください。',
-            errorCode: 'BUCKET_NOT_FOUND'
+            error: 'ストレージバケットが見つかりません',
+            details: `バケット名「${bucketName}」がSupabaseに存在しないか、名前が一致していません。Supabaseダッシュボードでバケット名を確認してください。`,
+            errorCode: 'BUCKET_NOT_FOUND',
+            bucketName: bucketName
           },
           { status: 500 }
         )
