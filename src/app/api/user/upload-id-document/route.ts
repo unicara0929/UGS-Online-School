@@ -67,6 +67,19 @@ export async function POST(request: NextRequest) {
 
     if (uploadError) {
       console.error('Supabase Storage upload error:', uploadError)
+      
+      // バケットが見つからない場合の特別なエラーメッセージ
+      if (uploadError.message?.includes('Bucket not found') || uploadError.statusCode === '404') {
+        return NextResponse.json(
+          { 
+            error: 'ストレージバケットが設定されていません',
+            details: 'Supabaseダッシュボードで「id-documents」という名前のバケットを作成してください。詳細はREADME-SUPABASE-STORAGE.mdを参照してください。',
+            errorCode: 'BUCKET_NOT_FOUND'
+          },
+          { status: 500 }
+        )
+      }
+      
       return NextResponse.json(
         { error: 'ファイルのアップロードに失敗しました', details: uploadError.message },
         { status: 500 }

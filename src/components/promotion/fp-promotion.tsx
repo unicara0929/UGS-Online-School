@@ -70,6 +70,10 @@ export function FPPromotion() {
       const data = await response.json()
 
       if (!response.ok) {
+        // バケットが見つからない場合の特別なメッセージ
+        if (data.errorCode === 'BUCKET_NOT_FOUND') {
+          throw new Error('ストレージバケットが設定されていません。管理者にお問い合わせください。')
+        }
         throw new Error(data.error || 'アップロードに失敗しました')
       }
 
