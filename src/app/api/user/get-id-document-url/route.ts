@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const bucketName = 'id-documents'
+    const bucketName = process.env.SUPABASE_STORAGE_BUCKET_NAME || 'id-documents' // バケット名（環境変数で設定可能）
 
     // 署名付きURLを生成（1時間有効）
     const { data: urlData, error: urlError } = await supabaseAdmin.storage

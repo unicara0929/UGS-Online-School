@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     const fileName = `${userId}/${timestamp}_${sanitizedFileName}`
 
     // Supabase Storageにアップロード
-    const bucketName = 'id-documents' // バケット名（後で作成が必要）
+    const bucketName = process.env.SUPABASE_STORAGE_BUCKET_NAME || 'id-documents' // バケット名（環境変数で設定可能）
     
     const { data, error: uploadError } = await supabaseAdmin.storage
       .from(bucketName)
