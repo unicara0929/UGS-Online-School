@@ -29,12 +29,18 @@ function PaymentSuccessContent() {
             
             // 決済完了メールを送信
             if (data.session?.metadata?.userEmail && data.session?.metadata?.userName) {
+              // サブスクリプションIDを取得
+              const subscriptionId = typeof data.session.subscription === 'string' 
+                ? data.session.subscription 
+                : data.session.subscription?.id || 'N/A'
+
               fetch('/api/send-payment-success-email', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                   to: data.session.metadata.userEmail, 
-                  name: data.session.metadata.userName 
+                  name: data.session.metadata.userName,
+                  subscriptionId: subscriptionId
                 }),
               }).catch(err => {
                 console.error('Failed to send email:', err)

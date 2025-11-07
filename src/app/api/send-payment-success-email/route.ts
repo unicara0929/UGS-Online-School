@@ -3,7 +3,7 @@ import { sendPaymentConfirmationEmail } from '@/lib/email'
 
 export async function POST(req: Request) {
   try {
-    const { to, name } = await req.json()
+    const { to, name, subscriptionId } = await req.json()
 
     if (!to || !name) {
       return NextResponse.json(
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       to: to,
       userName: name,
       amount: 5500, // ¥5,500
-      subscriptionId: 'N/A', // セッション情報から取得する場合は後で修正
+      subscriptionId: subscriptionId || 'N/A',
       loginUrl: loginUrl,
     })
 
