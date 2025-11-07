@@ -19,6 +19,9 @@ import {
 export function FPPromotion() {
   const { user } = useAuth()
   const [isApplying, setIsApplying] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null)
 
   // モックデータ
   const promotionConditions = {
@@ -28,13 +31,88 @@ export function FPPromotion() {
     isEligible: false
   }
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      // ファイルサイズチェック（10MB以下）
+      if (file.size > 10 * 1024 * 1024) {
+        alert('ファイルサイズは10MB以下にしてください')
+        return
+      }
+      // ファイルタイプチェック
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf']
+      if (!allowedTypes.includes(file.type)) {
+        alert('JPEG、PNG、PDFファイルのみアップロード可能です')
+        return
+      }
+      setSelectedFile(file)
+      setUploadedFileUrl(null)
+    }
+  }
+
+  const handleFileUpload = async () => {
+    if (!selectedFile || !user?.id) {
+      alert('ファイルを選択してください')
+      return
+    }
+
+    setIsUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', selectedFile)
+      formData.append('userId', user.id)
+
+      const response = await fetch('/api/user/upload-id-document', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'アップロードに失敗しました')
+      }
+
+      setUploadedFileUrl(data.fileUrl)
+      alert('身分証のアップロードが完了しました')
+    } catch (error: any) {
+      console.error('Upload error:', error)
+      alert(error.message || 'アップロードに失敗しました')
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
   const handlePromotionApplication = async () => {
+    if (!uploadedFileUrl) {
+      alert('先に身分証をアップロードしてください')
+      return
+    }
+
     setIsApplying(true)
-    // 実際の実装では、身分証アップロードと申請処理を行う
-    setTimeout(() => {
-      setIsApplying(false)
+    try {
+      // 実際の申請処理を実装
+      const response = await fetch('/api/user/fp-promotion-apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user?.id,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || '申請に失敗しました')
+      }
+
       alert('FPエイド昇格申請を送信しました。運営による確認後、昇格が完了します。')
-    }, 2000)
+    } catch (error: any) {
+      console.error('Application error:', error)
+      alert(error.message || '申請に失敗しました')
+    } finally {
+      setIsApplying(false)
+    }
   }
 
   if (user?.role !== 'member') {
@@ -138,18 +216,63 @@ export function FPPromotion() {
                 <p className="text-sm text-slate-600 mb-4">
                   本人確認のため、身分証（運転免許証、パスポート等）の画像をアップロードしてください
                 </p>
-                <div className="flex items-center gap-4">
-                  <Button variant="outline" size="sm">
-                    <Upload className="h-4 w-4 mr-2" />
-                    ファイル選択
-                  </Button>
-                  <span className="text-sm text-slate-500">未選択</span>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/jpg,application/pdf"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                      id="id-document-upload"
+                      disabled={isUploading}
+                    />
+                    <label htmlFor="id-document-upload">
+                      <Button variant="outline" size="sm" asChild disabled={isUploading}>
+                        <span>
+                          <Upload className="h-4 w-4 mr-2" />
+                          {selectedFile ? 'ファイルを変更' : 'ファイル選択'}
+                        </span>
+                      </Button>
+                    </label>
+                    {selectedFile && (
+                      <span className="text-sm text-slate-700">
+                        {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)}MB)
+                      </span>
+                    )}
+                    {!selectedFile && (
+                      <span className="text-sm text-slate-500">未選択</span>
+                    )}
+                  </div>
+                  {selectedFile && !uploadedFileUrl && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleFileUpload}
+                      disabled={isUploading}
+                    >
+                      {isUploading ? 'アップロード中...' : 'アップロード'}
+                    </Button>
+                  )}
+                  {uploadedFileUrl && (
+                    <div className="flex items-center gap-2 text-sm text-green-600">
+                      <CheckCircle className="h-4 w-4" />
+                      <span>アップロード完了</span>
+                      <a
+                        href={uploadedFileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline"
+                      >
+                        確認
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
 
               <Button 
                 className="w-full" 
-                disabled={!promotionConditions.isEligible || isApplying}
+                disabled={!promotionConditions.isEligible || isApplying || !uploadedFileUrl}
                 onClick={handlePromotionApplication}
               >
                 {isApplying ? '申請中...' : 'FPエイド昇格申請'}
