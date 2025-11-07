@@ -69,7 +69,10 @@ export async function POST(request: NextRequest) {
       console.error('Supabase Storage upload error:', uploadError)
       
       // バケットが見つからない場合の特別なエラーメッセージ
-      if (uploadError.message?.includes('Bucket not found') || uploadError.statusCode === '404') {
+      const errorMessage = uploadError.message || ''
+      const errorStatus = (uploadError as any).status || (uploadError as any).statusCode
+      
+      if (errorMessage.includes('Bucket not found') || errorStatus === 404 || errorStatus === '404') {
         return NextResponse.json(
           { 
             error: 'ストレージバケットが設定されていません',
@@ -81,7 +84,7 @@ export async function POST(request: NextRequest) {
       }
       
       return NextResponse.json(
-        { error: 'ファイルのアップロードに失敗しました', details: uploadError.message },
+        { error: 'ファイルのアップロードに失敗しました', details: errorMessage },
         { status: 500 }
       )
     }
