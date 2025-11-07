@@ -41,25 +41,40 @@ function PaymentSuccessContent() {
               })
 
               // 登録完了処理（仮登録ユーザーを正式ユーザーに移行）
-              fetch('/api/complete-registration', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  email: data.session.metadata.userEmail,
-                  name: data.session.metadata.userName,
-                  stripeCustomerId: data.session.customer,
-                  stripeSubscriptionId: data.session.subscription,
-                  currentPeriodEnd: data.session.current_period_end ? new Date(data.session.current_period_end * 1000).toISOString() : null,
-                }),
-              })
-              .then(regRes => {
-                if (!regRes.ok) {
-                  console.error('Failed to complete user registration')
-                } else {
-                  console.log('User registration completed successfully.')
-                }
-              })
-              .catch(regErr => console.error('Error completing user registration:', regErr))
+              const email = data.session.metadata?.userEmail || data.session.customer_email || ''
+              const name = data.session.metadata?.userName || ''
+              const stripeCustomerId = typeof data.session.customer === 'string' 
+                ? data.session.customer 
+                : data.session.customer?.id || null
+              const stripeSubscriptionId = typeof data.session.subscription === 'string' 
+                ? data.session.subscription 
+                : data.session.subscription?.id || null
+
+              if (email && name) {
+                fetch('/api/complete-registration', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    email,
+                    name,
+                    stripeCustomerId,
+                    stripeSubscriptionId,
+                  }),
+                })
+                .then(regRes => regRes.json())
+                .then(regData => {
+                  if (regData.error) {
+                    console.error('Failed to complete user registration:', regData.error)
+                  } else {
+                    console.log('User registration completed successfully:', regData)
+                  }
+                })
+                .catch(regErr => {
+                  console.error('Error completing user registration:', regErr)
+                })
+              } else {
+                console.error('Missing email or name for registration:', { email, name })
+              }
             }
           }
         })
