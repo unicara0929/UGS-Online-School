@@ -5,9 +5,13 @@ import { UserRole } from '@prisma/client'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, name, stripeCustomerId, stripeSubscriptionId } = await request.json()
+    const body = await request.json()
+    const { email, name, stripeCustomerId, stripeSubscriptionId } = body
+
+    console.log('Complete registration request:', { email, name, hasStripeCustomerId: !!stripeCustomerId, hasStripeSubscriptionId: !!stripeSubscriptionId })
 
     if (!email || !name) {
+      console.error('Missing required fields:', { email: !!email, name: !!name })
       return NextResponse.json(
         { error: 'Email and name are required' },
         { status: 400 }
@@ -19,7 +23,10 @@ export async function POST(request: NextRequest) {
       where: { email }
     })
 
+    console.log('Pending user lookup:', { email, found: !!pendingUser })
+
     if (!pendingUser) {
+      console.error('Pending user not found for email:', email)
       return NextResponse.json(
         { error: '仮登録ユーザーが見つかりません' },
         { status: 404 }
@@ -40,10 +47,12 @@ export async function POST(request: NextRequest) {
     if (supabaseError) {
       console.error('Supabase user creation error:', supabaseError)
       return NextResponse.json(
-        { error: 'ユーザー作成に失敗しました' },
+        { error: 'ユーザー作成に失敗しました', details: supabaseError.message },
         { status: 500 }
       )
     }
+
+    console.log('Supabase user created:', { userId: supabaseUser.user.id, email })
 
     // PrismaのUserテーブルにユーザーを作成
     const user = await prisma.user.create({
@@ -55,22 +64,34 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    console.log('Prisma user created:', { userId: user.id, email, role: user.role })
+
     // サブスクリプションを作成
     if (stripeCustomerId && stripeSubscriptionId) {
-      await prisma.subscription.create({
-        data: {
-          userId: user.id,
-          stripeCustomerId,
-          stripeSubscriptionId,
-          status: 'ACTIVE'
-        }
-      })
+      try {
+        await prisma.subscription.create({
+          data: {
+            userId: user.id,
+            stripeCustomerId,
+            stripeSubscriptionId,
+            status: 'ACTIVE'
+          }
+        })
+        console.log('Subscription created:', { userId: user.id, stripeCustomerId, stripeSubscriptionId })
+      } catch (subError: any) {
+        console.error('Failed to create subscription:', subError)
+        // サブスクリプション作成失敗でもユーザー作成は続行
+      }
+    } else {
+      console.warn('No subscription data provided:', { hasStripeCustomerId: !!stripeCustomerId, hasStripeSubscriptionId: !!stripeSubscriptionId })
     }
 
     // 仮登録ユーザーを削除
     await prisma.pendingUser.delete({
       where: { id: pendingUser.id }
     })
+
+    console.log('Registration completed successfully:', { userId: user.id, email })
 
     return NextResponse.json({ 
       success: true, 
@@ -81,10 +102,15 @@ export async function POST(request: NextRequest) {
         role: user.role
       }
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('API error:', error)
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    })
     return NextResponse.json(
-      { error: 'サーバーエラーが発生しました' },
+      { error: 'サーバーエラーが発生しました', details: error.message },
       { status: 500 }
     )
   }

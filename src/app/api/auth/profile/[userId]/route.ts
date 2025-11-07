@@ -35,13 +35,22 @@ export async function GET(
       )
     }
 
+    // Prismaのenum（大文字）を小文字に変換
+    const roleMap: Record<string, string> = {
+      'MEMBER': 'member',
+      'FP': 'fp',
+      'MANAGER': 'manager',
+      'ADMIN': 'admin'
+    }
+    const role = roleMap[user.role] || user.role.toLowerCase()
+
     return NextResponse.json({ 
       success: true,
       user: {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role.toLowerCase(),
+        role: role,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
       }
