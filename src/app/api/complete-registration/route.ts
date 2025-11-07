@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { supabaseAdmin } from '@/lib/supabase'
+import { UserRole } from '@prisma/client'
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,7 +32,7 @@ export async function POST(request: NextRequest) {
       password: 'temp_password_' + Math.random().toString(36).substring(7),
       user_metadata: {
         name,
-        role: 'member'
+        role: 'MEMBER'
       },
       email_confirm: true
     })
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
         id: supabaseUser.user.id,
         email,
         name,
-        role: 'member'
+        role: UserRole.MEMBER
       }
     })
 
