@@ -33,51 +33,90 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Supabaseにユーザーを作成（パスワードは後でユーザーが設定）
-    const { data: supabaseUser, error: supabaseError } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password: 'temp_password_' + Math.random().toString(36).substring(7),
-      user_metadata: {
-        name,
-        role: 'MEMBER'
-      },
-      email_confirm: true
-    })
+    // Supabaseにユーザーが既に存在するか確認
+    let supabaseUser
+    const { data: existingUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers()
+    
+    const existingUser = existingUsers?.users.find(u => u.email === email)
+    
+    if (existingUser) {
+      // 既存のユーザーを使用
+      console.log('Using existing Supabase user:', { userId: existingUser.id, email })
+      supabaseUser = { user: existingUser }
+    } else {
+      // 新規ユーザーを作成
+      const { data: newUser, error: supabaseError } = await supabaseAdmin.auth.admin.createUser({
+        email,
+        password: 'temp_password_' + Math.random().toString(36).substring(7),
+        user_metadata: {
+          name,
+          role: 'MEMBER'
+        },
+        email_confirm: true
+      })
 
-    if (supabaseError) {
-      console.error('Supabase user creation error:', supabaseError)
-      return NextResponse.json(
-        { error: 'ユーザー作成に失敗しました', details: supabaseError.message },
-        { status: 500 }
-      )
+      if (supabaseError) {
+        console.error('Supabase user creation error:', supabaseError)
+        return NextResponse.json(
+          { error: 'ユーザー作成に失敗しました', details: supabaseError.message },
+          { status: 500 }
+        )
+      }
+
+      supabaseUser = newUser
+      console.log('Supabase user created:', { userId: supabaseUser.user.id, email })
     }
 
-    console.log('Supabase user created:', { userId: supabaseUser.user.id, email })
+    const supabaseUserId = supabaseUser.user.id
 
-    // PrismaのUserテーブルにユーザーを作成
-    const user = await prisma.user.create({
-      data: {
-        id: supabaseUser.user.id,
-        email,
-        name,
-        role: UserRole.MEMBER
-      }
+    // PrismaのUserテーブルに既にユーザーが存在するか確認
+    let user
+    const existingPrismaUser = await prisma.user.findUnique({
+      where: { id: supabaseUserId }
     })
 
-    console.log('Prisma user created:', { userId: user.id, email, role: user.role })
+    if (existingPrismaUser) {
+      // 既存のユーザーを使用
+      console.log('Using existing Prisma user:', { userId: existingPrismaUser.id, email })
+      user = existingPrismaUser
+    } else {
+      // 新規ユーザーを作成
+      user = await prisma.user.create({
+        data: {
+          id: supabaseUserId,
+          email,
+          name,
+          role: UserRole.MEMBER
+        }
+      })
+      console.log('Prisma user created:', { userId: user.id, email, role: user.role })
+    }
 
-    // サブスクリプションを作成
+    // サブスクリプションを作成（既に存在する場合はスキップ）
     if (stripeCustomerId && stripeSubscriptionId) {
       try {
-        await prisma.subscription.create({
-          data: {
-            userId: user.id,
-            stripeCustomerId,
-            stripeSubscriptionId,
-            status: 'ACTIVE'
+        const existingSubscription = await prisma.subscription.findFirst({
+          where: {
+            OR: [
+              { stripeCustomerId },
+              { stripeSubscriptionId }
+            ]
           }
         })
-        console.log('Subscription created:', { userId: user.id, stripeCustomerId, stripeSubscriptionId })
+
+        if (!existingSubscription) {
+          await prisma.subscription.create({
+            data: {
+              userId: user.id,
+              stripeCustomerId,
+              stripeSubscriptionId,
+              status: 'ACTIVE'
+            }
+          })
+          console.log('Subscription created:', { userId: user.id, stripeCustomerId, stripeSubscriptionId })
+        } else {
+          console.log('Subscription already exists:', { userId: user.id, subscriptionId: existingSubscription.id })
+        }
       } catch (subError: any) {
         console.error('Failed to create subscription:', subError)
         // サブスクリプション作成失敗でもユーザー作成は続行
