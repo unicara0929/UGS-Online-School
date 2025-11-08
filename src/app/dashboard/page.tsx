@@ -87,12 +87,15 @@ function Dashboard() {
       id: "1",
       title: "月初MTG",
       description: "",
-      date: new Date("2024-01-08T19:00:00"),
+    date: "2024-01-08T19:00:00.000Z",
+    time: "19:00-21:00",
       type: "required",
       isOnline: true,
-      maxParticipants: 50,
+    location: "オンライン（Zoom）",
+    maxParticipants: 50,
       currentParticipants: 25,
-      isRegistered: false
+    isRegistered: false,
+    status: "upcoming"
     }
   ]
 

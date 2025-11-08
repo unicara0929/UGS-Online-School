@@ -5,20 +5,25 @@ export function formatCurrency(amount: number): string {
   }).format(amount)
 }
 
-export function formatDate(date: Date): string {
+function toDate(value: Date | string): Date {
+  if (value instanceof Date) return value
+  return new Date(value)
+}
+
+export function formatDate(date: Date | string): string {
   return new Intl.DateTimeFormat('ja-JP', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-  }).format(date)
+  }).format(toDate(date))
 }
 
-export function formatDateTime(date: Date): string {
+export function formatDateTime(date: Date | string): string {
   return new Intl.DateTimeFormat('ja-JP', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  }).format(date)
+  }).format(toDate(date))
 }

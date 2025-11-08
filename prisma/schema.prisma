@@ -98,15 +98,19 @@ model CourseProgress {
 }
 
 model Event {
-  id            String              @id @default(cuid())
-  title         String
-  description   String?
-  date          DateTime
-  isRequired    Boolean             @default(false)
-  maxCapacity   Int?
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
-  registrations EventRegistration[]
+  id              String              @id @default(cuid())
+  title           String
+  description     String?
+  date            DateTime
+  time            String?
+  type            EventType           @default(OPTIONAL)
+  isOnline        Boolean             @default(true)
+  location        String?
+  maxParticipants Int?
+  status          EventStatus         @default(UPCOMING)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  registrations   EventRegistration[]
 
   @@map("events")
 }
@@ -143,6 +147,18 @@ enum UserRole {
   FP
   MANAGER
   ADMIN
+}
+
+enum EventType {
+  REQUIRED
+  OPTIONAL
+  MANAGER_ONLY
+}
+
+enum EventStatus {
+  UPCOMING
+  COMPLETED
+  CANCELLED
 }
 
 enum SubscriptionStatus {

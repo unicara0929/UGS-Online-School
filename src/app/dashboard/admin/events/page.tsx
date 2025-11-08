@@ -1,49 +1,25 @@
 'use client'
 
+import { useEffect, useMemo, useState } from "react"
+import { format } from "date-fns"
+import { ja } from "date-fns/locale"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { Sidebar } from "@/components/navigation/sidebar"
 import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { LogOut, Plus, Calendar, Clock, MapPin, Users, Video, Edit, Trash2 } from "lucide-react"
-import { useState } from "react"
+import { LogOut, Plus, Calendar, Clock, MapPin, Users, Video, Edit, Trash2, Loader2 } from "lucide-react"
 
 function AdminEventsPageContent() {
   const { user, logout } = useAuth()
   const [showCreateForm, setShowCreateForm] = useState(false)
+  const [events, setEvents] = useState<AdminEventItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // モックデータ
-  const [events, setEvents] = useState([
-    {
-      id: "1",
-      title: "月初MTG",
-      description: "月次定例会議 - 今月の振り返りと来月の目標設定",
-      date: "2024-01-08",
-      time: "19:00-21:00",
-      type: "required",
-      isOnline: true,
-      location: "オンライン（Zoom）",
-      maxParticipants: 100,
-      currentParticipants: 45,
-      status: "upcoming"
-    },
-    {
-      id: "2",
-      title: "FP交流会",
-      description: "FPエイド同士の情報交換とネットワーキング",
-      date: "2024-01-15",
-      time: "19:00-20:30",
-      type: "optional",
-      isOnline: true,
-      location: "オンライン（Zoom）",
-      maxParticipants: 50,
-      currentParticipants: 23,
-      status: "upcoming"
-    }
-  ])
-
-  const [newEvent, setNewEvent] = useState({
+  const [newEvent, setNewEvent] = useState<CreateEventForm>({
     title: "",
     description: "",
     date: "",
@@ -51,33 +27,127 @@ function AdminEventsPageContent() {
     type: "optional",
     isOnline: true,
     location: "",
-    maxParticipants: 50
+    maxParticipants: 50,
+    status: "upcoming",
   })
 
-  const handleCreateEvent = () => {
-    const event = {
-      id: Date.now().toString(),
-      ...newEvent,
-      currentParticipants: 0,
-      status: "upcoming"
+  const fetchEvents = async () => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const response = await fetch("/api/admin/events")
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "イベント情報の取得に失敗しました")
+      }
+
+      const formattedEvents: AdminEventItem[] = data.events.map((event: any) => ({
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        date: event.date,
+        time: event.time,
+        type: event.type,
+        isOnline: event.isOnline,
+        location: event.location,
+        maxParticipants: event.maxParticipants,
+        status: event.status,
+        currentParticipants: event.currentParticipants,
+        registrations: event.registrations,
+      }))
+
+      setEvents(formattedEvents)
+    } catch (err) {
+      console.error("Failed to fetch admin events:", err)
+      setError(err instanceof Error ? err.message : "イベント情報の取得に失敗しました")
+    } finally {
+      setIsLoading(false)
     }
-    setEvents([...events, event])
-    setNewEvent({
-      title: "",
-      description: "",
-      date: "",
-      time: "",
-      type: "optional",
-      isOnline: true,
-      location: "",
-      maxParticipants: 50
-    })
-    setShowCreateForm(false)
   }
 
-  const handleDeleteEvent = (id: string) => {
-    setEvents(events.filter(event => event.id !== id))
+  useEffect(() => {
+    fetchEvents()
+  }, [])
+
+  const handleCreateEvent = async () => {
+    if (!newEvent.title || !newEvent.date) {
+      alert("イベント名と日付は必須です")
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const response = await fetch("/api/admin/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newEvent),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "イベントの作成に失敗しました")
+      }
+
+      setEvents(prev => [...prev, data.event])
+      setNewEvent({
+        title: "",
+        description: "",
+        date: "",
+        time: "",
+        type: "optional",
+        isOnline: true,
+        location: "",
+        maxParticipants: 50,
+        status: "upcoming",
+      })
+      setShowCreateForm(false)
+    } catch (err) {
+      console.error("Failed to create event:", err)
+      alert(err instanceof Error ? err.message : "イベントの作成に失敗しました")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
+
+  const handleDeleteEvent = async (id: string) => {
+    if (!confirm("このイベントを削除しますか？")) return
+
+    setIsSubmitting(true)
+    try {
+      const response = await fetch(`/api/admin/events/${id}`, {
+        method: "DELETE",
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "イベントの削除に失敗しました")
+      }
+
+      setEvents(prev => prev.filter(event => event.id !== id))
+    } catch (err) {
+      console.error("Failed to delete event:", err)
+      alert(err instanceof Error ? err.message : "イベントの削除に失敗しました")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), "yyyy年M月d日(E)", { locale: ja })
+    } catch {
+      return dateString
+    }
+  }
+
+  const totalParticipants = useMemo(
+    () => events.reduce((sum, event) => sum + event.currentParticipants, 0),
+    [events]
+  )
 
   const getEventTypeColor = (type: string) => {
     switch (type) {
@@ -135,12 +205,23 @@ function AdminEventsPageContent() {
               <div>
                 <h2 className="text-2xl font-bold text-slate-900">イベント管理</h2>
                 <p className="text-slate-600">イベントの作成・編集・削除</p>
+                <p className="text-xs text-slate-400 mt-1">
+                  参加者合計: {totalParticipants}名
+                </p>
               </div>
               <Button onClick={() => setShowCreateForm(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 新規イベント作成
               </Button>
             </div>
+
+            {error && (
+              <Card className="border-red-200 bg-red-50">
+                <CardContent className="py-4">
+                  <p className="text-sm text-red-600">{error}</p>
+                </CardContent>
+              </Card>
+            )}
 
             {/* 新規イベント作成フォーム */}
             {showCreateForm && (
@@ -191,7 +272,7 @@ function AdminEventsPageContent() {
                       </label>
                       <select
                         value={newEvent.type}
-                        onChange={(e) => setNewEvent({...newEvent, type: e.target.value})}
+                        onChange={(e) => setNewEvent({...newEvent, type: e.target.value as CreateEventForm['type']})}
                         className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
                       >
                         <option value="optional">任意</option>
@@ -205,8 +286,14 @@ function AdminEventsPageContent() {
                       </label>
                       <input
                         type="number"
-                        value={newEvent.maxParticipants}
-                        onChange={(e) => setNewEvent({...newEvent, maxParticipants: parseInt(e.target.value)})}
+                        value={newEvent.maxParticipants ?? ""}
+                        onChange={(e) => {
+                          const value = e.target.value
+                          setNewEvent({
+                            ...newEvent,
+                            maxParticipants: value === "" ? null : parseInt(value),
+                          })
+                        }}
                         className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
                       />
                     </div>
@@ -247,12 +334,49 @@ function AdminEventsPageContent() {
                         placeholder="オンライン（Zoom）または会場名"
                       />
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        ステータス
+                      </label>
+                      <select
+                        value={newEvent.status}
+                        onChange={(e) => setNewEvent({...newEvent, status: e.target.value as CreateEventForm['status']})}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                      >
+                        <option value="upcoming">予定</option>
+                        <option value="completed">完了</option>
+                        <option value="cancelled">中止</option>
+                      </select>
+                    </div>
                   </div>
                   <div className="flex gap-2 mt-4">
-                    <Button onClick={handleCreateEvent}>
-                      イベント作成
+                    <Button onClick={handleCreateEvent} disabled={isSubmitting}>
+                      {isSubmitting ? (
+                        <span className="flex items-center">
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          作成中...
+                        </span>
+                      ) : (
+                        "イベント作成"
+                      )}
                     </Button>
-                    <Button variant="outline" onClick={() => setShowCreateForm(false)}>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowCreateForm(false)
+                        setNewEvent({
+                          title: "",
+                          description: "",
+                          date: "",
+                          time: "",
+                          type: "optional",
+                          isOnline: true,
+                          location: "",
+                          maxParticipants: 50,
+                          status: "upcoming",
+                        })
+                      }}
+                    >
                       キャンセル
                     </Button>
                   </div>
@@ -261,53 +385,88 @@ function AdminEventsPageContent() {
             )}
 
             {/* イベント一覧 */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {events.map(event => (
-                <Card key={event.id} className="hover:shadow-xl transition-all duration-300">
-                  <CardHeader>
-                    <div className="flex items-center justify-between mb-2">
-                      <Badge variant={getEventTypeColor(event.type)}>
-                        {getEventTypeLabel(event.type)}
-                      </Badge>
-                      <div className="flex items-center space-x-2">
-                        <Button size="sm" variant="outline">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => handleDeleteEvent(event.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="flex items-center text-slate-500">
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  読み込み中です
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {events.map(event => (
+                  <Card key={event.id} className="hover:shadow-xl transition-all duration-300">
+                    <CardHeader>
+                      <div className="flex items-center justify-between mb-2">
+                        <Badge variant={getEventTypeColor(event.type)}>
+                          {getEventTypeLabel(event.type)}
+                        </Badge>
+                        <div className="flex items-center space-x-2">
+                          <Button size="sm" variant="outline">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDeleteEvent(event.id)}
+                            disabled={isSubmitting}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                    <CardTitle className="text-lg">{event.title}</CardTitle>
-                    <CardDescription>{event.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex items-center text-sm text-slate-600">
-                        <Calendar className="h-4 w-4 mr-2" />
-                        {event.date}
+                      <CardTitle className="text-lg">{event.title}</CardTitle>
+                      <CardDescription>{event.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex items-center text-sm text-slate-600">
+                          <Calendar className="h-4 w-4 mr-2" />
+                          {formatDate(event.date)}
+                        </div>
+                        <div className="flex items-center text-sm text-slate-600">
+                          <Clock className="h-4 w-4 mr-2" />
+                          {event.time || "時間未定"}
+                        </div>
+                        <div className="flex items-center text-sm text-slate-600">
+                          {event.isOnline ? (
+                            <Video className="h-4 w-4 mr-2" />
+                          ) : (
+                            <MapPin className="h-4 w-4 mr-2" />
+                          )}
+                          {event.location || (event.isOnline ? "オンライン" : "未設定")}
+                        </div>
+                        <div className="flex items-center text-sm text-slate-600">
+                          <Users className="h-4 w-4 mr-2" />
+                          {event.currentParticipants}/{event.maxParticipants ?? "∞"}名
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          ステータス: {event.status === "upcoming" ? "予定" : event.status === "completed" ? "完了" : "中止"}
+                        </div>
                       </div>
-                      <div className="flex items-center text-sm text-slate-600">
-                        <Clock className="h-4 w-4 mr-2" />
-                        {event.time}
-                      </div>
-                      <div className="flex items-center text-sm text-slate-600">
-                        {event.isOnline ? (
-                          <Video className="h-4 w-4 mr-2" />
-                        ) : (
-                          <MapPin className="h-4 w-4 mr-2" />
-                        )}
-                        {event.location}
-                      </div>
-                      <div className="flex items-center text-sm text-slate-600">
-                        <Users className="h-4 w-4 mr-2" />
-                        {event.currentParticipants}/{event.maxParticipants}名
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+
+                      {event.registrations.length > 0 ? (
+                        <div className="mt-4">
+                          <p className="text-sm font-semibold text-slate-700 mb-1">参加者一覧</p>
+                          <ul className="space-y-1 max-h-32 overflow-y-auto">
+                            {event.registrations.map((registration) => (
+                              <li key={registration.id} className="text-xs text-slate-600 bg-slate-50 px-2 py-1 rounded">
+                                <span className="font-medium">{registration.userName || "名前未設定"}</span>
+                                <span className="ml-2 text-slate-500">{registration.userEmail || "メール未設定"}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-slate-500 mt-4">
+                          参加者はまだいません
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         </main>
       </div>
@@ -321,4 +480,37 @@ export default function AdminEventsPage() {
       <AdminEventsPageContent />
     </ProtectedRoute>
   )
+}
+
+type AdminEventItem = {
+  id: string
+  title: string
+  description: string
+  date: string
+  time: string
+  type: 'required' | 'optional' | 'manager-only'
+  isOnline: boolean
+  location: string
+  maxParticipants: number | null
+  status: 'upcoming' | 'completed' | 'cancelled'
+  currentParticipants: number
+  registrations: Array<{
+    id: string
+    userId: string
+    userName: string
+    userEmail: string
+    registeredAt: string
+  }>
+}
+
+type CreateEventForm = {
+  title: string
+  description: string
+  date: string
+  time: string
+  type: 'required' | 'optional' | 'manager-only'
+  isOnline: boolean
+  location: string
+  maxParticipants: number | null
+  status: 'upcoming' | 'completed' | 'cancelled'
 }

@@ -1,75 +1,83 @@
 'use client'
 
+import { useEffect, useMemo, useState } from "react"
+import { format } from "date-fns"
+import { ja } from "date-fns/locale"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { Sidebar } from "@/components/navigation/sidebar"
 import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { LogOut, Calendar, Clock, MapPin, Users, Video } from "lucide-react"
+import { LogOut, Calendar, Clock, MapPin, Users, Video, Loader2 } from "lucide-react"
 
 function EventsPageContent() {
   const { user, logout } = useAuth()
+  const [events, setEvents] = useState<EventItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // モックデータ
-  const events = [
-    {
-      id: "1",
-      title: "月初MTG",
-      description: "月次定例会議 - 今月の振り返りと来月の目標設定",
-      date: "2024年1月8日",
-      time: "19:00-21:00",
-      type: "required" as const,
-      isOnline: true,
-      location: "オンライン（Zoom）",
-      maxParticipants: 100,
-      currentParticipants: 45,
-      isRegistered: false,
-      status: "upcoming" as const
-    },
-    {
-      id: "2",
-      title: "FP交流会",
-      description: "FPエイド同士の情報交換とネットワーキング",
-      date: "2024年1月15日",
-      time: "19:00-20:30",
-      type: "optional" as const,
-      isOnline: true,
-      location: "オンライン（Zoom）",
-      maxParticipants: 50,
-      currentParticipants: 23,
-      isRegistered: true,
-      status: "upcoming" as const
-    },
-    {
-      id: "3",
-      title: "スキルアップセミナー",
-      description: "最新の金融知識と実践的なスキルを学ぶ",
-      date: "2024年1月22日",
-      time: "19:00-21:00",
-      type: "optional" as const,
-      isOnline: false,
-      location: "東京都渋谷区",
-      maxParticipants: 30,
-      currentParticipants: 18,
-      isRegistered: false,
-      status: "upcoming" as const
-    },
-    {
-      id: "4",
-      title: "マネージャー特別セミナー",
-      description: "マネージャー限定のリーダーシップ研修",
-      date: "2024年1月25日",
-      time: "19:00-21:30",
-      type: "manager-only" as const,
-      isOnline: true,
-      location: "オンライン（Zoom）",
-      maxParticipants: 20,
-      currentParticipants: 8,
-      isRegistered: false,
-      status: "upcoming" as const
+  useEffect(() => {
+    const fetchEvents = async () => {
+      if (!user?.id) {
+        return
+      }
+
+      setIsLoading(true)
+      setError(null)
+
+      try {
+        const response = await fetch(`/api/events?userId=${encodeURIComponent(user.id)}`)
+        const data = await response.json()
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || "イベントの取得に失敗しました")
+        }
+
+        const formattedEvents: EventItem[] = data.events.map((event: any) => ({
+          id: event.id,
+          title: event.title,
+          description: event.description,
+          date: event.date,
+          time: event.time,
+          type: event.type,
+          isOnline: event.isOnline,
+          location: event.location,
+          maxParticipants: event.maxParticipants,
+          currentParticipants: event.currentParticipants,
+          isRegistered: event.isRegistered,
+          status: event.status,
+        }))
+
+        setEvents(formattedEvents)
+      } catch (err) {
+        console.error("Failed to fetch events:", err)
+        setError(err instanceof Error ? err.message : "イベントの取得に失敗しました")
+      } finally {
+        setIsLoading(false)
+      }
     }
-  ]
+
+    fetchEvents()
+  }, [user?.id])
+
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), "yyyy年M月d日(E)", { locale: ja })
+    } catch {
+      return dateString
+    }
+  }
+
+  const visibleEvents = useMemo(() => {
+    return events.filter(event => {
+      if (event.type === 'manager-only') {
+        return user?.role === 'manager' || user?.role === 'admin'
+      }
+      return true
+    })
+  }, [events, user?.role])
 
   const getEventTypeColor = (type: string) => {
     switch (type) {
@@ -93,15 +101,53 @@ function EventsPageContent() {
     if (event.type === 'manager-only' && user?.role !== 'manager' && user?.role !== 'admin') {
       return false
     }
+    if (event.maxParticipants !== null && event.maxParticipants !== undefined) {
+      return event.currentParticipants < event.maxParticipants
+    }
     return true
   }
 
-  const filteredEvents = events.filter(event => {
-    if (event.type === 'manager-only') {
-      return user?.role === 'manager' || user?.role === 'admin'
+  const handleToggleRegistration = async (event: EventItem) => {
+    if (!user?.id) return
+
+    const action = event.isRegistered ? 'unregister' : 'register'
+
+    setIsSubmitting(true)
+    try {
+      const response = await fetch('/api/events/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          eventId: event.id,
+          action,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || '処理に失敗しました')
+      }
+
+      setEvents(prev =>
+        prev.map(item =>
+          item.id === event.id
+            ? {
+                ...item,
+                isRegistered: action === 'register',
+                currentParticipants: data.currentParticipants ?? item.currentParticipants,
+              }
+            : item
+        )
+      )
+    } catch (err) {
+      console.error('Failed to update registration:', err)
+      alert(err instanceof Error ? err.message : '処理に失敗しました')
+    } finally {
+      setIsSubmitting(false)
     }
-    return true
-  })
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
@@ -144,8 +190,24 @@ function EventsPageContent() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {filteredEvents.map(event => (
+            {error && (
+              <Card className="border-red-200 bg-red-50">
+                <CardContent className="py-4">
+                  <p className="text-sm text-red-600">{error}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="flex items-center text-slate-500">
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  読み込み中です
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {visibleEvents.map(event => (
                 <Card key={event.id} className="hover:shadow-xl transition-all duration-300">
                   <CardHeader>
                     <div className="flex items-center justify-between mb-2">
@@ -164,11 +226,11 @@ function EventsPageContent() {
                     <div className="space-y-3">
                       <div className="flex items-center text-sm text-slate-600">
                         <Calendar className="h-4 w-4 mr-2" />
-                        {event.date}
+                          {formatDate(event.date)}
                       </div>
                       <div className="flex items-center text-sm text-slate-600">
                         <Clock className="h-4 w-4 mr-2" />
-                        {event.time}
+                          {event.time || '時間未定'}
                       </div>
                       <div className="flex items-center text-sm text-slate-600">
                         {event.isOnline ? (
@@ -186,6 +248,8 @@ function EventsPageContent() {
                           size="sm" 
                           variant={event.isRegistered ? "outline" : "default"}
                           className="flex-1"
+                          disabled={isSubmitting}
+                          onClick={() => handleToggleRegistration(event)}
                         >
                           {event.isRegistered ? "キャンセル" : "申し込む"}
                         </Button>
@@ -205,12 +269,19 @@ function EventsPageContent() {
                         マネージャー限定イベントです
                       </div>
                     )}
+
+                    {event.maxParticipants !== null && event.maxParticipants !== undefined && (
+                      <div className="mt-2 text-xs text-slate-500">
+                        定員: {event.currentParticipants}/{event.maxParticipants}名
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
-            {filteredEvents.length === 0 && (
+            {!isLoading && visibleEvents.length === 0 && (
               <Card>
                 <CardContent className="text-center py-8">
                   <Calendar className="h-12 w-12 text-slate-400 mx-auto mb-4" />
@@ -231,4 +302,19 @@ export default function EventsPage() {
       <EventsPageContent />
     </ProtectedRoute>
   )
+}
+
+type EventItem = {
+  id: string
+  title: string
+  description: string
+  date: string
+  time: string
+  type: 'required' | 'optional' | 'manager-only'
+  isOnline: boolean
+  location: string
+  maxParticipants: number | null
+  currentParticipants: number
+  isRegistered: boolean
+  status: 'upcoming' | 'completed' | 'cancelled'
 }
