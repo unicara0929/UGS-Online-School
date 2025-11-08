@@ -16,14 +16,14 @@
 
 1. Supabaseダッシュボードでバケットを削除
 2. 新しいバケットを作成：
-   - **Name**: `ugs-id-documents`（スペースなし、小文字）
+   - **Name**: `UGS-up-load`（現在の推奨名）
    - **Public bucket**: `OFF`
    - **File size limit**: `10 MB`
    - **Allowed MIME types**: `image/jpeg,image/png,image/jpg,application/pdf`
 
 3. Vercelの環境変数を設定：
    - **Name**: `SUPABASE_STORAGE_BUCKET_NAME`
-   - **Value**: `ugs-id-documents`
+   - **Value**: `UGS-up-load`
 
 4. RLSポリシーを更新：
    ```sql
@@ -46,7 +46,7 @@
 ## 🚨 注意点
 
 - バケット名は大文字小文字を区別します
-- バケット名にスペースが含まれる場合、問題が発生する可能性があります
+- バケット名にスペースが含まれる場合、問題が発生する可能性があります（現在は `UGS-up-load` を利用中）
 - バケット名は変更できないため、削除して再作成する必要があります
 
 ## 📝 次のステップ

@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const bucketName = process.env.SUPABASE_STORAGE_BUCKET_NAME || 'UGS up load' // バケット名
+    const bucketName = process.env.SUPABASE_STORAGE_BUCKET_NAME || 'UGS-up-load' // バケット名
 
     // 署名付きURLを生成（1時間有効）
     const { data: urlData, error: urlError } = await supabaseAdmin.storage

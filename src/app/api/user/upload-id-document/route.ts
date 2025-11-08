@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
 
     // Supabase Storageにアップロード
     // バケット名を環境変数から取得、なければデフォルト値を使用
-    const bucketName = process.env.SUPABASE_STORAGE_BUCKET_NAME || 'UGS up load' // バケット名
+    const bucketName = process.env.SUPABASE_STORAGE_BUCKET_NAME || 'UGS-up-load' // バケット名
     
     console.log('Uploading to bucket:', bucketName) // デバッグ用
     
