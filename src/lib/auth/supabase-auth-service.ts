@@ -58,6 +58,14 @@ export class SupabaseAuthService {
           errorString: String(profileError)
         })
         
+        // データベース接続エラーの場合
+        if (profileError.constructor?.name === 'PrismaClientInitializationError' || 
+            profileError.message?.includes('Can\'t reach database server') ||
+            profileError.message?.includes('database server')) {
+          console.error('Database connection error detected during login')
+          throw new Error('データベースに接続できません。しばらく待ってから再度お試しください。')
+        }
+        
         // ユーザーが見つからない場合（404）、自動的にプロファイルを作成
         const errorMessage = String(profileError.message || profileError || '')
         const errorString = String(profileError)
@@ -108,6 +116,13 @@ export class SupabaseAuthService {
               response: createError.response
             })
             
+            // データベース接続エラーの場合
+            if (createError.constructor?.name === 'PrismaClientInitializationError' || 
+                createError.message?.includes('Can\'t reach database server') ||
+                createError.message?.includes('database server')) {
+              throw new Error('データベースに接続できません。しばらく待ってから再度お試しください。')
+            }
+            
             // 既に存在する場合のエラーをチェック
             const createErrorMessage = String(createError.message || '')
             if (createErrorMessage.includes('409') || createErrorMessage.includes('既に登録')) {
@@ -145,6 +160,12 @@ export class SupabaseAuthService {
             console.log('Profile created successfully after non-404 error:', newUser)
             return newUser
           } catch (createError: any) {
+            // データベース接続エラーの場合
+            if (createError.constructor?.name === 'PrismaClientInitializationError' || 
+                createError.message?.includes('Can\'t reach database server') ||
+                createError.message?.includes('database server')) {
+              throw new Error('データベースに接続できません。しばらく待ってから再度お試しください。')
+            }
             // プロファイル作成に失敗した場合、元のエラーを投げる
             throw new Error(`ログインは成功しましたが、ユーザー情報の取得に失敗しました: ${profileError.message}`)
           }

@@ -56,8 +56,24 @@ export async function GET(
     console.error('Error details:', {
       message: error.message,
       code: error.code,
-      stack: error.stack
+      stack: error.stack,
+      errorName: error.constructor?.name
     })
+    
+    // データベース接続エラーの場合
+    if (error.constructor?.name === 'PrismaClientInitializationError' || 
+        error.message?.includes('Can\'t reach database server') ||
+        error.message?.includes('database server')) {
+      console.error('Database connection error detected')
+      return NextResponse.json(
+        { 
+          error: 'データベースに接続できません。しばらく待ってから再度お試しください。',
+          details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        },
+        { status: 503 } // Service Unavailable
+      )
+    }
+    
     // Prisma接続失敗時もUIは落とさない
     return NextResponse.json(
       { 
