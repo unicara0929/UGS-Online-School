@@ -203,10 +203,71 @@ export class SupabaseAuthService {
       }
 
       // ユーザープロファイルを取得
-      const user = await this.getUserProfile(session.user.id)
-      this.currentUser = user
-
-      return user
+      try {
+        const user = await this.getUserProfile(session.user.id)
+        this.currentUser = user
+        return user
+      } catch (profileError: any) {
+        console.error('Get user profile error in getCurrentUser:', profileError)
+        
+        // 404エラーの場合、自動的にプロファイルを作成
+        const errorMessage = profileError.message || ''
+        const isNotFoundError = 
+          errorMessage.includes('404') || 
+          errorMessage.includes('見つかりません') || 
+          errorMessage.includes('not found') ||
+          (profileError instanceof Error && profileError.message.includes('404'))
+        
+        if (isNotFoundError) {
+          console.log('User profile not found in getCurrentUser, creating new profile...')
+          try {
+            // Supabaseのユーザー情報から名前を取得
+            const userName = session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User'
+            // Supabaseのuser_metadataからロールを取得（大文字小文字を考慮）
+            let userRole = session.user.user_metadata?.role || 'MEMBER'
+            // 大文字の場合は小文字に変換
+            if (typeof userRole === 'string') {
+              userRole = userRole.toLowerCase()
+            }
+            
+            console.log('Creating profile in getCurrentUser with:', { 
+              userId: session.user.id, 
+              email: session.user.email, 
+              name: userName, 
+              role: userRole 
+            })
+            
+            // プロファイルを作成
+            const newUser = await this.createUserProfile(
+              session.user.id,
+              session.user.email || '',
+              userName,
+              userRole as UserRole
+            )
+            this.currentUser = newUser
+            console.log('Profile created successfully in getCurrentUser:', newUser)
+            return newUser
+          } catch (createError: any) {
+            console.error('Failed to create user profile in getCurrentUser:', createError)
+            // 既に存在する場合のエラーをチェック
+            const createErrorMessage = createError.message || ''
+            if (createErrorMessage.includes('409') || createErrorMessage.includes('既に登録')) {
+              // 既に存在する場合は、再度取得を試みる
+              try {
+                const existingUser = await this.getUserProfile(session.user.id)
+                this.currentUser = existingUser
+                console.log('Retrieved existing user after create conflict in getCurrentUser:', existingUser)
+                return existingUser
+              } catch (retryError) {
+                console.error('Failed to retrieve existing user in getCurrentUser:', retryError)
+                return null
+              }
+            }
+            return null
+          }
+        }
+        return null
+      }
     } catch (error) {
       console.error('Get current user error:', error)
       return null
