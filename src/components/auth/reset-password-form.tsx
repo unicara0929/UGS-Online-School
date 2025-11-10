@@ -34,6 +34,26 @@ export function ResetPasswordForm() {
       return
     }
 
+    // URLハッシュフラグメントからエラーを確認
+    const hash = window.location.hash
+    const hashParams = new URLSearchParams(hash.substring(1)) // #を削除
+    
+    // エラーが含まれている場合
+    if (hashParams.has('error')) {
+      const errorCode = hashParams.get('error_code')
+      const errorDescription = hashParams.get('error_description')
+      
+      if (errorCode === 'otp_expired') {
+        setError('リセットリンクが期限切れです。再度パスワードリセットを申請してください。')
+      } else if (errorCode === 'access_denied') {
+        setError('アクセスが拒否されました。リセットリンクが無効または期限切れの可能性があります。')
+      } else {
+        setError(errorDescription || 'リセットリンクの処理中にエラーが発生しました。')
+      }
+      setIsCheckingSession(false)
+      return
+    }
+
     // Supabaseのセッションを確認（リセットリンクから自動的にセッションが確立される）
     const checkSession = async () => {
       try {
@@ -48,7 +68,6 @@ export function ResetPasswordForm() {
         }
 
         // URLハッシュフラグメントを確認
-        const hash = window.location.hash
         if (hash.includes('access_token') || hash.includes('type=recovery')) {
           // ハッシュフラグメントがある場合、Supabaseが自動的にセッションを確立するのを待つ
           console.log('Hash fragment detected, waiting for session...')
@@ -182,6 +201,29 @@ export function ResetPasswordForm() {
                     リセットリンクを確認しています。しばらくお待ちください。
                   </p>
                 </div>
+              </div>
+            </div>
+          ) : error ? (
+            <div className="space-y-4">
+              <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-3">
+                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-red-800">エラー</p>
+                  <p className="text-sm text-red-700 mt-1">{error}</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <Link href="/forgot-password">
+                  <Button className="w-full" variant="outline">
+                    パスワードリセットを再申請
+                  </Button>
+                </Link>
+                <Link href="/login">
+                  <Button className="w-full" variant="ghost">
+                    <ArrowLeft className="h-4 w-4 mr-1" />
+                    ログインページに戻る
+                  </Button>
+                </Link>
               </div>
             </div>
           ) : success ? (
