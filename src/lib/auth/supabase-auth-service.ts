@@ -50,8 +50,31 @@ export class SupabaseAuthService {
         return user
       } catch (profileError: any) {
         console.error('Get user profile error after login:', profileError)
-        // プロファイル取得に失敗した場合でも、Supabase認証は成功している
-        throw new Error(`ログインは成功しましたが、ユーザー情報の取得に失敗しました: ${profileError.message}`)
+        
+        // ユーザーが見つからない場合（404）、自動的にプロファイルを作成
+        if (profileError.message?.includes('404') || profileError.message?.includes('見つかりません')) {
+          console.log('User profile not found, creating new profile...')
+          try {
+            // Supabaseのユーザー情報から名前を取得
+            const userName = data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User'
+            const userRole = data.user.user_metadata?.role || 'member'
+            
+            // プロファイルを作成
+            const newUser = await this.createUserProfile(
+              data.user.id,
+              data.user.email || email,
+              userName,
+              userRole.toLowerCase() as UserRole
+            )
+            this.currentUser = newUser
+            return newUser
+          } catch (createError: any) {
+            console.error('Failed to create user profile:', createError)
+            throw new Error(`ログインは成功しましたが、ユーザープロファイルの作成に失敗しました: ${createError.message}`)
+          }
+        } else {
+          throw new Error(`ログインは成功しましたが、ユーザー情報の取得に失敗しました: ${profileError.message}`)
+        }
       }
     } catch (error) {
       console.error('Login error:', error)
@@ -170,10 +193,21 @@ export class SupabaseAuthService {
       })
 
       if (!response.ok) {
-        throw new Error('ユーザープロファイルの作成に失敗しました')
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('Create profile API error:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData
+        })
+        throw new Error(errorData.error || `ユーザープロファイルの作成に失敗しました (${response.status})`)
       }
 
       const userData = await response.json()
+      
+      if (!userData.user) {
+        throw new Error('ユーザープロファイルの作成に失敗しました')
+      }
+      
       return userData.user
     } catch (error) {
       console.error('Create profile error:', error)
