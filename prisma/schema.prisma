@@ -31,6 +31,8 @@ model User {
   lpMeetingsAsMember      LPMeeting[]              @relation("LPMeetingMember")
   lpMeetingsAsFP          LPMeeting[]              @relation("LPMeetingFP")
   lpMeetingsAssigned      LPMeeting[]              @relation("LPMeetingAssigner")
+  basicTestResults        BasicTestResult[]
+  surveySubmissions       SurveySubmission[]
 
   @@map("users")
 }
@@ -385,4 +387,57 @@ enum MeetingPlatform {
   GOOGLE_MEET
   TEAMS
   OTHER
+}
+
+model BasicTest {
+  id           String            @id @default(cuid())
+  title        String
+  questions    Json // 問題の配列
+  passingScore Int               @default(70) // 合格点（%）
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  results      BasicTestResult[]
+
+  @@map("basic_tests")
+}
+
+model BasicTestResult {
+  id          String    @id @default(cuid())
+  userId      String
+  testId      String
+  score       Int // 得点（%）
+  answers     Json // 回答の配列
+  isPassed    Boolean // 合格したかどうか
+  completedAt DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  test        BasicTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, testId])
+  @@map("basic_test_results")
+}
+
+model Survey {
+  id          String             @id @default(cuid())
+  title       String
+  questions   Json // 設問の配列
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  submissions SurveySubmission[]
+
+  @@map("surveys")
+}
+
+model SurveySubmission {
+  id          String   @id @default(cuid())
+  userId      String
+  surveyId    String
+  answers     Json // 回答の配列
+  submittedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  survey      Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, surveyId])
+  @@map("survey_submissions")
 }
