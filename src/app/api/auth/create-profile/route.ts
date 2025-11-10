@@ -94,6 +94,15 @@ export async function POST(request: NextRequest) {
       stack: error.stack
     })
     
+    // リクエストボディからuserIdを取得（エラー時でも使用可能にするため）
+    let userId: string | undefined
+    try {
+      const body = await request.json().catch(() => null)
+      userId = body?.userId
+    } catch {
+      // リクエストボディの取得に失敗した場合は無視
+    }
+    
     // 重複エラーの場合
     if (error.code === 'P2002') {
       // 重複フィールドを特定
@@ -104,7 +113,7 @@ export async function POST(request: NextRequest) {
           { status: 409 }
         )
       }
-      if (Array.isArray(target) && target.includes('id')) {
+      if (Array.isArray(target) && target.includes('id') && userId) {
         // IDが重複している場合、既存ユーザーを取得して返す
         try {
           const existingUser = await prisma.user.findUnique({
