@@ -52,6 +52,34 @@ async function testAPI() {
     results.push(await testPromotionAPI(fpUser.id))
     console.log('')
 
+    // 5. 基礎テストAPIのテスト
+    console.log('5️⃣ 基礎テストAPIのテスト...')
+    const memberUser = testUsers.find(u => u.email === 'test-member@example.com')
+    if (memberUser) {
+      results.push(await testBasicTestAPI(memberUser.id))
+    } else {
+      results.push({ name: '基礎テストAPI', success: false, error: 'テストユーザーが見つかりません' })
+    }
+    console.log('')
+
+    // 6. アンケートAPIのテスト
+    console.log('6️⃣ アンケートAPIのテスト...')
+    if (memberUser) {
+      results.push(await testSurveyAPI(memberUser.id))
+    } else {
+      results.push({ name: 'アンケートAPI', success: false, error: 'テストユーザーが見つかりません' })
+    }
+    console.log('')
+
+    // 7. LP面談APIのテスト
+    console.log('7️⃣ LP面談APIのテスト...')
+    if (memberUser) {
+      results.push(await testLPMeetingAPI(memberUser.id))
+    } else {
+      results.push({ name: 'LP面談API', success: false, error: 'テストユーザーが見つかりません' })
+    }
+    console.log('')
+
     // 結果サマリー
     console.log('📊 テスト結果サマリー:')
     console.log('='.repeat(50))
@@ -80,7 +108,7 @@ async function getTestUsers() {
     const users = await prisma.user.findMany({
       where: {
         email: {
-          in: ['test-referrer@example.com', 'test-referred@example.com', 'test-fp@example.com']
+          in: ['test-referrer@example.com', 'test-referred@example.com', 'test-fp@example.com', 'test-member@example.com']
         }
       },
       select: {
@@ -204,6 +232,104 @@ async function testPromotionAPI(userId: string): Promise<TestResult> {
   } catch (error: any) {
     return {
       name: '昇格API',
+      success: false,
+      error: error.message
+    }
+  }
+}
+
+async function testBasicTestAPI(userId: string): Promise<TestResult> {
+  try {
+    // 基礎テストを取得
+    const testResponse = await fetch(`${BASE_URL}/api/basic-test`)
+    if (!testResponse.ok) {
+      return {
+        name: '基礎テスト取得',
+        success: false,
+        error: `HTTP ${testResponse.status}`
+      }
+    }
+    const testData = await testResponse.json()
+    console.log(`  ✅ 基礎テスト取得: ${testData.test?.title || 'N/A'}`)
+
+    // テスト結果を取得
+    const resultsResponse = await fetch(`${BASE_URL}/api/basic-test?userId=${userId}`)
+    if (resultsResponse.ok) {
+      const resultsData = await resultsResponse.json()
+      console.log(`  ✅ テスト結果取得: ${resultsData.results?.length || 0}件`)
+    }
+
+    return {
+      name: '基礎テストAPI',
+      success: true,
+      data: testData
+    }
+  } catch (error: any) {
+    return {
+      name: '基礎テストAPI',
+      success: false,
+      error: error.message
+    }
+  }
+}
+
+async function testSurveyAPI(userId: string): Promise<TestResult> {
+  try {
+    // アンケートを取得
+    const surveyResponse = await fetch(`${BASE_URL}/api/survey`)
+    if (!surveyResponse.ok) {
+      return {
+        name: 'アンケート取得',
+        success: false,
+        error: `HTTP ${surveyResponse.status}`
+      }
+    }
+    const surveyData = await surveyResponse.json()
+    console.log(`  ✅ アンケート取得: ${surveyData.survey?.title || 'N/A'}`)
+
+    // アンケート提出を取得
+    const submissionResponse = await fetch(`${BASE_URL}/api/survey?userId=${userId}`)
+    if (submissionResponse.ok) {
+      const submissionData = await submissionResponse.json()
+      console.log(`  ✅ アンケート提出取得: ${submissionData.submission ? '提出済み' : '未提出'}`)
+    }
+
+    return {
+      name: 'アンケートAPI',
+      success: true,
+      data: surveyData
+    }
+  } catch (error: any) {
+    return {
+      name: 'アンケートAPI',
+      success: false,
+      error: error.message
+    }
+  }
+}
+
+async function testLPMeetingAPI(userId: string): Promise<TestResult> {
+  try {
+    // LP面談情報を取得
+    const meetingResponse = await fetch(`${BASE_URL}/api/lp-meetings/my-meeting?userId=${userId}`)
+    if (!meetingResponse.ok) {
+      return {
+        name: 'LP面談情報取得',
+        success: false,
+        error: `HTTP ${meetingResponse.status}`
+      }
+    }
+    const meetingData = await meetingResponse.json()
+    console.log(`  ✅ LP面談情報取得: ${meetingData.meeting ? `ステータス: ${meetingData.meeting.status}` : '面談なし'}`)
+
+    return {
+      name: 'LP面談API',
+      success: true,
+      data: meetingData
+    }
+  } catch (error: any) {
+    return {
+      name: 'LP面談API',
       success: false,
       error: error.message
     }
