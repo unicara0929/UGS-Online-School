@@ -30,15 +30,29 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // タイムアウト設定（8秒）
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('リクエストがタイムアウトしました')), 8000)
+    })
+
     // 昇格可能性をチェック
-    const eligibility = await checkPromotionEligibility(userId, prismaTargetRole)
+    const eligibilityPromise = checkPromotionEligibility(userId, prismaTargetRole)
+    const eligibility = await Promise.race([eligibilityPromise, timeoutPromise]) as Awaited<ReturnType<typeof checkPromotionEligibility>>
 
     return NextResponse.json({
       success: true,
       eligibility
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Check promotion eligibility error:', error)
+    
+    if (error.message?.includes('タイムアウト')) {
+      return NextResponse.json(
+        { error: 'リクエストがタイムアウトしました。しばらく待ってから再度お試しください。' },
+        { status: 504 }
+      )
+    }
+    
     return NextResponse.json(
       { error: '昇格可能性のチェックに失敗しました' },
       { status: 500 }

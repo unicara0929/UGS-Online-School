@@ -24,16 +24,25 @@ export async function GET(request: NextRequest) {
           registrations: {
             where: { userId },
             select: { id: true },
+            take: 1, // 1件だけ取得すれば十分
           },
         }
       : {
           _count: { select: { registrations: true } },
         }
 
-    const events = await prisma.event.findMany({
+    // タイムアウト設定（8秒）
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('リクエストがタイムアウトしました')), 8000)
+    })
+
+    const eventsPromise = prisma.event.findMany({
       orderBy: { date: 'asc' },
       include: includeOptions,
+      take: 100, // 最大100件に制限
     })
+
+    const events = await Promise.race([eventsPromise, timeoutPromise]) as Awaited<typeof eventsPromise>
 
     const formattedEvents = events.map((event) => {
       const typeKey = event.type as keyof typeof EVENT_TYPE_MAP
@@ -65,8 +74,16 @@ export async function GET(request: NextRequest) {
     })
 
     return NextResponse.json({ success: true, events: formattedEvents })
-  } catch (error) {
+  } catch (error: any) {
     console.error('[EVENTS_GET_ERROR]', error)
+    
+    if (error.message?.includes('タイムアウト')) {
+      return NextResponse.json(
+        { success: false, error: 'リクエストがタイムアウトしました。しばらく待ってから再度お試しください。' },
+        { status: 504 }
+      )
+    }
+    
     return NextResponse.json(
       { success: false, error: 'イベントの取得に失敗しました' },
       { status: 500 }

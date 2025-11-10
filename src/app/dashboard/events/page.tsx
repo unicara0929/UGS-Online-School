@@ -26,36 +26,69 @@ function EventsPageContent() {
 
       setIsLoading(true)
       setError(null)
+      let retryCount = 0
+      const maxRetries = 3
+      const retryDelay = 1000 // 1秒
 
-      try {
-        const response = await fetch(`/api/events?userId=${encodeURIComponent(user.id)}`)
-        const data = await response.json()
+      while (retryCount < maxRetries) {
+        try {
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 10000) // 10秒タイムアウト
 
-        if (!response.ok || !data.success) {
-          throw new Error(data.error || "イベントの取得に失敗しました")
+          const response = await fetch(`/api/events?userId=${encodeURIComponent(user.id)}`, {
+            signal: controller.signal
+          })
+
+          clearTimeout(timeoutId)
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+            throw new Error(errorData.error || `ページの取得に失敗しました (${response.status})`)
+          }
+
+          const data = await response.json()
+
+          if (!data.success) {
+            throw new Error(data.error || "イベントの取得に失敗しました")
+          }
+
+          const formattedEvents: EventItem[] = data.events.map((event: any) => ({
+            id: event.id,
+            title: event.title,
+            description: event.description,
+            date: event.date,
+            time: event.time,
+            type: event.type,
+            isOnline: event.isOnline,
+            location: event.location,
+            maxParticipants: event.maxParticipants,
+            currentParticipants: event.currentParticipants,
+            isRegistered: event.isRegistered,
+            status: event.status,
+          }))
+
+          setEvents(formattedEvents)
+          setIsLoading(false)
+          return // 成功したら終了
+        } catch (err: any) {
+          console.error(`Failed to fetch events (attempt ${retryCount + 1}/${maxRetries}):`, err)
+          
+          if (err.name === 'AbortError') {
+            console.error('Request timeout')
+          }
+
+          retryCount++
+          
+          if (retryCount >= maxRetries) {
+            console.error('Failed to fetch events after retries')
+            setError(err instanceof Error ? err.message : "イベントの取得に失敗しました")
+            setIsLoading(false)
+            return
+          }
+
+          // リトライ前に待機
+          await new Promise(resolve => setTimeout(resolve, retryDelay * retryCount))
         }
-
-        const formattedEvents: EventItem[] = data.events.map((event: any) => ({
-          id: event.id,
-          title: event.title,
-          description: event.description,
-          date: event.date,
-          time: event.time,
-          type: event.type,
-          isOnline: event.isOnline,
-          location: event.location,
-          maxParticipants: event.maxParticipants,
-          currentParticipants: event.currentParticipants,
-          isRegistered: event.isRegistered,
-          status: event.status,
-        }))
-
-        setEvents(formattedEvents)
-      } catch (err) {
-        console.error("Failed to fetch events:", err)
-        setError(err instanceof Error ? err.message : "イベントの取得に失敗しました")
-      } finally {
-        setIsLoading(false)
       }
     }
 

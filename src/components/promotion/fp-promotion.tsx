@@ -50,21 +50,61 @@ export function FPPromotion() {
   const fetchPromotionConditions = async () => {
     if (!user?.id) return
 
-    try {
-      const response = await fetch(`/api/promotions/eligibility?userId=${user.id}&targetRole=fp`)
-      if (response.ok) {
-        const data = await response.json()
-        setConditions({
-          testPassed: data.eligibility.conditions.testPassed || false,
-          lpMeetingCompleted: data.eligibility.conditions.lpMeetingCompleted || false,
-          surveyCompleted: data.eligibility.conditions.surveyCompleted || false,
-          isEligible: data.eligibility.isEligible || false
+    setIsLoading(true)
+    let retryCount = 0
+    const maxRetries = 3
+    const retryDelay = 1000 // 1秒
+
+    while (retryCount < maxRetries) {
+      try {
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 10000) // 10秒タイムアウト
+
+        const response = await fetch(`/api/promotions/eligibility?userId=${user.id}&targetRole=fp`, {
+          signal: controller.signal
         })
+
+        clearTimeout(timeoutId)
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+          throw new Error(errorData.error || `ページの取得に失敗しました (${response.status})`)
+        }
+
+        const data = await response.json()
+        
+        if (!data.success) {
+          throw new Error(data.error || 'ページの取得に失敗しました')
+        }
+
+        setConditions({
+          testPassed: data.eligibility?.conditions?.testPassed || false,
+          lpMeetingCompleted: data.eligibility?.conditions?.lpMeetingCompleted || false,
+          surveyCompleted: data.eligibility?.conditions?.surveyCompleted || false,
+          isEligible: data.eligibility?.isEligible || false
+        })
+        
+        setIsLoading(false)
+        return // 成功したら終了
+      } catch (error: any) {
+        console.error(`Error fetching promotion conditions (attempt ${retryCount + 1}/${maxRetries}):`, error)
+        
+        if (error.name === 'AbortError') {
+          console.error('Request timeout')
+        }
+
+        retryCount++
+        
+        if (retryCount >= maxRetries) {
+          console.error('Failed to fetch promotion conditions after retries')
+          setIsLoading(false)
+          // エラーを表示するが、ページは表示する
+          return
+        }
+
+        // リトライ前に待機
+        await new Promise(resolve => setTimeout(resolve, retryDelay * retryCount))
       }
-    } catch (error) {
-      console.error('Error fetching promotion conditions:', error)
-    } finally {
-      setIsLoading(false)
     }
   }
 
