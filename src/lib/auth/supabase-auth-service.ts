@@ -50,26 +50,44 @@ export class SupabaseAuthService {
         return user
       } catch (profileError: any) {
         console.error('Get user profile error after login:', profileError)
+        console.error('Profile error details:', {
+          message: profileError.message,
+          userId: data.user.id,
+          email: data.user.email
+        })
         
         // ユーザーが見つからない場合（404）、自動的にプロファイルを作成
-        if (profileError.message?.includes('404') || profileError.message?.includes('見つかりません')) {
+        const errorMessage = profileError.message || ''
+        if (errorMessage.includes('404') || errorMessage.includes('見つかりません') || errorMessage.includes('not found')) {
           console.log('User profile not found, creating new profile...')
           try {
             // Supabaseのユーザー情報から名前を取得
             const userName = data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User'
-            const userRole = data.user.user_metadata?.role || 'member'
+            // Supabaseのuser_metadataからロールを取得（大文字小文字を考慮）
+            let userRole = data.user.user_metadata?.role || 'MEMBER'
+            // 大文字の場合は小文字に変換
+            if (typeof userRole === 'string') {
+              userRole = userRole.toLowerCase()
+            }
+            
+            console.log('Creating profile with:', { userId: data.user.id, email: data.user.email || email, name: userName, role: userRole })
             
             // プロファイルを作成
             const newUser = await this.createUserProfile(
               data.user.id,
               data.user.email || email,
               userName,
-              userRole.toLowerCase() as UserRole
+              userRole as UserRole
             )
             this.currentUser = newUser
+            console.log('Profile created successfully:', newUser)
             return newUser
           } catch (createError: any) {
             console.error('Failed to create user profile:', createError)
+            console.error('Create error details:', {
+              message: createError.message,
+              stack: createError.stack
+            })
             throw new Error(`ログインは成功しましたが、ユーザープロファイルの作成に失敗しました: ${createError.message}`)
           }
         } else {
