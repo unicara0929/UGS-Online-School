@@ -11,7 +11,8 @@ import {
   GraduationCap,
   UserPlus,
   Bell,
-  FileText
+  FileText,
+  MessageSquare
 } from 'lucide-react'
 
 export interface NavItem {
@@ -31,8 +32,11 @@ export const navigation: NavItem[] = [
   { name: '契約管理', href: '/dashboard/contracts', icon: FileText, roles: ['fp', 'manager', 'admin'] },
   { name: '通知', href: '/dashboard/notifications', icon: Bell, roles: ['member', 'fp', 'manager', 'admin'] },
   { name: '昇格管理', href: '/dashboard/promotion', icon: Award, roles: ['member', 'fp', 'manager'] },
+  { name: 'LP面談予約', href: '/dashboard/lp-meeting/request', icon: MessageSquare, roles: ['member'] },
+  { name: 'LP面談管理', href: '/dashboard/lp-meeting/manage', icon: MessageSquare, roles: ['fp'] },
   { name: 'イベント', href: '/dashboard/events', icon: Calendar, roles: ['member', 'fp', 'manager', 'admin'] },
   { name: 'イベント管理', href: '/dashboard/admin/events', icon: Calendar, roles: ['admin'] },
+  { name: 'LP面談管理（管理者）', href: '/dashboard/admin/lp-meetings', icon: MessageSquare, roles: ['admin'] },
   { name: '報酬管理（管理者）', href: '/dashboard/admin/compensations', icon: DollarSign, roles: ['admin'] },
   { name: 'チーム管理', href: '/dashboard/team', icon: Users, roles: ['manager', 'admin'] },
   { name: '分析', href: '/dashboard/analytics', icon: BarChart3, roles: ['admin'] },

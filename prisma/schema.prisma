@@ -9,25 +9,28 @@ datasource db {
 }
 
 model User {
-  id                    String                  @id @default(cuid())
-  email                 String                  @unique
-  name                  String
-  role                  UserRole                @default(MEMBER)
-  referralCode          String?                 @unique
-  bankAccount           Json?
-  createdAt             DateTime                @default(now())
-  updatedAt             DateTime                @updatedAt
-  compensations         Compensation[]
-  courseProgress        CourseProgress[]
-  events                EventRegistration[]
-  subscriptions         Subscription[]
+  id                      String                   @id @default(cuid())
+  email                   String                   @unique
+  name                    String
+  role                    UserRole                 @default(MEMBER)
+  referralCode            String?                  @unique
+  bankAccount             Json?
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  compensations           Compensation[]
+  courseProgress          CourseProgress[]
+  events                  EventRegistration[]
+  subscriptions           Subscription[]
   fpPromotionApplications FPPromotionApplication[]
-  referralsAsReferrer   Referral[]              @relation("Referrer")
-  referralsAsReferred   Referral[]              @relation("Referred")
-  contracts             Contract[]
-  notifications         Notification[]
-  promotionApplications PromotionApplication[]
-  reviewedPromotions    PromotionApplication[]  @relation("PromotionReviewer")
+  referralsAsReferrer     Referral[]               @relation("Referrer")
+  referralsAsReferred     Referral[]               @relation("Referred")
+  contracts               Contract[]
+  notifications           Notification[]
+  promotionApplications   PromotionApplication[]
+  reviewedPromotions      PromotionApplication[]   @relation("PromotionReviewer")
+  lpMeetingsAsMember      LPMeeting[]              @relation("LPMeetingMember")
+  lpMeetingsAsFP          LPMeeting[]              @relation("LPMeetingFP")
+  lpMeetingsAssigned      LPMeeting[]              @relation("LPMeetingAssigner")
 
   @@map("users")
 }
@@ -235,6 +238,10 @@ enum NotificationType {
   REFERRAL_REWARDED
   CONTRACT_ACHIEVED
   ACTION_REQUIRED
+  LP_MEETING_REQUESTED
+  LP_MEETING_SCHEDULED
+  LP_MEETING_COMPLETED
+  LP_MEETING_REMINDER
 }
 
 enum NotificationPriority {
@@ -250,69 +257,69 @@ enum PromotionStatus {
 }
 
 model FPPromotionApplication {
-  id                String                        @id @default(cuid())
-  userId            String
-  status            FPPromotionApplicationStatus  @default(PENDING)
-  lpMeetingCompleted Boolean                       @default(false)
-  basicTestCompleted Boolean                       @default(false)
-  surveyCompleted   Boolean                        @default(false)
-  idDocumentUrl     String?
-  appliedAt         DateTime                       @default(now())
-  approvedAt        DateTime?
-  completedAt       DateTime?
-  createdAt         DateTime                      @default(now())
-  updatedAt         DateTime                      @updatedAt
-  user              User                           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                 String                       @id @default(cuid())
+  userId             String
+  status             FPPromotionApplicationStatus @default(PENDING)
+  lpMeetingCompleted Boolean                      @default(false)
+  basicTestCompleted Boolean                      @default(false)
+  surveyCompleted    Boolean                      @default(false)
+  idDocumentUrl      String?
+  appliedAt          DateTime                     @default(now())
+  approvedAt         DateTime?
+  completedAt        DateTime?
+  createdAt          DateTime                     @default(now())
+  updatedAt          DateTime                     @updatedAt
+  user               User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId])
   @@map("fp_promotion_applications")
 }
 
 model Referral {
-  id              String         @id @default(cuid())
-  referrerId      String
-  referredId      String
-  referralType    ReferralType
-  status          ReferralStatus @default(PENDING)
-  rewardAmount    Int?
-  rewardPaidAt    DateTime?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  referrer        User           @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
-  referred        User           @relation("Referred", fields: [referredId], references: [id], onDelete: Cascade)
+  id           String         @id @default(cuid())
+  referrerId   String
+  referredId   String
+  referralType ReferralType
+  status       ReferralStatus @default(PENDING)
+  rewardAmount Int?
+  rewardPaidAt DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  referrer     User           @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referred     User           @relation("Referred", fields: [referredId], references: [id], onDelete: Cascade)
 
   @@unique([referrerId, referredId])
   @@map("referrals")
 }
 
 model Contract {
-  id              String          @id @default(cuid())
-  userId          String
-  contractNumber  String          @unique
-  contractType    ContractType
-  status          ContractStatus  @default(ACTIVE)
-  signedAt        DateTime
-  amount          Int?
-  rewardAmount    Int?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String         @id @default(cuid())
+  userId         String
+  contractNumber String         @unique
+  contractType   ContractType
+  status         ContractStatus @default(ACTIVE)
+  signedAt       DateTime
+  amount         Int?
+  rewardAmount   Int?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("contracts")
 }
 
 model Notification {
-  id          String               @id @default(cuid())
-  userId      String
-  type        NotificationType
-  priority    NotificationPriority @default(INFO)
-  title       String
-  message     String
-  actionUrl   String?
-  isRead      Boolean              @default(false)
-  readAt      DateTime?
-  createdAt   DateTime             @default(now())
-  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String               @id @default(cuid())
+  userId    String
+  type      NotificationType
+  priority  NotificationPriority @default(INFO)
+  title     String
+  message   String
+  actionUrl String?
+  isRead    Boolean              @default(false)
+  readAt    DateTime?
+  createdAt DateTime             @default(now())
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, isRead])
   @@index([userId, createdAt])
@@ -320,19 +327,62 @@ model Notification {
 }
 
 model PromotionApplication {
-  id              String            @id @default(cuid())
-  userId          String
-  targetRole      UserRole
-  status          PromotionStatus  @default(PENDING)
-  appliedAt       DateTime         @default(now())
-  reviewedAt      DateTime?
-  reviewedBy      String?
-  reviewNotes     String?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reviewer        User?             @relation("PromotionReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
+  id          String          @id @default(cuid())
+  userId      String
+  targetRole  UserRole
+  status      PromotionStatus @default(PENDING)
+  appliedAt   DateTime        @default(now())
+  reviewedAt  DateTime?
+  reviewedBy  String?
+  reviewNotes String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewer    User?           @relation("PromotionReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
 
   @@unique([userId, targetRole])
   @@map("promotion_applications")
+}
+
+model LPMeeting {
+  id              String           @id @default(cuid())
+  memberId        String
+  fpId            String?
+  status          LPMeetingStatus  @default(REQUESTED)
+  preferredDates  Json // 希望日時（5つ、DateTime[]）
+  scheduledAt     DateTime?
+  completedAt     DateTime?
+  cancelledAt     DateTime?
+  meetingUrl      String?
+  meetingPlatform MeetingPlatform?
+  notes           String?
+  memberNotes     String?
+  assignedBy      String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  member   User  @relation("LPMeetingMember", fields: [memberId], references: [id], onDelete: Cascade)
+  fp       User? @relation("LPMeetingFP", fields: [fpId], references: [id], onDelete: SetNull)
+  assigner User? @relation("LPMeetingAssigner", fields: [assignedBy], references: [id], onDelete: SetNull)
+
+  @@unique([memberId])
+  @@index([fpId, status])
+  @@index([memberId, status])
+  @@index([status])
+  @@map("lp_meetings")
+}
+
+enum LPMeetingStatus {
+  REQUESTED
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum MeetingPlatform {
+  ZOOM
+  GOOGLE_MEET
+  TEAMS
+  OTHER
 }
