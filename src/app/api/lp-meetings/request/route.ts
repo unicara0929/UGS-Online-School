@@ -43,9 +43,12 @@ export async function POST(request: NextRequest) {
       where: { memberId }
     })
 
-    if (existingMeeting && existingMeeting.status !== 'COMPLETED' && existingMeeting.status !== 'CANCELLED') {
+    if (existingMeeting && 
+        existingMeeting.status !== 'COMPLETED' && 
+        existingMeeting.status !== 'CANCELLED' && 
+        existingMeeting.status !== 'NO_SHOW') {
       return NextResponse.json(
-        { error: '既にアクティブな面談予約があります' },
+        { error: '既にアクティブな面談予約があります。現在の面談が完了、キャンセル、またはノーショーになるまで再申請できません。' },
         { status: 409 }
       )
     }

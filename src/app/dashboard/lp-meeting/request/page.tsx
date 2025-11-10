@@ -62,13 +62,21 @@ function LPMeetingRequestPageContent() {
       }
       const data = await response.json()
       setMeeting(data.meeting)
-      if (data.meeting) {
+      
+      // CANCELLEDまたはNO_SHOWの場合のみ再申請可能
+      if (data.meeting && 
+          (data.meeting.status === 'CANCELLED' || data.meeting.status === 'NO_SHOW')) {
+        setShowRequestForm(true)
+      } else if (data.meeting) {
+        // REQUESTED、SCHEDULED、COMPLETEDの場合は申請フォームを非表示
         setShowRequestForm(false)
       } else {
+        // 面談がない場合は申請フォームを表示
         setShowRequestForm(true)
       }
     } catch (error) {
       console.error('Error fetching meeting:', error)
+      setShowRequestForm(true) // エラー時は申請フォームを表示
     } finally {
       setIsLoading(false)
     }
@@ -209,7 +217,7 @@ function LPMeetingRequestPageContent() {
         </header>
 
         <main className="px-4 sm:px-6 lg:px-8 py-8">
-          {meeting ? (
+          {meeting && !showRequestForm ? (
             <div className="space-y-6">
               <Card>
                 <CardHeader>
@@ -240,6 +248,12 @@ function LPMeetingRequestPageContent() {
                             <p className="text-sm text-slate-600">{meeting.memberNotes}</p>
                           </div>
                         )}
+                        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <p className="text-sm text-yellow-800">
+                            <Clock className="h-4 w-4 inline mr-1" />
+                            申請済みです。運営側で確認後、面談が確定されます。
+                          </p>
+                        </div>
                       </div>
                     )}
 
@@ -293,6 +307,24 @@ function LPMeetingRequestPageContent() {
                             <p className="text-sm text-slate-600">{meeting.notes}</p>
                           </div>
                         )}
+                      </div>
+                    {meeting.status === 'CANCELLED' && (
+                      <div className="space-y-3">
+                        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <p className="text-sm text-red-800">
+                            この面談はキャンセルされました。再度申請することができます。
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {meeting.status === 'NO_SHOW' && (
+                      <div className="space-y-3">
+                        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <p className="text-sm text-red-800">
+                            この面談はノーショーとなりました。再度申請することができます。
+                          </p>
+                        </div>
                       </div>
                     )}
                   </div>
