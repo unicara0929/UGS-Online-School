@@ -15,6 +15,7 @@ export interface AuthUser {
   email: string
   name: string
   role: UserRole
+  referralCode?: string | null
   createdAt: Date
   updatedAt: Date
 }

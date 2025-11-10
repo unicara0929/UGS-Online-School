@@ -46,6 +46,7 @@ export async function GET(
         email: user.email,
         name: user.name,
         role: role,
+        referralCode: user.referralCode,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
       }

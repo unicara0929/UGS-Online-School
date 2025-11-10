@@ -116,26 +116,44 @@ async function testReferralSystem(users: any[]) {
     return
   }
 
-  // 紹介を登録
-  const referral = await prisma.referral.create({
-    data: {
-      referrerId: referrer.id,
-      referredId: referred.id,
-      referralType: 'MEMBER',
-      status: 'PENDING'
+  // 既存の紹介をチェック
+  let referral = await prisma.referral.findUnique({
+    where: {
+      referrerId_referredId: {
+        referrerId: referrer.id,
+        referredId: referred.id
+      }
     }
   })
-  console.log(`  ✅ 紹介登録: ${referral.id}`)
 
-  // 紹介を承認
-  const approvedReferral = await prisma.referral.update({
-    where: { id: referral.id },
-    data: {
-      status: 'APPROVED',
-      rewardAmount: 15000
-    }
-  })
-  console.log(`  ✅ 紹介承認: 報酬額 ${approvedReferral.rewardAmount}円`)
+  if (!referral) {
+    // 紹介を登録
+    referral = await prisma.referral.create({
+      data: {
+        referrerId: referrer.id,
+        referredId: referred.id,
+        referralType: 'MEMBER',
+        status: 'PENDING'
+      }
+    })
+    console.log(`  ✅ 紹介登録: ${referral.id}`)
+  } else {
+    console.log(`  ✅ 既存の紹介を確認: ${referral.id}`)
+  }
+
+  // 紹介を承認（未承認の場合のみ）
+  if (referral.status !== 'APPROVED') {
+    const approvedReferral = await prisma.referral.update({
+      where: { id: referral.id },
+      data: {
+        status: 'APPROVED',
+        rewardAmount: 15000
+      }
+    })
+    console.log(`  ✅ 紹介承認: 報酬額 ${approvedReferral.rewardAmount}円`)
+  } else {
+    console.log(`  ✅ 紹介は既に承認済み: 報酬額 ${referral.rewardAmount}円`)
+  }
 
   // 紹介一覧を取得
   const referrals = await prisma.referral.findMany({
