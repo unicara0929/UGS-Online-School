@@ -269,6 +269,12 @@ export class SupabaseAuthService {
           statusText: response.statusText,
           error: errorData
         })
+        
+        // 404エラーの場合、より明確なエラーを投げる
+        if (response.status === 404) {
+          throw new Error('404: ユーザーが見つかりません')
+        }
+        
         throw new Error(errorData.error || `ユーザープロファイルの取得に失敗しました (${response.status})`)
       }
 
