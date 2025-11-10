@@ -54,16 +54,27 @@ export class SupabaseAuthService {
           message: profileError.message,
           userId: data.user.id,
           email: data.user.email,
-          errorType: profileError.constructor.name
+          errorType: profileError.constructor.name,
+          errorString: String(profileError)
         })
         
         // ユーザーが見つからない場合（404）、自動的にプロファイルを作成
-        const errorMessage = profileError.message || ''
+        const errorMessage = String(profileError.message || profileError || '')
+        const errorString = String(profileError)
         const isNotFoundError = 
           errorMessage.includes('404') || 
           errorMessage.includes('見つかりません') || 
           errorMessage.includes('not found') ||
-          (profileError instanceof Error && profileError.message.includes('404'))
+          errorString.includes('404') ||
+          (profileError instanceof Error && (profileError.message.includes('404') || profileError.message.includes('見つかりません')))
+        
+        console.log('isNotFoundError check:', {
+          errorMessage,
+          errorString,
+          isNotFoundError,
+          includes404: errorMessage.includes('404'),
+          includesNotFound: errorMessage.includes('見つかりません')
+        })
         
         if (isNotFoundError) {
           console.log('User profile not found, creating new profile...')
@@ -98,7 +109,7 @@ export class SupabaseAuthService {
             })
             
             // 既に存在する場合のエラーをチェック
-            const createErrorMessage = createError.message || ''
+            const createErrorMessage = String(createError.message || '')
             if (createErrorMessage.includes('409') || createErrorMessage.includes('既に登録')) {
               // 既に存在する場合は、再度取得を試みる
               try {
@@ -115,7 +126,28 @@ export class SupabaseAuthService {
             throw new Error(`ログインは成功しましたが、ユーザープロファイルの作成に失敗しました: ${createError.message}`)
           }
         } else {
-          throw new Error(`ログインは成功しましたが、ユーザー情報の取得に失敗しました: ${profileError.message}`)
+          // 404エラーではない場合でも、念のためプロファイル作成を試みる
+          console.log('Non-404 error, but attempting to create profile anyway...')
+          try {
+            const userName = data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User'
+            let userRole = data.user.user_metadata?.role || 'MEMBER'
+            if (typeof userRole === 'string') {
+              userRole = userRole.toLowerCase()
+            }
+            
+            const newUser = await this.createUserProfile(
+              data.user.id,
+              data.user.email || email,
+              userName,
+              userRole as UserRole
+            )
+            this.currentUser = newUser
+            console.log('Profile created successfully after non-404 error:', newUser)
+            return newUser
+          } catch (createError: any) {
+            // プロファイル作成に失敗した場合、元のエラーを投げる
+            throw new Error(`ログインは成功しましたが、ユーザー情報の取得に失敗しました: ${profileError.message}`)
+          }
         }
       }
     } catch (error) {
