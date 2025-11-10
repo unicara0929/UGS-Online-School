@@ -145,7 +145,9 @@ export function ResetPasswordForm() {
       })
 
       if (updateError) {
-        throw new Error(updateError.message)
+        // エラーメッセージを日本語に変換
+        const errorMessage = translateErrorMessage(updateError.message)
+        throw new Error(errorMessage)
       }
 
       setSuccess(true)
@@ -160,6 +162,34 @@ export function ResetPasswordForm() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // エラーメッセージを日本語に変換する関数
+  const translateErrorMessage = (message: string): string => {
+    const errorTranslations: Record<string, string> = {
+      'New password should be different from the old password.': '新しいパスワードは現在のパスワードと異なる必要があります。',
+      'Password should be at least 6 characters': 'パスワードは6文字以上である必要があります',
+      'Invalid password': '無効なパスワードです',
+      'Password is too weak': 'パスワードが弱すぎます',
+      'User not found': 'ユーザーが見つかりません',
+      'Session expired': 'セッションが期限切れです',
+      'Invalid session': '無効なセッションです',
+    }
+
+    // 完全一致をチェック
+    if (errorTranslations[message]) {
+      return errorTranslations[message]
+    }
+
+    // 部分一致をチェック
+    for (const [key, value] of Object.entries(errorTranslations)) {
+      if (message.includes(key)) {
+        return value
+      }
+    }
+
+    // 翻訳が見つからない場合は元のメッセージを返す
+    return message
   }
 
   return (
