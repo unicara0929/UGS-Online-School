@@ -3,31 +3,89 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { SupabaseAuthService } from '@/lib/auth/supabase-auth-service'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Lock, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const supabase = supabaseUrl && supabaseAnonKey
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null
 
 export function ResetPasswordForm() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isCheckingSession, setIsCheckingSession] = useState(true)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [logoError, setLogoError] = useState(false)
   const router = useRouter()
-  const searchParams = useSearchParams()
 
   useEffect(() => {
-    // URLパラメータからトークンを確認
-    const token = searchParams.get('token')
-    if (!token) {
-      setError('無効なリセットリンクです')
+    if (!supabase) {
+      setError('認証サービスが未設定です')
+      setIsCheckingSession(false)
+      return
     }
-  }, [searchParams])
+
+    // Supabaseのセッションを確認（リセットリンクから自動的にセッションが確立される）
+    const checkSession = async () => {
+      try {
+        // まず現在のセッションを確認
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
+        if (session) {
+          // セッションが既に確立されている
+          console.log('Session established:', session.user.email)
+          setIsCheckingSession(false)
+          return
+        }
+
+        // URLハッシュフラグメントを確認
+        const hash = window.location.hash
+        if (hash.includes('access_token') || hash.includes('type=recovery')) {
+          // ハッシュフラグメントがある場合、Supabaseが自動的にセッションを確立するのを待つ
+          console.log('Hash fragment detected, waiting for session...')
+          
+          // 認証状態の変更を監視
+          const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
+              console.log('Session established via recovery:', session?.user.email)
+              setIsCheckingSession(false)
+              subscription.unsubscribe()
+            }
+          })
+
+          // タイムアウトを設定（10秒）
+          setTimeout(() => {
+            subscription.unsubscribe()
+            supabase.auth.getSession().then(({ data: { session }, error }) => {
+              if (error || !session) {
+                setError('リセットリンクが無効または期限切れです。再度パスワードリセットを申請してください。')
+              }
+              setIsCheckingSession(false)
+            })
+          }, 10000)
+        } else {
+          // ハッシュフラグメントがない場合、エラーを表示
+          setError('リセットリンクが無効または期限切れです。再度パスワードリセットを申請してください。')
+          setIsCheckingSession(false)
+        }
+      } catch (err) {
+        console.error('Check session error:', err)
+        setError('セッションの確認中にエラーが発生しました')
+        setIsCheckingSession(false)
+      }
+    }
+
+    checkSession()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -48,8 +106,29 @@ export function ResetPasswordForm() {
       return
     }
 
+    if (!supabase) {
+      setError('認証サービスが未設定です')
+      setIsLoading(false)
+      return
+    }
+
     try {
-      await SupabaseAuthService.updatePassword(password)
+      // セッションを再確認
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError || !session) {
+        throw new Error('セッションが無効です。リセットリンクが期限切れの可能性があります。再度パスワードリセットを申請してください。')
+      }
+
+      // パスワードを更新
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: password
+      })
+
+      if (updateError) {
+        throw new Error(updateError.message)
+      }
+
       setSuccess(true)
       // 3秒後にログインページにリダイレクト
       setTimeout(() => {
@@ -57,7 +136,8 @@ export function ResetPasswordForm() {
       }, 3000)
     } catch (err) {
       console.error('パスワード更新エラー:', err)
-      setError(err instanceof Error ? err.message : 'パスワードの更新に失敗しました')
+      const errorMessage = err instanceof Error ? err.message : 'パスワードの更新に失敗しました'
+      setError(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -92,7 +172,19 @@ export function ResetPasswordForm() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {success ? (
+          {isCheckingSession ? (
+            <div className="space-y-4">
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-start space-x-3">
+                <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin flex-shrink-0 mt-0.5"></div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-blue-800">セッションを確認中...</p>
+                  <p className="text-sm text-blue-700 mt-1">
+                    リセットリンクを確認しています。しばらくお待ちください。
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : success ? (
             <div className="space-y-4">
               <div className="p-4 bg-green-50 border border-green-200 rounded-xl flex items-start space-x-3">
                 <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
