@@ -80,16 +80,51 @@ export async function POST(request: NextRequest) {
       console.log('Using existing Prisma user:', { userId: existingPrismaUser.id, email })
       user = existingPrismaUser
     } else {
+      // 紹介コードを生成（8文字のランダム文字列）
+      const generateReferralCode = () => {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' // 0, O, I, 1を除外
+        let code = ''
+        for (let i = 0; i < 8; i++) {
+          code += chars.charAt(Math.floor(Math.random() * chars.length))
+        }
+        return code
+      }
+
+      let referralCode = generateReferralCode()
+      let isUnique = false
+      let attempts = 0
+      const maxAttempts = 10
+
+      // ユニークな紹介コードを生成（最大10回試行）
+      while (!isUnique && attempts < maxAttempts) {
+        const existing = await prisma.user.findUnique({
+          where: { referralCode }
+        })
+        if (!existing) {
+          isUnique = true
+        } else {
+          referralCode = generateReferralCode()
+          attempts++
+        }
+      }
+
+      if (!isUnique) {
+        console.error('Failed to generate unique referral code after', maxAttempts, 'attempts')
+        // フォールバック: UUIDベースのコード
+        referralCode = `REF${supabaseUserId.substring(0, 8).toUpperCase()}`
+      }
+
       // 新規ユーザーを作成
       user = await prisma.user.create({
         data: {
           id: supabaseUserId,
           email,
           name,
-          role: UserRole.MEMBER
+          role: UserRole.MEMBER,
+          referralCode
         }
       })
-      console.log('Prisma user created:', { userId: user.id, email, role: user.role })
+      console.log('Prisma user created:', { userId: user.id, email, role: user.role, referralCode })
     }
 
     // サブスクリプションを作成（既に存在する場合はスキップ）
