@@ -51,11 +51,19 @@ export async function GET(
         updatedAt: user.updatedAt
       }
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Get profile error:', error)
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    })
     // Prisma接続失敗時もUIは落とさない
     return NextResponse.json(
-      { error: 'ユーザーが見つかりません' },
+      { 
+        error: 'ユーザーが見つかりません',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      },
       { status: 404 }
     )
   }

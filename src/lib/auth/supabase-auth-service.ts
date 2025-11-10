@@ -35,6 +35,7 @@ export class SupabaseAuthService {
       })
 
       if (error) {
+        console.error('Supabase login error:', error)
         throw new Error(error.message)
       }
 
@@ -43,10 +44,15 @@ export class SupabaseAuthService {
       }
 
       // ユーザー情報を取得
-      const user = await this.getUserProfile(data.user.id)
-      this.currentUser = user
-
-      return user
+      try {
+        const user = await this.getUserProfile(data.user.id)
+        this.currentUser = user
+        return user
+      } catch (profileError: any) {
+        console.error('Get user profile error after login:', profileError)
+        // プロファイル取得に失敗した場合でも、Supabase認証は成功している
+        throw new Error(`ログインは成功しましたが、ユーザー情報の取得に失敗しました: ${profileError.message}`)
+      }
     } catch (error) {
       console.error('Login error:', error)
       throw error
@@ -181,10 +187,21 @@ export class SupabaseAuthService {
       const response = await fetch(`/api/auth/profile/${userId}`)
       
       if (!response.ok) {
-        throw new Error('ユーザープロファイルの取得に失敗しました')
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('Get profile API error:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData
+        })
+        throw new Error(errorData.error || `ユーザープロファイルの取得に失敗しました (${response.status})`)
       }
 
       const userData = await response.json()
+      
+      if (!userData.user) {
+        throw new Error('ユーザープロファイルが見つかりません')
+      }
+      
       return userData.user
     } catch (error) {
       console.error('Get profile error:', error)
