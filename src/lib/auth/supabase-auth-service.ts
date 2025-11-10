@@ -296,11 +296,16 @@ export class SupabaseAuthService {
       throw new Error('認証サービスが未設定です。環境変数を設定してください。')
     }
     try {
+      const redirectUrl = typeof window !== 'undefined' 
+        ? `${window.location.origin}/reset-password`
+        : `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password`
+      
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/reset-password`,
+        redirectTo: redirectUrl,
       })
 
       if (error) {
+        console.error('Reset password error:', error)
         throw new Error(error.message)
       }
     } catch (error) {
