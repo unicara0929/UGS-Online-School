@@ -60,7 +60,6 @@ export class SupabaseAuthService {
         // ユーザーが見つからない場合（404）、自動的にプロファイルを作成
         const errorMessage = profileError.message || ''
         const isNotFoundError = 
-          response?.status === 404 ||
           errorMessage.includes('404') || 
           errorMessage.includes('見つかりません') || 
           errorMessage.includes('not found') ||
