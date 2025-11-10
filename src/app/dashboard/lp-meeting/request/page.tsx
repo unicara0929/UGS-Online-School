@@ -308,6 +308,8 @@ function LPMeetingRequestPageContent() {
                           </div>
                         )}
                       </div>
+                    )}
+
                     {meeting.status === 'CANCELLED' && (
                       <div className="space-y-3">
                         <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
