@@ -6,20 +6,32 @@ async function checkSchema() {
     console.log('📊 データベーススキーマ確認中...\n')
 
     // 新しいテーブルの存在確認
-    const tables = [
-      { name: 'referrals', model: prisma.referral },
-      { name: 'contracts', model: prisma.contract },
-      { name: 'notifications', model: prisma.notification },
-      { name: 'promotion_applications', model: prisma.promotionApplication }
-    ]
+    try {
+      const referralCount = await prisma.referral.count()
+      console.log(`✅ referrals: テーブル存在確認 (レコード数: ${referralCount})`)
+    } catch (error: any) {
+      console.log(`❌ referrals: テーブルが見つかりません - ${error.message}`)
+    }
 
-    for (const { name, model } of tables) {
-      try {
-        const count = await model.count()
-        console.log(`✅ ${name}: テーブル存在確認 (レコード数: ${count})`)
-      } catch (error: any) {
-        console.log(`❌ ${name}: テーブルが見つかりません - ${error.message}`)
-      }
+    try {
+      const contractCount = await prisma.contract.count()
+      console.log(`✅ contracts: テーブル存在確認 (レコード数: ${contractCount})`)
+    } catch (error: any) {
+      console.log(`❌ contracts: テーブルが見つかりません - ${error.message}`)
+    }
+
+    try {
+      const notificationCount = await prisma.notification.count()
+      console.log(`✅ notifications: テーブル存在確認 (レコード数: ${notificationCount})`)
+    } catch (error: any) {
+      console.log(`❌ notifications: テーブルが見つかりません - ${error.message}`)
+    }
+
+    try {
+      const promotionCount = await prisma.promotionApplication.count()
+      console.log(`✅ promotion_applications: テーブル存在確認 (レコード数: ${promotionCount})`)
+    } catch (error: any) {
+      console.log(`❌ promotion_applications: テーブルが見つかりません - ${error.message}`)
     }
 
     // usersテーブルの新しいカラム確認

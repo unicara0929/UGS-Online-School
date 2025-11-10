@@ -105,13 +105,14 @@ export async function POST(request: NextRequest) {
         console.log('Monthly payment succeeded for invoice:', invoice.id)
         
         // サブスクリプションの状態を更新
-        if (invoice.subscription) {
-          const subscriptionId = typeof invoice.subscription === 'string' 
-            ? invoice.subscription 
-            : invoice.subscription.id
+        const subscriptionId = (invoice as any).subscription
+        if (subscriptionId) {
+          const subId = typeof subscriptionId === 'string' 
+            ? subscriptionId 
+            : subscriptionId.id
 
           await prisma.subscription.updateMany({
-            where: { stripeSubscriptionId: subscriptionId },
+            where: { stripeSubscriptionId: subId },
             data: {
               status: 'ACTIVE',
               currentPeriodEnd: invoice.period_end ? new Date(invoice.period_end * 1000) : null
@@ -126,13 +127,14 @@ export async function POST(request: NextRequest) {
         console.log('Payment failed for invoice:', failedInvoice.id)
         
         // サブスクリプションの状態を更新
-        if (failedInvoice.subscription) {
-          const subscriptionId = typeof failedInvoice.subscription === 'string' 
-            ? failedInvoice.subscription 
-            : failedInvoice.subscription.id
+        const failedSubscriptionId = (failedInvoice as any).subscription
+        if (failedSubscriptionId) {
+          const subId = typeof failedSubscriptionId === 'string' 
+            ? failedSubscriptionId 
+            : failedSubscriptionId.id
 
           await prisma.subscription.updateMany({
-            where: { stripeSubscriptionId: subscriptionId },
+            where: { stripeSubscriptionId: subId },
             data: {
               status: 'PAST_DUE'
             }
