@@ -4,9 +4,20 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { appRoleToPrismaRole, prismaRoleToAppRole, stringToAppRole } from '@/lib/utils/role-mapper'
 
 export async function POST(request: NextRequest) {
+  // リクエストボディを最初に読み込む（エラー時でも使用可能にするため）
+  let requestBody: { userId?: string; email?: string; name?: string; role?: string }
   try {
-    const { userId, email, name, role } = await request.json()
+    requestBody = await request.json()
+  } catch (parseError) {
+    return NextResponse.json(
+      { error: 'リクエストの解析に失敗しました' },
+      { status: 400 }
+    )
+  }
 
+  const { userId, email, name, role } = requestBody
+
+  try {
     console.log('Create profile request:', { userId, email, name, role })
 
     if (!userId || !email || !name || !role) {
@@ -93,15 +104,6 @@ export async function POST(request: NextRequest) {
       code: error.code,
       stack: error.stack
     })
-    
-    // リクエストボディからuserIdを取得（エラー時でも使用可能にするため）
-    let userId: string | undefined
-    try {
-      const body = await request.json().catch(() => null)
-      userId = body?.userId
-    } catch {
-      // リクエストボディの取得に失敗した場合は無視
-    }
     
     // 重複エラーの場合
     if (error.code === 'P2002') {
