@@ -7,7 +7,10 @@ export async function POST(request: NextRequest) {
   try {
     const { userId, email, name, role } = await request.json()
 
+    console.log('Create profile request:', { userId, email, name, role })
+
     if (!userId || !email || !name || !role) {
+      console.error('Missing required fields:', { userId: !!userId, email: !!email, name: !!name, role: !!role })
       return NextResponse.json(
         { error: '必要な情報が不足しています' },
         { status: 400 }
@@ -18,6 +21,8 @@ export async function POST(request: NextRequest) {
     const appRole = stringToAppRole(role) || 'member' // デフォルトはmember
     const prismaRole = appRoleToPrismaRole(appRole)
 
+    console.log('Role mapping:', { inputRole: role, appRole, prismaRole })
+
     // Prismaでユーザープロファイルを作成
     const user = await prisma.user.create({
       data: {
@@ -27,6 +32,8 @@ export async function POST(request: NextRequest) {
         role: prismaRole,
       }
     })
+
+    console.log('User created successfully:', { id: user.id, email: user.email, role: user.role })
 
     // アプリケーション側のロール型（小文字）に変換して返す
     const responseRole = prismaRoleToAppRole(user.role)
@@ -44,6 +51,11 @@ export async function POST(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('Create profile error:', error)
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    })
     
     // 重複エラーの場合
     if (error.code === 'P2002') {
@@ -54,7 +66,10 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'ユーザープロファイルの作成に失敗しました' },
+      { 
+        error: 'ユーザープロファイルの作成に失敗しました',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      },
       { status: 500 }
     )
   }
