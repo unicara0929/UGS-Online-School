@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { SupabaseAuthService } from '@/lib/auth/supabase-auth-service'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Mail, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react'
@@ -24,7 +23,20 @@ export function ForgotPasswordForm() {
     setSuccess(false)
 
     try {
-      await SupabaseAuthService.resetPassword(email)
+      const response = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'パスワードリセットリクエストの送信に失敗しました')
+      }
+
       setSuccess(true)
     } catch (err) {
       console.error('パスワードリセットエラー:', err)
