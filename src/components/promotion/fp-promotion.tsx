@@ -33,6 +33,8 @@ export function FPPromotion() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null)
+  const [contractAgreed, setContractAgreed] = useState(false)
+  const [contractUrl, setContractUrl] = useState<string | null>(null) // GMOサインのリンク
   const [conditions, setConditions] = useState<PromotionConditions>({
     testPassed: false,
     lpMeetingCompleted: false,
@@ -44,8 +46,33 @@ export function FPPromotion() {
   useEffect(() => {
     if (user?.id) {
       fetchPromotionConditions()
+      fetchExistingApplication()
+      // 契約書URLを環境変数から取得（後でAPIから取得するように変更可能）
+      const contractUrlFromEnv = process.env.NEXT_PUBLIC_GMO_SIGN_CONTRACT_URL || null
+      setContractUrl(contractUrlFromEnv)
     }
   }, [user?.id])
+
+  const fetchExistingApplication = async () => {
+    if (!user?.id) return
+
+    try {
+      const response = await fetch(`/api/user/fp-promotion-application?userId=${user.id}`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.application?.idDocumentUrl) {
+          // 既存の身分証URLを取得
+          const urlResponse = await fetch(`/api/user/get-id-document-url?userId=${user.id}&filePath=${encodeURIComponent(data.application.idDocumentUrl)}`)
+          if (urlResponse.ok) {
+            const urlData = await urlResponse.json()
+            setUploadedFileUrl(urlData.fileUrl)
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching existing application:', error)
+    }
+  }
 
   const fetchPromotionConditions = async () => {
     if (!user?.id) return
@@ -167,6 +194,11 @@ export function FPPromotion() {
       return
     }
 
+    if (!contractAgreed) {
+      alert('業務委託契約書の締結が必要です')
+      return
+    }
+
     setIsApplying(true)
     try {
       const response = await fetch('/api/user/fp-promotion-apply', {
@@ -174,6 +206,7 @@ export function FPPromotion() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: user?.id,
+          contractAgreed: true,
         }),
       })
 
@@ -185,6 +218,7 @@ export function FPPromotion() {
 
       alert('FPエイド昇格申請を送信しました。運営による確認後、昇格が完了します。')
       await fetchPromotionConditions()
+      await fetchExistingApplication()
     } catch (error: any) {
       console.error('Application error:', error)
       alert(error.message || '申請に失敗しました')
@@ -377,7 +411,7 @@ export function FPPromotion() {
                         {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)}MB)
                       </span>
                     )}
-                    {!selectedFile && (
+                    {!selectedFile && !uploadedFileUrl && (
                       <span className="text-sm text-slate-500">未選択</span>
                     )}
                   </div>
@@ -408,9 +442,45 @@ export function FPPromotion() {
                 </div>
               </div>
 
+              {/* 業務委託契約書 */}
+              <div className="p-4 border border-slate-200 rounded-xl">
+                <h4 className="font-medium mb-2">業務委託契約書の締結</h4>
+                <p className="text-sm text-slate-600 mb-4">
+                  業務委託契約書（GMOサイン）を確認し、締結してください
+                </p>
+                <div className="space-y-3">
+                  {contractUrl ? (
+                    <a
+                      href={contractUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center text-blue-600 hover:underline"
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      業務委託契約書を開く
+                    </a>
+                  ) : (
+                    <p className="text-sm text-slate-500">契約書のリンクが設定されていません</p>
+                  )}
+                  <div className="flex items-start space-x-2">
+                    <input
+                      type="checkbox"
+                      id="contract-agreement"
+                      checked={contractAgreed}
+                      onChange={(e) => setContractAgreed(e.target.checked)}
+                      className="mt-1"
+                      disabled={!contractUrl}
+                    />
+                    <label htmlFor="contract-agreement" className="text-sm text-slate-700 cursor-pointer">
+                      業務委託契約書の内容を確認し、同意します
+                    </label>
+                  </div>
+                </div>
+              </div>
+
               <Button 
                 className="w-full" 
-                disabled={!conditions.isEligible || isApplying || !uploadedFileUrl}
+                disabled={!conditions.isEligible || isApplying || !uploadedFileUrl || !contractAgreed}
                 onClick={handlePromotionApplication}
               >
                 {isApplying ? '申請中...' : 'FPエイド昇格申請'}
@@ -419,6 +489,16 @@ export function FPPromotion() {
               {!conditions.isEligible && (
                 <p className="text-sm text-slate-500 text-center">
                   昇格条件をすべて満たすと申請可能になります
+                </p>
+              )}
+              {conditions.isEligible && !uploadedFileUrl && (
+                <p className="text-sm text-slate-500 text-center">
+                  身分証のアップロードが必要です
+                </p>
+              )}
+              {conditions.isEligible && uploadedFileUrl && !contractAgreed && (
+                <p className="text-sm text-slate-500 text-center">
+                  業務委託契約書の締結が必要です
                 </p>
               )}
             </div>

@@ -4,11 +4,19 @@ import { supabaseAdmin } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await request.json()
+    const { userId, contractAgreed } = await request.json()
 
     if (!userId) {
       return NextResponse.json(
         { error: 'ユーザーIDが必要です' },
+        { status: 400 }
+      )
+    }
+
+    // 契約書の締結確認
+    if (!contractAgreed) {
+      return NextResponse.json(
+        { error: '業務委託契約書の締結が必要です' },
         { status: 400 }
       )
     }
