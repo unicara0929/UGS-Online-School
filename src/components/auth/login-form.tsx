@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuth } from '@/contexts/auth-context'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
+import Link from 'next/link'
 import { Mail, Lock, AlertCircle, Users, HelpCircle } from 'lucide-react'
 
 export function LoginForm() {
