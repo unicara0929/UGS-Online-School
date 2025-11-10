@@ -47,11 +47,21 @@ export function FPPromotion() {
     if (user?.id) {
       fetchPromotionConditions()
       fetchExistingApplication()
-      // 契約書URLを環境変数から取得（後でAPIから取得するように変更可能）
-      const contractUrlFromEnv = process.env.NEXT_PUBLIC_GMO_SIGN_CONTRACT_URL || null
-      setContractUrl(contractUrlFromEnv)
+      fetchContractUrl()
     }
   }, [user?.id])
+
+  const fetchContractUrl = async () => {
+    try {
+      const response = await fetch('/api/user/contract-url')
+      if (response.ok) {
+        const data = await response.json()
+        setContractUrl(data.contractUrl)
+      }
+    } catch (error) {
+      console.error('Error fetching contract URL:', error)
+    }
+  }
 
   const fetchExistingApplication = async () => {
     if (!user?.id) return
