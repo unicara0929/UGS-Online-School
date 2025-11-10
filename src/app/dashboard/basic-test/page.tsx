@@ -100,7 +100,7 @@ function BasicTestPageContent() {
 
     setIsSubmitting(true)
     try {
-      const response = await fetch('/api/basic-test/submit', {
+      const response = await fetch('/api/basic-test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -110,11 +110,18 @@ function BasicTestPageContent() {
         })
       })
 
-      const data = await response.json()
-
       if (!response.ok) {
-        throw new Error(data.error || 'テストの提出に失敗しました')
+        const errorText = await response.text()
+        let errorData
+        try {
+          errorData = JSON.parse(errorText)
+        } catch {
+          throw new Error(errorText || 'テストの提出に失敗しました')
+        }
+        throw new Error(errorData.error || 'テストの提出に失敗しました')
       }
+
+      const data = await response.json()
 
       setResult(data.result)
       setShowResult(true)

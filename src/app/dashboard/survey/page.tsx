@@ -85,7 +85,7 @@ function SurveyPageContent() {
 
     setIsSubmitting(true)
     try {
-      const response = await fetch('/api/survey/submit', {
+      const response = await fetch('/api/survey', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -95,11 +95,18 @@ function SurveyPageContent() {
         })
       })
 
-      const data = await response.json()
-
       if (!response.ok) {
-        throw new Error(data.error || 'アンケートの提出に失敗しました')
+        const errorText = await response.text()
+        let errorData
+        try {
+          errorData = JSON.parse(errorText)
+        } catch {
+          throw new Error(errorText || 'アンケートの提出に失敗しました')
+        }
+        throw new Error(errorData.error || 'アンケートの提出に失敗しました')
       }
+
+      const data = await response.json()
 
       setIsSubmitted(true)
       alert('アンケートの提出が完了しました。ありがとうございます。')
