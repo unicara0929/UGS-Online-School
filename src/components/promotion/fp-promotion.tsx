@@ -398,5 +398,3 @@ export function FPPromotion() {
     </Card>
   )
 }
-
-}
