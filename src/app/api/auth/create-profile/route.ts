@@ -17,6 +17,42 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 既存のユーザーをチェック（IDまたはメールアドレスで）
+    const existingUserById = await prisma.user.findUnique({
+      where: { id: userId }
+    })
+
+    const existingUserByEmail = await prisma.user.findUnique({
+      where: { email }
+    })
+
+    // 既に存在する場合は、そのユーザーを返す
+    if (existingUserById) {
+      console.log('User already exists by ID:', { id: userId, email: existingUserById.email })
+      const responseRole = prismaRoleToAppRole(existingUserById.role)
+      return NextResponse.json({
+        success: true,
+        user: {
+          id: existingUserById.id,
+          email: existingUserById.email,
+          name: existingUserById.name,
+          role: responseRole,
+          referralCode: existingUserById.referralCode,
+          createdAt: existingUserById.createdAt,
+          updatedAt: existingUserById.updatedAt
+        }
+      })
+    }
+
+    // メールアドレスで既に存在するが、IDが異なる場合
+    if (existingUserByEmail && existingUserByEmail.id !== userId) {
+      console.log('User exists with different ID:', { existingId: existingUserByEmail.id, newId: userId, email })
+      return NextResponse.json(
+        { error: 'このメールアドレスは既に別のアカウントで使用されています' },
+        { status: 409 }
+      )
+    }
+
     // アプリケーション側のロール型（小文字）に変換して検証
     const appRole = stringToAppRole(role) || 'member' // デフォルトはmember
     const prismaRole = appRoleToPrismaRole(appRole)
@@ -45,6 +81,7 @@ export async function POST(request: NextRequest) {
         email: user.email,
         name: user.name,
         role: responseRole,
+        referralCode: user.referralCode,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
       }
@@ -59,8 +96,41 @@ export async function POST(request: NextRequest) {
     
     // 重複エラーの場合
     if (error.code === 'P2002') {
+      // 重複フィールドを特定
+      const target = error.meta?.target
+      if (Array.isArray(target) && target.includes('email')) {
+        return NextResponse.json(
+          { error: 'このメールアドレスは既に登録されています' },
+          { status: 409 }
+        )
+      }
+      if (Array.isArray(target) && target.includes('id')) {
+        // IDが重複している場合、既存ユーザーを取得して返す
+        try {
+          const existingUser = await prisma.user.findUnique({
+            where: { id: userId }
+          })
+          if (existingUser) {
+            const responseRole = prismaRoleToAppRole(existingUser.role)
+            return NextResponse.json({
+              success: true,
+              user: {
+                id: existingUser.id,
+                email: existingUser.email,
+                name: existingUser.name,
+                role: responseRole,
+                referralCode: existingUser.referralCode,
+                createdAt: existingUser.createdAt,
+                updatedAt: existingUser.updatedAt
+              }
+            })
+          }
+        } catch (lookupError) {
+          console.error('Failed to lookup existing user:', lookupError)
+        }
+      }
       return NextResponse.json(
-        { error: 'このメールアドレスは既に登録されています' },
+        { error: 'このユーザーは既に登録されています' },
         { status: 409 }
       )
     }

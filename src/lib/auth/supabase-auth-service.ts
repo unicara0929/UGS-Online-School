@@ -53,12 +53,19 @@ export class SupabaseAuthService {
         console.error('Profile error details:', {
           message: profileError.message,
           userId: data.user.id,
-          email: data.user.email
+          email: data.user.email,
+          errorType: profileError.constructor.name
         })
         
         // ユーザーが見つからない場合（404）、自動的にプロファイルを作成
         const errorMessage = profileError.message || ''
-        if (errorMessage.includes('404') || errorMessage.includes('見つかりません') || errorMessage.includes('not found')) {
+        const isNotFoundError = 
+          errorMessage.includes('404') || 
+          errorMessage.includes('見つかりません') || 
+          errorMessage.includes('not found') ||
+          profileError instanceof Error && profileError.message.includes('404')
+        
+        if (isNotFoundError) {
           console.log('User profile not found, creating new profile...')
           try {
             // Supabaseのユーザー情報から名前を取得
@@ -86,8 +93,25 @@ export class SupabaseAuthService {
             console.error('Failed to create user profile:', createError)
             console.error('Create error details:', {
               message: createError.message,
-              stack: createError.stack
+              stack: createError.stack,
+              response: createError.response
             })
+            
+            // 既に存在する場合のエラーをチェック
+            const createErrorMessage = createError.message || ''
+            if (createErrorMessage.includes('409') || createErrorMessage.includes('既に登録')) {
+              // 既に存在する場合は、再度取得を試みる
+              try {
+                const existingUser = await this.getUserProfile(data.user.id)
+                this.currentUser = existingUser
+                console.log('Retrieved existing user after create conflict:', existingUser)
+                return existingUser
+              } catch (retryError) {
+                console.error('Failed to retrieve existing user:', retryError)
+                throw new Error(`ユーザープロファイルの取得に失敗しました: ${retryError instanceof Error ? retryError.message : 'Unknown error'}`)
+              }
+            }
+            
             throw new Error(`ログインは成功しましたが、ユーザープロファイルの作成に失敗しました: ${createError.message}`)
           }
         } else {
