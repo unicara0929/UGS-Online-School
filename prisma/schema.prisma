@@ -9,17 +9,30 @@ datasource db {
 }
 
 model User {
-  id             String              @id @default(cuid())
-  email          String              @unique
-  name           String
-  role           UserRole            @default(MEMBER)
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
-  compensations  Compensation[]
-  courseProgress CourseProgress[]
-  events         EventRegistration[]
-  subscriptions  Subscription[]
+  id                      String                   @id @default(cuid())
+  email                   String                   @unique
+  name                    String
+  role                    UserRole                 @default(MEMBER)
+  referralCode            String?                  @unique
+  bankAccount             Json?
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  compensations           Compensation[]
+  courseProgress          CourseProgress[]
+  events                  EventRegistration[]
+  subscriptions           Subscription[]
   fpPromotionApplications FPPromotionApplication[]
+  referralsAsReferrer     Referral[]               @relation("Referrer")
+  referralsAsReferred     Referral[]               @relation("Referred")
+  contracts               Contract[]
+  notifications           Notification[]
+  promotionApplications   PromotionApplication[]
+  reviewedPromotions      PromotionApplication[]   @relation("PromotionReviewer")
+  lpMeetingsAsMember      LPMeeting[]              @relation("LPMeetingMember")
+  lpMeetingsAsFP          LPMeeting[]              @relation("LPMeetingFP")
+  lpMeetingsAssigned      LPMeeting[]              @relation("LPMeetingAssigner")
+  basicTestResults        BasicTestResult[]
+  surveySubmissions       SurveySubmission[]
 
   @@map("users")
 }
@@ -193,21 +206,238 @@ enum FPPromotionApplicationStatus {
   COMPLETED
 }
 
+enum ReferralType {
+  MEMBER
+  FP
+}
+
+enum ReferralStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REWARDED
+}
+
+enum ContractType {
+  INSURANCE
+  OTHER
+}
+
+enum ContractStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+}
+
+enum NotificationType {
+  PROMOTION_ELIGIBLE
+  PROMOTION_APPROVED
+  PROMOTION_REJECTED
+  COMPENSATION_READY
+  COMPENSATION_PAID
+  EVENT_REMINDER
+  EVENT_REQUIRED
+  REFERRAL_REWARDED
+  CONTRACT_ACHIEVED
+  ACTION_REQUIRED
+  LP_MEETING_REQUESTED
+  LP_MEETING_SCHEDULED
+  LP_MEETING_COMPLETED
+  LP_MEETING_REMINDER
+}
+
+enum NotificationPriority {
+  CRITICAL
+  INFO
+  SUCCESS
+}
+
+enum PromotionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model FPPromotionApplication {
-  id                String                        @id @default(cuid())
-  userId            String
-  status            FPPromotionApplicationStatus  @default(PENDING)
-  lpMeetingCompleted Boolean                       @default(false)
-  basicTestCompleted Boolean                       @default(false)
-  surveyCompleted   Boolean                        @default(false)
-  idDocumentUrl     String?
-  appliedAt         DateTime                       @default(now())
-  approvedAt        DateTime?
-  completedAt       DateTime?
-  createdAt         DateTime                      @default(now())
-  updatedAt         DateTime                      @updatedAt
-  user              User                           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                 String                       @id @default(cuid())
+  userId             String
+  status             FPPromotionApplicationStatus @default(PENDING)
+  lpMeetingCompleted Boolean                      @default(false)
+  basicTestCompleted Boolean                      @default(false)
+  surveyCompleted    Boolean                      @default(false)
+  idDocumentUrl      String?
+  appliedAt          DateTime                     @default(now())
+  approvedAt         DateTime?
+  completedAt        DateTime?
+  createdAt          DateTime                     @default(now())
+  updatedAt          DateTime                     @updatedAt
+  user               User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId])
   @@map("fp_promotion_applications")
+}
+
+model Referral {
+  id           String         @id @default(cuid())
+  referrerId   String
+  referredId   String
+  referralType ReferralType
+  status       ReferralStatus @default(PENDING)
+  rewardAmount Int?
+  rewardPaidAt DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  referrer     User           @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referred     User           @relation("Referred", fields: [referredId], references: [id], onDelete: Cascade)
+
+  @@unique([referrerId, referredId])
+  @@map("referrals")
+}
+
+model Contract {
+  id             String         @id @default(cuid())
+  userId         String
+  contractNumber String         @unique
+  contractType   ContractType
+  status         ContractStatus @default(ACTIVE)
+  signedAt       DateTime
+  amount         Int?
+  rewardAmount   Int?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("contracts")
+}
+
+model Notification {
+  id        String               @id @default(cuid())
+  userId    String
+  type      NotificationType
+  priority  NotificationPriority @default(INFO)
+  title     String
+  message   String
+  actionUrl String?
+  isRead    Boolean              @default(false)
+  readAt    DateTime?
+  createdAt DateTime             @default(now())
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+model PromotionApplication {
+  id          String          @id @default(cuid())
+  userId      String
+  targetRole  UserRole
+  status      PromotionStatus @default(PENDING)
+  appliedAt   DateTime        @default(now())
+  reviewedAt  DateTime?
+  reviewedBy  String?
+  reviewNotes String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewer    User?           @relation("PromotionReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
+
+  @@unique([userId, targetRole])
+  @@map("promotion_applications")
+}
+
+model LPMeeting {
+  id              String           @id @default(cuid())
+  memberId        String
+  fpId            String?
+  status          LPMeetingStatus  @default(REQUESTED)
+  preferredDates  Json // 希望日時（5つ、DateTime[]）
+  scheduledAt     DateTime?
+  completedAt     DateTime?
+  cancelledAt     DateTime?
+  meetingUrl      String?
+  meetingPlatform MeetingPlatform?
+  notes           String?
+  memberNotes     String?
+  assignedBy      String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  member   User  @relation("LPMeetingMember", fields: [memberId], references: [id], onDelete: Cascade)
+  fp       User? @relation("LPMeetingFP", fields: [fpId], references: [id], onDelete: SetNull)
+  assigner User? @relation("LPMeetingAssigner", fields: [assignedBy], references: [id], onDelete: SetNull)
+
+  @@unique([memberId])
+  @@index([fpId, status])
+  @@index([memberId, status])
+  @@index([status])
+  @@map("lp_meetings")
+}
+
+enum LPMeetingStatus {
+  REQUESTED
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum MeetingPlatform {
+  ZOOM
+  GOOGLE_MEET
+  TEAMS
+  OTHER
+}
+
+model BasicTest {
+  id           String            @id @default(cuid())
+  title        String
+  questions    Json // 問題の配列
+  passingScore Int               @default(70) // 合格点（%）
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  results      BasicTestResult[]
+
+  @@map("basic_tests")
+}
+
+model BasicTestResult {
+  id          String    @id @default(cuid())
+  userId      String
+  testId      String
+  score       Int // 得点（%）
+  answers     Json // 回答の配列
+  isPassed    Boolean // 合格したかどうか
+  completedAt DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  test        BasicTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, testId])
+  @@map("basic_test_results")
+}
+
+model Survey {
+  id          String             @id @default(cuid())
+  title       String
+  questions   Json // 設問の配列
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  submissions SurveySubmission[]
+
+  @@map("surveys")
+}
+
+model SurveySubmission {
+  id          String   @id @default(cuid())
+  userId      String
+  surveyId    String
+  answers     Json // 回答の配列
+  submittedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  survey      Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, surveyId])
+  @@map("survey_submissions")
 }

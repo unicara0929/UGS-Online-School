@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { prismaRoleToAppRole } from '@/lib/utils/role-mapper'
 
 export async function GET(
   request: NextRequest,
@@ -35,14 +36,8 @@ export async function GET(
       )
     }
 
-    // Prismaのenum（大文字）を小文字に変換
-    const roleMap: Record<string, string> = {
-      'MEMBER': 'member',
-      'FP': 'fp',
-      'MANAGER': 'manager',
-      'ADMIN': 'admin'
-    }
-    const role = roleMap[user.role] || user.role.toLowerCase()
+    // Prismaのenum（大文字）をアプリケーション側のロール型（小文字）に変換
+    const role = prismaRoleToAppRole(user.role)
 
     return NextResponse.json({ 
       success: true,
@@ -51,6 +46,7 @@ export async function GET(
         email: user.email,
         name: user.name,
         role: role,
+        referralCode: user.referralCode,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
       }

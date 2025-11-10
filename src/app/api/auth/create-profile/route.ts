@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { supabaseAdmin } from '@/lib/supabase'
+import { appRoleToPrismaRole, prismaRoleToAppRole, stringToAppRole } from '@/lib/utils/role-mapper'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,15 +14,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // アプリケーション側のロール型（小文字）に変換して検証
+    const appRole = stringToAppRole(role) || 'member' // デフォルトはmember
+    const prismaRole = appRoleToPrismaRole(appRole)
+
     // Prismaでユーザープロファイルを作成
     const user = await prisma.user.create({
       data: {
         id: userId,
         email,
         name,
-        role: role.toUpperCase() as any,
+        role: prismaRole,
       }
     })
+
+    // アプリケーション側のロール型（小文字）に変換して返す
+    const responseRole = prismaRoleToAppRole(user.role)
 
     return NextResponse.json({ 
       success: true,
@@ -29,7 +37,7 @@ export async function POST(request: NextRequest) {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role.toLowerCase(),
+        role: responseRole,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
       }

@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { useAuth } from "@/contexts/auth-context"
+import { useRouter } from 'next/navigation'
 import { 
   CheckCircle, 
   XCircle, 
@@ -13,33 +14,67 @@ import {
   FileText,
   Calendar,
   MessageSquare,
-  Award
+  Award,
+  Loader2,
+  ArrowRight
 } from "lucide-react"
+
+interface PromotionConditions {
+  testPassed: boolean
+  lpMeetingCompleted: boolean
+  surveyCompleted: boolean
+  isEligible: boolean
+}
 
 export function FPPromotion() {
   const { user } = useAuth()
+  const router = useRouter()
   const [isApplying, setIsApplying] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null)
-
-  // モックデータ
-  const promotionConditions = {
+  const [conditions, setConditions] = useState<PromotionConditions>({
     testPassed: false,
     lpMeetingCompleted: false,
     surveyCompleted: false,
     isEligible: false
+  })
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchPromotionConditions()
+    }
+  }, [user?.id])
+
+  const fetchPromotionConditions = async () => {
+    if (!user?.id) return
+
+    try {
+      const response = await fetch(`/api/promotions/eligibility?userId=${user.id}&targetRole=fp`)
+      if (response.ok) {
+        const data = await response.json()
+        setConditions({
+          testPassed: data.eligibility.conditions.testPassed || false,
+          lpMeetingCompleted: data.eligibility.conditions.lpMeetingCompleted || false,
+          surveyCompleted: data.eligibility.conditions.surveyCompleted || false,
+          isEligible: data.eligibility.isEligible || false
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching promotion conditions:', error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      // ファイルサイズチェック（10MB以下）
       if (file.size > 10 * 1024 * 1024) {
         alert('ファイルサイズは10MB以下にしてください')
         return
       }
-      // ファイルタイプチェック
       const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf']
       if (!allowedTypes.includes(file.type)) {
         alert('JPEG、PNG、PDFファイルのみアップロード可能です')
@@ -70,7 +105,6 @@ export function FPPromotion() {
       const data = await response.json()
 
       if (!response.ok) {
-        // バケットが見つからない場合の特別なメッセージ
         if (data.errorCode === 'BUCKET_NOT_FOUND') {
           throw new Error('ストレージバケットが設定されていません。管理者にお問い合わせください。')
         }
@@ -95,7 +129,6 @@ export function FPPromotion() {
 
     setIsApplying(true)
     try {
-      // 実際の申請処理を実装
       const response = await fetch('/api/user/fp-promotion-apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -111,6 +144,7 @@ export function FPPromotion() {
       }
 
       alert('FPエイド昇格申請を送信しました。運営による確認後、昇格が完了します。')
+      await fetchPromotionConditions()
     } catch (error: any) {
       console.error('Application error:', error)
       alert(error.message || '申請に失敗しました')
@@ -118,6 +152,12 @@ export function FPPromotion() {
       setIsApplying(false)
     }
   }
+
+  const completedCount = [
+    conditions.testPassed,
+    conditions.lpMeetingCompleted,
+    conditions.surveyCompleted
+  ].filter(Boolean).length
 
   if (user?.role !== 'member') {
     return (
@@ -135,6 +175,18 @@ export function FPPromotion() {
           <div className="text-center py-4">
             <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-2" />
             <p className="text-slate-600">おめでとうございます！FPエイドに昇格済みです。</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-slate-600" />
           </div>
         </CardContent>
       </Card>
@@ -159,42 +211,84 @@ export function FPPromotion() {
             <h3 className="text-lg font-semibold mb-4">昇格条件</h3>
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl">
-                <div className="flex items-center">
+                <div className="flex items-center flex-1">
                   <FileText className="h-5 w-5 mr-3 text-slate-600" />
-                  <div>
+                  <div className="flex-1">
                     <h4 className="font-medium">基礎編テスト合格</h4>
-                    <p className="text-sm text-slate-600">3カテゴリの基礎編テストに合格する</p>
+                    <p className="text-sm text-slate-600">基礎編テスト（10問）に合格する（70%以上）</p>
                   </div>
                 </div>
-                <Badge variant={promotionConditions.testPassed ? "success" : "secondary"}>
-                  {promotionConditions.testPassed ? "完了" : "未完了"}
-                </Badge>
+                <div className="flex items-center space-x-2">
+                  {conditions.testPassed ? (
+                    <Badge className="bg-green-100 text-green-800">完了</Badge>
+                  ) : (
+                    <>
+                      <Badge variant="secondary">未完了</Badge>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => router.push('/dashboard/basic-test')}
+                      >
+                        テストを受ける
+                        <ArrowRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
 
               <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl">
-                <div className="flex items-center">
+                <div className="flex items-center flex-1">
                   <MessageSquare className="h-5 w-5 mr-3 text-slate-600" />
-                  <div>
+                  <div className="flex-1">
                     <h4 className="font-medium">LP面談完了</h4>
                     <p className="text-sm text-slate-600">ライフプランナーとの面談を完了する</p>
                   </div>
                 </div>
-                <Badge variant={promotionConditions.lpMeetingCompleted ? "success" : "secondary"}>
-                  {promotionConditions.lpMeetingCompleted ? "完了" : "未完了"}
-                </Badge>
+                <div className="flex items-center space-x-2">
+                  {conditions.lpMeetingCompleted ? (
+                    <Badge className="bg-green-100 text-green-800">完了</Badge>
+                  ) : (
+                    <>
+                      <Badge variant="secondary">未完了</Badge>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => router.push('/dashboard/lp-meeting/request')}
+                      >
+                        面談を予約
+                        <ArrowRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
 
               <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl">
-                <div className="flex items-center">
+                <div className="flex items-center flex-1">
                   <Calendar className="h-5 w-5 mr-3 text-slate-600" />
-                  <div>
+                  <div className="flex-1">
                     <h4 className="font-medium">アンケート提出</h4>
-                    <p className="text-sm text-slate-600">初回アンケートを提出する</p>
+                    <p className="text-sm text-slate-600">初回アンケート（10設問）を提出する</p>
                   </div>
                 </div>
-                <Badge variant={promotionConditions.surveyCompleted ? "success" : "secondary"}>
-                  {promotionConditions.surveyCompleted ? "完了" : "未完了"}
-                </Badge>
+                <div className="flex items-center space-x-2">
+                  {conditions.surveyCompleted ? (
+                    <Badge className="bg-green-100 text-green-800">完了</Badge>
+                  ) : (
+                    <>
+                      <Badge variant="secondary">未完了</Badge>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => router.push('/dashboard/survey')}
+                      >
+                        アンケートに回答
+                        <ArrowRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -203,9 +297,9 @@ export function FPPromotion() {
           <div className="bg-slate-50 p-4 rounded-xl">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium">昇格進捗</span>
-              <span className="text-sm text-slate-600">0/3 完了</span>
+              <span className="text-sm text-slate-600">{completedCount}/3 完了</span>
             </div>
-            <Progress value={0} className="h-2" />
+            <Progress value={(completedCount / 3) * 100} className="h-2" />
             <p className="text-xs text-slate-600 mt-2">
               全条件を満たすと昇格申請が可能になります
             </p>
@@ -276,13 +370,13 @@ export function FPPromotion() {
 
               <Button 
                 className="w-full" 
-                disabled={!promotionConditions.isEligible || isApplying || !uploadedFileUrl}
+                disabled={!conditions.isEligible || isApplying || !uploadedFileUrl}
                 onClick={handlePromotionApplication}
               >
                 {isApplying ? '申請中...' : 'FPエイド昇格申請'}
               </Button>
 
-              {!promotionConditions.isEligible && (
+              {!conditions.isEligible && (
                 <p className="text-sm text-slate-500 text-center">
                   昇格条件をすべて満たすと申請可能になります
                 </p>
