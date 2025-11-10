@@ -5,7 +5,10 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
-    "start": "next start"
+    "start": "next start",
+    "test:api": "tsx scripts/test-api.ts",
+    "test:api:http": "tsx scripts/test-api-http.ts",
+    "test:seed": "tsx scripts/seed-basic-test-survey.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -42,6 +45,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "tailwindcss": "^4",
+    "tsx": "^4.19.2",
     "typescript": "^5"
   }
 }
