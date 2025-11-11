@@ -28,5 +28,15 @@ export const supabaseAdmin = supabaseUrl && serviceRoleKey
       }
     )
   : (supabaseUrl && supabaseAnonKey
-      ? createClient(supabaseUrl, supabaseAnonKey) // フォールバック: anon keyを使用
-      : null)
+      ? createClient(supabaseUrl, supabaseAnonKey, {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false
+          }
+        }) // フォールバック: anon keyを使用
+      : createClient('https://placeholder.supabase.co', 'placeholder-key', {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false
+          }
+        })) // 最終フォールバック: プレースホルダー

@@ -52,16 +52,6 @@ export async function getAuthenticatedUser(
     const token = authHeader.substring(7)
     
     // Supabase Adminを使用してトークンを検証
-    if (!supabaseAdmin) {
-      return {
-        user: null,
-        error: NextResponse.json(
-          { error: '認証サービスが設定されていません' },
-          { status: 500 }
-        ),
-      }
-    }
-    
     const {
       data: { user },
       error: authError,
