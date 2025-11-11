@@ -23,6 +23,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
     let isMounted = true
@@ -34,11 +35,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const currentUser = await SupabaseAuthService.getCurrentUser()
         if (isMounted) {
           setUser(currentUser)
+          setError(null)
         }
       } catch (error) {
         console.error('Auth initialization error:', error)
         if (isMounted) {
           setUser(null)
+          setError(error instanceof Error ? error : new Error('認証の初期化に失敗しました'))
         }
       } finally {
         if (isMounted) {
@@ -55,14 +58,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (isMounted) {
           setUser(user)
           setIsLoading(false)
+          setError(null)
         }
       })
       
-      if (result?.data?.subscription) {
-        subscription = result.data.subscription
+      if (result && 'data' in result && result.data && 'subscription' in result.data) {
+        subscription = result.data.subscription as { unsubscribe: () => void }
       }
     } catch (error) {
       console.error('Error setting up auth state change listener:', error)
+      if (isMounted) {
+        setError(error instanceof Error ? error : new Error('認証状態の監視に失敗しました'))
+      }
     }
 
     return () => {
@@ -78,18 +85,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = async (email: string, password: string) => {
-    const user = await SupabaseAuthService.login(email, password)
-    setUser(user)
+    try {
+      setError(null)
+      const user = await SupabaseAuthService.login(email, password)
+      setUser(user)
+      return user
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error('ログインに失敗しました')
+      setError(err)
+      throw err
+    }
   }
 
   const logout = async () => {
-    await SupabaseAuthService.logout()
-    setUser(null)
+    try {
+      setError(null)
+      await SupabaseAuthService.logout()
+      setUser(null)
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error('ログアウトに失敗しました')
+      setError(err)
+      throw err
+    }
   }
 
   const register = async (email: string, password: string, name: string) => {
-    const user = await SupabaseAuthService.register(email, password, name)
-    setUser(user)
+    try {
+      setError(null)
+      const user = await SupabaseAuthService.register(email, password, name)
+      setUser(user)
+      return user
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error('登録に失敗しました')
+      setError(err)
+      throw err
+    }
   }
 
   const hasRole = (role: string) => {
