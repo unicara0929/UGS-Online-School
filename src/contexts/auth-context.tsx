@@ -85,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<AuthUser> => {
     try {
       setError(null)
       const user = await SupabaseAuthService.login(email, password)
@@ -98,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const logout = async () => {
+  const logout = async (): Promise<void> => {
     try {
       setError(null)
       await SupabaseAuthService.logout()
@@ -110,7 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const register = async (email: string, password: string, name: string) => {
+  const register = async (email: string, password: string, name: string): Promise<AuthUser> => {
     try {
       setError(null)
       const user = await SupabaseAuthService.register(email, password, name)
