@@ -28,8 +28,8 @@ if (process.env.NODE_ENV !== 'production') {
 // 接続エラー時のリトライ関数
 export async function withRetry<T>(
   operation: () => Promise<T>,
-  maxRetries = 3,
-  delay = 2000 // 初期待機時間を2秒に延長
+  maxRetries = 2, // リトライ回数を3回→2回に削減
+  delay = 500 // 初期待機時間を2秒→500msに短縮
 ): Promise<T> {
   let lastError: Error | null = null
   
@@ -47,8 +47,8 @@ export async function withRetry<T>(
         error?.message?.includes('pooler.supabase.com')
       ) {
         if (i < maxRetries - 1) {
-          // 指数バックオフで待機（最大10秒）
-          const waitTime = Math.min(delay * Math.pow(2, i), 10000)
+          // 指数バックオフで待機（最大2秒に短縮）
+          const waitTime = Math.min(delay * Math.pow(2, i), 2000)
           console.warn(`Database connection failed, retrying in ${waitTime}ms... (attempt ${i + 1}/${maxRetries})`)
           console.warn('Connection URL:', process.env.DATABASE_URL ? 'Set' : 'Not set')
           await new Promise(resolve => setTimeout(resolve, waitTime))

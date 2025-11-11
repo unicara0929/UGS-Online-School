@@ -419,7 +419,7 @@ export class SupabaseAuthService {
       while (retryCount < maxRetries) {
         try {
           const response = await fetch(`/api/auth/profile/${userId}`, {
-            signal: AbortSignal.timeout(10000) // 10秒タイムアウト
+            signal: AbortSignal.timeout(5000) // 5秒タイムアウトに短縮
           })
           
           if (!response.ok) {

@@ -1,58 +1,78 @@
-# データベース接続エラーの緊急対処法
+# データベース接続エラーの解決手順
 
-## 問題の症状
-- `Can't reach database server at aws-1-ap-northeast-1.pooler.supabase.com:5432`
-- データベース接続エラーが頻繁に発生
+## 現在の状況
 
-## 緊急対処：直接接続URLに切り替え
+エラーメッセージから、接続プールURL `aws-1-ap-northeast-1.pooler.supabase.com:5432` に接続できないことが確認されました。
 
-### 1. Supabaseダッシュボードで直接接続URLを取得
+## 解決方法：直接接続URLに切り替え
 
-1. Supabaseダッシュボードにログイン
-2. **Settings > Database** に移動
-3. **Connection string** セクションで **URI** を選択
-4. 接続文字列をコピー（例：`postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres`）
+接続プールが使用できない場合、直接接続URLに切り替えることで問題を解決できます。
 
-### 2. Vercelの環境変数を更新
+### ステップ1: Supabaseダッシュボードで直接接続URLを取得
 
-1. Vercelダッシュボードにログイン
+1. [Supabaseダッシュボード](https://app.supabase.com)にログイン
 2. プロジェクトを選択
-3. **Settings > Environment Variables** に移動
-4. `DATABASE_URL` を以下の形式に更新：
+3. **Settings** > **Database** に移動
+4. **Connection string** セクションを開く
+5. **URI** タブを選択（接続プールではなく、直接接続用）
+6. 接続文字列をコピー
 
-```env
-DATABASE_URL="postgresql://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres"
+接続文字列の形式は以下のようになります：
+```
+postgresql://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres
 ```
 
-**重要**: `[YOUR-PASSWORD]` と `[PROJECT-REF]` を実際の値に置き換えてください。
+### ステップ2: Vercelの環境変数を更新
 
-### 3. デプロイを再実行
+1. [Vercelダッシュボード](https://vercel.com)にログイン
+2. プロジェクト `ugs-online-school` を選択
+3. **Settings** > **Environment Variables** に移動
+4. `DATABASE_URL` を探す（または新規作成）
+5. **Value** に、ステップ1で取得した直接接続URLを貼り付け
+6. **Save** をクリック
 
-環境変数を更新後、Vercelでデプロイを再実行してください。
+**重要**: 
+- `[YOUR-PASSWORD]` の部分を実際のデータベースパスワードに置き換えてください
+- `[PROJECT-REF]` の部分は既に正しい値が入っているはずです
 
-## 接続プールが使用できない理由
+### ステップ3: デプロイを再実行
 
-接続プールが使用できない場合の一般的な原因：
+1. Vercelダッシュボードで **Deployments** タブに移動
+2. 最新のデプロイメントの **...** メニューをクリック
+3. **Redeploy** を選択
+4. デプロイが完了するまで待つ（通常1-2分）
+
+### ステップ4: 動作確認
+
+デプロイ完了後、アプリケーションにアクセスして、データベース接続エラーが解消されたか確認してください。
+
+## 接続プールURLの問題
+
+現在のエラーは、接続プールURL `aws-1-ap-northeast-1.pooler.supabase.com:5432` に接続できないことが原因です。
+
+考えられる原因：
 1. **接続プールが無効になっている**: Supabaseの設定で接続プールが無効になっている
-2. **接続数の上限**: 接続プールの接続数が上限に達している
-3. **URLの形式が間違っている**: 接続プール用のURLの形式が正しくない
+2. **URLの形式が間違っている**: 接続プール用のURLの形式が正しくない
+3. **接続数の上限**: 接続プールの接続数が上限に達している
 4. **一時的な問題**: Supabase側の一時的な問題
 
-## 接続プールを再度有効にする方法
-
-1. Supabaseダッシュボードで **Settings > Database** に移動
-2. **Connection Pooling** セクションを確認
-3. 接続プールが無効になっている場合は、有効化
-4. **Connection pooling** の接続文字列をコピー
-5. Vercelの環境変数 `DATABASE_URL` を更新
-
-## 注意事項
+## 直接接続URLの注意事項
 
 - **直接接続は接続数の制限があるため、本番環境では接続プールの使用を推奨します**
 - 直接接続は一時的な対処として使用し、接続プールの問題が解決したら再度切り替えることを推奨します
 - 接続プールが使用できない場合は、Supabaseのサポートに問い合わせることを検討してください
 
+## 接続プールを再度有効にする方法（将来的に）
+
+接続プールの問題が解決したら、以下の手順で接続プールに戻すことができます：
+
+1. Supabaseダッシュボードで **Settings** > **Database** に移動
+2. **Connection Pooling** セクションを確認
+3. 接続プールが有効になっていることを確認
+4. **Connection pooling** タブの接続文字列をコピー
+5. Vercelの環境変数 `DATABASE_URL` を更新
+6. デプロイを再実行
+
 ---
 
 **最終更新**: 2025年1月
-
