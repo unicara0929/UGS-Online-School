@@ -4,7 +4,6 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { prisma, withRetry } from '@/lib/prisma'
 import { supabaseAdmin } from '@/lib/supabase'
 
