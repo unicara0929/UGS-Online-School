@@ -33,7 +33,7 @@ function EventsPageContent() {
       while (retryCount < maxRetries) {
         try {
           const controller = new AbortController()
-          const timeoutId = setTimeout(() => controller.abort(), 5000) // 5秒タイムアウトに短縮
+          const timeoutId = setTimeout(() => controller.abort(), 15000) // 15秒タイムアウトに延長
 
           const response = await fetch(`/api/events?userId=${encodeURIComponent(user.id)}`, {
             signal: controller.signal
