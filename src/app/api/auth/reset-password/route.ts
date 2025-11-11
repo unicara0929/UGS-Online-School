@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
 
 /**
  * パスワードリセットメールを送信
@@ -39,25 +39,7 @@ export async function POST(request: NextRequest) {
     console.log('Password reset redirect URL:', redirectUrl)
     console.log('Host:', host, 'Protocol:', protocol)
 
-    // Supabaseクライアントを作成（サーバーサイド用）
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      return NextResponse.json(
-        { error: 'Supabaseの設定が不完全です' },
-        { status: 500 }
-      )
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    })
-
-    // パスワードリセットメールを送信
+    // パスワードリセットメールを送信（共有のSupabaseクライアントを使用）
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: redirectUrl,
     })

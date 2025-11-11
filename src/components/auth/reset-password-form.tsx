@@ -7,15 +7,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Lock, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { createClient } from '@supabase/supabase-js'
-
-export const dynamic = 'force-dynamic'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-const supabase = supabaseUrl && supabaseAnonKey
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null
+import { supabase } from '@/lib/supabase'
 
 export function ResetPasswordForm() {
   const [password, setPassword] = useState('')
