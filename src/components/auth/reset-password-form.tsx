@@ -20,11 +20,7 @@ export function ResetPasswordForm() {
   const router = useRouter()
 
   useEffect(() => {
-    if (!supabase) {
-      setError('認証サービスが未設定です')
-      setIsCheckingSession(false)
-      return
-    }
+    // supabaseは常に有効なクライアントを返すため、nullチェックは不要
 
     // URLハッシュフラグメントからエラーを確認
     const hash = window.location.hash
