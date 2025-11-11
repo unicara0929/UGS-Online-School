@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { LPMeetingStatus, NotificationType, NotificationPriority } from '@prisma/client'
 import { createNotification } from '@/lib/services/notification-service'
+import { getAuthenticatedUser, checkRole, RoleGroups } from '@/lib/auth/api-helpers'
 
 /**
  * FPエイドの面談一覧を取得
@@ -9,15 +10,16 @@ import { createNotification } from '@/lib/services/notification-service'
  */
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const fpId = searchParams.get('fpId')
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
 
-    if (!fpId) {
-      return NextResponse.json(
-        { error: 'FPエイドIDが必要です' },
-        { status: 400 }
-      )
-    }
+    // FP以上のロールチェック
+    const { allowed, error: roleError } = checkRole(authUser!.role, RoleGroups.FP_AND_ABOVE)
+    if (!allowed) return roleError!
+
+    // クエリパラメータのfpIdを使わず、認証ユーザーのIDを使用
+    const fpId = authUser!.id
 
     const meetings = await prisma.lPMeeting.findMany({
       where: {
@@ -76,6 +78,14 @@ export async function POST(
   context: { params: Promise<{ meetingId: string }> }
 ) {
   try {
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
+
+    // FP以上のロールチェック
+    const { allowed, error: roleError } = checkRole(authUser!.role, RoleGroups.FP_AND_ABOVE)
+    if (!allowed) return roleError!
+
     const { meetingId } = await context.params
     const { notes } = await request.json()
 
@@ -92,6 +102,14 @@ export async function POST(
       return NextResponse.json(
         { error: '面談が見つかりません' },
         { status: 404 }
+      )
+    }
+
+    // 所有権チェック: 自分が担当する面談のみ完了可能
+    if (meeting.fpId !== authUser!.id && authUser!.role.toLowerCase() !== 'admin') {
+      return NextResponse.json(
+        { error: 'アクセス権限がありません。自分が担当する面談のみ完了できます。' },
+        { status: 403 }
       )
     }
 

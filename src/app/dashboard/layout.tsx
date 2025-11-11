@@ -1,4 +1,5 @@
 import { AuthProvider } from "@/contexts/auth-context"
+import { SubscriptionGuard } from "@/components/auth/subscription-guard"
 
 export default function DashboardLayout({
   children,
@@ -7,7 +8,9 @@ export default function DashboardLayout({
 }) {
   return (
     <AuthProvider>
-      {children}
+      <SubscriptionGuard allowAccess={false}>
+        {children}
+      </SubscriptionGuard>
     </AuthProvider>
   )
 }

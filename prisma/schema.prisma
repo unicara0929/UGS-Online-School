@@ -15,6 +15,17 @@ model User {
   role                    UserRole                 @default(MEMBER)
   referralCode            String?                  @unique
   bankAccount             Json?
+  // プロフィール拡張フィールド
+  phone                   String?
+  address                 String?
+  bio                     String?
+  attribute               String?
+  gender                  String?
+  birthDate               DateTime?
+  prefecture              String?
+  profileImageUrl         String?
+  notificationPreferences Json?
+  lastLoginAt             DateTime?
   createdAt               DateTime                 @default(now())
   updatedAt               DateTime                 @updatedAt
   compensations           Compensation[]
@@ -33,6 +44,7 @@ model User {
   lpMeetingsAssigned      LPMeeting[]              @relation("LPMeetingAssigner")
   basicTestResults        BasicTestResult[]
   surveySubmissions       SurveySubmission[]
+  cancelRequests          CancelRequest[]
 
   @@map("users")
 }
@@ -440,4 +452,27 @@ model SurveySubmission {
 
   @@unique([userId, surveyId])
   @@map("survey_submissions")
+}
+
+model CancelRequest {
+  id                 String              @id @default(cuid())
+  userId             String
+  name               String
+  email              String
+  reason             String
+  otherReason        String?
+  continuationOption String
+  status             CancelRequestStatus @default(PENDING)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("cancel_requests")
+}
+
+enum CancelRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
 }

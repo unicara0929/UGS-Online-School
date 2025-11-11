@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
 
 /**
  * すべての通知を既読にする
@@ -7,14 +8,12 @@ import { prisma } from '@/lib/prisma'
  */
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await request.json()
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
 
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'ユーザーIDが必要です' },
-        { status: 400 }
-      )
-    }
+    // リクエストボディのuserIdを使わず、認証ユーザーのIDを使用
+    const userId = authUser!.id
 
     // すべての未読通知を既読にする
     const result = await prisma.notification.updateMany({

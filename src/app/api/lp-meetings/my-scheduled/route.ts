@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getAuthenticatedUser, checkRole, RoleGroups } from '@/lib/auth/api-helpers'
 
 /**
  * FPエイドが自分のスケジュール済みLP面談を取得
@@ -7,15 +8,16 @@ import { prisma } from '@/lib/prisma'
  */
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const fpId = searchParams.get('fpId')
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
 
-    if (!fpId) {
-      return NextResponse.json(
-        { error: 'FPエイドIDが必要です' },
-        { status: 400 }
-      )
-    }
+    // FP以上のロールチェック
+    const { allowed, error: roleError } = checkRole(authUser!.role, RoleGroups.FP_AND_ABOVE)
+    if (!allowed) return roleError!
+
+    // クエリパラメータのfpIdを使わず、認証ユーザーのIDを使用
+    const fpId = authUser!.id
 
     // FPエイドに割り当てられた面談を取得
     const meetings = await prisma.lPMeeting.findMany({

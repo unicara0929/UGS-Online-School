@@ -1,19 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { PromotionStatus } from '@prisma/client'
+import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
 
 /**
  * 昇格申請を却下
  * POST /api/admin/promotions/[applicationId]/reject
+ * 権限: 管理者のみ
  */
 export async function POST(
   request: NextRequest,
   context: { params: Promise<{ applicationId: string }> }
 ) {
   try {
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
+
+    // 管理者チェック
+    const { isAdmin, error: adminError } = checkAdmin(authUser!.role)
+    if (!isAdmin) {
+      return adminError || NextResponse.json(
+        { error: 'アクセス権限がありません。管理者権限が必要です。' },
+        { status: 403 }
+      )
+    }
+
     const { applicationId } = await context.params
     const body = await request.json()
-    const { reviewerId, reviewNotes } = body
+    const { reviewNotes } = body
 
     if (!applicationId) {
       return NextResponse.json(
@@ -47,7 +62,7 @@ export async function POST(
       data: {
         status: PromotionStatus.REJECTED,
         reviewedAt: new Date(),
-        reviewedBy: reviewerId || null,
+        reviewedBy: authUser!.id, // 認証済みユーザーのIDを使用
         reviewNotes: reviewNotes || null
       }
     })

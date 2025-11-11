@@ -18,6 +18,21 @@ export interface PaymentConfirmationEmailData {
   loginUrl: string
 }
 
+export interface PaymentFailedEmailData {
+  to: string
+  userName: string
+  amount: number
+  invoiceId: string
+  updateCardUrl: string
+}
+
+export interface SubscriptionCancelledEmailData {
+  to: string
+  userName: string
+  subscriptionId: string
+  reactivateUrl: string
+}
+
 export async function sendPaymentConfirmationEmail(data: PaymentConfirmationEmailData) {
   const mailOptions = {
     from: process.env.SMTP_USER,
@@ -112,6 +127,182 @@ export async function sendPaymentConfirmationEmail(data: PaymentConfirmationEmai
       return
     }
     
+    throw error
+  }
+}
+
+/**
+ * 決済失敗メールを送信
+ */
+export async function sendPaymentFailedEmail(data: PaymentFailedEmailData) {
+  const mailOptions = {
+    from: process.env.SMTP_USER,
+    to: data.to,
+    subject: 'UGSオンラインスクール - 決済失敗のお知らせ',
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>決済失敗のお知らせ</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #dc2626; color: white; padding: 20px; text-align: center; }
+          .content { padding: 20px; background: #f8fafc; }
+          .button { display: inline-block; background: #dc2626; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+          .footer { padding: 20px; text-align: center; color: #64748b; font-size: 14px; }
+          .warning { background: #fef2f2; border-left: 4px solid #dc2626; padding: 15px; margin: 20px 0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>UGSオンラインスクール</h1>
+            <p>決済失敗のお知らせ</p>
+          </div>
+          
+          <div class="content">
+            <h2>${data.userName} 様</h2>
+            
+            <div class="warning">
+              <h3>⚠️ 決済が失敗しました</h3>
+              <p>お支払いの処理に失敗しました。カード情報の確認をお願いいたします。</p>
+            </div>
+            
+            <div style="background: white; padding: 15px; border-radius: 6px; margin: 20px 0;">
+              <h3>決済情報</h3>
+              <p><strong>請求金額:</strong> ¥${data.amount.toLocaleString()}</p>
+              <p><strong>請求書ID:</strong> ${data.invoiceId}</p>
+              <p><strong>失敗日時:</strong> ${new Date().toLocaleString('ja-JP')}</p>
+            </div>
+            
+            <h3>次のステップ</h3>
+            <p>以下のいずれかの方法で決済を完了してください：</p>
+            <ol>
+              <li>カード情報を更新して再決済を行う</li>
+              <li>別のカードで決済を行う</li>
+              <li>カード会社に連絡して問題を確認する</li>
+            </ol>
+            
+            <div style="text-align: center;">
+              <a href="${data.updateCardUrl}" class="button">カード情報を更新する</a>
+            </div>
+            
+            <p><strong>重要:</strong> 決済が完了しない場合、サービスへのアクセスが制限される可能性があります。</p>
+            
+            <p>ご不明な点がございましたら、お気軽にお問い合わせください。</p>
+          </div>
+          
+          <div class="footer">
+            <p>UGSオンラインスクール</p>
+            <p>学び → 実践 → 自立を一体化したFP育成プラットフォーム</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  }
+
+  try {
+    if (process.env.NODE_ENV === 'development' && !process.env.SMTP_PASS) {
+      console.log('📧 [DEV MODE] Payment failed email would be sent to:', data.to)
+      return
+    }
+
+    await transporter.sendMail(mailOptions)
+    console.log('✅ Payment failed email sent successfully to:', data.to)
+  } catch (error: any) {
+    console.error('❌ Error sending payment failed email:', error)
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('⚠️ Email sending failed, but continuing in development mode')
+      return
+    }
+    throw error
+  }
+}
+
+/**
+ * サブスクリプションキャンセルメールを送信
+ */
+export async function sendSubscriptionCancelledEmail(data: SubscriptionCancelledEmailData) {
+  const mailOptions = {
+    from: process.env.SMTP_USER,
+    to: data.to,
+    subject: 'UGSオンラインスクール - サブスクリプションキャンセルのお知らせ',
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>サブスクリプションキャンセルのお知らせ</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #64748b; color: white; padding: 20px; text-align: center; }
+          .content { padding: 20px; background: #f8fafc; }
+          .button { display: inline-block; background: #1e293b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+          .footer { padding: 20px; text-align: center; color: #64748b; font-size: 14px; }
+          .info { background: #f1f5f9; border-left: 4px solid #64748b; padding: 15px; margin: 20px 0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>UGSオンラインスクール</h1>
+            <p>サブスクリプションキャンセルのお知らせ</p>
+          </div>
+          
+          <div class="content">
+            <h2>${data.userName} 様</h2>
+            
+            <div class="info">
+              <h3>サブスクリプションがキャンセルされました</h3>
+              <p>ご利用いただき、ありがとうございました。</p>
+            </div>
+            
+            <div style="background: white; padding: 15px; border-radius: 6px; margin: 20px 0;">
+              <h3>キャンセル情報</h3>
+              <p><strong>サブスクリプションID:</strong> ${data.subscriptionId}</p>
+              <p><strong>キャンセル日時:</strong> ${new Date().toLocaleString('ja-JP')}</p>
+            </div>
+            
+            <p>現在の期間が終了するまで、サービスをご利用いただけます。</p>
+            
+            <h3>再開をご希望の場合</h3>
+            <p>いつでもサブスクリプションを再開することができます。</p>
+            
+            <div style="text-align: center;">
+              <a href="${data.reactivateUrl}" class="button">サブスクリプションを再開する</a>
+            </div>
+            
+            <p>ご不明な点がございましたら、お気軽にお問い合わせください。</p>
+          </div>
+          
+          <div class="footer">
+            <p>UGSオンラインスクール</p>
+            <p>学び → 実践 → 自立を一体化したFP育成プラットフォーム</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  }
+
+  try {
+    if (process.env.NODE_ENV === 'development' && !process.env.SMTP_PASS) {
+      console.log('📧 [DEV MODE] Subscription cancelled email would be sent to:', data.to)
+      return
+    }
+
+    await transporter.sendMail(mailOptions)
+    console.log('✅ Subscription cancelled email sent successfully to:', data.to)
+  } catch (error: any) {
+    console.error('❌ Error sending subscription cancelled email:', error)
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('⚠️ Email sending failed, but continuing in development mode')
+      return
+    }
     throw error
   }
 }

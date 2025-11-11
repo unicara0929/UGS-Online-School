@@ -35,39 +35,13 @@ export async function calculateMonthlyCompensation(
   const startDate = new Date(year, monthNum - 1, 1)
   const endDate = new Date(year, monthNum, 0, 23, 59, 59, 999)
 
-  // 1. UGS会員紹介報酬を計算
-  const memberReferrals = await prisma.referral.findMany({
-    where: {
-      referrerId: userId,
-      referralType: 'MEMBER',
-      status: ReferralStatus.APPROVED,
-      createdAt: {
-        gte: startDate,
-        lte: endDate
-      }
-    }
-  })
+  // 1. UGS会員紹介報酬を計算（報酬なしのため0）
+  // 紹介報酬は現在無効化されています
+  breakdown.memberReferral = 0
 
-  breakdown.memberReferral = memberReferrals.reduce((sum, ref) => {
-    return sum + (ref.rewardAmount || 15000) // デフォルト15,000円
-  }, 0)
-
-  // 2. FPエイド紹介報酬を計算
-  const fpReferrals = await prisma.referral.findMany({
-    where: {
-      referrerId: userId,
-      referralType: 'FP',
-      status: ReferralStatus.APPROVED,
-      createdAt: {
-        gte: startDate,
-        lte: endDate
-      }
-    }
-  })
-
-  breakdown.fpReferral = fpReferrals.reduce((sum, ref) => {
-    return sum + (ref.rewardAmount || 20000) // デフォルト20,000円
-  }, 0)
+  // 2. FPエイド紹介報酬を計算（報酬なしのため0）
+  // 紹介報酬は現在無効化されています
+  breakdown.fpReferral = 0
 
   // 3. 契約報酬を計算
   const contracts = await prisma.contract.findMany({

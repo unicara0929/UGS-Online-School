@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { LPMeetingStatus, MeetingPlatform, NotificationType, NotificationPriority } from '@prisma/client'
 import { createNotification } from '@/lib/services/notification-service'
 import { formatDateTime } from '@/lib/utils/format'
+import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
 
 /**
  * 面談を確定（管理者）
@@ -13,6 +14,13 @@ export async function POST(
   context: { params: Promise<{ meetingId: string }> }
 ) {
   try {
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
+
+    // 管理者チェック
+    const { isAdmin, error: adminError } = checkAdmin(authUser!.role)
+    if (!isAdmin) return adminError!
     const { meetingId } = await context.params
     const { scheduledAt, fpId, meetingUrl, meetingPlatform, assignedBy } = await request.json()
 

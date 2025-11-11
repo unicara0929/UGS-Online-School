@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { checkPromotionEligibility } from '@/lib/services/promotion-eligibility'
 import { appRoleToPrismaRole, stringToPrismaRole } from '@/lib/utils/role-mapper'
 import { UserRole } from '@prisma/client'
+import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
 
 /**
  * 昇格可能性をチェック
@@ -10,13 +11,19 @@ import { UserRole } from '@prisma/client'
  */
 export async function GET(request: NextRequest) {
   try {
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
+
     const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
     const targetRole = searchParams.get('targetRole')
 
-    if (!userId || !targetRole) {
+    // クエリパラメータのuserIdを使わず、認証ユーザーのIDを使用
+    const userId = authUser!.id
+
+    if (!targetRole) {
       return NextResponse.json(
-        { error: 'ユーザーIDと目標ロールが必要です' },
+        { error: '目標ロールが必要です' },
         { status: 400 }
       )
     }

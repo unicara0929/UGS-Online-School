@@ -45,7 +45,7 @@ export function ContractList() {
     if (!user?.id) return
 
     try {
-      const response = await fetch(`/api/contracts?userId=${user.id}`)
+      const response = await fetch('/api/contracts')
       if (!response.ok) {
         throw new Error('契約一覧の取得に失敗しました')
       }
@@ -74,7 +74,6 @@ export function ContractList() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: user.id,
           contractNumber,
           contractType,
           signedAt,

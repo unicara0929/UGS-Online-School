@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
 
 const EVENT_TYPE_MAP = {
   REQUIRED: 'required',
@@ -15,6 +16,10 @@ const EVENT_STATUS_MAP = {
 
 export async function GET(request: NextRequest) {
   try {
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
+
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
 

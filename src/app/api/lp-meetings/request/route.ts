@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { LPMeetingStatus, NotificationType, NotificationPriority } from '@prisma/client'
 import { createNotification } from '@/lib/services/notification-service'
+import { getAuthenticatedUser, checkRole, Roles } from '@/lib/auth/api-helpers'
 
 /**
  * 面談予約申請
@@ -9,11 +10,22 @@ import { createNotification } from '@/lib/services/notification-service'
  */
 export async function POST(request: NextRequest) {
   try {
-    const { memberId, preferredDates, memberNotes } = await request.json()
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
 
-    if (!memberId || !preferredDates) {
+    // MEMBERロールチェック
+    const { allowed, error: roleError } = checkRole(authUser!.role, [Roles.MEMBER])
+    if (!allowed) return roleError!
+
+    const { preferredDates, memberNotes } = await request.json()
+
+    // リクエストボディのmemberIdを使わず、認証ユーザーのIDを使用
+    const memberId = authUser!.id
+
+    if (!preferredDates) {
       return NextResponse.json(
-        { error: 'メンバーIDと希望日時が必要です' },
+        { error: '希望日時が必要です' },
         { status: 400 }
       )
     }
@@ -123,15 +135,16 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
 
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'ユーザーIDが必要です' },
-        { status: 400 }
-      )
-    }
+    // MEMBERロールチェック
+    const { allowed, error: roleError } = checkRole(authUser!.role, [Roles.MEMBER])
+    if (!allowed) return roleError!
+
+    // クエリパラメータのuserIdを使わず、認証ユーザーのIDを使用
+    const userId = authUser!.id
 
     const meeting = await prisma.lPMeeting.findUnique({
       where: { memberId: userId },

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
 
 /**
  * アンケートを取得
@@ -7,8 +8,12 @@ import { prisma } from '@/lib/prisma'
  */
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
+
+    // クエリパラメータのuserIdを使わず、認証ユーザーのIDを使用
+    const userId = authUser!.id
 
     // アンケートを取得（最初の1つを取得、将来的に複数対応可能）
     const survey = await prisma.survey.findFirst({
@@ -25,17 +30,14 @@ export async function GET(request: NextRequest) {
     }
 
     // ユーザーの過去の提出を取得
-    let userSubmission = null
-    if (userId) {
-      userSubmission = await prisma.surveySubmission.findUnique({
-        where: {
-          userId_surveyId: {
-            userId,
-            surveyId: survey.id
-          }
+    const userSubmission = await prisma.surveySubmission.findUnique({
+      where: {
+        userId_surveyId: {
+          userId,
+          surveyId: survey.id
         }
-      })
-    }
+      }
+    })
 
     return NextResponse.json({
       success: true,
@@ -63,11 +65,23 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const { userId, surveyId, answers } = await request.json()
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
 
-    if (!userId || !surveyId || !answers) {
+    // MEMBERロールチェック（アンケートはMEMBERのみ）
+    const { checkRole, Roles } = await import('@/lib/auth/api-helpers')
+    const { allowed, error: roleError } = checkRole(authUser!.role, [Roles.MEMBER])
+    if (!allowed) return roleError!
+
+    const { surveyId, answers } = await request.json()
+
+    // リクエストボディのuserIdを使わず、認証ユーザーのIDを使用
+    const userId = authUser!.id
+
+    if (!surveyId || !answers) {
       return NextResponse.json(
-        { error: 'ユーザーID、アンケートID、回答が必要です' },
+        { error: 'アンケートID、回答が必要です' },
         { status: 400 }
       )
     }

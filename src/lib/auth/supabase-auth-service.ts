@@ -47,6 +47,19 @@ export class SupabaseAuthService {
       try {
         const user = await this.getUserProfile(data.user.id)
         this.currentUser = user
+        
+        // 最終ログイン日時を更新
+        try {
+          const { prisma } = await import('@/lib/prisma')
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { lastLoginAt: new Date() }
+          })
+        } catch (updateError) {
+          // 最終ログイン日時の更新失敗はログのみ（ログイン自体は成功）
+          console.error('Failed to update lastLoginAt:', updateError)
+        }
+        
         return user
       } catch (profileError: any) {
         console.error('Get user profile error after login:', profileError)
@@ -106,6 +119,18 @@ export class SupabaseAuthService {
               userRole as UserRole
             )
             this.currentUser = newUser
+            
+            // 最終ログイン日時を更新
+            try {
+              const { prisma } = await import('@/lib/prisma')
+              await prisma.user.update({
+                where: { id: newUser.id },
+                data: { lastLoginAt: new Date() }
+              })
+            } catch (updateError) {
+              console.error('Failed to update lastLoginAt:', updateError)
+            }
+            
             console.log('Profile created successfully:', newUser)
             return newUser
           } catch (createError: any) {
@@ -157,6 +182,18 @@ export class SupabaseAuthService {
               userRole as UserRole
             )
             this.currentUser = newUser
+            
+            // 最終ログイン日時を更新
+            try {
+              const { prisma } = await import('@/lib/prisma')
+              await prisma.user.update({
+                where: { id: newUser.id },
+                data: { lastLoginAt: new Date() }
+              })
+            } catch (updateError) {
+              console.error('Failed to update lastLoginAt:', updateError)
+            }
+            
             console.log('Profile created successfully after non-404 error:', newUser)
             return newUser
           } catch (createError: any) {

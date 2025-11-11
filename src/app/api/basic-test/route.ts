@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
 
 /**
  * 基礎テストを取得
@@ -7,8 +8,12 @@ import { prisma } from '@/lib/prisma'
  */
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
+
+    // クエリパラメータのuserIdを使わず、認証ユーザーのIDを使用
+    const userId = authUser!.id
 
     // 基礎テストを取得（最初の1つを取得、将来的に複数対応可能）
     const test = await prisma.basicTest.findFirst({
@@ -25,17 +30,14 @@ export async function GET(request: NextRequest) {
     }
 
     // ユーザーの過去の結果を取得
-    let userResult = null
-    if (userId) {
-      userResult = await prisma.basicTestResult.findUnique({
-        where: {
-          userId_testId: {
-            userId,
-            testId: test.id
-          }
+    const userResult = await prisma.basicTestResult.findUnique({
+      where: {
+        userId_testId: {
+          userId,
+          testId: test.id
         }
-      })
-    }
+      }
+    })
 
     return NextResponse.json({
       success: true,
@@ -66,11 +68,23 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const { userId, testId, answers } = await request.json()
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
 
-    if (!userId || !testId || !answers) {
+    // MEMBERロールチェック（基礎テストはMEMBERのみ）
+    const { checkRole, Roles } = await import('@/lib/auth/api-helpers')
+    const { allowed, error: roleError } = checkRole(authUser!.role, [Roles.MEMBER])
+    if (!allowed) return roleError!
+
+    const { testId, answers } = await request.json()
+
+    // リクエストボディのuserIdを使わず、認証ユーザーのIDを使用
+    const userId = authUser!.id
+
+    if (!testId || !answers) {
       return NextResponse.json(
-        { error: 'ユーザーID、テストID、回答が必要です' },
+        { error: 'テストID、回答が必要です' },
         { status: 400 }
       )
     }

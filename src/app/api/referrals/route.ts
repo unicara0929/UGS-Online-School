@@ -1,26 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { ReferralType, ReferralStatus } from '@prisma/client'
+import { getAuthenticatedUser, checkRole, RoleGroups } from '@/lib/auth/api-helpers'
 
 /**
  * 紹介一覧を取得
  * GET /api/referrals
+ * 権限: FP以上、自分のデータのみ
  */
 export async function GET(request: NextRequest) {
   try {
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
+
+    // FP以上のロールチェック
+    const { error: roleError } = checkRole(authUser!.role, RoleGroups.FP_AND_ABOVE)
+    if (roleError) return roleError
+
     const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
     const type = searchParams.get('type') as ReferralType | null // 'MEMBER' | 'FP'
 
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'ユーザーIDが必要です' },
-        { status: 400 }
-      )
-    }
-
+    // 認証ユーザーのデータのみを取得（クエリパラメータのuserIdは使用しない）
     const where: any = {
-      referrerId: userId
+      referrerId: authUser!.id
     }
 
     if (type) {
@@ -71,14 +74,23 @@ export async function GET(request: NextRequest) {
 /**
  * 紹介を登録
  * POST /api/referrals
+ * 権限: FP以上
  */
 export async function POST(request: NextRequest) {
   try {
-    const { referrerId, referredId, referralType } = await request.json()
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
 
-    if (!referrerId || !referredId || !referralType) {
+    // FP以上のロールチェック
+    const { error: roleError } = checkRole(authUser!.role, RoleGroups.FP_AND_ABOVE)
+    if (roleError) return roleError
+
+    const { referredId, referralType } = await request.json()
+
+    if (!referredId || !referralType) {
       return NextResponse.json(
-        { error: '紹介者ID、被紹介者ID、紹介タイプが必要です' },
+        { error: '被紹介者ID、紹介タイプが必要です' },
         { status: 400 }
       )
     }
@@ -92,7 +104,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 自己紹介を防ぐ
-    if (referrerId === referredId) {
+    if (authUser!.id === referredId) {
       return NextResponse.json(
         { error: '自分自身を紹介することはできません' },
         { status: 400 }
@@ -103,7 +115,7 @@ export async function POST(request: NextRequest) {
     const existingReferral = await prisma.referral.findUnique({
       where: {
         referrerId_referredId: {
-          referrerId,
+          referrerId: authUser!.id,
           referredId
         }
       }
@@ -144,10 +156,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 紹介を登録
+    // 紹介を登録（認証ユーザーのIDを使用）
     const referral = await prisma.referral.create({
       data: {
-        referrerId,
+        referrerId: authUser!.id,
         referredId,
         referralType: referralType as ReferralType,
         status: ReferralStatus.PENDING
@@ -178,7 +190,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('Create referral error:', error)
-    
+
     if (error.code === 'P2002') {
       return NextResponse.json(
         { error: 'この紹介は既に登録されています' },

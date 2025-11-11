@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
-import { sendPaymentConfirmationEmail } from '@/lib/email'
+import { sendPaymentConfirmationEmail, sendPaymentFailedEmail, sendSubscriptionCancelledEmail } from '@/lib/email'
 import { prisma } from '@/lib/prisma'
 import { ReferralStatus } from '@prisma/client'
 import Stripe from 'stripe'
@@ -133,14 +133,36 @@ export async function POST(request: NextRequest) {
             ? failedSubscriptionId 
             : failedSubscriptionId.id
 
-          await prisma.subscription.updateMany({
+          const subscription = await prisma.subscription.findFirst({
             where: { stripeSubscriptionId: subId },
-            data: {
-              status: 'PAST_DUE'
-            }
+            include: { user: true }
           })
+
+          if (subscription) {
+            await prisma.subscription.updateMany({
+              where: { stripeSubscriptionId: subId },
+              data: {
+                status: 'PAST_DUE'
+              }
+            })
+
+            // 決済失敗メールを送信
+            try {
+              const updateCardUrl = `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings/subscription`
+              await sendPaymentFailedEmail({
+                to: subscription.user.email,
+                userName: subscription.user.name,
+                amount: failedInvoice.amount_due || 0,
+                invoiceId: failedInvoice.id,
+                updateCardUrl
+              })
+              console.log('Payment failed email sent to:', subscription.user.email)
+            } catch (emailError) {
+              console.error('Failed to send payment failed email:', emailError)
+              // メール送信失敗でも処理は続行
+            }
+          }
         }
-        // ここで決済失敗メールを送信するなどの処理を追加
         break
 
       case 'customer.subscription.deleted':
@@ -149,13 +171,34 @@ export async function POST(request: NextRequest) {
         console.log('Subscription cancelled:', cancelledSubscription.id)
         
         // サブスクリプションの状態を更新
-        await prisma.subscription.updateMany({
+        const cancelledSub = await prisma.subscription.findFirst({
           where: { stripeSubscriptionId: cancelledSubscription.id },
-          data: {
-            status: 'CANCELED'
-          }
+          include: { user: true }
         })
-        // ここでキャンセルメールを送信するなどの処理を追加
+
+        if (cancelledSub) {
+          await prisma.subscription.updateMany({
+            where: { stripeSubscriptionId: cancelledSubscription.id },
+            data: {
+              status: 'CANCELED'
+            }
+          })
+
+          // キャンセルメールを送信
+          try {
+            const reactivateUrl = `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings/subscription`
+            await sendSubscriptionCancelledEmail({
+              to: cancelledSub.user.email,
+              userName: cancelledSub.user.name,
+              subscriptionId: cancelledSubscription.id,
+              reactivateUrl
+            })
+            console.log('Subscription cancelled email sent to:', cancelledSub.user.email)
+          } catch (emailError) {
+            console.error('Failed to send subscription cancelled email:', emailError)
+            // メール送信失敗でも処理は続行
+          }
+        }
         break
 
       default:

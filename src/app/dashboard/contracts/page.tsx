@@ -52,7 +52,7 @@ function ContractsPageContent() {
 
 export default function ContractsPage() {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredRoles={['fp', 'manager', 'admin']}>
       <ContractsPageContent />
     </ProtectedRoute>
   )

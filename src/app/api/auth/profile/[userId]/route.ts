@@ -48,7 +48,8 @@ export async function GET(
         role: role,
         referralCode: user.referralCode,
         createdAt: user.createdAt,
-        updatedAt: user.updatedAt
+        updatedAt: user.updatedAt,
+        lastLoginAt: user.lastLoginAt
       }
     })
   } catch (error: any) {

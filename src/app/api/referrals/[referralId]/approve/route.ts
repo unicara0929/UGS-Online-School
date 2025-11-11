@@ -1,16 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { ReferralStatus } from '@prisma/client'
+import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
 
 /**
  * 紹介を承認
  * POST /api/referrals/[referralId]/approve
+ * 権限: 管理者のみ
  */
 export async function POST(
   request: NextRequest,
   context: { params: Promise<{ referralId: string }> }
 ) {
   try {
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
+
+    // 管理者チェック
+    const { isAdmin, error: adminError } = checkAdmin(authUser!.role)
+    if (!isAdmin) {
+      return adminError || NextResponse.json(
+        { error: 'アクセス権限がありません。管理者権限が必要です。' },
+        { status: 403 }
+      )
+    }
+
     const { referralId } = await context.params
 
     if (!referralId) {
@@ -54,20 +69,12 @@ export async function POST(
       )
     }
 
-    // 報酬金額を計算（承認時に設定）
-    let rewardAmount = 0
-    if (referral.referralType === 'MEMBER') {
-      rewardAmount = 15000 // UGS会員紹介報酬
-    } else if (referral.referralType === 'FP') {
-      rewardAmount = 20000 // FPエイド紹介報酬
-    }
-
-    // 紹介を承認
+    // 紹介を承認（報酬は設定しない）
     const updatedReferral = await prisma.referral.update({
       where: { id: referralId },
       data: {
         status: ReferralStatus.APPROVED,
-        rewardAmount
+        rewardAmount: null // 報酬は設定しない
       },
       include: {
         referred: {

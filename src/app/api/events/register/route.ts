@@ -1,22 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
 
 type ActionType = 'register' | 'unregister'
 
 export async function POST(request: NextRequest) {
   try {
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
+
     const body = await request.json()
-    const { userId, eventId, action } = body as {
-      userId?: string
+    const { eventId, action } = body as {
       eventId?: string
       action?: ActionType
     }
 
-    if (!userId || !eventId || !action) {
+    if (!eventId || !action) {
       return NextResponse.json(
         {
           success: false,
-          error: 'userId、eventId、action（register/unregister）は必須です',
+          error: 'eventId、action（register/unregister）は必須です',
         },
         { status: 400 }
       )
@@ -28,6 +32,9 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    // 認証ユーザーのIDを使用
+    const userId = authUser!.id
 
     const event = await prisma.event.findUnique({
       where: { id: eventId },

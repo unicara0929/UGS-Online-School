@@ -10,11 +10,9 @@ import {
   CheckCircle, 
   XCircle, 
   Clock,
-  DollarSign,
   Share2,
   Loader2
 } from "lucide-react"
-import { formatCurrency } from "@/lib/utils"
 import { useAuth } from "@/contexts/auth-context"
 
 interface Referral {
@@ -114,10 +112,6 @@ export function ReferralDashboard() {
     return type === 'MEMBER' ? 'UGS会員紹介' : 'FPエイド紹介'
   }
 
-  const totalReward = referrals
-    .filter(r => r.status === 'APPROVED' || r.status === 'REWARDED')
-    .reduce((sum, r) => sum + (r.rewardAmount || 0), 0)
-
   const memberReferrals = referrals.filter(r => r.referralType === 'MEMBER').length
   const fpReferrals = referrals.filter(r => r.referralType === 'FP').length
 
@@ -174,7 +168,7 @@ export function ReferralDashboard() {
       )}
 
       {/* 紹介統計 */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">総紹介数</CardTitle>
@@ -205,17 +199,6 @@ export function ReferralDashboard() {
           <CardContent>
             <div className="text-2xl font-bold">{fpReferrals}</div>
             <p className="text-xs text-slate-600">名</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">総報酬額</CardTitle>
-            <DollarSign className="h-4 w-4 text-slate-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalReward)}</div>
-            <p className="text-xs text-slate-600">承認済み</p>
           </CardContent>
         </Card>
       </div>
@@ -256,11 +239,6 @@ export function ReferralDashboard() {
                   <div className="flex items-center space-x-4">
                     <div className="text-right">
                       <p className="text-sm text-slate-600">{getReferralTypeLabel(referral.referralType)}</p>
-                      {referral.rewardAmount && (
-                        <p className="text-sm font-medium text-slate-900">
-                          {formatCurrency(referral.rewardAmount)}
-                        </p>
-                      )}
                     </div>
                     {getStatusBadge(referral.status)}
                     <div className="text-sm text-slate-500">

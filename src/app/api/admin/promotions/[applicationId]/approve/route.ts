@@ -1,19 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { PromotionStatus, UserRole } from '@prisma/client'
+import { createPromotionApprovedNotification } from '@/lib/services/notification-service'
+import { supabaseAdmin } from '@/lib/supabase'
+import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
 
 /**
  * 昇格申請を承認
  * POST /api/admin/promotions/[applicationId]/approve
+ * 権限: 管理者のみ
  */
 export async function POST(
   request: NextRequest,
   context: { params: Promise<{ applicationId: string }> }
 ) {
   try {
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
+
+    // 管理者チェック
+    const { isAdmin, error: adminError } = checkAdmin(authUser!.role)
+    if (!isAdmin) {
+      return adminError || NextResponse.json(
+        { error: 'アクセス権限がありません。管理者権限が必要です。' },
+        { status: 403 }
+      )
+    }
+
     const { applicationId } = await context.params
     const body = await request.json()
-    const { reviewerId, reviewNotes } = body
+    const { reviewNotes } = body
 
     if (!applicationId) {
       return NextResponse.json(
@@ -29,7 +46,8 @@ export async function POST(
         user: {
           select: {
             id: true,
-            role: true
+            role: true,
+            email: true
           }
         }
       }
@@ -55,18 +73,45 @@ export async function POST(
       data: {
         status: PromotionStatus.APPROVED,
         reviewedAt: new Date(),
-        reviewedBy: reviewerId || null,
+        reviewedBy: authUser!.id, // 認証済みユーザーのIDを使用
         reviewNotes: reviewNotes || null
       }
     })
 
-    // ユーザーのロールを更新
+    // ユーザーのロールを更新（Prisma）
     await prisma.user.update({
       where: { id: application.userId },
       data: {
         role: application.targetRole
       }
     })
+
+    // Supabaseのユーザーロールも更新
+    try {
+      const supabaseUser = await supabaseAdmin.auth.admin.listUsers()
+      const user = supabaseUser.data.users.find(u => u.email === application.user.email)
+      
+      if (user) {
+        // ロール名をマッピング（PrismaのUserRole → Supabaseのuser_metadata）
+        const roleMap: Record<string, string> = {
+          'MEMBER': 'member',
+          'FP': 'fp',
+          'MANAGER': 'manager',
+          'ADMIN': 'admin'
+        }
+        const supabaseRole = roleMap[application.targetRole] || 'member'
+
+        await supabaseAdmin.auth.admin.updateUserById(user.id, {
+          user_metadata: {
+            ...user.user_metadata,
+            role: supabaseRole
+          }
+        })
+      }
+    } catch (supabaseError) {
+      console.error('Failed to update Supabase user role:', supabaseError)
+      // Supabaseの更新に失敗しても処理は続行
+    }
 
     // FP昇格の場合、FPPromotionApplicationも更新
     if (application.targetRole === UserRole.FP) {
@@ -83,6 +128,24 @@ export async function POST(
           }
         })
       }
+    }
+
+    // 承認通知を送信
+    try {
+      const roleNameMap: Record<string, string> = {
+        'FP': 'FPエイド',
+        'MANAGER': 'マネージャー',
+        'ADMIN': '管理者'
+      }
+      const roleName = roleNameMap[application.targetRole] || application.targetRole
+      
+      await createPromotionApprovedNotification(
+        application.userId,
+        roleName
+      )
+    } catch (notificationError) {
+      console.error('Failed to create notification:', notificationError)
+      // 通知の作成に失敗しても処理は続行
     }
 
     return NextResponse.json({

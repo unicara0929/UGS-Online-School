@@ -1,10 +1,11 @@
 'use client'
 
 import { ProtectedRoute } from "@/components/auth/protected-route"
+import { SubscriptionGuard } from "@/components/auth/subscription-guard"
 import { Sidebar } from "@/components/navigation/sidebar"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { User, Bell, Shield, UserX, ArrowRight } from "lucide-react"
+import { User, Bell, Shield, UserX, ArrowRight, CreditCard } from "lucide-react"
 import Link from "next/link"
 
 function SettingsListPage() {
@@ -16,6 +17,14 @@ function SettingsListPage() {
       icon: User,
       href: '/dashboard/settings/profile',
       color: 'from-blue-500 to-cyan-500'
+    },
+    {
+      id: 'subscription',
+      title: 'サブスクリプション管理',
+      description: '決済情報と請求履歴の管理',
+      icon: CreditCard,
+      href: '/dashboard/settings/subscription',
+      color: 'from-purple-500 to-indigo-500'
     },
     {
       id: 'notifications',
@@ -91,7 +100,9 @@ function SettingsListPage() {
 export default function SettingsPage() {
   return (
     <ProtectedRoute>
-      <SettingsListPage />
+      <SubscriptionGuard allowAccess={true}>
+        <SettingsListPage />
+      </SubscriptionGuard>
     </ProtectedRoute>
   )
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
 
 /**
  * 業務委託契約書のURLを取得
@@ -6,6 +7,10 @@ import { NextRequest, NextResponse } from 'next/server'
  */
 export async function GET(request: NextRequest) {
   try {
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
+
     // 環境変数から契約書URLを取得
     // 後でデータベースや設定APIから取得するように変更可能
     const contractUrl = process.env.NEXT_PUBLIC_GMO_SIGN_CONTRACT_URL || null

@@ -1,26 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { ContractType, ContractStatus } from '@prisma/client'
+import { getAuthenticatedUser, checkRole, RoleGroups } from '@/lib/auth/api-helpers'
 
 /**
  * 契約一覧を取得
  * GET /api/contracts
+ * 権限: FP以上、自分のデータのみ
  */
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
-    const status = searchParams.get('status') as ContractStatus | null
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
 
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'ユーザーIDが必要です' },
-        { status: 400 }
+    // FP以上のロールチェック
+    const { allowed, error: roleError } = checkRole(authUser!.role, RoleGroups.FP_AND_ABOVE)
+    if (!allowed) {
+      return roleError || NextResponse.json(
+        { error: 'アクセス権限がありません。必要なロール: FP以上' },
+        { status: 403 }
       )
     }
 
+    const { searchParams } = new URL(request.url)
+    const status = searchParams.get('status') as ContractStatus | null
+
+    // 認証ユーザーのデータのみを取得
     const where: any = {
-      userId
+      userId: authUser!.id
     }
 
     if (status) {
@@ -60,14 +68,28 @@ export async function GET(request: NextRequest) {
 /**
  * 契約を登録
  * POST /api/contracts
+ * 権限: FP以上、自分のデータのみ
  */
 export async function POST(request: NextRequest) {
   try {
-    const { userId, contractNumber, contractType, signedAt, amount } = await request.json()
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
 
-    if (!userId || !contractNumber || !contractType || !signedAt) {
+    // FP以上のロールチェック
+    const { allowed, error: roleError } = checkRole(authUser!.role, RoleGroups.FP_AND_ABOVE)
+    if (!allowed) {
+      return roleError || NextResponse.json(
+        { error: 'アクセス権限がありません。必要なロール: FP以上' },
+        { status: 403 }
+      )
+    }
+
+    const { contractNumber, contractType, signedAt, amount } = await request.json()
+
+    if (!contractNumber || !contractType || !signedAt) {
       return NextResponse.json(
-        { error: 'ユーザーID、契約番号、契約タイプ、契約日が必要です' },
+        { error: '契約番号、契約タイプ、契約日が必要です' },
         { status: 400 }
       )
     }
@@ -99,10 +121,10 @@ export async function POST(request: NextRequest) {
       rewardAmount = Math.floor(amount * 0.05)
     }
 
-    // 契約を登録
+    // 契約を登録（認証済みユーザーのIDを使用）
     const contract = await prisma.contract.create({
       data: {
-        userId,
+        userId: authUser!.id,
         contractNumber,
         contractType: contractType as ContractType,
         status: ContractStatus.ACTIVE,

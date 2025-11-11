@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/auth-context"
 import { User, ArrowLeft, Upload, Camera, X, Calendar as CalendarIcon, MapPin, UserCircle, FileText } from "lucide-react"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 
@@ -45,16 +45,11 @@ function ProfileSettingsPage() {
   const { user } = useAuth()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isUploading, setIsUploading] = useState(false)
-  const [profileImage, setProfileImage] = useState<string | null>(() => {
-    // 初期化時にlocalStorageから読み込む
-    if (typeof window !== 'undefined' && user?.id) {
-      return localStorage.getItem(`profileImage_${user.id}`) || null
-    }
-    return null
-  })
+  const [isLoading, setIsLoading] = useState(true)
+  const [profileImage, setProfileImage] = useState<string | null>(null)
   const [profile, setProfile] = useState({
-    name: user?.name || "",
-    email: user?.email || "",
+    name: "",
+    email: "",
     phone: "",
     address: "",
     bio: "",
@@ -63,6 +58,53 @@ function ProfileSettingsPage() {
     birthDate: "",
     prefecture: ""
   })
+
+  // ユーザー情報とプロフィール画像を読み込む
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!user?.id) {
+        setIsLoading(false)
+        return
+      }
+
+      try {
+        // ユーザープロファイルを取得
+        const response = await fetch(`/api/auth/profile/${user.id}`)
+        if (response.ok) {
+          const data = await response.json()
+          if (data.success && data.user) {
+            setProfile({
+              name: data.user.name || "",
+              email: data.user.email || "",
+              phone: data.user.phone || "",
+              address: data.user.address || "",
+              bio: data.user.bio || "",
+              attribute: data.user.attribute || "",
+              gender: data.user.gender || "",
+              birthDate: data.user.birthDate ? new Date(data.user.birthDate).toISOString().split('T')[0] : "",
+              prefecture: data.user.prefecture || ""
+            })
+            
+            // プロフィール画像を設定（APIから取得したURLまたはlocalStorageから）
+            if (data.user.profileImageUrl) {
+              setProfileImage(data.user.profileImageUrl)
+            } else if (typeof window !== 'undefined') {
+              const storedImage = localStorage.getItem(`profileImage_${user.id}`)
+              if (storedImage) {
+                setProfileImage(storedImage)
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error('プロフィール読み込みエラー:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadProfile()
+  }, [user?.id])
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -82,40 +124,51 @@ function ProfileSettingsPage() {
 
     setIsUploading(true)
     try {
-      // プレビュー用にBase64に変換
+      // プレビュー用にBase64に変換（即座に表示）
       const reader = new FileReader()
       reader.onloadend = () => {
         const imageDataUrl = reader.result as string
         setProfileImage(imageDataUrl)
         
-        // localStorageに保存
+        // localStorageにも一時保存（API実装前のフォールバック）
         if (user?.id) {
           localStorage.setItem(`profileImage_${user.id}`, imageDataUrl)
-          // カスタムイベントを発火して他のコンポーネントに通知
-          const event = new CustomEvent('profileImageUpdated', { 
-            detail: { userId: user.id, imageUrl: imageDataUrl } 
-          })
-          window.dispatchEvent(event)
-          // 少し遅延させて再度発火（確実に通知）
-          setTimeout(() => {
-            window.dispatchEvent(event)
-          }, 100)
         }
-        
-        setIsUploading(false)
       }
       reader.readAsDataURL(file)
 
-      // 実際の実装では、ここでAPIに画像をアップロード
-      // const formData = new FormData()
-      // formData.append('image', file)
-      // const response = await fetch('/api/user/upload-profile-image', {
-      //   method: 'POST',
-      //   body: formData
-      // })
-    } catch (error) {
+      // APIに画像をアップロード
+      const formData = new FormData()
+      formData.append('file', file)
+      
+      const response = await fetch('/api/user/upload-profile-image', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || '画像のアップロードに失敗しました')
+      }
+
+      const data = await response.json()
+      if (data.success && data.imageUrl) {
+        setProfileImage(data.imageUrl)
+        // localStorageも更新
+        if (user?.id) {
+          localStorage.setItem(`profileImage_${user.id}`, data.imageUrl)
+        }
+        alert('画像をアップロードしました')
+      }
+    } catch (error: any) {
       console.error('画像アップロードエラー:', error)
-      alert('画像のアップロードに失敗しました')
+      alert(error.message || '画像のアップロードに失敗しました')
+      // エラー時はプレビューをクリア
+      setProfileImage(null)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    } finally {
       setIsUploading(false)
     }
   }
@@ -143,45 +196,74 @@ function ProfileSettingsPage() {
 
   const handleProfileUpdate = async () => {
     try {
-      // プロフィール画像も含めて保存（削除の場合も含む）
-      if (user?.id) {
-        if (profileImage) {
-          localStorage.setItem(`profileImage_${user.id}`, profileImage)
-        } else {
-          localStorage.removeItem(`profileImage_${user.id}`)
-        }
-        // カスタムイベントを発火（確実に通知）
-        const event = new CustomEvent('profileImageUpdated', { 
-          detail: { userId: user.id, imageUrl: profileImage } 
-        })
-        window.dispatchEvent(event)
-        // 少し遅延させて再度発火（確実に通知）
-        setTimeout(() => {
-          window.dispatchEvent(event)
-        }, 100)
+      if (!user?.id) {
+        alert('ユーザー情報が取得できませんでした')
+        return
       }
 
-      // 実際の実装では、APIに送信
+      // プロフィール画像も含めて保存
+      if (profileImage && fileInputRef.current?.files?.[0]) {
+        // 画像をアップロード
+        const formData = new FormData()
+        formData.append('file', fileInputRef.current.files[0])
+        
+        try {
+          const uploadResponse = await fetch('/api/user/upload-profile-image', {
+            method: 'POST',
+            body: formData
+          })
+
+          if (!uploadResponse.ok) {
+            const uploadError = await uploadResponse.json()
+            throw new Error(uploadError.error || '画像のアップロードに失敗しました')
+          }
+
+          const uploadData = await uploadResponse.json()
+          if (uploadData.success && uploadData.imageUrl) {
+            setProfileImage(uploadData.imageUrl)
+            // localStorageも更新
+            localStorage.setItem(`profileImage_${user.id}`, uploadData.imageUrl)
+          }
+        } catch (uploadError: any) {
+          console.error('画像アップロードエラー:', uploadError)
+          alert(uploadError.message || '画像のアップロードに失敗しました')
+          return
+        }
+      }
+
+      // プロフィール情報を更新
       const response = await fetch('/api/user/update-profile', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId: user?.id,
-          ...profile,
-          profileImageUrl: profileImage
+          name: profile.name,
+          phone: profile.phone || null,
+          address: profile.address || null,
+          bio: profile.bio || null,
+          attribute: profile.attribute || null,
+          gender: profile.gender || null,
+          birthDate: profile.birthDate || null,
+          prefecture: profile.prefecture || null,
+          profileImageUrl: profileImage || null
         }),
       })
 
       if (!response.ok) {
-        throw new Error('プロフィールの更新に失敗しました')
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'プロフィールの更新に失敗しました')
       }
 
-      alert('プロフィールを更新しました')
-    } catch (error) {
+      const data = await response.json()
+      if (data.success) {
+        alert('プロフィールを更新しました')
+        // ページをリロードして最新の情報を表示
+        window.location.reload()
+      }
+    } catch (error: any) {
       console.error('プロフィール更新エラー:', error)
-      alert('プロフィールの更新に失敗しました')
+      alert(error.message || 'プロフィールの更新に失敗しました')
     }
   }
 

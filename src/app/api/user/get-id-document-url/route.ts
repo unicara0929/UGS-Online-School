@@ -1,23 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
 
 export async function GET(request: NextRequest) {
   try {
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
+
     const { searchParams } = new URL(request.url)
     const filePath = searchParams.get('filePath')
-    const userId = searchParams.get('userId')
 
-    if (!filePath || !userId) {
+    if (!filePath) {
       return NextResponse.json(
-        { error: 'ファイルパスとユーザーIDが必要です' },
+        { error: 'ファイルパスが必要です' },
         { status: 400 }
       )
     }
 
-    // 認証チェック（簡易版 - 実際にはSupabaseのセッションを使用）
-    // TODO: 適切な認証を実装
-    // ユーザーが自分のファイルのみアクセスできるようにする
-    
+    // 認証ユーザーのファイルのみアクセス可能
+    const userId = authUser!.id
+
     // ファイルパスからユーザーIDを抽出して検証
     const filePathUserId = filePath.split('/')[0]
     if (filePathUserId !== userId) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
 
 /**
  * アンケートを作成（管理者）
@@ -7,6 +8,14 @@ import { prisma } from '@/lib/prisma'
  */
 export async function POST(request: NextRequest) {
   try {
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
+
+    // 管理者チェック
+    const { error: adminError } = checkAdmin(authUser!.role)
+    if (adminError) return adminError
+
     const { title, questions } = await request.json()
 
     if (!title || !questions || !Array.isArray(questions)) {
@@ -65,6 +74,14 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
+
+    // 管理者チェック
+    const { error: adminError } = checkAdmin(authUser!.role)
+    if (adminError) return adminError
+
     const surveys = await prisma.survey.findMany({
       orderBy: {
         createdAt: 'desc'

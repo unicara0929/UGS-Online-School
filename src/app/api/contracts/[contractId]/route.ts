@@ -1,16 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { ContractStatus } from '@prisma/client'
+import { getAuthenticatedUser, checkRole, checkOwnershipOrAdmin, checkAdmin, RoleGroups } from '@/lib/auth/api-helpers'
 
 /**
  * 契約を更新
  * PUT /api/contracts/[contractId]
+ * 権限: FP以上、自分のデータのみ（管理者は全データを操作可能）
  */
 export async function PUT(
   request: NextRequest,
   context: { params: Promise<{ contractId: string }> }
 ) {
   try {
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
+
+    // FP以上のロールチェック
+    const { allowed, error: roleError } = checkRole(authUser!.role, RoleGroups.FP_AND_ABOVE)
+    if (!allowed) {
+      return roleError || NextResponse.json(
+        { error: 'アクセス権限がありません。必要なロール: FP以上' },
+        { status: 403 }
+      )
+    }
+
     const { contractId } = await context.params
     const body = await request.json()
     const { status, amount, rewardAmount } = body
@@ -31,6 +46,19 @@ export async function PUT(
       return NextResponse.json(
         { error: '契約が見つかりません' },
         { status: 404 }
+      )
+    }
+
+    // 所有権チェック（自分の契約または管理者のみ更新可能）
+    const { allowed: ownershipAllowed, error: ownershipError } = checkOwnershipOrAdmin(
+      contract.userId,
+      authUser!.id,
+      authUser!.role
+    )
+    if (!ownershipAllowed) {
+      return ownershipError || NextResponse.json(
+        { error: 'アクセス権限がありません。自分のデータまたは管理者権限が必要です。' },
+        { status: 403 }
       )
     }
 
@@ -78,12 +106,21 @@ export async function PUT(
 /**
  * 契約を削除
  * DELETE /api/contracts/[contractId]
+ * 権限: 管理者のみ
  */
 export async function DELETE(
   request: NextRequest,
   context: { params: Promise<{ contractId: string }> }
 ) {
   try {
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
+
+    // 管理者チェック
+    const { error: adminError } = checkAdmin(authUser!.role)
+    if (adminError) return adminError
+
     const { contractId } = await context.params
 
     if (!contractId) {
@@ -103,7 +140,7 @@ export async function DELETE(
     })
   } catch (error: any) {
     console.error('Delete contract error:', error)
-    
+
     if (error.code === 'P2025') {
       return NextResponse.json(
         { error: '契約が見つかりません' },

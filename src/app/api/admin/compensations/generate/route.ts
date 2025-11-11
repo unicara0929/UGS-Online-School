@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { calculateMonthlyCompensation, calculateTotalCompensation } from '@/lib/services/compensation-calculator'
+import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
 
 /**
  * 月次報酬を生成（ADMIN専用）
@@ -8,6 +9,14 @@ import { calculateMonthlyCompensation, calculateTotalCompensation } from '@/lib/
  */
 export async function POST(request: NextRequest) {
   try {
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
+
+    // 管理者チェック
+    const { error: adminError } = checkAdmin(authUser!.role)
+    if (adminError) return adminError
+
     const { month, userIds } = await request.json()
 
     if (!month) {

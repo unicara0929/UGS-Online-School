@@ -52,7 +52,7 @@ function ReferralsPageContent() {
 
 export default function ReferralsPage() {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredRoles={['fp', 'manager', 'admin']}>
       <ReferralsPageContent />
     </ProtectedRoute>
   )

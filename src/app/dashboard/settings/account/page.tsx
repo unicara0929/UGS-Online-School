@@ -7,15 +7,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { formatDate, formatDateTime } from "@/lib/utils/format"
 import { useAuth } from "@/contexts/auth-context"
 import { Globe, ArrowLeft, UserX } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 
 function AccountSettingsPage() {
   const { user } = useAuth()
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [userDetails, setUserDetails] = useState<{
+    createdAt?: string
+    lastLoginAt?: string
+  } | null>(null)
   const [cancelForm, setCancelForm] = useState({
     reason: '',
     otherReason: '',
@@ -24,6 +29,30 @@ function AccountSettingsPage() {
     agreeBillingStop: false
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    // ユーザー詳細情報を取得
+    const fetchUserDetails = async () => {
+      if (!user?.id) return
+      
+      try {
+        const response = await fetch(`/api/auth/profile/${user.id}`)
+        if (response.ok) {
+          const data = await response.json()
+          if (data.success && data.user) {
+            setUserDetails({
+              createdAt: data.user.createdAt,
+              lastLoginAt: data.user.lastLoginAt
+            })
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch user details:', error)
+      }
+    }
+
+    fetchUserDetails()
+  }, [user?.id])
 
   const cancellationReasons = [
     'コンテンツを視聴する時間がない',
@@ -164,11 +193,21 @@ function AccountSettingsPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">登録日</span>
-                  <span className="text-sm text-slate-600">2024年1月1日</span>
+                  <span className="text-sm text-slate-600">
+                    {userDetails?.createdAt 
+                      ? formatDate(userDetails.createdAt) 
+                      : '取得中...'}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">最終ログイン</span>
-                  <span className="text-sm text-slate-600">今</span>
+                  <span className="text-sm text-slate-600">
+                    {userDetails?.lastLoginAt 
+                      ? formatDateTime(userDetails.lastLoginAt) 
+                      : userDetails?.lastLoginAt === null 
+                        ? '未ログイン' 
+                        : '取得中...'}
+                  </span>
                 </div>
                 <div className="pt-4 border-t">
                   <Button 

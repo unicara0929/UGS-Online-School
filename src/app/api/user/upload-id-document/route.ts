@@ -1,30 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { supabaseAdmin } from '@/lib/supabase'
+import { getAuthenticatedUser, checkRole, Roles } from '@/lib/auth/api-helpers'
 
 export async function POST(request: NextRequest) {
   try {
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
+
+    // MEMBERロールチェック
+    const { allowed, error: roleError } = checkRole(authUser!.role, [Roles.MEMBER])
+    if (!allowed) return roleError!
+
     const formData = await request.formData()
     const file = formData.get('file') as File
-    const userId = formData.get('userId') as string
 
-    // 認証チェック（簡易版 - 実際にはSupabaseのセッションを使用）
-    // TODO: 適切な認証を実装
-    // ユーザーが存在するか確認
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    })
+    // リクエストボディのuserIdを使わず、認証ユーザーのIDを使用
+    const userId = authUser!.id
 
-    if (!user) {
+    if (!file) {
       return NextResponse.json(
-        { error: 'ユーザーが見つかりません' },
-        { status: 404 }
-      )
-    }
-
-    if (!file || !userId) {
-      return NextResponse.json(
-        { error: 'ファイルとユーザーIDが必要です' },
+        { error: 'ファイルが必要です' },
         { status: 400 }
       )
     }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
 
 const EVENT_TYPE_MAP = {
   REQUIRED: 'required',
@@ -25,8 +26,16 @@ const EVENT_STATUS_INPUT_MAP: Record<string, 'UPCOMING' | 'COMPLETED' | 'CANCELL
   cancelled: 'CANCELLED',
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
+
+    // 管理者チェック
+    const { error: adminError } = checkAdmin(authUser!.role)
+    if (adminError) return adminError
+
     const events = await prisma.event.findMany({
       orderBy: { date: 'asc' },
       include: {
@@ -83,6 +92,14 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
+
+    // 管理者チェック
+    const { error: adminError } = checkAdmin(authUser!.role)
+    if (adminError) return adminError
+
     const body = await request.json()
     const {
       title,

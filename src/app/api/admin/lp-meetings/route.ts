@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { LPMeetingStatus } from '@prisma/client'
+import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
 
 /**
  * 予約申請一覧を取得（管理者）
@@ -8,6 +9,13 @@ import { LPMeetingStatus } from '@prisma/client'
  */
 export async function GET(request: NextRequest) {
   try {
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
+
+    // 管理者チェック
+    const { isAdmin, error: adminError } = checkAdmin(authUser!.role)
+    if (!isAdmin) return adminError!
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status') as LPMeetingStatus | null
     const fpId = searchParams.get('fpId')

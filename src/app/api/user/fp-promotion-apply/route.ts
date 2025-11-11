@@ -1,38 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { supabaseAdmin } from '@/lib/supabase'
+import { getAuthenticatedUser, checkRole, Roles } from '@/lib/auth/api-helpers'
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, contractAgreed } = await request.json()
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
 
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'ユーザーIDが必要です' },
-        { status: 400 }
-      )
-    }
+    // MEMBERロールチェック
+    const { allowed, error: roleError } = checkRole(authUser!.role, [Roles.MEMBER])
+    if (!allowed) return roleError!
+
+    const { contractAgreed } = await request.json()
+
+    // リクエストボディのuserIdを使わず、認証ユーザーのIDを使用
+    const userId = authUser!.id
 
     // 契約書の締結確認
     if (!contractAgreed) {
       return NextResponse.json(
         { error: '業務委託契約書の締結が必要です' },
         { status: 400 }
-      )
-    }
-
-    // 認証チェック（簡易版 - 実際にはSupabaseのセッションを使用）
-    // TODO: 適切な認証を実装
-
-    // ユーザーが存在するか確認
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    })
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'ユーザーが見つかりません' },
-        { status: 404 }
       )
     }
 
