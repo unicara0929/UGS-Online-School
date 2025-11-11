@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useRouter } from 'next/navigation'
@@ -14,7 +14,21 @@ export function ForgotPasswordForm() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [logoError, setLogoError] = useState(false)
+  const [waitTime, setWaitTime] = useState<number | null>(null)
   const router = useRouter()
+
+  // カウントダウンタイマー
+  useEffect(() => {
+    if (waitTime && waitTime > 0) {
+      const timer = setTimeout(() => {
+        setWaitTime(waitTime - 1)
+      }, 1000)
+      return () => clearTimeout(timer)
+    } else if (waitTime === 0) {
+      setWaitTime(null)
+      setError('')
+    }
+  }, [waitTime])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -34,6 +48,13 @@ export function ForgotPasswordForm() {
       const data = await response.json()
 
       if (!response.ok) {
+        // レート制限エラーの場合
+        if (response.status === 429 && data.code === 'RATE_LIMIT') {
+          const waitTime = data.waitTime || 60
+          setWaitTime(waitTime)
+          throw new Error(data.error || `セキュリティのため、${waitTime}秒後に再度お試しください。`)
+        }
+        
         throw new Error(data.error || 'パスワードリセットリクエストの送信に失敗しました')
       }
 
@@ -102,6 +123,11 @@ export function ForgotPasswordForm() {
                   <div className="flex-1">
                     <p className="text-sm font-medium text-red-800">エラー</p>
                     <p className="text-sm text-red-700 mt-1">{error}</p>
+                    {waitTime !== null && waitTime > 0 && (
+                      <p className="text-xs text-red-600 mt-2">
+                        あと {waitTime} 秒で再度お試しいただけます
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
@@ -130,7 +156,7 @@ export function ForgotPasswordForm() {
               <Button
                 type="submit"
                 className="w-full h-12 text-base font-semibold bg-slate-900 hover:bg-slate-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 rounded-xl"
-                disabled={isLoading}
+                disabled={isLoading || (waitTime !== null && waitTime > 0)}
               >
                 {isLoading ? (
                   <span className="flex items-center justify-center">
@@ -140,6 +166,8 @@ export function ForgotPasswordForm() {
                     </svg>
                     送信中...
                   </span>
+                ) : waitTime !== null && waitTime > 0 ? (
+                  `あと ${waitTime} 秒で送信可能`
                 ) : (
                   'パスワードリセットメールを送信'
                 )}

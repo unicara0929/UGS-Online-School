@@ -64,6 +64,23 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Password reset error:', error)
+      
+      // レート制限エラーの場合（429）
+      if (error.status === 429 || error.code === 'over_email_send_rate_limit') {
+        // エラーメッセージから待機時間を抽出（例: "after 13 seconds"）
+        const waitTimeMatch = error.message?.match(/(\d+)\s*seconds?/i)
+        const waitTime = waitTimeMatch ? parseInt(waitTimeMatch[1]) : 60
+        
+        return NextResponse.json(
+          { 
+            error: `セキュリティのため、パスワードリセットメールの送信は${waitTime}秒後に再度お試しください。`,
+            code: 'RATE_LIMIT',
+            waitTime
+          },
+          { status: 429 }
+        )
+      }
+      
       return NextResponse.json(
         { error: 'パスワードリセットメールの送信に失敗しました', details: error.message },
         { status: 500 }
