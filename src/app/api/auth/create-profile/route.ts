@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma, withRetry } from '@/lib/prisma'
 import { supabaseAdmin } from '@/lib/supabase'
 import { appRoleToPrismaRole, prismaRoleToAppRole, stringToAppRole } from '@/lib/utils/role-mapper'
 
@@ -28,14 +28,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 既存のユーザーをチェック（IDまたはメールアドレスで）
-    const existingUserById = await prisma.user.findUnique({
-      where: { id: userId }
-    })
+    // 既存のユーザーをチェック（IDまたはメールアドレスで）（リトライ付き）
+    const existingUserById = await withRetry(
+      () => prisma.user.findUnique({
+        where: { id: userId }
+      }),
+      3,
+      1000
+    )
 
-    const existingUserByEmail = await prisma.user.findUnique({
-      where: { email }
-    })
+    const existingUserByEmail = await withRetry(
+      () => prisma.user.findUnique({
+        where: { email }
+      }),
+      3,
+      1000
+    )
 
     // 既に存在する場合は、そのユーザーを返す
     if (existingUserById) {
@@ -70,15 +78,19 @@ export async function POST(request: NextRequest) {
 
     console.log('Role mapping:', { inputRole: role, appRole, prismaRole })
 
-    // Prismaでユーザープロファイルを作成
-    const user = await prisma.user.create({
-      data: {
-        id: userId,
-        email,
-        name,
-        role: prismaRole,
-      }
-    })
+    // Prismaでユーザープロファイルを作成（リトライ付き）
+    const user = await withRetry(
+      () => prisma.user.create({
+        data: {
+          id: userId,
+          email,
+          name,
+          role: prismaRole,
+        }
+      }),
+      3,
+      1000
+    )
 
     console.log('User created successfully:', { id: user.id, email: user.email, role: user.role })
 
@@ -105,6 +117,20 @@ export async function POST(request: NextRequest) {
       stack: error.stack
     })
     
+    // データベース接続エラーの場合
+    if (error.constructor?.name === 'PrismaClientInitializationError' || 
+        error.message?.includes('Can\'t reach database server') ||
+        error.message?.includes('database server')) {
+      console.error('Database connection error detected')
+      return NextResponse.json(
+        { 
+          error: 'データベースに接続できません。しばらく待ってから再度お試しください。',
+          details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        },
+        { status: 503 } // Service Unavailable
+      )
+    }
+    
     // 重複エラーの場合
     if (error.code === 'P2002') {
       // 重複フィールドを特定
@@ -116,11 +142,15 @@ export async function POST(request: NextRequest) {
         )
       }
       if (Array.isArray(target) && target.includes('id') && userId) {
-        // IDが重複している場合、既存ユーザーを取得して返す
+        // IDが重複している場合、既存ユーザーを取得して返す（リトライ付き）
         try {
-          const existingUser = await prisma.user.findUnique({
-            where: { id: userId }
-          })
+          const existingUser = await withRetry(
+            () => prisma.user.findUnique({
+              where: { id: userId }
+            }),
+            3,
+            1000
+          )
           if (existingUser) {
             const responseRole = prismaRoleToAppRole(existingUser.role)
             return NextResponse.json({
