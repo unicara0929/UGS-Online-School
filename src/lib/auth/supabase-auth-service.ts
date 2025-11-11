@@ -411,34 +411,74 @@ export class SupabaseAuthService {
   // ユーザープロファイルを取得
   private static async getUserProfile(userId: string): Promise<AuthUser> {
     try {
-      const response = await fetch(`/api/auth/profile/${userId}`)
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-        console.error('Get profile API error:', {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorData
-        })
-        
-        // 404エラーの場合、より明確なエラーを投げる
-        if (response.status === 404) {
-          throw new Error('404: ユーザーが見つかりません')
-        }
-        
-        throw new Error(errorData.error || `ユーザープロファイルの取得に失敗しました (${response.status})`)
-      }
+      // リトライロジック付きでAPIを呼び出す
+      let retryCount = 0
+      const maxRetries = 3
+      const retryDelay = 1000
 
-      const userData = await response.json()
-      
-      if (!userData.user) {
-        throw new Error('ユーザープロファイルが見つかりません')
+      while (retryCount < maxRetries) {
+        try {
+          const response = await fetch(`/api/auth/profile/${userId}`, {
+            signal: AbortSignal.timeout(10000) // 10秒タイムアウト
+          })
+          
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+            console.error('Get profile API error:', {
+              status: response.status,
+              statusText: response.statusText,
+              error: errorData
+            })
+            
+            // 503エラー（Service Unavailable）の場合はリトライ
+            if (response.status === 503 && retryCount < maxRetries - 1) {
+              retryCount++
+              const waitTime = retryDelay * Math.pow(2, retryCount - 1)
+              console.warn(`Database connection failed, retrying in ${waitTime}ms... (attempt ${retryCount}/${maxRetries})`)
+              await new Promise(resolve => setTimeout(resolve, waitTime))
+              continue
+            }
+            
+            // 404エラーの場合、より明確なエラーを投げる
+            if (response.status === 404) {
+              throw new Error('404: ユーザーが見つかりません')
+            }
+            
+            throw new Error(errorData.error || `ユーザープロファイルの取得に失敗しました (${response.status})`)
+          }
+
+          const userData = await response.json()
+          
+          if (!userData.user) {
+            throw new Error('ユーザープロファイルが見つかりません')
+          }
+          
+          return userData.user
+        } catch (fetchError: any) {
+          // タイムアウトエラーの場合もリトライ
+          if (
+            (fetchError.name === 'AbortError' || fetchError.name === 'TimeoutError') &&
+            retryCount < maxRetries - 1
+          ) {
+            retryCount++
+            const waitTime = retryDelay * Math.pow(2, retryCount - 1)
+            console.warn(`Request timeout, retrying in ${waitTime}ms... (attempt ${retryCount}/${maxRetries})`)
+            await new Promise(resolve => setTimeout(resolve, waitTime))
+            continue
+          }
+          
+          // リトライできないエラーまたは最大リトライ回数に達した場合
+          throw fetchError
+        }
       }
       
-      return userData.user
+      throw new Error('ユーザープロファイルの取得に失敗しました（最大リトライ回数に達しました）')
     } catch (error) {
-      console.error('Get profile error:', error)
-      throw error
+      console.error('Get user profile error:', error)
+      if (error instanceof Error) {
+        throw error
+      }
+      throw new Error('ユーザープロファイルの取得に失敗しました')
     }
   }
 

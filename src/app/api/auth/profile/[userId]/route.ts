@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma, withRetry } from '@/lib/prisma'
 import { prismaRoleToAppRole } from '@/lib/utils/role-mapper'
 
 export async function GET(
@@ -24,10 +24,14 @@ export async function GET(
       )
     }
 
-    // Prismaでユーザープロファイルを取得
-    const user = await prisma.user.findUnique({
-      where: { id: userId }
-    })
+    // Prismaでユーザープロファイルを取得（リトライ付き）
+    const user = await withRetry(
+      () => prisma.user.findUnique({
+        where: { id: userId }
+      }),
+      3, // 最大3回リトライ
+      1000 // 初期待機時間1秒
+    )
 
     if (!user) {
       return NextResponse.json(
@@ -65,7 +69,7 @@ export async function GET(
     if (error.constructor?.name === 'PrismaClientInitializationError' || 
         error.message?.includes('Can\'t reach database server') ||
         error.message?.includes('database server')) {
-      console.error('Database connection error detected')
+      console.error('Database connection error detected after retries')
       return NextResponse.json(
         { 
           error: 'データベースに接続できません。しばらく待ってから再度お試しください。',

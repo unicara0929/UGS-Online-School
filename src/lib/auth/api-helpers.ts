@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { prisma } from '@/lib/prisma'
+import { prisma, withRetry } from '@/lib/prisma'
 import { supabaseAdmin } from '@/lib/supabase'
 
 export interface AuthUser {
@@ -67,15 +67,19 @@ export async function getAuthenticatedUser(
       }
     }
     
-    // Prismaプロファイルを取得
-    const profile = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-      },
-    })
+    // Prismaプロファイルを取得（リトライ付き）
+    const profile = await withRetry(
+      () => prisma.user.findUnique({
+        where: { id: user.id },
+        select: {
+          id: true,
+          email: true,
+          role: true,
+        },
+      }),
+      3, // 最大3回リトライ
+      1000 // 初期待機時間1秒
+    )
 
     if (!profile) {
       return {
