@@ -25,16 +25,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    let isMounted = true
+    let subscription: { unsubscribe: () => void } | null = null
+
     // 初期化時に現在のユーザーを取得
     const initializeAuth = async () => {
       try {
         const currentUser = await SupabaseAuthService.getCurrentUser()
-        setUser(currentUser)
+        if (isMounted) {
+          setUser(currentUser)
+        }
       } catch (error) {
         console.error('Auth initialization error:', error)
-        setUser(null)
+        if (isMounted) {
+          setUser(null)
+        }
       } finally {
-        setIsLoading(false)
+        if (isMounted) {
+          setIsLoading(false)
+        }
       }
     }
 
@@ -42,20 +51,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // 認証状態の変更を監視
     try {
-      const { data: { subscription } } = SupabaseAuthService.onAuthStateChange((user) => {
-        setUser(user)
-        setIsLoading(false)
-      })
-
-      return () => {
-        if (subscription) {
-          subscription.unsubscribe()
+      const result = SupabaseAuthService.onAuthStateChange((user) => {
+        if (isMounted) {
+          setUser(user)
+          setIsLoading(false)
         }
+      })
+      
+      if (result?.data?.subscription) {
+        subscription = result.data.subscription
       }
     } catch (error) {
       console.error('Error setting up auth state change listener:', error)
-      // エラーが発生した場合でも、クリーンアップ関数を返す
-      return () => {}
+    }
+
+    return () => {
+      isMounted = false
+      if (subscription) {
+        try {
+          subscription.unsubscribe()
+        } catch (error) {
+          console.error('Error unsubscribing from auth state change:', error)
+        }
+      }
     }
   }, [])
 
