@@ -13,23 +13,56 @@
 
 `.env.local`ファイルに以下の情報を設定してください：
 
+### 接続プールを使用する場合（推奨・本番環境）
+
 ```env
-# Supabase設定
-DATABASE_URL="postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-REF].supabase.co:5432/postgres"
-DIRECT_URL="postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-REF].supabase.co:5432/postgres"
-NEXT_PUBLIC_SUPABASE_URL="https://[YOUR-PROJECT-REF].supabase.co"
+# Supabase設定（接続プール使用）
+DATABASE_URL="postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres"
+NEXT_PUBLIC_SUPABASE_URL="https://[PROJECT-REF].supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="[YOUR-ANON-KEY]"
 SUPABASE_SERVICE_ROLE_KEY="[YOUR-SERVICE-ROLE-KEY]"
 ```
 
+### 直接接続を使用する場合（開発環境・接続プールが使用できない場合）
+
+```env
+# Supabase設定（直接接続）
+DATABASE_URL="postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres"
+DIRECT_URL="postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres"
+NEXT_PUBLIC_SUPABASE_URL="https://[PROJECT-REF].supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="[YOUR-ANON-KEY]"
+SUPABASE_SERVICE_ROLE_KEY="[YOUR-SERVICE-ROLE-KEY]"
+```
+
+### 接続文字列の取得方法
+
+1. Supabaseダッシュボードにログイン
+2. **Settings > Database** に移動
+3. **Connection string** セクションで以下を選択：
+   - **URI**: 直接接続用のURL
+   - **Connection pooling**: 接続プール用のURL（推奨）
+4. パスワード部分 `[YOUR-PASSWORD]` を実際のパスワードに置き換え
+
 ### 設定例：
 ```env
+# 接続プール使用（推奨）
+DATABASE_URL="postgresql://postgres.abcdefghijklmnop:yourpassword123@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://postgres:yourpassword123@db.abcdefghijklmnop.supabase.co:5432/postgres"
+
+# 直接接続（開発環境）
 DATABASE_URL="postgresql://postgres:yourpassword123@db.abcdefghijklmnop.supabase.co:5432/postgres"
 DIRECT_URL="postgresql://postgres:yourpassword123@db.abcdefghijklmnop.supabase.co:5432/postgres"
+
 NEXT_PUBLIC_SUPABASE_URL="https://abcdefghijklmnop.supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 ```
+
+**重要**: 
+- 本番環境（Vercel）では接続プールの使用を強く推奨します
+- 接続プールが使用できない場合は、直接接続URLを使用してください
+- 接続エラーが発生する場合は、`SUPABASE-CONNECTION-GUIDE.md`を参照してください
 
 ## 3. データベースマイグレーション
 
@@ -77,3 +110,7 @@ npx prisma db seed
 - 本番環境では`SUPABASE_SERVICE_ROLE_KEY`を適切に管理してください
 - データベースのバックアップを定期的に取ることを推奨します
 - Prisma Studioでデータベースの内容を確認できます
+
+## 7. 接続エラーのトラブルシューティング
+
+接続エラーが発生する場合は、`SUPABASE-CONNECTION-GUIDE.md`を参照してください。
