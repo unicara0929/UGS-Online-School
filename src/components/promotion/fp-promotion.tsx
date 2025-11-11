@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
+import { authenticatedFetch } from '@/lib/utils/api-client'
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from 'next/navigation'
 import { 
@@ -53,7 +54,7 @@ export function FPPromotion() {
 
   const fetchContractUrl = async () => {
     try {
-      const response = await fetch('/api/user/contract-url')
+      const response = await authenticatedFetch('/api/user/contract-url')
       if (response.ok) {
         const data = await response.json()
         setContractUrl(data.contractUrl)
@@ -67,12 +68,12 @@ export function FPPromotion() {
     if (!user?.id) return
 
     try {
-      const response = await fetch(`/api/user/fp-promotion-application?userId=${user.id}`)
+      const response = await authenticatedFetch(`/api/user/fp-promotion-application?userId=${user.id}`)
       if (response.ok) {
         const data = await response.json()
         if (data.application?.idDocumentUrl) {
           // 既存の身分証URLを取得
-          const urlResponse = await fetch(`/api/user/get-id-document-url?userId=${user.id}&filePath=${encodeURIComponent(data.application.idDocumentUrl)}`)
+          const urlResponse = await authenticatedFetch(`/api/user/get-id-document-url?userId=${user.id}&filePath=${encodeURIComponent(data.application.idDocumentUrl)}`)
           if (urlResponse.ok) {
             const urlData = await urlResponse.json()
             setUploadedFileUrl(urlData.fileUrl)
@@ -97,7 +98,7 @@ export function FPPromotion() {
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), 10000) // 10秒タイムアウト
 
-        const response = await fetch(`/api/promotions/eligibility?userId=${user.id}&targetRole=fp`, {
+        const response = await authenticatedFetch(`/api/promotions/eligibility?userId=${user.id}&targetRole=fp`, {
           signal: controller.signal
         })
 
@@ -174,7 +175,7 @@ export function FPPromotion() {
       formData.append('file', selectedFile)
       formData.append('userId', user.id)
 
-      const response = await fetch('/api/user/upload-id-document', {
+      const response = await authenticatedFetch('/api/user/upload-id-document', {
         method: 'POST',
         body: formData,
       })
@@ -211,7 +212,7 @@ export function FPPromotion() {
 
     setIsApplying(true)
     try {
-      const response = await fetch('/api/user/fp-promotion-apply', {
+      const response = await authenticatedFetch('/api/user/fp-promotion-apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
