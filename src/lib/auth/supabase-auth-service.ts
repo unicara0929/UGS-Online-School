@@ -1,14 +1,9 @@
-import { createClient } from '@supabase/supabase-js'
 import { User, UserRole } from '@/lib/types'
+import { supabase as sharedSupabase } from '@/lib/supabase'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey)
-
-const supabase = isSupabaseConfigured
-  ? createClient(supabaseUrl as string, supabaseAnonKey as string)
-  : null
+// 共有のSupabaseクライアントを使用（重複インスタンスを避けるため）
+const supabase = sharedSupabase
+const isSupabaseConfigured = Boolean(supabase)
 
 export interface AuthUser {
   id: string
