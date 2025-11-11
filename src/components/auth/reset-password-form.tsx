@@ -113,11 +113,7 @@ export function ResetPasswordForm() {
       return
     }
 
-    if (!supabase) {
-      setError('認証サービスが未設定です')
-      setIsLoading(false)
-      return
-    }
+    // supabaseは常に有効なクライアントを返すため、nullチェックは不要
 
     try {
       // セッションを再確認
