@@ -41,13 +41,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initializeAuth()
 
     // 認証状態の変更を監視
-    const { data: { subscription } } = SupabaseAuthService.onAuthStateChange((user) => {
-      setUser(user)
-      setIsLoading(false)
-    })
+    try {
+      const { data: { subscription } } = SupabaseAuthService.onAuthStateChange((user) => {
+        setUser(user)
+        setIsLoading(false)
+      })
 
-    return () => {
-      subscription.unsubscribe()
+      return () => {
+        if (subscription) {
+          subscription.unsubscribe()
+        }
+      }
+    } catch (error) {
+      console.error('Error setting up auth state change listener:', error)
+      // エラーが発生した場合でも、クリーンアップ関数を返す
+      return () => {}
     }
   }, [])
 

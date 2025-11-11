@@ -526,19 +526,44 @@ export class SupabaseAuthService {
         }
       } as any
     }
-    return supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        const user = await this.getUserProfile(session.user.id)
-        this.currentUser = user
-        callback(user)
-      } else if (event === 'SIGNED_OUT') {
-        this.currentUser = null
+    const subscription = supabase.auth.onAuthStateChange(async (event, session) => {
+      try {
+        if (event === 'SIGNED_IN' && session?.user) {
+          try {
+            const user = await this.getUserProfile(session.user.id)
+            this.currentUser = user
+            callback(user)
+          } catch (error) {
+            console.error('Error getting user profile in onAuthStateChange:', error)
+            callback(null)
+          }
+        } else if (event === 'SIGNED_OUT') {
+          this.currentUser = null
+          callback(null)
+        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+          try {
+            const user = await this.getUserProfile(session.user.id)
+            this.currentUser = user
+            callback(user)
+          } catch (error) {
+            console.error('Error getting user profile in onAuthStateChange (TOKEN_REFRESHED):', error)
+            callback(null)
+          }
+        } else {
+          // その他のイベントの場合はnullを返す
+          callback(null)
+        }
+      } catch (error) {
+        console.error('Error in onAuthStateChange callback:', error)
         callback(null)
-      } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-        const user = await this.getUserProfile(session.user.id)
-        this.currentUser = user
-        callback(user)
       }
     })
+    
+    // SupabaseのonAuthStateChangeは直接subscriptionオブジェクトを返す
+    return {
+      data: {
+        subscription
+      }
+    }
   }
 }
