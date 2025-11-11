@@ -14,6 +14,8 @@ const createPrismaClient = () => {
         url: process.env.DATABASE_URL,
       },
     },
+    // 接続タイムアウトを長く設定（30秒）
+    // 接続プールの初期化に時間がかかる場合があるため
   })
 }
 
@@ -27,7 +29,7 @@ if (process.env.NODE_ENV !== 'production') {
 export async function withRetry<T>(
   operation: () => Promise<T>,
   maxRetries = 3,
-  delay = 1000
+  delay = 2000 // 初期待機時間を2秒に延長
 ): Promise<T> {
   let lastError: Error | null = null
   
@@ -41,12 +43,14 @@ export async function withRetry<T>(
       if (
         error?.constructor?.name === 'PrismaClientInitializationError' ||
         error?.message?.includes("Can't reach database server") ||
-        error?.message?.includes('database server')
+        error?.message?.includes('database server') ||
+        error?.message?.includes('pooler.supabase.com')
       ) {
         if (i < maxRetries - 1) {
-          // 指数バックオフで待機
-          const waitTime = delay * Math.pow(2, i)
+          // 指数バックオフで待機（最大10秒）
+          const waitTime = Math.min(delay * Math.pow(2, i), 10000)
           console.warn(`Database connection failed, retrying in ${waitTime}ms... (attempt ${i + 1}/${maxRetries})`)
+          console.warn('Connection URL:', process.env.DATABASE_URL ? 'Set' : 'Not set')
           await new Promise(resolve => setTimeout(resolve, waitTime))
           continue
         }
