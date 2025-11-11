@@ -15,10 +15,11 @@ export const supabase = supabaseUrl && supabaseAnonKey
   : createClient('https://placeholder.supabase.co', 'placeholder-key')
 
 // サーバーサイド用のクライアント（Service Role Key使用）
-export const supabaseAdmin = supabaseUrl && process.env.SUPABASE_SERVICE_ROLE_KEY
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+export const supabaseAdmin = supabaseUrl && serviceRoleKey
   ? createClient(
       supabaseUrl,
-      process.env.SUPABASE_SERVICE_ROLE_KEY,
+      serviceRoleKey,
       {
         auth: {
           autoRefreshToken: false,
@@ -26,4 +27,6 @@ export const supabaseAdmin = supabaseUrl && process.env.SUPABASE_SERVICE_ROLE_KE
         }
       }
     )
-  : null
+  : (supabaseUrl && supabaseAnonKey
+      ? createClient(supabaseUrl, supabaseAnonKey) // フォールバック: anon keyを使用
+      : null)
