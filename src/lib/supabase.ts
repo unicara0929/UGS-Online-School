@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -10,13 +10,13 @@ if (!supabaseUrl || !supabaseAnonKey) {
   })
 }
 
-export const supabase = supabaseUrl && supabaseAnonKey
+export const supabase: SupabaseClient = supabaseUrl && supabaseAnonKey
   ? createClient(supabaseUrl, supabaseAnonKey)
   : createClient('https://placeholder.supabase.co', 'placeholder-key')
 
 // サーバーサイド用のクライアント（Service Role Key使用）
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-export const supabaseAdmin = supabaseUrl && serviceRoleKey
+export const supabaseAdmin: SupabaseClient = supabaseUrl && serviceRoleKey
   ? createClient(
       supabaseUrl,
       serviceRoleKey,
