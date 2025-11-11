@@ -7,15 +7,16 @@ import { SupabaseAuthService } from '@/lib/auth/supabase-auth-service'
 interface AuthContextType {
   user: AuthUser | null
   isLoading: boolean
-  login: (email: string, password: string) => Promise<void>
+  login: (email: string, password: string) => Promise<AuthUser>
   logout: () => Promise<void>
-  register: (email: string, password: string, name: string) => Promise<void>
+  register: (email: string, password: string, name: string) => Promise<AuthUser>
   isAuthenticated: boolean
   hasRole: (role: string) => boolean
   hasAnyRole: (roles: string[]) => boolean
   canAccessFPContent: () => boolean
   canAccessManagerContent: () => boolean
   canAccessAdminContent: () => boolean
+  error: Error | null
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -154,6 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     canAccessFPContent,
     canAccessManagerContent,
     canAccessAdminContent,
+    error,
   }
 
   return (
