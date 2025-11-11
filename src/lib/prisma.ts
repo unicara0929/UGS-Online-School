@@ -6,16 +6,24 @@ const globalForPrisma = globalThis as unknown as {
 
 // Prismaクライアントの設定を改善
 const createPrismaClient = () => {
+  // 接続プールの設定を追加
+  const databaseUrl = process.env.DATABASE_URL || ''
+  let connectionString = databaseUrl
+  
+  // 接続プールのパラメータが含まれていない場合は追加
+  if (connectionString && !connectionString.includes('connection_limit')) {
+    const separator = connectionString.includes('?') ? '&' : '?'
+    connectionString = `${connectionString}${separator}connection_limit=10&pool_timeout=20`
+  }
+  
   return new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
     errorFormat: 'pretty',
     datasources: {
       db: {
-        url: process.env.DATABASE_URL,
+        url: connectionString,
       },
     },
-    // 接続タイムアウトを長く設定（30秒）
-    // 接続プールの初期化に時間がかかる場合があるため
   })
 }
 
