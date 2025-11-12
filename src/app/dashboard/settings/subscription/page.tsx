@@ -93,7 +93,9 @@ function SubscriptionManagementPage() {
 
   const fetchInvoices = async () => {
     try {
-      const response = await fetch('/api/user/subscription/invoices')
+      const response = await authenticatedFetch('/api/user/subscription/invoices', {
+        credentials: 'include',
+      })
       if (!response.ok) {
         throw new Error('請求履歴の取得に失敗しました')
       }
