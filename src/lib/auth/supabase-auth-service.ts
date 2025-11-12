@@ -162,11 +162,37 @@ export class SupabaseAuthService {
               response: createError.response
             })
             
-            // データベース接続エラーの場合
-            if (createError.constructor?.name === 'PrismaClientInitializationError' || 
-                createError.message?.includes('Can\'t reach database server') ||
-                createError.message?.includes('database server')) {
-              throw new Error('データベースに接続できません。しばらく待ってから再度お試しください。')
+            // データベース接続エラーまたはタイムアウトエラーの場合
+            const isConnectionOrTimeoutError = 
+              createError.constructor?.name === 'PrismaClientInitializationError' ||
+              createError.name === 'TimeoutError' ||
+              createError.name === 'AbortError' ||
+              createError.message?.includes('Can\'t reach database server') ||
+              createError.message?.includes('database server') ||
+              createError.message?.includes('timeout') ||
+              createError.message?.includes('Timeout') ||
+              createError.message?.includes('signal timed out')
+            
+            if (isConnectionOrTimeoutError) {
+              // セッション情報から基本情報を返す
+              const userName = data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User'
+              let userRole = data.user.user_metadata?.role || 'MEMBER'
+              if (typeof userRole === 'string') {
+                userRole = userRole.toLowerCase()
+              }
+              
+              const tempUser: AuthUser = {
+                id: data.user.id,
+                email: data.user.email || email,
+                name: userName,
+                role: userRole as UserRole,
+                referralCode: null,
+                createdAt: new Date(data.user.created_at),
+                updatedAt: new Date(data.user.updated_at || data.user.created_at)
+              }
+              this.currentUser = tempUser
+              console.warn('Returning session-based user info due to database connection/timeout error during profile creation')
+              return tempUser
             }
             
             // 既に存在する場合のエラーをチェック
@@ -218,11 +244,37 @@ export class SupabaseAuthService {
             console.log('Profile created successfully after non-404 error:', newUser)
             return newUser
           } catch (createError: any) {
-            // データベース接続エラーの場合
-            if (createError.constructor?.name === 'PrismaClientInitializationError' || 
-                createError.message?.includes('Can\'t reach database server') ||
-                createError.message?.includes('database server')) {
-              throw new Error('データベースに接続できません。しばらく待ってから再度お試しください。')
+            // データベース接続エラーまたはタイムアウトエラーの場合
+            const isConnectionOrTimeoutError = 
+              createError.constructor?.name === 'PrismaClientInitializationError' ||
+              createError.name === 'TimeoutError' ||
+              createError.name === 'AbortError' ||
+              createError.message?.includes('Can\'t reach database server') ||
+              createError.message?.includes('database server') ||
+              createError.message?.includes('timeout') ||
+              createError.message?.includes('Timeout') ||
+              createError.message?.includes('signal timed out')
+            
+            if (isConnectionOrTimeoutError) {
+              // セッション情報から基本情報を返す
+              const userName = data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User'
+              let userRole = data.user.user_metadata?.role || 'MEMBER'
+              if (typeof userRole === 'string') {
+                userRole = userRole.toLowerCase()
+              }
+              
+              const tempUser: AuthUser = {
+                id: data.user.id,
+                email: data.user.email || email,
+                name: userName,
+                role: userRole as UserRole,
+                referralCode: null,
+                createdAt: new Date(data.user.created_at),
+                updatedAt: new Date(data.user.updated_at || data.user.created_at)
+              }
+              this.currentUser = tempUser
+              console.warn('Returning session-based user info due to database connection/timeout error during profile creation (non-404)')
+              return tempUser
             }
             // プロファイル作成に失敗した場合、元のエラーを投げる
             throw new Error(`ログインは成功しましたが、ユーザー情報の取得に失敗しました: ${profileError.message}`)
