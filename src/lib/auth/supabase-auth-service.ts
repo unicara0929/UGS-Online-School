@@ -538,70 +538,42 @@ export class SupabaseAuthService {
   }
 
   // ユーザープロファイルを取得
+  // 根本的な解決: リトライではなく、接続プール設定を最適化することで問題を解決
   private static async getUserProfile(userId: string): Promise<AuthUser> {
     try {
-      // リトライロジック付きでAPIを呼び出す
-      let retryCount = 0
-      const maxRetries = 3
-      const retryDelay = 1000
-
-      while (retryCount < maxRetries) {
-        try {
-          const response = await fetch(`/api/auth/profile/${userId}`, {
-            signal: AbortSignal.timeout(15000) // 15秒タイムアウトに延長（データベース接続が遅い場合に対応）
-          })
-          
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-            console.error('Get profile API error:', {
-              status: response.status,
-              statusText: response.statusText,
-              error: errorData
-            })
-            
-            // 503エラー（Service Unavailable）の場合はリトライ
-            if (response.status === 503 && retryCount < maxRetries - 1) {
-              retryCount++
-              const waitTime = retryDelay * Math.pow(2, retryCount - 1)
-              console.warn(`Database connection failed, retrying in ${waitTime}ms... (attempt ${retryCount}/${maxRetries})`)
-              await new Promise(resolve => setTimeout(resolve, waitTime))
-              continue
-            }
-            
-            // 404エラーの場合、より明確なエラーを投げる
-            if (response.status === 404) {
-              throw new Error('404: ユーザーが見つかりません')
-            }
-            
-            throw new Error(errorData.error || `ユーザープロファイルの取得に失敗しました (${response.status})`)
-          }
-
-          const userData = await response.json()
-          
-          if (!userData.user) {
-            throw new Error('ユーザープロファイルが見つかりません')
-          }
-          
-          return userData.user
-        } catch (fetchError: any) {
-          // タイムアウトエラーの場合もリトライ
-          if (
-            (fetchError.name === 'AbortError' || fetchError.name === 'TimeoutError') &&
-            retryCount < maxRetries - 1
-          ) {
-            retryCount++
-            const waitTime = retryDelay * Math.pow(2, retryCount - 1)
-            console.warn(`Request timeout, retrying in ${waitTime}ms... (attempt ${retryCount}/${maxRetries})`)
-            await new Promise(resolve => setTimeout(resolve, waitTime))
-            continue
-          }
-          
-          // リトライできないエラーまたは最大リトライ回数に達した場合
-          throw fetchError
+      // 接続プール設定が最適化されていれば、リトライは不要
+      const response = await fetch(`/api/auth/profile/${userId}`, {
+        signal: AbortSignal.timeout(10000) // 10秒タイムアウト（接続プール設定が最適化されていれば十分）
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('Get profile API error:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData
+        })
+        
+        // 503エラー（Service Unavailable）の場合、接続プール設定の問題を示す
+        if (response.status === 503) {
+          throw new Error('データベース接続プールの設定が不適切です。PRISMA-OPTIMIZATION-GUIDE.mdを参照してください。')
         }
+        
+        // 404エラーの場合、より明確なエラーを投げる
+        if (response.status === 404) {
+          throw new Error('404: ユーザーが見つかりません')
+        }
+        
+        throw new Error(errorData.error || `ユーザープロファイルの取得に失敗しました (${response.status})`)
+      }
+
+      const userData = await response.json()
+      
+      if (!userData.user) {
+        throw new Error('ユーザープロファイルが見つかりません')
       }
       
-      throw new Error('ユーザープロファイルの取得に失敗しました（最大リトライ回数に達しました）')
+      return userData.user
     } catch (error) {
       console.error('Get user profile error:', error)
       if (error instanceof Error) {
