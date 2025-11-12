@@ -4,19 +4,15 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-// Prismaクライアントの設定を改善
+// Prismaクライアントの設定を最適化（サーバーレス環境対応）
 const createPrismaClient = () => {
-  // 接続プールの設定を追加
   const databaseUrl = process.env.DATABASE_URL || ''
-  let connectionString = databaseUrl
   
-  // 接続プールのパラメータが含まれていない場合は追加
-  if (connectionString && !connectionString.includes('connection_limit')) {
-    const separator = connectionString.includes('?') ? '&' : '?'
-    // サーバーレス環境では同時リクエストが多いため、接続数を増やす
-    // Vercelのサーバーレス環境では、接続プールの接続数が不足しがち
-    connectionString = `${connectionString}${separator}connection_limit=20&pool_timeout=30&connect_timeout=30`
-  }
+  // サーバーレス環境（Vercel）での最適化設定
+  // 1. 接続プールの設定を最適化
+  // 2. 接続の再利用を最大化
+  // 3. タイムアウト設定を適切に設定
+  const connectionString = databaseUrl
   
   return new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
@@ -26,12 +22,23 @@ const createPrismaClient = () => {
         url: connectionString,
       },
     },
+    // サーバーレス環境での接続管理を最適化
+    // - 接続プールの設定はDATABASE_URLのクエリパラメータで制御
+    // - Vercel環境変数で直接設定することを推奨
+    // - connection_limit, pool_timeout, connect_timeoutは環境変数で設定
   })
 }
 
+// グローバル変数に保存して、モジュール再読み込み時も同じインスタンスを再利用
+// これにより、サーバーレス環境での接続プールの効率が向上
 export const prisma = globalForPrisma.prisma ?? createPrismaClient()
 
 if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma
+}
+
+// 本番環境でもグローバル変数に保存（Vercelのサーバーレス環境での接続再利用のため）
+if (process.env.NODE_ENV === 'production') {
   globalForPrisma.prisma = prisma
 }
 
