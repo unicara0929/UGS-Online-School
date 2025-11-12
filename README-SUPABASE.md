@@ -15,14 +15,28 @@
 
 ### 接続プールを使用する場合（推奨・本番環境）
 
+**重要**: 接続プール設定（`connection_limit`、`pool_timeout`、`connect_timeout`）を含める必要があります。
+
 ```env
 # Supabase設定（接続プール使用）
-DATABASE_URL="postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres?pgbouncer=true"
+# 注意: aws-0 を使用し、ポート 6543 を指定してください
+DATABASE_URL="postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=20&pool_timeout=30&connect_timeout=30"
 DIRECT_URL="postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres"
 NEXT_PUBLIC_SUPABASE_URL="https://[PROJECT-REF].supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="[YOUR-ANON-KEY]"
 SUPABASE_SERVICE_ROLE_KEY="[YOUR-SERVICE-ROLE-KEY]"
 ```
+
+**接続プール設定パラメータの説明**:
+- `pgbouncer=true`: Transaction Poolerを使用することを明示
+- `connection_limit=20`: サーバーレス環境での同時接続数（推奨: 20）
+- `pool_timeout=30`: 接続プールから接続を取得するまでのタイムアウト（秒）
+- `connect_timeout=30`: データベースへの接続確立までのタイムアウト（秒）
+
+**よくある間違い**:
+- ❌ `aws-1` を使用している → ✅ `aws-0` に変更
+- ❌ ポート `5432` を使用している → ✅ ポート `6543` に変更（Transaction Pooler用）
+- ❌ 接続プール設定パラメータが含まれていない → ✅ 上記のパラメータを追加
 
 ### 直接接続を使用する場合（開発環境・接続プールが使用できない場合）
 
@@ -46,12 +60,14 @@ SUPABASE_SERVICE_ROLE_KEY="[YOUR-SERVICE-ROLE-KEY]"
 
 ### 設定例：
 ```env
-# 接続プール使用（推奨）
-DATABASE_URL="postgresql://postgres.abcdefghijklmnop:yourpassword123@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+# 接続プール使用（推奨・本番環境）
+# 重要: 接続プール設定パラメータを含めること
+DATABASE_URL="postgresql://postgres.abcdefghijklmnop:yourpassword123@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=20&pool_timeout=30&connect_timeout=30"
 DIRECT_URL="postgresql://postgres:yourpassword123@db.abcdefghijklmnop.supabase.co:5432/postgres"
 
-# 直接接続（開発環境）
-DATABASE_URL="postgresql://postgres:yourpassword123@db.abcdefghijklmnop.supabase.co:5432/postgres"
+# 直接接続（開発環境・接続プールが使用できない場合）
+# 直接接続の場合も接続プール設定パラメータを含めることを推奨
+DATABASE_URL="postgresql://postgres:yourpassword123@db.abcdefghijklmnop.supabase.co:5432/postgres?connection_limit=20&pool_timeout=30&connect_timeout=30"
 DIRECT_URL="postgresql://postgres:yourpassword123@db.abcdefghijklmnop.supabase.co:5432/postgres"
 
 NEXT_PUBLIC_SUPABASE_URL="https://abcdefghijklmnop.supabase.co"
