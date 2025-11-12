@@ -13,7 +13,9 @@ const createPrismaClient = () => {
   // 接続プールのパラメータが含まれていない場合は追加
   if (connectionString && !connectionString.includes('connection_limit')) {
     const separator = connectionString.includes('?') ? '&' : '?'
-    connectionString = `${connectionString}${separator}connection_limit=10&pool_timeout=20`
+    // サーバーレス環境では同時リクエストが多いため、接続数を増やす
+    // Vercelのサーバーレス環境では、接続プールの接続数が不足しがち
+    connectionString = `${connectionString}${separator}connection_limit=20&pool_timeout=30&connect_timeout=30`
   }
   
   return new PrismaClient({
