@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
+import { authenticatedFetch } from '@/lib/utils/api-client'
 
 interface SubscriptionStatus {
   status: string
@@ -33,7 +34,9 @@ export function SubscriptionGuard({ children, allowAccess = false }: Subscriptio
 
     const checkSubscription = async () => {
       try {
-        const response = await fetch('/api/user/subscription')
+        const response = await authenticatedFetch('/api/user/subscription', {
+          credentials: 'include', // Cookieも送信
+        })
         if (!response.ok) {
           setIsChecking(false)
           return

@@ -20,6 +20,7 @@ import {
 } from "lucide-react"
 import { formatCurrency, formatDate } from "@/lib/utils/format"
 import { useAuth } from "@/contexts/auth-context"
+import { authenticatedFetch } from "@/lib/utils/api-client"
 
 interface SubscriptionData {
   id: string
@@ -75,7 +76,9 @@ function SubscriptionManagementPage() {
 
   const fetchSubscription = async () => {
     try {
-      const response = await fetch('/api/user/subscription')
+      const response = await authenticatedFetch('/api/user/subscription', {
+        credentials: 'include',
+      })
       if (!response.ok) {
         throw new Error('サブスクリプション情報の取得に失敗しました')
       }
@@ -108,8 +111,9 @@ function SubscriptionManagementPage() {
 
     setIsCancelling(true)
     try {
-      const response = await fetch('/api/user/subscription/cancel', {
-        method: 'POST'
+      const response = await authenticatedFetch('/api/user/subscription/cancel', {
+        method: 'POST',
+        credentials: 'include',
       })
       if (!response.ok) {
         const data = await response.json()
@@ -127,8 +131,9 @@ function SubscriptionManagementPage() {
   const handleReactivate = async () => {
     setIsReactivating(true)
     try {
-      const response = await fetch('/api/user/subscription/reactivate', {
-        method: 'POST'
+      const response = await authenticatedFetch('/api/user/subscription/reactivate', {
+        method: 'POST',
+        credentials: 'include',
       })
       if (!response.ok) {
         const data = await response.json()
@@ -146,8 +151,9 @@ function SubscriptionManagementPage() {
   const handleUpdatePaymentMethod = async () => {
     setIsUpdatingPayment(true)
     try {
-      const response = await fetch('/api/user/subscription/update-payment-method', {
-        method: 'POST'
+      const response = await authenticatedFetch('/api/user/subscription/update-payment-method', {
+        method: 'POST',
+        credentials: 'include',
       })
       if (!response.ok) {
         const data = await response.json()
