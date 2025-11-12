@@ -295,7 +295,6 @@ export class SupabaseAuthService {
       } catch (profileError: any) {
         console.error('Get user profile error in getCurrentUser:', profileError)
         
-        // 404エラーの場合、自動的にプロファイルを作成
         const errorMessage = profileError.message || ''
         const isNotFoundError = 
           errorMessage.includes('404') || 
@@ -303,6 +302,38 @@ export class SupabaseAuthService {
           errorMessage.includes('not found') ||
           (profileError instanceof Error && profileError.message.includes('404'))
         
+        // データベース接続エラーの場合は、セッション情報から基本情報を返す
+        const isConnectionError = 
+          errorMessage.includes('connection') ||
+          errorMessage.includes('Connection') ||
+          errorMessage.includes('timeout') ||
+          errorMessage.includes('Timeout') ||
+          errorMessage.includes('PrismaClientInitializationError')
+        
+        if (isConnectionError) {
+          console.warn('Database connection error in getCurrentUser, returning session-based user info')
+          // セッション情報から基本情報を構築
+          const userName = session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User'
+          let userRole = session.user.user_metadata?.role || 'MEMBER'
+          if (typeof userRole === 'string') {
+            userRole = userRole.toLowerCase()
+          }
+          
+          // 一時的なユーザー情報を返す（データベース接続が復旧したら再取得される）
+          const tempUser: AuthUser = {
+            id: session.user.id,
+            email: session.user.email || '',
+            name: userName,
+            role: userRole as UserRole,
+            referralCode: null,
+            createdAt: new Date(session.user.created_at),
+            updatedAt: new Date(session.user.updated_at || session.user.created_at)
+          }
+          this.currentUser = tempUser
+          return tempUser
+        }
+        
+        // 404エラーの場合、自動的にプロファイルを作成
         if (isNotFoundError) {
           console.log('User profile not found in getCurrentUser, creating new profile...')
           try {
@@ -345,6 +376,26 @@ export class SupabaseAuthService {
                 return existingUser
               } catch (retryError) {
                 console.error('Failed to retrieve existing user in getCurrentUser:', retryError)
+                // データベース接続エラーの場合は、セッション情報から基本情報を返す
+                const retryErrorMessage = retryError instanceof Error ? retryError.message : String(retryError)
+                if (retryErrorMessage.includes('connection') || retryErrorMessage.includes('timeout')) {
+                  const userName = session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User'
+                  let userRole = session.user.user_metadata?.role || 'MEMBER'
+                  if (typeof userRole === 'string') {
+                    userRole = userRole.toLowerCase()
+                  }
+                  const tempUser: AuthUser = {
+                    id: session.user.id,
+                    email: session.user.email || '',
+                    name: userName,
+                    role: userRole as UserRole,
+                    referralCode: null,
+                    createdAt: new Date(session.user.created_at),
+                    updatedAt: new Date(session.user.updated_at || session.user.created_at)
+                  }
+                  this.currentUser = tempUser
+                  return tempUser
+                }
                 return null
               }
             }
