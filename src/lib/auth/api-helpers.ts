@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma, withRetry } from '@/lib/prisma'
 import { supabaseAdmin } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/server'
 
 export interface AuthUser {
   id: string
@@ -21,42 +22,42 @@ export async function getAuthenticatedUser(
   request: NextRequest
 ): Promise<{ user: AuthUser | null; error: NextResponse | null }> {
   try {
-    // Authorizationヘッダーからトークンを取得
+    let supabaseUser = null
+
+    // 1. Bearer トークン認証を試行（API クライアント用）
     const authHeader = request.headers.get('authorization')
-    
-    if (!authHeader?.startsWith('Bearer ')) {
-      // Cookieからセッションを取得（Supabaseのデフォルト動作）
-      const cookieHeader = request.headers.get('cookie')
-      if (!cookieHeader) {
-        return {
-          user: null,
-          error: NextResponse.json(
-            { error: '認証が必要です' },
-            { status: 401 }
-          ),
-        }
-      }
-      
-      // Cookieからセッションを検証するため、Supabase Adminを使用
-      // 実際には、Cookieから直接ユーザーIDを取得するか、別の方法を使用
-      return {
-        user: null,
-        error: NextResponse.json(
-          { error: '認証が必要です。Authorizationヘッダーを設定してください。' },
-          { status: 401 }
-        ),
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.substring(7)
+      const {
+        data: { user },
+        error: tokenError,
+      } = await supabaseAdmin.auth.getUser(token)
+
+      if (!tokenError && user) {
+        supabaseUser = user
       }
     }
-    
-    const token = authHeader.substring(7)
-    
-    // Supabase Adminを使用してトークンを検証
-    const {
-      data: { user },
-      error: authError,
-    } = await supabaseAdmin.auth.getUser(token)
-    
-    if (authError || !user) {
+
+    // 2. Cookie ベース認証にフォールバック（ブラウザ用）
+    if (!supabaseUser) {
+      try {
+        const supabase = await createClient()
+        const {
+          data: { user },
+          error: sessionError,
+        } = await supabase.auth.getUser()
+
+        if (!sessionError && user) {
+          supabaseUser = user
+        }
+      } catch (cookieError) {
+        console.error('Cookie-based authentication error:', cookieError)
+        // Cookie認証が失敗しても続行（Bearerトークンがない場合のみエラー）
+      }
+    }
+
+    // 3. 認証失敗
+    if (!supabaseUser) {
       return {
         user: null,
         error: NextResponse.json(
@@ -66,7 +67,9 @@ export async function getAuthenticatedUser(
       }
     }
     
-    // Prismaプロファイルを取得（リトライ付き）
+    const user = supabaseUser
+    
+    // 4. Prisma プロファイルを取得（リトライ付き）
     const profile = await withRetry(
       () => prisma.user.findUnique({
         where: { id: user.id },
