@@ -4,81 +4,108 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-// Prismaクライアントの設定を最適化（サーバーレス環境対応）
-const createPrismaClient = () => {
+/**
+ * 接続プール設定の検証と最適化
+ * 根本的な解決: 環境変数で設定されているか確認し、設定されていない場合は警告を出す
+ */
+function validateConnectionPoolConfig(): void {
   const databaseUrl = process.env.DATABASE_URL || ''
   
-  // サーバーレス環境（Vercel）での最適化設定
-  // 1. 接続プールの設定を最適化
-  // 2. 接続の再利用を最大化
-  // 3. タイムアウト設定を適切に設定
-  const connectionString = databaseUrl
+  if (!databaseUrl) {
+    console.error('❌ DATABASE_URL is not set. Please configure it in Vercel environment variables.')
+    return
+  }
+  
+  // 接続プール設定の検証
+  const hasConnectionLimit = databaseUrl.includes('connection_limit')
+  const hasPoolTimeout = databaseUrl.includes('pool_timeout')
+  const hasConnectTimeout = databaseUrl.includes('connect_timeout')
+  
+  if (!hasConnectionLimit || !hasPoolTimeout || !hasConnectTimeout) {
+    console.warn('⚠️ 接続プール設定が不完全です。以下のパラメータをDATABASE_URLに追加してください:')
+    console.warn('   - connection_limit=20')
+    console.warn('   - pool_timeout=30')
+    console.warn('   - connect_timeout=30')
+    console.warn('例: postgresql://...?connection_limit=20&pool_timeout=30&connect_timeout=30')
+    console.warn('詳細: PRISMA-OPTIMIZATION-GUIDE.md を参照してください')
+  } else {
+    console.log('✅ 接続プール設定が検証されました')
+  }
+  
+  // Transaction Poolerの使用を推奨
+  if (databaseUrl.includes('pooler.supabase.com')) {
+    console.log('✅ Supabase Transaction Poolerが使用されています')
+  } else if (databaseUrl.includes('db.') && databaseUrl.includes('.supabase.co')) {
+    console.warn('⚠️ 直接接続が使用されています。Transaction Poolerの使用を推奨します')
+    console.warn('   Transaction Pooler URL: postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres?pgbouncer=true')
+  }
+}
+
+/**
+ * Prismaクライアントの設定を最適化（サーバーレス環境対応）
+ * 根本的な解決: 接続プール設定を環境変数で管理し、設定の検証を行う
+ */
+const createPrismaClient = () => {
+  // 接続プール設定の検証（開発環境と本番環境の起動時のみ）
+  if (typeof window === 'undefined') {
+    validateConnectionPoolConfig()
+  }
+  
+  const databaseUrl = process.env.DATABASE_URL || ''
   
   return new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
     errorFormat: 'pretty',
     datasources: {
       db: {
-        url: connectionString,
+        url: databaseUrl,
       },
     },
-    // サーバーレス環境での接続管理を最適化
-    // - 接続プールの設定はDATABASE_URLのクエリパラメータで制御
-    // - Vercel環境変数で直接設定することを推奨
-    // - connection_limit, pool_timeout, connect_timeoutは環境変数で設定
   })
 }
 
 // グローバル変数に保存して、モジュール再読み込み時も同じインスタンスを再利用
-// これにより、サーバーレス環境での接続プールの効率が向上
+// これにより、サーバーレス環境での接続プールの効率が最大化される
 export const prisma = globalForPrisma.prisma ?? createPrismaClient()
 
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma
-}
+// すべての環境でグローバル変数に保存（サーバーレス環境での接続再利用のため）
+globalForPrisma.prisma = prisma
 
-// 本番環境でもグローバル変数に保存（Vercelのサーバーレス環境での接続再利用のため）
-if (process.env.NODE_ENV === 'production') {
-  globalForPrisma.prisma = prisma
-}
-
-// 接続エラー時のリトライ関数
-export async function withRetry<T>(
-  operation: () => Promise<T>,
-  maxRetries = 2, // リトライ回数を3回→2回に削減
-  delay = 500 // 初期待機時間を2秒→500msに短縮
-): Promise<T> {
-  let lastError: Error | null = null
-  
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      return await operation()
-    } catch (error: any) {
-      lastError = error
-      
-      // PrismaClientInitializationErrorの場合はリトライ
-      if (
-        error?.constructor?.name === 'PrismaClientInitializationError' ||
-        error?.message?.includes("Can't reach database server") ||
-        error?.message?.includes('database server') ||
-        error?.message?.includes('pooler.supabase.com')
-      ) {
-        if (i < maxRetries - 1) {
-          // 指数バックオフで待機（最大2秒に短縮）
-          const waitTime = Math.min(delay * Math.pow(2, i), 2000)
-          console.warn(`Database connection failed, retrying in ${waitTime}ms... (attempt ${i + 1}/${maxRetries})`)
-          console.warn('Connection URL:', process.env.DATABASE_URL ? 'Set' : 'Not set')
-          await new Promise(resolve => setTimeout(resolve, waitTime))
-          continue
-        }
-      }
-      
-      // リトライできないエラーまたは最大リトライ回数に達した場合
-      throw error
+/**
+ * 接続プールのヘルスチェック
+ * 根本的な解決: 起動時に接続プールの状態を確認し、問題を早期に検知
+ */
+export async function checkConnectionPoolHealth(): Promise<{
+  healthy: boolean
+  error?: string
+  details?: {
+    connectionLimit?: string
+    poolTimeout?: string
+    connectTimeout?: string
+  }
+}> {
+  try {
+    const startTime = Date.now()
+    await prisma.$queryRaw`SELECT 1`
+    const duration = Date.now() - startTime
+    
+    const databaseUrl = process.env.DATABASE_URL || ''
+    const urlParams = new URLSearchParams(databaseUrl.split('?')[1] || '')
+    
+    return {
+      healthy: true,
+      details: {
+        connectionLimit: urlParams.get('connection_limit') || '未設定',
+        poolTimeout: urlParams.get('pool_timeout') || '未設定',
+        connectTimeout: urlParams.get('connect_timeout') || '未設定',
+      },
+    }
+  } catch (error: any) {
+    return {
+      healthy: false,
+      error: error.message || 'Unknown error',
     }
   }
-  
-  throw lastError || new Error('Operation failed after retries')
 }
 
 // 接続をテストする関数

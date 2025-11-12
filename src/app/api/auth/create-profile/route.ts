@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma, withRetry } from '@/lib/prisma'
+import { prisma } from '@/lib/prisma'
 import { supabaseAdmin } from '@/lib/supabase'
 import { appRoleToPrismaRole, prismaRoleToAppRole, stringToAppRole } from '@/lib/utils/role-mapper'
 
@@ -28,22 +28,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 既存のユーザーをチェック（IDまたはメールアドレスで）（リトライ付き）
-    const existingUserById = await withRetry(
-      () => prisma.user.findUnique({
-        where: { id: userId }
-      }),
-      3,
-      1000
-    )
+    // 既存のユーザーをチェック（IDまたはメールアドレスで）
+    // 根本的な解決: リトライではなく、接続プール設定を最適化することで問題を解決
+    const existingUserById = await prisma.user.findUnique({
+      where: { id: userId }
+    })
 
-    const existingUserByEmail = await withRetry(
-      () => prisma.user.findUnique({
-        where: { email }
-      }),
-      3,
-      1000
-    )
+    const existingUserByEmail = await prisma.user.findUnique({
+      where: { email }
+    })
 
     // 既に存在する場合は、そのユーザーを返す
     if (existingUserById) {
@@ -79,18 +72,15 @@ export async function POST(request: NextRequest) {
     console.log('Role mapping:', { inputRole: role, appRole, prismaRole })
 
     // Prismaでユーザープロファイルを作成（リトライ付き）
-    const user = await withRetry(
-      () => prisma.user.create({
-        data: {
-          id: userId,
-          email,
-          name,
-          role: prismaRole,
-        }
-      }),
-      3,
-      1000
-    )
+    // 根本的な解決: リトライではなく、接続プール設定を最適化することで問題を解決
+    const user = await prisma.user.create({
+      data: {
+        id: userId,
+        email,
+        name,
+        role: prismaRole,
+      }
+    })
 
     console.log('User created successfully:', { id: user.id, email: user.email, role: user.role })
 
@@ -142,15 +132,12 @@ export async function POST(request: NextRequest) {
         )
       }
       if (Array.isArray(target) && target.includes('id') && userId) {
-        // IDが重複している場合、既存ユーザーを取得して返す（リトライ付き）
+        // IDが重複している場合、既存ユーザーを取得して返す
+        // 根本的な解決: リトライではなく、接続プール設定を最適化することで問題を解決
         try {
-          const existingUser = await withRetry(
-            () => prisma.user.findUnique({
-              where: { id: userId }
-            }),
-            3,
-            1000
-          )
+          const existingUser = await prisma.user.findUnique({
+            where: { id: userId }
+          })
           if (existingUser) {
             const responseRole = prismaRoleToAppRole(existingUser.role)
             return NextResponse.json({

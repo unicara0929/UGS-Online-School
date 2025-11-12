@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma, withRetry } from '@/lib/prisma'
+import { prisma } from '@/lib/prisma'
 import { prismaRoleToAppRole } from '@/lib/utils/role-mapper'
 
 export async function GET(
@@ -24,14 +24,11 @@ export async function GET(
       )
     }
 
-    // Prismaでユーザープロファイルを取得（リトライ付き）
-    const user = await withRetry(
-      () => prisma.user.findUnique({
-        where: { id: userId }
-      }),
-      3, // 最大3回リトライ
-      1000 // 初期待機時間1秒
-    )
+    // Prismaでユーザープロファイルを取得
+    // 根本的な解決: リトライではなく、接続プール設定を最適化することで問題を解決
+    const user = await prisma.user.findUnique({
+      where: { id: userId }
+    })
 
     if (!user) {
       return NextResponse.json(
