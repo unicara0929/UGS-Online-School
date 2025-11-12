@@ -1,5 +1,7 @@
 import { User, UserRole } from '@/lib/types'
 import { supabase as sharedSupabase } from '@/lib/supabase'
+import { isConnectionOrTimeoutError, isNotFoundError, isConflictError } from './error-helpers'
+import { createTemporaryUserFromSession, extractUserName, extractAndNormalizeRole } from './user-helpers'
 
 // 共有のSupabaseクライアントを使用（重複インスタンスを避けるため）
 const supabase = sharedSupabase
@@ -17,6 +19,131 @@ export interface AuthUser {
 
 export class SupabaseAuthService {
   private static currentUser: AuthUser | null = null
+
+  /**
+   * プロファイルが見つからない場合の処理
+   * プロファイルを作成し、最終ログイン日時を更新
+   */
+  private static async handleProfileNotFound(
+    supabaseUser: { id: string; email?: string | null; user_metadata?: Record<string, any> | null; created_at: string; updated_at?: string | null },
+    fallbackEmail: string
+  ): Promise<AuthUser> {
+    console.log('User profile not found, creating new profile...')
+    
+    const userName = extractUserName(supabaseUser.user_metadata, supabaseUser.email || fallbackEmail)
+    const userRole = extractAndNormalizeRole(supabaseUser.user_metadata)
+    
+    console.log('Creating profile with:', { 
+      userId: supabaseUser.id, 
+      email: supabaseUser.email || fallbackEmail, 
+      name: userName, 
+      role: userRole 
+    })
+    
+    try {
+      const newUser = await this.createUserProfile(
+        supabaseUser.id,
+        supabaseUser.email || fallbackEmail,
+        userName,
+        userRole
+      )
+      this.currentUser = newUser
+      
+      await this.updateLastLoginAt(newUser.id)
+      
+      console.log('Profile created successfully:', newUser)
+      return newUser
+    } catch (createError: any) {
+      console.error('Failed to create user profile:', createError)
+      console.error('Create error details:', {
+        message: createError.message,
+        stack: createError.stack,
+        response: createError.response
+      })
+      
+      return this.handleProfileCreationError(createError, supabaseUser, fallbackEmail)
+    }
+  }
+
+  /**
+   * プロファイル作成のフォールバック処理
+   * 404エラー以外の場合でもプロファイル作成を試みる
+   */
+  private static async handleProfileCreationFallback(
+    supabaseUser: { id: string; email?: string | null; user_metadata?: Record<string, any> | null; created_at: string; updated_at?: string | null },
+    fallbackEmail: string,
+    originalError: unknown
+  ): Promise<AuthUser> {
+    const userName = extractUserName(supabaseUser.user_metadata, supabaseUser.email || fallbackEmail)
+    const userRole = extractAndNormalizeRole(supabaseUser.user_metadata)
+    
+    try {
+      const newUser = await this.createUserProfile(
+        supabaseUser.id,
+        supabaseUser.email || fallbackEmail,
+        userName,
+        userRole
+      )
+      this.currentUser = newUser
+      
+      await this.updateLastLoginAt(newUser.id)
+      
+      console.log('Profile created successfully after non-404 error:', newUser)
+      return newUser
+    } catch (createError: any) {
+      return this.handleProfileCreationError(createError, supabaseUser, fallbackEmail, originalError)
+    }
+  }
+
+  /**
+   * プロファイル作成エラーの処理
+   */
+  private static handleProfileCreationError(
+    createError: unknown,
+    supabaseUser: { id: string; email?: string | null; user_metadata?: Record<string, any> | null; created_at: string; updated_at?: string | null },
+    fallbackEmail: string,
+    originalError?: unknown
+  ): AuthUser {
+    // データベース接続エラーまたはタイムアウトエラーの場合
+    if (isConnectionOrTimeoutError(createError)) {
+      const tempUser = createTemporaryUserFromSession(supabaseUser, fallbackEmail)
+      this.currentUser = tempUser
+      console.warn('Returning session-based user info due to database connection/timeout error during profile creation')
+      return tempUser
+    }
+    
+    // 既に存在する場合のエラーをチェック
+    if (isConflictError(createError)) {
+      // 既に存在する場合は、再度取得を試みる
+      // 注意: この処理は非同期だが、エラー時は一時ユーザーを返す
+      const tempUser = createTemporaryUserFromSession(supabaseUser, fallbackEmail)
+      this.currentUser = tempUser
+      console.warn('Profile creation conflict detected, returning session-based user info')
+      return tempUser
+    }
+    
+    // プロファイル作成に失敗した場合、元のエラーを投げる
+    const errorMessage = originalError instanceof Error 
+      ? originalError.message 
+      : (createError instanceof Error ? createError.message : 'Unknown error')
+    throw new Error(`ログインは成功しましたが、ユーザー情報の取得に失敗しました: ${errorMessage}`)
+  }
+
+  /**
+   * 最終ログイン日時を更新
+   */
+  private static async updateLastLoginAt(userId: string): Promise<void> {
+    try {
+      const { prisma } = await import('@/lib/prisma')
+      await prisma.user.update({
+        where: { id: userId },
+        data: { lastLoginAt: new Date() }
+      })
+    } catch (updateError) {
+      // 最終ログイン日時の更新失敗はログのみ（ログイン自体は成功）
+      console.error('Failed to update lastLoginAt:', updateError)
+    }
+  }
 
   // ログイン
   static async login(email: string, password: string): Promise<AuthUser> {
@@ -44,16 +171,7 @@ export class SupabaseAuthService {
         this.currentUser = user
         
         // 最終ログイン日時を更新
-        try {
-          const { prisma } = await import('@/lib/prisma')
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { lastLoginAt: new Date() }
-          })
-        } catch (updateError) {
-          // 最終ログイン日時の更新失敗はログのみ（ログイン自体は成功）
-          console.error('Failed to update lastLoginAt:', updateError)
-        }
+        await this.updateLastLoginAt(user.id)
         
         return user
       } catch (profileError: any) {
@@ -67,219 +185,22 @@ export class SupabaseAuthService {
         })
         
         // データベース接続エラーまたはタイムアウトエラーの場合
-        const isConnectionOrTimeoutError = 
-          profileError.constructor?.name === 'PrismaClientInitializationError' ||
-          profileError.name === 'TimeoutError' ||
-          profileError.name === 'AbortError' ||
-          profileError.message?.includes('Can\'t reach database server') ||
-          profileError.message?.includes('database server') ||
-          profileError.message?.includes('timeout') ||
-          profileError.message?.includes('Timeout') ||
-          profileError.message?.includes('signal timed out')
-        
-        if (isConnectionOrTimeoutError) {
+        if (isConnectionOrTimeoutError(profileError)) {
           console.error('Database connection or timeout error detected during login')
-          // セッション情報から基本情報を返す
-          const userName = data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User'
-          let userRole = data.user.user_metadata?.role || 'MEMBER'
-          if (typeof userRole === 'string') {
-            userRole = userRole.toLowerCase()
-          }
-          
-          const tempUser: AuthUser = {
-            id: data.user.id,
-            email: data.user.email || email,
-            name: userName,
-            role: userRole as UserRole,
-            referralCode: null,
-            createdAt: new Date(data.user.created_at),
-            updatedAt: new Date(data.user.updated_at || data.user.created_at)
-          }
+          const tempUser = createTemporaryUserFromSession(data.user, email)
           this.currentUser = tempUser
           console.warn('Returning session-based user info due to database connection/timeout error')
           return tempUser
         }
         
         // ユーザーが見つからない場合（404）、自動的にプロファイルを作成
-        const errorMessage = String(profileError.message || profileError || '')
-        const errorString = String(profileError)
-        const isNotFoundError = 
-          errorMessage.includes('404') || 
-          errorMessage.includes('見つかりません') || 
-          errorMessage.includes('not found') ||
-          errorString.includes('404') ||
-          (profileError instanceof Error && (profileError.message.includes('404') || profileError.message.includes('見つかりません')))
-        
-        console.log('isNotFoundError check:', {
-          errorMessage,
-          errorString,
-          isNotFoundError,
-          includes404: errorMessage.includes('404'),
-          includesNotFound: errorMessage.includes('見つかりません')
-        })
-        
-        if (isNotFoundError) {
-          console.log('User profile not found, creating new profile...')
-          try {
-            // Supabaseのユーザー情報から名前を取得
-            const userName = data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User'
-            // Supabaseのuser_metadataからロールを取得（大文字小文字を考慮）
-            let userRole = data.user.user_metadata?.role || 'MEMBER'
-            // 大文字の場合は小文字に変換
-            if (typeof userRole === 'string') {
-              userRole = userRole.toLowerCase()
-            }
-            
-            console.log('Creating profile with:', { userId: data.user.id, email: data.user.email || email, name: userName, role: userRole })
-            
-            // プロファイルを作成
-            const newUser = await this.createUserProfile(
-              data.user.id,
-              data.user.email || email,
-              userName,
-              userRole as UserRole
-            )
-            this.currentUser = newUser
-            
-            // 最終ログイン日時を更新
-            try {
-              const { prisma } = await import('@/lib/prisma')
-              await prisma.user.update({
-                where: { id: newUser.id },
-                data: { lastLoginAt: new Date() }
-              })
-            } catch (updateError) {
-              console.error('Failed to update lastLoginAt:', updateError)
-            }
-            
-            console.log('Profile created successfully:', newUser)
-            return newUser
-          } catch (createError: any) {
-            console.error('Failed to create user profile:', createError)
-            console.error('Create error details:', {
-              message: createError.message,
-              stack: createError.stack,
-              response: createError.response
-            })
-            
-            // データベース接続エラーまたはタイムアウトエラーの場合
-            const isConnectionOrTimeoutError = 
-              createError.constructor?.name === 'PrismaClientInitializationError' ||
-              createError.name === 'TimeoutError' ||
-              createError.name === 'AbortError' ||
-              createError.message?.includes('Can\'t reach database server') ||
-              createError.message?.includes('database server') ||
-              createError.message?.includes('timeout') ||
-              createError.message?.includes('Timeout') ||
-              createError.message?.includes('signal timed out')
-            
-            if (isConnectionOrTimeoutError) {
-              // セッション情報から基本情報を返す
-              const userName = data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User'
-              let userRole = data.user.user_metadata?.role || 'MEMBER'
-              if (typeof userRole === 'string') {
-                userRole = userRole.toLowerCase()
-              }
-              
-              const tempUser: AuthUser = {
-                id: data.user.id,
-                email: data.user.email || email,
-                name: userName,
-                role: userRole as UserRole,
-                referralCode: null,
-                createdAt: new Date(data.user.created_at),
-                updatedAt: new Date(data.user.updated_at || data.user.created_at)
-              }
-              this.currentUser = tempUser
-              console.warn('Returning session-based user info due to database connection/timeout error during profile creation')
-              return tempUser
-            }
-            
-            // 既に存在する場合のエラーをチェック
-            const createErrorMessage = String(createError.message || '')
-            if (createErrorMessage.includes('409') || createErrorMessage.includes('既に登録')) {
-              // 既に存在する場合は、再度取得を試みる
-              try {
-                const existingUser = await this.getUserProfile(data.user.id)
-                this.currentUser = existingUser
-                console.log('Retrieved existing user after create conflict:', existingUser)
-                return existingUser
-              } catch (retryError) {
-                console.error('Failed to retrieve existing user:', retryError)
-                throw new Error(`ユーザープロファイルの取得に失敗しました: ${retryError instanceof Error ? retryError.message : 'Unknown error'}`)
-              }
-            }
-            
-            throw new Error(`ログインは成功しましたが、ユーザープロファイルの作成に失敗しました: ${createError.message}`)
-          }
-        } else {
-          // 404エラーではない場合でも、念のためプロファイル作成を試みる
-          console.log('Non-404 error, but attempting to create profile anyway...')
-          try {
-            const userName = data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User'
-            let userRole = data.user.user_metadata?.role || 'MEMBER'
-            if (typeof userRole === 'string') {
-              userRole = userRole.toLowerCase()
-            }
-            
-            const newUser = await this.createUserProfile(
-              data.user.id,
-              data.user.email || email,
-              userName,
-              userRole as UserRole
-            )
-            this.currentUser = newUser
-            
-            // 最終ログイン日時を更新
-            try {
-              const { prisma } = await import('@/lib/prisma')
-              await prisma.user.update({
-                where: { id: newUser.id },
-                data: { lastLoginAt: new Date() }
-              })
-            } catch (updateError) {
-              console.error('Failed to update lastLoginAt:', updateError)
-            }
-            
-            console.log('Profile created successfully after non-404 error:', newUser)
-            return newUser
-          } catch (createError: any) {
-            // データベース接続エラーまたはタイムアウトエラーの場合
-            const isConnectionOrTimeoutError = 
-              createError.constructor?.name === 'PrismaClientInitializationError' ||
-              createError.name === 'TimeoutError' ||
-              createError.name === 'AbortError' ||
-              createError.message?.includes('Can\'t reach database server') ||
-              createError.message?.includes('database server') ||
-              createError.message?.includes('timeout') ||
-              createError.message?.includes('Timeout') ||
-              createError.message?.includes('signal timed out')
-            
-            if (isConnectionOrTimeoutError) {
-              // セッション情報から基本情報を返す
-              const userName = data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User'
-              let userRole = data.user.user_metadata?.role || 'MEMBER'
-              if (typeof userRole === 'string') {
-                userRole = userRole.toLowerCase()
-              }
-              
-              const tempUser: AuthUser = {
-                id: data.user.id,
-                email: data.user.email || email,
-                name: userName,
-                role: userRole as UserRole,
-                referralCode: null,
-                createdAt: new Date(data.user.created_at),
-                updatedAt: new Date(data.user.updated_at || data.user.created_at)
-              }
-              this.currentUser = tempUser
-              console.warn('Returning session-based user info due to database connection/timeout error during profile creation (non-404)')
-              return tempUser
-            }
-            // プロファイル作成に失敗した場合、元のエラーを投げる
-            throw new Error(`ログインは成功しましたが、ユーザー情報の取得に失敗しました: ${profileError.message}`)
-          }
+        if (isNotFoundError(profileError)) {
+          return await this.handleProfileNotFound(data.user, email)
         }
+        
+        // 404エラーではない場合でも、念のためプロファイル作成を試みる
+        console.log('Non-404 error, but attempting to create profile anyway...')
+        return await this.handleProfileCreationFallback(data.user, email, profileError)
       }
     } catch (error) {
       console.error('Login error:', error)
@@ -373,85 +294,24 @@ export class SupabaseAuthService {
       } catch (profileError: any) {
         console.error('Get user profile error in getCurrentUser:', profileError)
         
-        const errorMessage = profileError.message || ''
-        const isNotFoundError = 
-          errorMessage.includes('404') || 
-          errorMessage.includes('見つかりません') || 
-          errorMessage.includes('not found') ||
-          (profileError instanceof Error && profileError.message.includes('404'))
-        
         // データベース接続エラーの場合は、セッション情報から基本情報を返す
-        const isConnectionError = 
-          errorMessage.includes('connection') ||
-          errorMessage.includes('Connection') ||
-          errorMessage.includes('timeout') ||
-          errorMessage.includes('Timeout') ||
-          errorMessage.includes('TimeoutError') ||
-          errorMessage.includes('signal timed out') ||
-          errorMessage.includes('AbortError') ||
-          profileError.name === 'TimeoutError' ||
-          profileError.name === 'AbortError' ||
-          errorMessage.includes('PrismaClientInitializationError')
-        
-        if (isConnectionError) {
+        if (isConnectionOrTimeoutError(profileError)) {
           console.warn('Database connection error in getCurrentUser, returning session-based user info')
-          // セッション情報から基本情報を構築
-          const userName = session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User'
-          let userRole = session.user.user_metadata?.role || 'MEMBER'
-          if (typeof userRole === 'string') {
-            userRole = userRole.toLowerCase()
-          }
-          
-          // 一時的なユーザー情報を返す（データベース接続が復旧したら再取得される）
-          const tempUser: AuthUser = {
-            id: session.user.id,
-            email: session.user.email || '',
-            name: userName,
-            role: userRole as UserRole,
-            referralCode: null,
-            createdAt: new Date(session.user.created_at),
-            updatedAt: new Date(session.user.updated_at || session.user.created_at)
-          }
+          const tempUser = createTemporaryUserFromSession(session.user, session.user.email || undefined)
           this.currentUser = tempUser
           return tempUser
         }
         
         // 404エラーの場合、自動的にプロファイルを作成
-        if (isNotFoundError) {
-          console.log('User profile not found in getCurrentUser, creating new profile...')
+        if (isNotFoundError(profileError)) {
           try {
-            // Supabaseのユーザー情報から名前を取得
-            const userName = session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User'
-            // Supabaseのuser_metadataからロールを取得（大文字小文字を考慮）
-            let userRole = session.user.user_metadata?.role || 'MEMBER'
-            // 大文字の場合は小文字に変換
-            if (typeof userRole === 'string') {
-              userRole = userRole.toLowerCase()
-            }
-            
-            console.log('Creating profile in getCurrentUser with:', { 
-              userId: session.user.id, 
-              email: session.user.email, 
-              name: userName, 
-              role: userRole 
-            })
-            
-            // プロファイルを作成
-            const newUser = await this.createUserProfile(
-              session.user.id,
-              session.user.email || '',
-              userName,
-              userRole as UserRole
-            )
-            this.currentUser = newUser
-            console.log('Profile created successfully in getCurrentUser:', newUser)
+            const newUser = await this.handleProfileNotFound(session.user, session.user.email || '')
             return newUser
-          } catch (createError: any) {
+          } catch (createError) {
             console.error('Failed to create user profile in getCurrentUser:', createError)
+            
             // 既に存在する場合のエラーをチェック
-            const createErrorMessage = createError.message || ''
-            if (createErrorMessage.includes('409') || createErrorMessage.includes('既に登録')) {
-              // 既に存在する場合は、再度取得を試みる
+            if (isConflictError(createError)) {
               try {
                 const existingUser = await this.getUserProfile(session.user.id)
                 this.currentUser = existingUser
@@ -460,22 +320,8 @@ export class SupabaseAuthService {
               } catch (retryError) {
                 console.error('Failed to retrieve existing user in getCurrentUser:', retryError)
                 // データベース接続エラーの場合は、セッション情報から基本情報を返す
-                const retryErrorMessage = retryError instanceof Error ? retryError.message : String(retryError)
-                if (retryErrorMessage.includes('connection') || retryErrorMessage.includes('timeout')) {
-                  const userName = session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User'
-                  let userRole = session.user.user_metadata?.role || 'MEMBER'
-                  if (typeof userRole === 'string') {
-                    userRole = userRole.toLowerCase()
-                  }
-                  const tempUser: AuthUser = {
-                    id: session.user.id,
-                    email: session.user.email || '',
-                    name: userName,
-                    role: userRole as UserRole,
-                    referralCode: null,
-                    createdAt: new Date(session.user.created_at),
-                    updatedAt: new Date(session.user.updated_at || session.user.created_at)
-                  }
+                if (isConnectionOrTimeoutError(retryError)) {
+                  const tempUser = createTemporaryUserFromSession(session.user, session.user.email || undefined)
                   this.currentUser = tempUser
                   return tempUser
                 }
