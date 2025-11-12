@@ -66,12 +66,38 @@ export class SupabaseAuthService {
           errorString: String(profileError)
         })
         
-        // データベース接続エラーの場合
-        if (profileError.constructor?.name === 'PrismaClientInitializationError' || 
-            profileError.message?.includes('Can\'t reach database server') ||
-            profileError.message?.includes('database server')) {
-          console.error('Database connection error detected during login')
-          throw new Error('データベースに接続できません。しばらく待ってから再度お試しください。')
+        // データベース接続エラーまたはタイムアウトエラーの場合
+        const isConnectionOrTimeoutError = 
+          profileError.constructor?.name === 'PrismaClientInitializationError' ||
+          profileError.name === 'TimeoutError' ||
+          profileError.name === 'AbortError' ||
+          profileError.message?.includes('Can\'t reach database server') ||
+          profileError.message?.includes('database server') ||
+          profileError.message?.includes('timeout') ||
+          profileError.message?.includes('Timeout') ||
+          profileError.message?.includes('signal timed out')
+        
+        if (isConnectionOrTimeoutError) {
+          console.error('Database connection or timeout error detected during login')
+          // セッション情報から基本情報を返す
+          const userName = data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User'
+          let userRole = data.user.user_metadata?.role || 'MEMBER'
+          if (typeof userRole === 'string') {
+            userRole = userRole.toLowerCase()
+          }
+          
+          const tempUser: AuthUser = {
+            id: data.user.id,
+            email: data.user.email || email,
+            name: userName,
+            role: userRole as UserRole,
+            referralCode: null,
+            createdAt: new Date(data.user.created_at),
+            updatedAt: new Date(data.user.updated_at || data.user.created_at)
+          }
+          this.currentUser = tempUser
+          console.warn('Returning session-based user info due to database connection/timeout error')
+          return tempUser
         }
         
         // ユーザーが見つからない場合（404）、自動的にプロファイルを作成
@@ -308,6 +334,11 @@ export class SupabaseAuthService {
           errorMessage.includes('Connection') ||
           errorMessage.includes('timeout') ||
           errorMessage.includes('Timeout') ||
+          errorMessage.includes('TimeoutError') ||
+          errorMessage.includes('signal timed out') ||
+          errorMessage.includes('AbortError') ||
+          profileError.name === 'TimeoutError' ||
+          profileError.name === 'AbortError' ||
           errorMessage.includes('PrismaClientInitializationError')
         
         if (isConnectionError) {

@@ -10,12 +10,15 @@ if (!supabaseUrl || !supabaseAnonKey) {
   })
 }
 
-// ブラウザ側のSupabaseクライアントをシングルトン化
-let _supabaseBrowser: SupabaseClient | null = null
+// ブラウザ側のSupabaseクライアントをシングルトン化（グローバル変数を使用）
+declare global {
+  var __supabaseClient: SupabaseClient | undefined
+}
 
 export const supabase: SupabaseClient = (() => {
-  if (typeof window !== 'undefined' && _supabaseBrowser) {
-    return _supabaseBrowser
+  // ブラウザ環境でグローバル変数に既に存在する場合はそれを使用
+  if (typeof window !== 'undefined' && globalThis.__supabaseClient) {
+    return globalThis.__supabaseClient
   }
   
   const client = supabaseUrl && supabaseAnonKey
@@ -36,8 +39,9 @@ export const supabase: SupabaseClient = (() => {
         },
       })
   
+  // ブラウザ環境でグローバル変数に保存（モジュール再読み込み時も再利用）
   if (typeof window !== 'undefined') {
-    _supabaseBrowser = client
+    globalThis.__supabaseClient = client
   }
   
   return client
