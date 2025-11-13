@@ -55,7 +55,9 @@ export function ManagerPromotion() {
     if (!user?.id) return
 
     try {
-      const response = await fetch(`/api/promotions/eligibility?userId=${user.id}&targetRole=manager`)
+      const response = await fetch(`/api/promotions/eligibility?userId=${user.id}&targetRole=manager`, {
+        credentials: 'include'
+      })
       if (!response.ok) {
         throw new Error('昇格可能性のチェックに失敗しました')
       }
@@ -76,6 +78,7 @@ export function ManagerPromotion() {
       const response = await fetch('/api/promotions/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           userId: user.id,
           targetRole: 'manager'

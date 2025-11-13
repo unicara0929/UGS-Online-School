@@ -36,7 +36,9 @@ function AccountSettingsPage() {
       if (!user?.id) return
       
       try {
-        const response = await fetch(`/api/auth/profile/${user.id}`)
+        const response = await fetch(`/api/auth/profile/${user.id}`, {
+          credentials: 'include'
+        })
         if (response.ok) {
           const data = await response.json()
           if (data.success && data.user) {
@@ -116,6 +118,7 @@ function AccountSettingsPage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           userId: user?.id,
           name: user?.name,

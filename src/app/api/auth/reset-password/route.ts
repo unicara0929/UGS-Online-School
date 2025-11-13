@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase'
 
 /**
  * パスワードリセットメールを送信
@@ -39,8 +39,9 @@ export async function POST(request: NextRequest) {
     console.log('Password reset redirect URL:', redirectUrl)
     console.log('Host:', host, 'Protocol:', protocol)
 
-    // パスワードリセットメールを送信（共有のSupabaseクライアントを使用）
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    // パスワードリセットメールを送信（サーバーサイド用のSupabaseクライアントを使用）
+    // supabaseAdminはService Role Keyを使用しているため、resetPasswordForEmailを直接呼び出す
+    const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
       redirectTo: redirectUrl,
     })
 

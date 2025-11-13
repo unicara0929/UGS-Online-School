@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { authenticatedFetch } from '@/lib/utils/api-client'
+import { fetchWithTimeout, handleApiResponse } from '@/lib/utils/api-helpers-client'
+import { validateFile } from '@/lib/utils/file-helpers'
+import { uploadIdDocument, fetchExistingIdDocumentUrl } from '@/lib/services/file-upload-service'
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from 'next/navigation'
 import { 
@@ -64,6 +67,10 @@ export function FPPromotion() {
     }
   }
 
+  /**
+   * 既存のアプリケーション情報を取得
+   * 根本的な解決: サービス関数を使用してロジックを分離し、可読性を向上
+   */
   const fetchExistingApplication = async () => {
     if (!user?.id) return
 
@@ -73,10 +80,9 @@ export function FPPromotion() {
         const data = await response.json()
         if (data.application?.idDocumentUrl) {
           // 既存の身分証URLを取得
-          const urlResponse = await authenticatedFetch(`/api/user/get-id-document-url?userId=${user.id}&filePath=${encodeURIComponent(data.application.idDocumentUrl)}`)
-          if (urlResponse.ok) {
-            const urlData = await urlResponse.json()
-            setUploadedFileUrl(urlData.fileUrl)
+          const fileUrl = await fetchExistingIdDocumentUrl(user.id, data.application.idDocumentUrl)
+          if (fileUrl) {
+            setUploadedFileUrl(fileUrl)
           }
         }
       }
@@ -85,84 +91,71 @@ export function FPPromotion() {
     }
   }
 
+  /**
+   * 昇格条件を取得
+   * 根本的な解決: 認証が必要なAPIなので、authenticatedFetchを使用して認証トークンを送信
+   */
   const fetchPromotionConditions = async () => {
     if (!user?.id) return
 
     setIsLoading(true)
-    let retryCount = 0
-    const maxRetries = 3
-    const retryDelay = 1000 // 1秒
-
-    while (retryCount < maxRetries) {
-      try {
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 15000) // 15秒タイムアウトに延長
-
-        const response = await authenticatedFetch(`/api/promotions/eligibility?userId=${user.id}&targetRole=fp`, {
-          signal: controller.signal
-        })
-
-        clearTimeout(timeoutId)
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-          throw new Error(errorData.error || `ページの取得に失敗しました (${response.status})`)
+    try {
+      // 認証が必要なAPIなので、authenticatedFetchを使用（タイムアウトはAbortSignalで設定）
+      const response = await authenticatedFetch(
+        `/api/promotions/eligibility?userId=${user.id}&targetRole=fp`,
+        {
+          signal: AbortSignal.timeout(10000) // 10秒タイムアウト
         }
+      )
 
-        const data = await response.json()
-        
-        if (!data.success) {
-          throw new Error(data.error || 'ページの取得に失敗しました')
+      const data = await handleApiResponse<{
+        success: boolean
+        eligibility?: {
+          conditions?: {
+            testPassed?: boolean
+            lpMeetingCompleted?: boolean
+            surveyCompleted?: boolean
+          }
+          isEligible?: boolean
         }
+      }>(response)
 
-        setConditions({
-          testPassed: data.eligibility?.conditions?.testPassed || false,
-          lpMeetingCompleted: data.eligibility?.conditions?.lpMeetingCompleted || false,
-          surveyCompleted: data.eligibility?.conditions?.surveyCompleted || false,
-          isEligible: data.eligibility?.isEligible || false
-        })
-        
-        setIsLoading(false)
-        return // 成功したら終了
-      } catch (error: any) {
-        console.error(`Error fetching promotion conditions (attempt ${retryCount + 1}/${maxRetries}):`, error)
-        
-        if (error.name === 'AbortError') {
-          console.error('Request timeout')
-        }
-
-        retryCount++
-        
-        if (retryCount >= maxRetries) {
-          console.error('Failed to fetch promotion conditions after retries')
-          setIsLoading(false)
-          // エラーを表示するが、ページは表示する
-          return
-        }
-
-        // リトライ前に待機
-        await new Promise(resolve => setTimeout(resolve, retryDelay * retryCount))
-      }
+      setConditions({
+        testPassed: data.eligibility?.conditions?.testPassed || false,
+        lpMeetingCompleted: data.eligibility?.conditions?.lpMeetingCompleted || false,
+        surveyCompleted: data.eligibility?.conditions?.surveyCompleted || false,
+        isEligible: data.eligibility?.isEligible || false
+      })
+    } catch (error: any) {
+      console.error('Error fetching promotion conditions:', error)
+      // エラーを表示するが、ページは表示する
+    } finally {
+      setIsLoading(false)
     }
   }
 
+  /**
+   * ファイル選択ハンドラー
+   * 根本的な解決: ヘルパー関数を使用してロジックを分離し、可読性を向上
+   */
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      if (file.size > 10 * 1024 * 1024) {
-        alert('ファイルサイズは10MB以下にしてください')
-        return
-      }
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf']
-      if (!allowedTypes.includes(file.type)) {
-        alert('JPEG、PNG、PDFファイルのみアップロード可能です')
-        return
-      }
-      setSelectedFile(file)
-      setUploadedFileUrl(null)
+    if (!file) return
+
+    const validation = validateFile(file)
+    if (!validation.valid) {
+      alert(validation.error)
+      return
     }
+
+    setSelectedFile(file)
+    setUploadedFileUrl(null)
   }
 
+  /**
+   * ファイルアップロードハンドラー
+   * 根本的な解決: サービス関数を使用してロジックを分離し、可読性を向上
+   */
   const handleFileUpload = async () => {
     if (!selectedFile || !user?.id) {
       alert('ファイルを選択してください')
@@ -171,25 +164,14 @@ export function FPPromotion() {
 
     setIsUploading(true)
     try {
-      const formData = new FormData()
-      formData.append('file', selectedFile)
-      formData.append('userId', user.id)
-
-      const response = await authenticatedFetch('/api/user/upload-id-document', {
-        method: 'POST',
-        body: formData,
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        if (data.errorCode === 'BUCKET_NOT_FOUND') {
-          throw new Error('ストレージバケットが設定されていません。管理者にお問い合わせください。')
-        }
-        throw new Error(data.error || 'アップロードに失敗しました')
+      const result = await uploadIdDocument(selectedFile, user.id)
+      
+      if (!result.success) {
+        alert(result.error || 'アップロードに失敗しました')
+        return
       }
 
-      setUploadedFileUrl(data.fileUrl)
+      setUploadedFileUrl(result.fileUrl || null)
       alert('身分証のアップロードが完了しました')
     } catch (error: any) {
       console.error('Upload error:', error)

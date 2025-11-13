@@ -2,17 +2,25 @@ import { PrismaClient } from '@prisma/client'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
+  connectionPoolConfigValidated?: boolean
 }
 
 /**
  * 接続プール設定の検証と最適化
- * 根本的な解決: 環境変数で設定されているか確認し、設定されていない場合は警告を出す
+ * 根本的な解決: 環境変数で設定されているか確認し、設定されていない場合は警告を出す（一度だけ）
  */
 function validateConnectionPoolConfig(): void {
+  // 既に検証済みの場合はスキップ（警告の重複を防ぐ）
+  // グローバル変数に保存して、モジュール再読み込み時も保持
+  if (globalForPrisma.connectionPoolConfigValidated) {
+    return
+  }
+  
   const databaseUrl = process.env.DATABASE_URL || ''
   
   if (!databaseUrl) {
     console.error('❌ DATABASE_URL is not set. Please configure it in Vercel environment variables.')
+    globalForPrisma.connectionPoolConfigValidated = true
     return
   }
   
@@ -39,6 +47,9 @@ function validateConnectionPoolConfig(): void {
     console.warn('⚠️ 直接接続が使用されています。Transaction Poolerの使用を推奨します')
     console.warn('   Transaction Pooler URL: postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres?pgbouncer=true')
   }
+  
+  // 検証済みフラグをグローバル変数に設定（モジュール再読み込み時も保持）
+  globalForPrisma.connectionPoolConfigValidated = true
 }
 
 /**
@@ -51,7 +62,28 @@ const createPrismaClient = () => {
     validateConnectionPoolConfig()
   }
   
-  const databaseUrl = process.env.DATABASE_URL || ''
+  // 環境変数から引用符を削除（.env.localで引用符が含まれている場合に対応）
+  let databaseUrl = (process.env.DATABASE_URL || '').replace(/^["']|["']$/g, '')
+  
+  // URLの検証と修正
+  try {
+    // URLをパースして検証
+    const urlObj = new URL(databaseUrl)
+    
+    // パスワード部分をURLエンコード（特殊文字が含まれている場合）
+    if (urlObj.password) {
+      const decodedPassword = decodeURIComponent(urlObj.password)
+      const encodedPassword = encodeURIComponent(decodedPassword)
+      if (decodedPassword !== encodedPassword) {
+        // 特殊文字が含まれている場合はエンコード
+        urlObj.password = encodedPassword
+        databaseUrl = urlObj.toString()
+      }
+    }
+  } catch (urlError) {
+    console.error('DATABASE_URLの解析に失敗しました:', urlError)
+    console.error('DATABASE_URL:', databaseUrl.substring(0, 50) + '...')
+  }
   
   return new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],

@@ -66,19 +66,14 @@ export async function POST(request: NextRequest) {
       }
     })
   } catch (error: any) {
-    console.error('Create test user error:', error)
-    
-    // 重複エラーの場合
-    if (error.code === 'P2002') {
-      return NextResponse.json(
-        { error: 'このメールアドレスは既に登録されています' },
-        { status: 409 }
-      )
+    // Prismaエラーの場合は専用のハンドラーを使用
+    // 根本的な解決: 共通のエラーハンドリング関数を使用して可読性を向上
+    if (error.code?.startsWith('P')) {
+      const { handlePrismaError } = await import('@/lib/utils/api-error-handlers')
+      return handlePrismaError(error)
     }
 
-    return NextResponse.json(
-      { error: 'ユーザー作成に失敗しました: ' + error.message },
-      { status: 500 }
-    )
+    const { createServerErrorResponse } = await import('@/lib/utils/api-error-handlers')
+    return createServerErrorResponse(error, 'ユーザー作成に失敗しました')
   }
 }

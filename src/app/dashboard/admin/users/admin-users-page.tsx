@@ -6,6 +6,9 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Users, UserCheck, UserX, Mail, Calendar, CreditCard, AlertCircle, Search, Filter, ArrowUpDown } from 'lucide-react'
+import { getRoleLabel, getRoleBadgeVariant, formatDate, formatCurrency } from '@/lib/utils/user-helpers'
+import { filterUsersBySearch, filterUsersByStatus, filterUsersByRole, sortUsers } from '@/lib/utils/filter-helpers'
+import { getSubscriptionStatus } from '@/lib/utils/subscription-helpers'
 
 interface SubscriptionInfo {
   id: string
@@ -73,7 +76,9 @@ export default function AdminUsersPage() {
 
   const fetchPendingUsers = async () => {
     try {
-      const response = await fetch('/api/admin/pending-users')
+      const response = await fetch('/api/admin/pending-users', {
+        credentials: 'include'
+      })
       if (!response.ok) {
         throw new Error('仮登録ユーザー情報の取得に失敗しました')
       }
@@ -86,7 +91,9 @@ export default function AdminUsersPage() {
 
   const fetchSubscriptions = async () => {
     try {
-      const response = await fetch('/api/admin/subscriptions')
+      const response = await fetch('/api/admin/subscriptions', {
+        credentials: 'include'
+      })
       if (!response.ok) {
         throw new Error('サブスクリプション情報の取得に失敗しました')
       }
@@ -100,7 +107,9 @@ export default function AdminUsersPage() {
   const fetchUsers = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/admin/users')
+      const response = await fetch('/api/admin/users', {
+        credentials: 'include'
+      })
       if (!response.ok) {
         throw new Error('ユーザー情報の取得に失敗しました')
       }
@@ -120,6 +129,7 @@ export default function AdminUsersPage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ userId, role: newRole }),
       })
 
@@ -134,93 +144,41 @@ export default function AdminUsersPage() {
     }
   }
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return '未設定'
-    return new Date(dateString).toLocaleString('ja-JP')
+
+  /**
+   * ユーザーのサブスクリプションステータスを取得
+   * 根本的な解決: ヘルパー関数を使用してロジックを分離し、可読性を向上
+   */
+  const getUserSubscriptionStatus = (user: { id: string }) => {
+    return getSubscriptionStatus(user.id, subscriptions)
   }
 
-  const getRoleLabel = (role: string) => {
-    switch (role) {
-      case 'ADMIN':
-        return '管理者'
-      case 'MANAGER':
-        return 'マネージャー'
-      case 'FP':
-        return 'FPエイド'
-      case 'MEMBER':
-        return 'メンバー'
-      case 'PENDING':
-        return '仮登録'
-      default:
-        return role
-    }
-  }
-
-  const getRoleBadgeVariant = (role: string) => {
-    switch (role) {
-      case 'ADMIN':
-        return 'destructive'
-      case 'MANAGER':
-        return 'default'
-      case 'FP':
-        return 'secondary'
-      case 'MEMBER':
-        return 'outline'
-      case 'PENDING':
-        return 'outline'
-      default:
-        return 'outline'
-    }
-  }
-
-  const getSubscriptionStatus = (user: { id: string }) => {
-    const subscription = subscriptions.find(sub => sub.userId === user.id)
-    if (!subscription) {
-      return { status: 'none', label: '未決済', variant: 'outline' as const }
-    }
-
-    if (subscription.stripeDetails) {
-      const stripeStatus = subscription.stripeDetails.status
-      switch (stripeStatus) {
-        case 'active':
-          return { 
-            status: 'active', 
-            label: 'アクティブ', 
-            variant: 'default' as const,
-            cancelAtPeriodEnd: subscription.stripeDetails.cancelAtPeriodEnd
-          }
-        case 'canceled':
-          return { status: 'canceled', label: 'キャンセル済み', variant: 'destructive' as const }
-        case 'past_due':
-          return { status: 'past_due', label: '支払い遅延', variant: 'destructive' as const }
-        case 'unpaid':
-          return { status: 'unpaid', label: '未払い', variant: 'destructive' as const }
-        default:
-          return { status: 'unknown', label: stripeStatus, variant: 'secondary' as const }
-      }
-    }
-
-    return { status: 'pending', label: '処理中', variant: 'secondary' as const }
-  }
-
-  const formatCurrency = (amount: number, currency: string) => {
-    return new Intl.NumberFormat('ja-JP', {
-      style: 'currency',
-      currency: currency.toUpperCase(),
-    }).format(amount / 100)
-  }
-
-  // フィルターとソート機能
+  /**
+   * フィルターとソート機能
+   * 根本的な解決: ヘルパー関数を使用してロジックを分離し、可読性を向上
+   */
   const getFilteredAndSortedUsers = () => {
-    const allUsers = [
+    // すべてのユーザーを統合
+    type UserItem = {
+      id: string
+      name: string
+      email: string
+      role: string
+      createdAt: string
+      lastSignIn: string | null
+      subscription: SubscriptionInfo | null
+      type: 'pending' | 'registered'
+    }
+
+    const allUsers: UserItem[] = [
       ...pendingUsers.map(pending => ({
         id: pending.id,
         name: pending.name,
         email: pending.email,
         role: 'PENDING',
         createdAt: pending.createdAt,
-        lastSignIn: null,
-        subscription: null,
+        lastSignIn: null as string | null,
+        subscription: null as SubscriptionInfo | null,
         type: 'pending' as const
       })),
       ...users.map(user => ({
@@ -230,60 +188,16 @@ export default function AdminUsersPage() {
         role: user.role,
         createdAt: user.created_at,
         lastSignIn: user.last_sign_in_at,
-        subscription: subscriptions.find(sub => sub.userId === user.id),
+        subscription: (subscriptions.find(sub => sub.userId === user.id) || null) as SubscriptionInfo | null,
         type: 'registered' as const
       }))
     ]
 
-    // 検索フィルター
-    let filtered = allUsers.filter(user => 
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-
-    // ステータスフィルター
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(user => {
-        if (statusFilter === 'pending') return user.type === 'pending'
-        if (!user.subscription?.stripeDetails) return false
-        return user.subscription.stripeDetails.status === statusFilter
-      })
-    }
-
-    // ロールフィルター
-    if (roleFilter !== 'all') {
-      filtered = filtered.filter(user => user.role === roleFilter)
-    }
-
-    // ソート
-    filtered.sort((a, b) => {
-      let aValue: any, bValue: any
-      
-      switch (sortField) {
-        case 'name':
-          aValue = a.name
-          bValue = b.name
-          break
-        case 'email':
-          aValue = a.email
-          bValue = b.email
-          break
-        case 'createdAt':
-          aValue = new Date(a.createdAt)
-          bValue = new Date(b.createdAt)
-          break
-        case 'lastSignIn':
-          aValue = a.lastSignIn ? new Date(a.lastSignIn) : new Date(0)
-          bValue = b.lastSignIn ? new Date(b.lastSignIn) : new Date(0)
-          break
-        default:
-          return 0
-      }
-
-      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1
-      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1
-      return 0
-    })
+    // ヘルパー関数を使用してフィルターとソートを適用
+    let filtered: UserItem[] = filterUsersBySearch(allUsers, searchTerm) as UserItem[]
+    filtered = filterUsersByStatus(filtered, statusFilter) as UserItem[]
+    filtered = filterUsersByRole(filtered, roleFilter) as UserItem[]
+    filtered = sortUsers(filtered, sortField, sortDirection) as UserItem[]
 
     return filtered
   }
@@ -551,7 +465,7 @@ export default function AdminUsersPage() {
                         </Badge>
                       ) : (
                         (() => {
-                          const subStatus = getSubscriptionStatus(user)
+                          const subStatus = getUserSubscriptionStatus(user)
                           return (
                             <Badge 
                               variant={subStatus.variant}

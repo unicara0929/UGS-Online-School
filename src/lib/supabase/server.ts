@@ -8,6 +8,10 @@ import { cookies } from 'next/headers'
 
 export async function createClient() {
   const cookieStore = await cookies()
+  const allCookies = cookieStore.getAll()
+
+  console.log('[SUPABASE] Creating server client, cookies found:',
+    allCookies.filter(c => c.name.includes('auth')).map(c => ({ name: c.name, hasValue: !!c.value })))
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

@@ -47,7 +47,9 @@ function FPLPMeetingsPageContent() {
     if (!user?.id) return
 
     try {
-      const response = await fetch(`/api/lp-meetings/my-scheduled?fpId=${user.id}`)
+      const response = await fetch(`/api/lp-meetings/my-scheduled?fpId=${user.id}`, {
+        credentials: 'include'
+      })
       if (!response.ok) {
         throw new Error('面談一覧の取得に失敗しました')
       }
@@ -69,6 +71,7 @@ function FPLPMeetingsPageContent() {
       const response = await fetch(`/api/lp-meetings/${selectedMeeting.id}/complete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           notes: notes || null
         })

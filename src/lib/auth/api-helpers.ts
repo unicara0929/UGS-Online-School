@@ -23,10 +23,13 @@ export async function getAuthenticatedUser(
 ): Promise<{ user: AuthUser | null; error: NextResponse | null }> {
   try {
     let supabaseUser = null
+    const requestUrl = new URL(request.url)
+    console.log(`[AUTH] Authenticating request to: ${requestUrl.pathname}`)
 
     // 1. Bearer トークン認証を試行（API クライアント用）
     const authHeader = request.headers.get('authorization')
     if (authHeader?.startsWith('Bearer ')) {
+      console.log('[AUTH] Attempting Bearer token authentication')
       const token = authHeader.substring(7)
       const {
         data: { user },
@@ -34,12 +37,16 @@ export async function getAuthenticatedUser(
       } = await supabaseAdmin.auth.getUser(token)
 
       if (!tokenError && user) {
+        console.log('[AUTH] Bearer token authentication successful:', user.id)
         supabaseUser = user
+      } else {
+        console.log('[AUTH] Bearer token authentication failed:', tokenError?.message)
       }
     }
 
     // 2. Cookie ベース認証にフォールバック（ブラウザ用）
     if (!supabaseUser) {
+      console.log('[AUTH] Attempting cookie-based authentication')
       try {
         const supabase = await createClient()
         const {
@@ -48,16 +55,20 @@ export async function getAuthenticatedUser(
         } = await supabase.auth.getUser()
 
         if (!sessionError && user) {
+          console.log('[AUTH] Cookie-based authentication successful:', user.id)
           supabaseUser = user
+        } else {
+          console.log('[AUTH] Cookie-based authentication failed:', sessionError?.message)
         }
       } catch (cookieError) {
-        console.error('Cookie-based authentication error:', cookieError)
+        console.error('[AUTH] Cookie-based authentication error:', cookieError)
         // Cookie認証が失敗しても続行（Bearerトークンがない場合のみエラー）
       }
     }
 
     // 3. 認証失敗
     if (!supabaseUser) {
+      console.log('[AUTH] Authentication failed - no valid user found')
       return {
         user: null,
         error: NextResponse.json(
@@ -71,14 +82,57 @@ export async function getAuthenticatedUser(
     
     // 4. Prisma プロファイルを取得
     // 根本的な解決: リトライではなく、接続プール設定を最適化することで問題を解決
-    const profile = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-      },
-    })
+    let profile
+    try {
+      profile = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: {
+          id: true,
+          email: true,
+          role: true,
+        },
+      })
+    } catch (dbError: any) {
+      console.error('Database error in getAuthenticatedUser:', dbError)
+      console.error('Error details:', {
+        errorName: dbError.constructor?.name,
+        errorCode: dbError.code,
+        errorMessage: dbError.message,
+        userId: user.id
+      })
+      
+      // データベース接続エラーの場合
+      if (dbError.constructor?.name === 'PrismaClientInitializationError' || 
+          dbError.message?.includes('Can\'t reach database server') ||
+          dbError.message?.includes('database server') ||
+          dbError.message?.includes('Tenant or user not found') ||
+          dbError.message?.includes('FATAL') ||
+          dbError.code === 'P1001' ||
+          dbError.code === 'P1017') {
+        return {
+          user: null,
+          error: NextResponse.json(
+            { 
+              error: 'データベースに接続できません。接続設定を確認してください。',
+              details: process.env.NODE_ENV === 'development' ? dbError.message : undefined
+            },
+            { status: 503 }
+          ),
+        }
+      }
+      
+      // その他のデータベースエラー
+      return {
+        user: null,
+        error: NextResponse.json(
+          { 
+            error: 'ユーザープロファイルの取得に失敗しました',
+            details: process.env.NODE_ENV === 'development' ? dbError.message : undefined
+          },
+          { status: 500 }
+        ),
+      }
+    }
 
     if (!profile) {
       return {
@@ -98,12 +152,42 @@ export async function getAuthenticatedUser(
       },
       error: null,
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Authentication error:', error)
+    console.error('Error details:', {
+      errorName: error.constructor?.name,
+      errorCode: error.code,
+      errorMessage: error.message,
+      stack: error.stack
+    })
+    
+    // データベース接続エラーの場合
+    if (error.constructor?.name === 'PrismaClientInitializationError' || 
+        error.message?.includes('Can\'t reach database server') ||
+        error.message?.includes('database server') ||
+        error.message?.includes('Tenant or user not found') ||
+        error.message?.includes('FATAL') ||
+        error.code === 'P1001' ||
+        error.code === 'P1017') {
+      return {
+        user: null,
+        error: NextResponse.json(
+          { 
+            error: 'データベースに接続できません。接続設定を確認してください。',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+          },
+          { status: 503 }
+        ),
+      }
+    }
+    
     return {
       user: null,
       error: NextResponse.json(
-        { error: '認証処理に失敗しました' },
+        { 
+          error: '認証処理に失敗しました',
+          details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        },
         { status: 500 }
       ),
     }

@@ -1,78 +1,62 @@
-# データベース接続エラーの解決手順
+# データベース接続エラー修正ガイド
 
-## 現在の状況
+## エラー内容
 
-エラーメッセージから、接続プールURL `aws-1-ap-northeast-1.pooler.supabase.com:5432` に接続できないことが確認されました。
-
-## 解決方法：直接接続URLに切り替え
-
-接続プールが使用できない場合、直接接続URLに切り替えることで問題を解決できます。
-
-### ステップ1: Supabaseダッシュボードで直接接続URLを取得
-
-1. [Supabaseダッシュボード](https://app.supabase.com)にログイン
-2. プロジェクトを選択
-3. **Settings** > **Database** に移動
-4. **Connection string** セクションを開く
-5. **URI** タブを選択（接続プールではなく、直接接続用）
-6. 接続文字列をコピー
-
-接続文字列の形式は以下のようになります：
 ```
-postgresql://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres
+FATAL: Tenant or user not found
 ```
 
-### ステップ2: Vercelの環境変数を更新
+このエラーは、Supabaseの接続URLのユーザー名形式が間違っていることを示しています。
 
-1. [Vercelダッシュボード](https://vercel.com)にログイン
-2. プロジェクト `ugs-online-school` を選択
-3. **Settings** > **Environment Variables** に移動
-4. `DATABASE_URL` を探す（または新規作成）
-5. **Value** に、ステップ1で取得した直接接続URLを貼り付け
-6. **Save** をクリック
+## 原因
 
-**重要**: 
-- `[YOUR-PASSWORD]` の部分を実際のデータベースパスワードに置き換えてください
-- `[PROJECT-REF]` の部分は既に正しい値が入っているはずです
+`.env.local`の`DATABASE_URL`のユーザー名形式が正しくない可能性があります。
 
-### ステップ3: デプロイを再実行
+現在の形式：
+```
+postgresql://postgres.izyxfdmfqezpntbpjbnp:[PASSWORD]@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=20&pool_timeout=30&connect_timeout=30
+```
 
-1. Vercelダッシュボードで **Deployments** タブに移動
-2. 最新のデプロイメントの **...** メニューをクリック
-3. **Redeploy** を選択
-4. デプロイが完了するまで待つ（通常1-2分）
+## 解決方法
 
-### ステップ4: 動作確認
+### 方法1: Supabaseダッシュボードから正しいURLを取得
 
-デプロイ完了後、アプリケーションにアクセスして、データベース接続エラーが解消されたか確認してください。
+1. Supabaseダッシュボードにログイン
+2. プロジェクト設定 → Database → Connection string
+3. **Transaction Pooler**を選択
+4. **Connection pooling**タブで、正しいURLをコピー
 
-## 接続プールURLの問題
+正しい形式の例：
+```
+postgresql://postgres.izyxfdmfqezpntbpjbnp:[PASSWORD]@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true
+```
 
-現在のエラーは、接続プールURL `aws-1-ap-northeast-1.pooler.supabase.com:5432` に接続できないことが原因です。
+### 方法2: 直接接続URLを使用（一時的な解決策）
 
-考えられる原因：
-1. **接続プールが無効になっている**: Supabaseの設定で接続プールが無効になっている
-2. **URLの形式が間違っている**: 接続プール用のURLの形式が正しくない
-3. **接続数の上限**: 接続プールの接続数が上限に達している
-4. **一時的な問題**: Supabase側の一時的な問題
+Transaction Poolerで問題が続く場合は、直接接続URLを使用できます：
 
-## 直接接続URLの注意事項
+```
+postgresql://postgres:[PASSWORD]@db.izyxfdmfqezpntbpjbnp.supabase.co:5432/postgres?connection_limit=20&pool_timeout=30&connect_timeout=30
+```
 
-- **直接接続は接続数の制限があるため、本番環境では接続プールの使用を推奨します**
-- 直接接続は一時的な対処として使用し、接続プールの問題が解決したら再度切り替えることを推奨します
-- 接続プールが使用できない場合は、Supabaseのサポートに問い合わせることを検討してください
+**注意**: 直接接続はサーバーレス環境では推奨されませんが、開発環境では動作します。
 
-## 接続プールを再度有効にする方法（将来的に）
+## 確認事項
 
-接続プールの問題が解決したら、以下の手順で接続プールに戻すことができます：
+1. **パスワードが正しいか**: Supabaseのパスワードが正しく設定されているか確認
+2. **プロジェクト参照ID**: `izyxfdmfqezpntbpjbnp`が正しいか確認
+3. **リージョン**: `ap-northeast-1`が正しいか確認
 
-1. Supabaseダッシュボードで **Settings** > **Database** に移動
-2. **Connection Pooling** セクションを確認
-3. 接続プールが有効になっていることを確認
-4. **Connection pooling** タブの接続文字列をコピー
-5. Vercelの環境変数 `DATABASE_URL` を更新
-6. デプロイを再実行
+## 修正後の確認
 
----
+修正後、開発サーバーを再起動してください：
 
-**最終更新**: 2025年1月
+```bash
+# 開発サーバーを停止
+pkill -f "next dev"
+
+# 開発サーバーを起動
+npm run dev
+```
+
+その後、再度ログインを試してください。
