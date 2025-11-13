@@ -57,7 +57,8 @@ function LPMeetingRequestPageContent() {
     if (!user?.id) return
 
     try {
-      const response = await authenticatedFetch(`/api/lp-meetings/my-meeting?userId=${user.id}`)
+      // GET /api/lp-meetings/request で自分の面談情報を取得
+      const response = await authenticatedFetch(`/api/lp-meetings/request`)
       
       // レスポンスのステータスコードとエラー詳細を確認
       if (!response.ok) {
