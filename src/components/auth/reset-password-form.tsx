@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Lock, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/client'
 
 export function ResetPasswordForm() {
   const [password, setPassword] = useState('')
@@ -18,9 +18,29 @@ export function ResetPasswordForm() {
   const [success, setSuccess] = useState(false)
   const [logoError, setLogoError] = useState(false)
   const router = useRouter()
+  
+  // SupabaseクライアントをuseRefで保持（クライアントサイドでのみ初期化）
+  const supabaseRef = useRef<ReturnType<typeof createClient> | null>(null)
+  
+  const getSupabase = () => {
+    if (typeof window === 'undefined') {
+      throw new Error('createClientはクライアントサイドでのみ実行できます')
+    }
+    
+    if (!supabaseRef.current) {
+      supabaseRef.current = createClient()
+    }
+    
+    return supabaseRef.current
+  }
 
   useEffect(() => {
-    // supabaseは常に有効なクライアントを返すため、nullチェックは不要
+    // クライアントサイドでのみSupabaseクライアントを初期化
+    if (typeof window === 'undefined') {
+      return
+    }
+    
+    const supabase = getSupabase()
 
     // URLハッシュフラグメントからエラーを確認
     const hash = window.location.hash
@@ -61,7 +81,7 @@ export function ResetPasswordForm() {
           console.log('Hash fragment detected, waiting for session...')
           
           // 認証状態の変更を監視
-          const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+          const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
             if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
               console.log('Session established via recovery:', session?.user.email)
               setIsCheckingSession(false)
@@ -72,7 +92,7 @@ export function ResetPasswordForm() {
           // タイムアウトを設定（10秒）
           setTimeout(() => {
             subscription.unsubscribe()
-            supabase.auth.getSession().then(({ data: { session }, error }) => {
+            supabase.auth.getSession().then(({ data: { session }, error }: { data: { session: any }, error: any }) => {
               if (error || !session) {
                 setError('リセットリンクが無効または期限切れです。再度パスワードリセットを申請してください。')
               }
@@ -113,9 +133,9 @@ export function ResetPasswordForm() {
       return
     }
 
-    // supabaseは常に有効なクライアントを返すため、nullチェックは不要
-
     try {
+      const supabase = getSupabase()
+      
       // セッションを再確認
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       

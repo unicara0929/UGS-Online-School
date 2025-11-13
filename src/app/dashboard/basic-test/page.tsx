@@ -51,7 +51,9 @@ function BasicTestPageContent() {
     if (!user?.id) return
 
     try {
-      const response = await fetch(`/api/basic-test?userId=${user.id}`)
+      const response = await fetch(`/api/basic-test?userId=${user.id}`, {
+        credentials: 'include'
+      })
       if (!response.ok) {
         throw new Error('テストの取得に失敗しました')
       }
@@ -103,6 +105,7 @@ function BasicTestPageContent() {
       const response = await fetch('/api/basic-test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           userId: user.id,
           testId: test.id,

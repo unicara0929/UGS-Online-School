@@ -75,7 +75,9 @@ function AdminLPMeetingsPageContent() {
 
   const fetchMeetings = async () => {
     try {
-      const response = await fetch('/api/admin/lp-meetings')
+      const response = await fetch('/api/admin/lp-meetings', {
+        credentials: 'include'
+      })
       if (!response.ok) {
         throw new Error('面談一覧の取得に失敗しました')
       }
@@ -92,7 +94,9 @@ function AdminLPMeetingsPageContent() {
   const fetchFPs = async () => {
     try {
       // Prismaから直接FPエイドを取得
-      const response = await fetch('/api/admin/users')
+      const response = await fetch('/api/admin/users', {
+        credentials: 'include'
+      })
       if (!response.ok) {
         throw new Error('FPエイド一覧の取得に失敗しました')
       }
@@ -126,6 +130,7 @@ function AdminLPMeetingsPageContent() {
       const response = await fetch(`/api/admin/lp-meetings/${selectedMeeting.id}/schedule`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           scheduledAt: scheduleForm.scheduledAt,
           fpId: scheduleForm.fpId,

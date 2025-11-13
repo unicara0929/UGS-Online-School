@@ -40,7 +40,9 @@ export default function AnalyticsPage() {
   const fetchAnalytics = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/admin/subscriptions')
+      const response = await fetch('/api/admin/subscriptions', {
+        credentials: 'include'
+      })
       if (!response.ok) {
         throw new Error('サブスクリプション情報の取得に失敗しました')
       }

@@ -1,11 +1,30 @@
 import { User, UserRole } from '@/lib/types'
-import { supabase as sharedSupabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/client'
 import { isConnectionOrTimeoutError, isNotFoundError, isConflictError } from './error-helpers'
 import { createTemporaryUserFromSession, extractUserName, extractAndNormalizeRole } from './user-helpers'
 
-// 共有のSupabaseクライアントを使用（重複インスタンスを避けるため）
-const supabase = sharedSupabase
-const isSupabaseConfigured = Boolean(supabase)
+// ブラウザ側のSupabaseクライアントを取得（api-client.tsと同じインスタンスを使用）
+// 根本的な解決: 同じクライアントインスタンスを使用してセッションを共有
+// @/lib/supabase/clientのcreateClientは既にシングルトンとして実装されているため、直接使用
+function getSupabaseClient() {
+  // サーバーサイドでは実行しない
+  if (typeof window === 'undefined') {
+    return null
+  }
+  
+  try {
+    // @/lib/supabase/clientのcreateClientを使用（Cookieベースのセッション管理）
+    // これにより、api-client.tsと同じセッションを共有できる
+    // createClientは既にシングルトンとして実装されているため、同じインスタンスが返される
+    return createClient()
+  } catch (error) {
+    console.error('Failed to create Supabase client:', error)
+    return null
+  }
+}
+
+const supabase = typeof window !== 'undefined' ? getSupabaseClient() : null
+const isSupabaseConfigured = Boolean(supabase && typeof window !== 'undefined')
 
 export interface AuthUser {
   id: string
@@ -147,6 +166,11 @@ export class SupabaseAuthService {
 
   // ログイン
   static async login(email: string, password: string): Promise<AuthUser> {
+    // サーバーサイドでは実行しない
+    if (typeof window === 'undefined') {
+      throw new Error('ログインはクライアントサイドでのみ実行できます')
+    }
+    
     if (!isSupabaseConfigured || !supabase) {
       throw new Error('認証サービスが未設定です。環境変数を設定してください。')
     }
@@ -210,6 +234,17 @@ export class SupabaseAuthService {
 
   // ログアウト
   static async logout(): Promise<void> {
+    // サーバーサイドでは実行しない
+    if (typeof window === 'undefined') {
+      this.currentUser = null
+      return
+    }
+
+    const client = getSupabaseClient()
+    if (!client) {
+      throw new Error('認証サービスが未設定です。環境変数を設定してください。')
+    }
+    const supabase = client
     if (!isSupabaseConfigured || !supabase) {
       this.currentUser = null
       return
@@ -228,6 +263,16 @@ export class SupabaseAuthService {
 
   // ユーザー登録
   static async register(email: string, password: string, name: string): Promise<AuthUser> {
+    // サーバーサイドでは実行しない
+    if (typeof window === 'undefined') {
+      throw new Error('ユーザー登録はクライアントサイドでのみ実行できます')
+    }
+
+    const client = getSupabaseClient()
+    if (!client) {
+      throw new Error('認証サービスが未設定です。環境変数を設定してください。')
+    }
+    const supabase = client
     if (!isSupabaseConfigured || !supabase) {
       throw new Error('認証サービスが未設定です。環境変数を設定してください。')
     }
@@ -265,11 +310,27 @@ export class SupabaseAuthService {
   // 現在のユーザーを取得
   static async getCurrentUser(): Promise<AuthUser | null> {
     try {
+      // サーバーサイドでは実行しない（ブラウザ環境でのみ実行）
+      if (typeof window === 'undefined') {
+        console.warn('getCurrentUser called on server side, returning null')
+        return null
+      }
+
       // 既に取得済みの場合はそれを返す
       if (this.currentUser) {
         return this.currentUser
       }
 
+      // サーバーサイドでは実行しない
+      if (typeof window === 'undefined') {
+        return null
+      }
+
+      const client = getSupabaseClient()
+    if (!client) {
+      throw new Error('認証サービスが未設定です。環境変数を設定してください。')
+    }
+    const supabase = client
       if (!isSupabaseConfigured || !supabase) {
         return null
       }
@@ -392,17 +453,47 @@ export class SupabaseAuthService {
         signal: AbortSignal.timeout(10000) // 10秒タイムアウト（接続プール設定が最適化されていれば十分）
       })
       
+      // レスポンスボディを一度だけ読み込む（テキストとして）
+      const responseText = await response.text()
+      
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        let errorData: any = { error: 'Unknown error' }
+        
+        try {
+          if (responseText && responseText.trim()) {
+            errorData = JSON.parse(responseText)
+          } else {
+            errorData = { 
+              error: `HTTP ${response.status}: ${response.statusText}`,
+              details: 'Empty response body'
+            }
+          }
+        } catch (parseError) {
+          console.error('Failed to parse error response:', parseError)
+          console.error('Raw response text:', responseText.substring(0, 500))
+          errorData = { 
+            error: `HTTP ${response.status}: ${response.statusText}`,
+            details: responseText || 'No error details available'
+          }
+        }
+        
         console.error('Get profile API error:', {
           status: response.status,
           statusText: response.statusText,
-          error: errorData
+          error: errorData,
+          responseText: responseText.substring(0, 500) // 最初の500文字
         })
         
-        // 503エラー（Service Unavailable）の場合、接続プール設定の問題を示す
+        // 503エラー（Service Unavailable）の場合、より詳細なエラー情報を提供
         if (response.status === 503) {
-          throw new Error('データベース接続プールの設定が不適切です。PRISMA-OPTIMIZATION-GUIDE.mdを参照してください。')
+          const errorMessage = errorData.error || 'データベースに接続できません'
+          const errorDetails = errorData.details || ''
+          console.error('Database connection error details:', {
+            status: response.status,
+            error: errorMessage,
+            details: errorDetails
+          })
+          throw new Error(`${errorMessage}${errorDetails ? `: ${errorDetails}` : ''}`)
         }
         
         // 404エラーの場合、より明確なエラーを投げる
@@ -413,7 +504,21 @@ export class SupabaseAuthService {
         throw new Error(errorData.error || `ユーザープロファイルの取得に失敗しました (${response.status})`)
       }
 
-      const userData = await response.json()
+      // 成功レスポンスのパース
+      let userData: any = {}
+      
+      try {
+        if (responseText && responseText.trim()) {
+          userData = JSON.parse(responseText)
+        } else {
+          console.error('Empty response body for success response')
+          throw new Error('レスポンスが空です')
+        }
+      } catch (parseError) {
+        console.error('Failed to parse success response:', parseError)
+        console.error('Response text:', responseText.substring(0, 500))
+        throw new Error('レスポンスの解析に失敗しました')
+      }
       
       if (!userData.user) {
         throw new Error('ユーザープロファイルが見つかりません')
@@ -460,14 +565,24 @@ export class SupabaseAuthService {
 
   // パスワードリセット
   static async resetPassword(email: string): Promise<void> {
+    // サーバーサイドでは実行しない
+    if (typeof window === 'undefined') {
+      throw new Error('パスワードリセットはクライアントサイドでのみ実行できます')
+    }
+
+    const client = getSupabaseClient()
+    if (!client) {
+      throw new Error('認証サービスが未設定です。環境変数を設定してください。')
+    }
+    const supabase = client
     if (!isSupabaseConfigured || !supabase) {
       throw new Error('認証サービスが未設定です。環境変数を設定してください。')
     }
     try {
-      const redirectUrl = typeof window !== 'undefined' 
+      const redirectUrl = typeof window !== 'undefined'
         ? `${window.location.origin}/reset-password`
         : `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password`
-      
+
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: redirectUrl,
       })
@@ -484,6 +599,16 @@ export class SupabaseAuthService {
 
   // パスワード更新
   static async updatePassword(newPassword: string): Promise<void> {
+    // サーバーサイドでは実行しない
+    if (typeof window === 'undefined') {
+      throw new Error('パスワード更新はクライアントサイドでのみ実行できます')
+    }
+
+    const client = getSupabaseClient()
+    if (!client) {
+      throw new Error('認証サービスが未設定です。環境変数を設定してください。')
+    }
+    const supabase = client
     if (!isSupabaseConfigured || !supabase) {
       throw new Error('認証サービスが未設定です。環境変数を設定してください。')
     }
@@ -503,6 +628,23 @@ export class SupabaseAuthService {
 
   // セッション変更を監視
   static onAuthStateChange(callback: (user: AuthUser | null) => void) {
+    // サーバーサイドでは実行しない（ブラウザ環境でのみ実行）
+    if (typeof window === 'undefined') {
+      console.warn('onAuthStateChange called on server side, returning no-op subscription')
+      return {
+        data: {
+          subscription: {
+            unsubscribe: () => {}
+          }
+        }
+      }
+    }
+
+    const client = getSupabaseClient()
+    if (!client) {
+      throw new Error('認証サービスが未設定です。環境変数を設定してください。')
+    }
+    const supabase = client
     if (!isSupabaseConfigured || !supabase) {
       // 監視不可の場合でも同じインターフェースで返す
       return {
@@ -513,39 +655,56 @@ export class SupabaseAuthService {
         }
       }
     }
-    
+
     try {
-      const subscription = supabase.auth.onAuthStateChange(async (event, session) => {
+      const subscription = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
         try {
-          if (event === 'SIGNED_IN' && session?.user) {
+          console.log('Auth state change event:', event, 'Has session:', !!session?.user)
+
+          // セッションがある場合は、プロファイルを取得してユーザー状態を更新
+          if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED')) {
             try {
               const user = await this.getUserProfile(session.user.id)
               this.currentUser = user
               callback(user)
             } catch (error) {
-              console.error('Error getting user profile in onAuthStateChange:', error)
-              // エラー時はnullを返すが、ログインは成功しているのでセッション情報からユーザーを作成
-              callback(null)
+              console.error(`Error getting user profile in onAuthStateChange (${event}):`, error)
+              // プロファイル取得エラー時も既存のセッションを維持
+              if (this.currentUser) {
+                console.warn('Keeping current user session despite profile fetch error')
+                // 既存のユーザーがいる場合は状態を保持（callback呼び出しなし）
+              } else {
+                // 初回ログイン時でプロファイル取得に失敗した場合
+                // セッション情報から基本的なユーザー情報を作成
+                console.warn('Initial session - creating temporary user from session due to profile fetch error')
+                const tempUser = createTemporaryUserFromSession(
+                  {
+                    id: session.user.id,
+                    email: session.user.email,
+                    user_metadata: session.user.user_metadata,
+                    created_at: session.user.created_at || new Date().toISOString(),
+                    updated_at: session.user.updated_at || session.user.created_at || new Date().toISOString()
+                  },
+                  session.user.email || undefined
+                )
+                this.currentUser = tempUser
+                callback(tempUser)
+              }
             }
           } else if (event === 'SIGNED_OUT') {
+            // ログアウト時のみユーザー状態をクリア
             this.currentUser = null
             callback(null)
-          } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-            try {
-              const user = await this.getUserProfile(session.user.id)
-              this.currentUser = user
-              callback(user)
-            } catch (error) {
-              console.error('Error getting user profile in onAuthStateChange (TOKEN_REFRESHED):', error)
-              callback(null)
-            }
-          } else {
-            // その他のイベントの場合はnullを返す
-            callback(null)
           }
+          // その他のイベント（PASSWORD_RECOVERYなど）は無視し、現在の状態を維持
         } catch (error) {
           console.error('Error in onAuthStateChange callback:', error)
-          callback(null)
+          // 予期しないエラーでもセッションを保持
+          if (this.currentUser) {
+            console.warn('Unexpected error but keeping current user session')
+          } else {
+            callback(null)
+          }
         }
       })
       

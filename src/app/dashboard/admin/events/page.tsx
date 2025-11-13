@@ -36,7 +36,9 @@ function AdminEventsPageContent() {
     setError(null)
 
     try {
-      const response = await fetch("/api/admin/events")
+      const response = await fetch("/api/admin/events", {
+        credentials: 'include'
+      })
       const data = await response.json()
 
       if (!response.ok || !data.success) {
@@ -82,6 +84,7 @@ function AdminEventsPageContent() {
       const response = await fetch("/api/admin/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: 'include',
         body: JSON.stringify(newEvent),
       })
 
@@ -119,6 +122,7 @@ function AdminEventsPageContent() {
     try {
       const response = await fetch(`/api/admin/events/${id}`, {
         method: "DELETE",
+        credentials: 'include'
       })
 
       const data = await response.json()

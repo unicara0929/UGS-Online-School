@@ -32,25 +32,49 @@ export interface PromotionEligibility {
 
 /**
  * FP昇格の条件をチェック
+ * 根本的な解決: エラーハンドリングを追加して、データベース接続エラーを適切に処理
  */
 export async function checkFPPromotionEligibility(userId: string): Promise<PromotionEligibility> {
-  const application = await prisma.fPPromotionApplication.findUnique({
-    where: { userId }
-  })
+  try {
+    const application = await prisma.fPPromotionApplication.findUnique({
+      where: { userId }
+    })
 
-  const conditions = {
-    testPassed: application?.basicTestCompleted || false,
-    lpMeetingCompleted: application?.lpMeetingCompleted || false,
-    surveyCompleted: application?.surveyCompleted || false
-  }
+    const conditions = {
+      testPassed: application?.basicTestCompleted || false,
+      lpMeetingCompleted: application?.lpMeetingCompleted || false,
+      surveyCompleted: application?.surveyCompleted || false
+    }
 
-  const isEligible = conditions.testPassed && 
-                    conditions.lpMeetingCompleted && 
-                    conditions.surveyCompleted
+    const isEligible = conditions.testPassed && 
+                      conditions.lpMeetingCompleted && 
+                      conditions.surveyCompleted
 
-  return {
-    isEligible,
-    conditions
+    return {
+      isEligible,
+      conditions
+    }
+  } catch (error: any) {
+    console.error('Error checking FP promotion eligibility:', error)
+    console.error('Error details:', {
+      errorName: error.constructor?.name,
+      errorCode: error.code,
+      errorMessage: error.message,
+      userId
+    })
+    
+    // データベース接続エラーの場合は、デフォルト値を返す
+    if (error.constructor?.name === 'PrismaClientInitializationError' || 
+        error.message?.includes('Can\'t reach database server') ||
+        error.message?.includes('database server') ||
+        error.message?.includes('Tenant or user not found') ||
+        error.message?.includes('FATAL') ||
+        error.code === 'P1001' ||
+        error.code === 'P1017') {
+      throw new Error('データベースに接続できません。接続設定を確認してください。')
+    }
+    
+    throw error
   }
 }
 

@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/contexts/auth-context"
 import { LogOut, Calendar, Clock, Video, CheckCircle, XCircle, Loader2, Plus, X } from "lucide-react"
 import { formatDateTime } from "@/lib/utils/format"
+import { authenticatedFetch } from "@/lib/utils/api-client"
 
 interface LPMeeting {
   id: string
@@ -56,10 +57,26 @@ function LPMeetingRequestPageContent() {
     if (!user?.id) return
 
     try {
-      const response = await fetch(`/api/lp-meetings/my-meeting?userId=${user.id}`)
+      const response = await authenticatedFetch(`/api/lp-meetings/my-meeting?userId=${user.id}`)
+      
+      // レスポンスのステータスコードとエラー詳細を確認
       if (!response.ok) {
-        throw new Error('面談情報の取得に失敗しました')
+        let errorMessage = '面談情報の取得に失敗しました'
+        try {
+          const errorData = await response.json()
+          errorMessage = errorData.error || errorMessage
+          console.error('API Error:', {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorData
+          })
+        } catch (parseError) {
+          console.error('Failed to parse error response:', parseError)
+          console.error('Response status:', response.status, response.statusText)
+        }
+        throw new Error(errorMessage)
       }
+      
       const data = await response.json()
       setMeeting(data.meeting)
       
@@ -127,7 +144,7 @@ function LPMeetingRequestPageContent() {
 
     setIsSubmitting(true)
     try {
-      const response = await fetch('/api/lp-meetings/request', {
+      const response = await authenticatedFetch('/api/lp-meetings/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

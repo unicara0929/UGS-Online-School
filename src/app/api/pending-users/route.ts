@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import {
+  createValidationErrorResponse,
+  createConflictErrorResponse,
+  createServerErrorResponse,
+  handlePrismaError,
+} from '@/lib/utils/api-error-handlers'
 
 export async function POST(request: NextRequest) {
   try {
     const { email, name } = await request.json()
 
     if (!email || !name) {
-      return NextResponse.json(
-        { error: 'Email and name are required' },
-        { status: 400 }
-      )
+      return createValidationErrorResponse('Email and name are required')
     }
 
     // 既存の仮登録ユーザーをチェック
@@ -18,10 +21,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingPendingUser) {
-      return NextResponse.json(
-        { error: 'このメールアドレスは既に仮登録されています' },
-        { status: 409 }
-      )
+      return createConflictErrorResponse('このメールアドレスは既に仮登録されています')
     }
 
     // 既存の正式ユーザーをチェック
@@ -30,10 +30,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingUser) {
-      return NextResponse.json(
-        { error: 'このメールアドレスは既に登録されています' },
-        { status: 409 }
-      )
+      return createConflictErrorResponse('このメールアドレスは既に登録されています')
     }
 
     // 仮登録ユーザーを作成
@@ -53,11 +50,12 @@ export async function POST(request: NextRequest) {
         createdAt: pendingUser.createdAt
       }
     })
-  } catch (error) {
-    console.error('API error:', error)
-    return NextResponse.json(
-      { error: 'サーバーエラーが発生しました' },
-      { status: 500 }
-    )
+  } catch (error: any) {
+    // Prismaエラーの場合は専用のハンドラーを使用
+    if (error.code?.startsWith('P')) {
+      return handlePrismaError(error)
+    }
+    
+    return createServerErrorResponse(error)
   }
 }

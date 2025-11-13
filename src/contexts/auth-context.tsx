@@ -27,13 +27,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
+    // クライアントサイドでのみ実行
+    if (typeof window === 'undefined') {
+      setIsLoading(false)
+      return
+    }
+
     let isMounted = true
     let subscription: { unsubscribe: () => void } | null = null
 
     // 初期化時に現在のユーザーを取得
     const initializeAuth = async () => {
       try {
+        console.log('Initializing auth...')
         const currentUser = await SupabaseAuthService.getCurrentUser()
+        console.log('Current user:', currentUser)
         if (isMounted) {
           setUser(currentUser)
           setError(null)
@@ -46,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } finally {
         if (isMounted) {
+          console.log('Auth initialization complete, isLoading set to false')
           setIsLoading(false)
         }
       }
@@ -56,6 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // 認証状態の変更を監視
     try {
       const result = SupabaseAuthService.onAuthStateChange((user) => {
+        console.log('Auth state changed in context, new user:', user)
         if (isMounted) {
           setUser(user)
           setIsLoading(false)

@@ -45,7 +45,9 @@ export function NotificationList() {
     if (!user?.id) return
 
     try {
-      const response = await fetch(`/api/notifications?userId=${user.id}`)
+      const response = await fetch(`/api/notifications?userId=${user.id}`, {
+        credentials: 'include' // Cookieベースの認証に必要
+      })
       if (!response.ok) {
         throw new Error('通知一覧の取得に失敗しました')
       }
@@ -62,7 +64,8 @@ export function NotificationList() {
   const markAsRead = async (notificationId: string) => {
     try {
       const response = await fetch(`/api/notifications/${notificationId}/read`, {
-        method: 'POST'
+        method: 'POST',
+        credentials: 'include' // Cookieベースの認証に必要
       })
       if (response.ok) {
         setNotifications(prev =>

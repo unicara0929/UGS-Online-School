@@ -52,6 +52,12 @@ export async function GET(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('Check promotion eligibility error:', error)
+    console.error('Error details:', {
+      errorName: error.constructor?.name,
+      errorCode: error.code,
+      errorMessage: error.message,
+      stack: error.stack
+    })
     
     if (error.message?.includes('タイムアウト')) {
       return NextResponse.json(
@@ -60,8 +66,24 @@ export async function GET(request: NextRequest) {
       )
     }
     
+    // データベース接続エラーの場合
+    if (error.message?.includes('データベース') || 
+        error.message?.includes('database') ||
+        error.message?.includes('接続')) {
+      return NextResponse.json(
+        { 
+          error: 'データベースに接続できません。接続設定を確認してください。',
+          details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        },
+        { status: 503 }
+      )
+    }
+    
     return NextResponse.json(
-      { error: '昇格可能性のチェックに失敗しました' },
+      { 
+        error: '昇格可能性のチェックに失敗しました',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      },
       { status: 500 }
     )
   }

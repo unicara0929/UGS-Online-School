@@ -21,8 +21,11 @@ function EventsPageContent() {
   useEffect(() => {
     const fetchEvents = async () => {
       if (!user?.id) {
+        console.log('No user ID available, skipping fetch')
         return
       }
+
+      console.log('Starting to fetch events, user:', { id: user.id, role: user.role, email: user.email })
 
       setIsLoading(true)
       setError(null)
@@ -35,14 +38,34 @@ function EventsPageContent() {
           const controller = new AbortController()
           const timeoutId = setTimeout(() => controller.abort(), 15000) // 15秒タイムアウトに延長
 
+          console.log(`Fetching events for user: ${user.id}`)
           const response = await fetch(`/api/events?userId=${encodeURIComponent(user.id)}`, {
-            signal: controller.signal
+            signal: controller.signal,
+            credentials: 'include' // Cookieベースの認証に必要
           })
 
           clearTimeout(timeoutId)
 
+          console.log(`Events API response status: ${response.status} ${response.statusText}`)
+          console.log('Response headers:', Object.fromEntries(response.headers.entries()))
+
           if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+            // レスポンステキストを取得
+            const responseText = await response.text()
+            console.error('Events API error response text:', responseText)
+
+            // JSONとしてパース試行
+            let errorData: any = { error: 'Unknown error' }
+            try {
+              if (responseText) {
+                errorData = JSON.parse(responseText)
+              }
+            } catch (parseError) {
+              console.error('Failed to parse error response as JSON:', parseError)
+              errorData = { error: responseText || `HTTP ${response.status}: ${response.statusText}` }
+            }
+
+            console.error('Events API error response:', errorData)
             throw new Error(errorData.error || `ページの取得に失敗しました (${response.status})`)
           }
 
@@ -150,6 +173,7 @@ function EventsPageContent() {
       const response = await fetch('/api/events/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Cookieベースの認証に必要
         body: JSON.stringify({
           userId: user.id,
           eventId: event.id,

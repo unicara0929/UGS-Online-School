@@ -43,7 +43,9 @@ function SurveyPageContent() {
     if (!user?.id) return
 
     try {
-      const response = await fetch(`/api/survey?userId=${user.id}`)
+      const response = await fetch(`/api/survey?userId=${user.id}`, {
+        credentials: 'include'
+      })
       if (!response.ok) {
         throw new Error('アンケートの取得に失敗しました')
       }
@@ -88,6 +90,7 @@ function SurveyPageContent() {
       const response = await fetch('/api/survey', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           userId: user.id,
           surveyId: survey.id,

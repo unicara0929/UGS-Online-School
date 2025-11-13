@@ -65,11 +65,34 @@ export async function GET(
     // データベース接続エラーの場合
     if (error.constructor?.name === 'PrismaClientInitializationError' || 
         error.message?.includes('Can\'t reach database server') ||
-        error.message?.includes('database server')) {
-      console.error('Database connection error detected after retries')
+        error.message?.includes('database server') ||
+        error.message?.includes('timeout') ||
+        error.message?.includes('Timeout') ||
+        error.message?.includes('Tenant or user not found') ||
+        error.message?.includes('FATAL') ||
+        error.code === 'P1001' || // Can't reach database server
+        error.code === 'P1017') { // Server has closed the connection
+      console.error('Database connection error detected:', {
+        errorName: error.constructor?.name,
+        errorCode: error.code,
+        errorMessage: error.message,
+        databaseUrl: process.env.DATABASE_URL ? 'SET' : 'NOT SET'
+      })
+      
+      // "Tenant or user not found"エラーの場合、接続URLの形式が間違っている可能性がある
+      if (error.message?.includes('Tenant or user not found')) {
+        return NextResponse.json(
+          { 
+            error: 'データベース接続URLの形式が正しくありません。SupabaseのTransaction Pooler URLを確認してください。',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+          },
+          { status: 503 }
+        )
+      }
+      
       return NextResponse.json(
         { 
-          error: 'データベースに接続できません。しばらく待ってから再度お試しください。',
+          error: 'データベースに接続できません。接続設定を確認してください。',
           details: process.env.NODE_ENV === 'development' ? error.message : undefined
         },
         { status: 503 } // Service Unavailable

@@ -69,7 +69,9 @@ function ProfileSettingsPage() {
 
       try {
         // ユーザープロファイルを取得
-        const response = await fetch(`/api/auth/profile/${user.id}`)
+        const response = await fetch(`/api/auth/profile/${user.id}`, {
+          credentials: 'include'
+        })
         if (response.ok) {
           const data = await response.json()
           if (data.success && data.user) {
@@ -140,9 +142,10 @@ function ProfileSettingsPage() {
       // APIに画像をアップロード
       const formData = new FormData()
       formData.append('file', file)
-      
+
       const response = await fetch('/api/user/upload-profile-image', {
         method: 'POST',
+        credentials: 'include',
         body: formData
       })
 
@@ -210,6 +213,7 @@ function ProfileSettingsPage() {
         try {
           const uploadResponse = await fetch('/api/user/upload-profile-image', {
             method: 'POST',
+            credentials: 'include',
             body: formData
           })
 
@@ -237,6 +241,7 @@ function ProfileSettingsPage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           name: profile.name,
           phone: profile.phone || null,

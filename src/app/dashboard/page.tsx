@@ -27,7 +27,9 @@ function Dashboard() {
   const fetchFPPromotionStatus = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/user/fp-promotion-status?userId=${user?.id}`)
+      const response = await fetch(`/api/user/fp-promotion-status?userId=${user?.id}`, {
+        credentials: 'include'
+      })
       if (!response.ok) {
         throw new Error('FP昇格申請状態の取得に失敗しました')
       }

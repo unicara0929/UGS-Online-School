@@ -33,13 +33,19 @@ export function LoginForm() {
     setError('')
 
     try {
-      await login(email, password)
+      console.log('Logging in...')
+      const user = await login(email, password)
+      console.log('Login successful, user:', user)
+
+      // セッションCookieが完全に確立されるまで少し待つ
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      console.log('Redirecting to dashboard...')
       // リダイレクトを確実にするため、window.locationを使用
       window.location.href = '/dashboard'
     } catch (err) {
       console.error('ログインエラー:', err)
       setError(err instanceof Error ? err.message : 'ログインに失敗しました')
-    } finally {
       setIsLoading(false)
     }
   }
