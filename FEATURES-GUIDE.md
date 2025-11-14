@@ -580,11 +580,13 @@ FPエイド昇格の条件の一つである「LP面談完了」を実現する�
 ### APIエンドポイント
 
 - `POST /api/lp-meetings/request` - 面談予約申請（メンバー）
-- `GET /api/lp-meetings/my-meeting?userId={userId}` - 自分の面談状況取得（メンバー）
+- `GET /api/lp-meetings/request` - 自分の面談状況取得（メンバー、認証ユーザーのIDで自動取得）
 - `GET /api/admin/lp-meetings` - 面談一覧取得（管理者）
 - `POST /api/admin/lp-meetings/{meetingId}/schedule` - 面談を確定（管理者）
 - `GET /api/lp-meetings/my-scheduled?fpId={fpId}` - 自分の面談一覧取得（FPエイド）
 - `POST /api/lp-meetings/{meetingId}/complete` - 面談完了の確認（FPエイド）
+
+**注意**: すべてのAPIエンドポイントは認証が必要です。認証トークンは`authenticatedFetch`を使用して自動的に送信されます。
 
 ---
 

@@ -70,12 +70,9 @@ function BasicTestPageContent() {
           correctCount: Math.round((data.userResult.score / 100) * data.test.questions.length),
           totalQuestions: data.test.questions.length
         })
-      } else if (data.userResult) {
-        // 過去の回答がある場合は復元
-        const previousAnswers = data.userResult.answers as number[]
-        setAnswers(previousAnswers)
       } else {
-        // 新しい回答用の配列を初期化
+        // 不合格または未受験の場合は、新しい回答用の配列を初期化
+        // 不合格の場合も再受験できるようにする
         setAnswers(new Array(data.test.questions.length).fill(-1))
       }
     } catch (error) {
@@ -234,10 +231,30 @@ function BasicTestPageContent() {
                       )}
                     </div>
                   </div>
-                  <div className="flex justify-center">
-                    <Button onClick={() => router.push('/dashboard/promotion')}>
-                      昇格管理に戻る
-                    </Button>
+                  <div className="flex justify-center gap-4">
+                    {result.isPassed ? (
+                      <Button onClick={() => router.push('/dashboard/promotion')}>
+                        昇格管理に戻る
+                      </Button>
+                    ) : (
+                      <>
+                        <Button
+                          onClick={() => {
+                            setShowResult(false)
+                            setAnswers(new Array(test.questions.length).fill(-1))
+                          }}
+                          variant="default"
+                        >
+                          再受験する
+                        </Button>
+                        <Button
+                          onClick={() => router.push('/dashboard/promotion')}
+                          variant="outline"
+                        >
+                          昇格管理に戻る
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
               ) : (
