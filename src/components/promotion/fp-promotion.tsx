@@ -17,6 +17,7 @@ import {
   Upload, 
   FileText,
   Calendar,
+  Clock,
   MessageSquare,
   Award,
   Loader2,
@@ -28,6 +29,13 @@ interface PromotionConditions {
   lpMeetingCompleted: boolean
   surveyCompleted: boolean
   isEligible: boolean
+}
+
+interface ApplicationStatus {
+  hasApplication: boolean
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'COMPLETED' | null
+  appliedAt: string | null
+  approvedAt: string | null
 }
 
 export function FPPromotion() {
@@ -44,6 +52,12 @@ export function FPPromotion() {
     lpMeetingCompleted: false,
     surveyCompleted: false,
     isEligible: false
+  })
+  const [applicationStatus, setApplicationStatus] = useState<ApplicationStatus>({
+    hasApplication: false,
+    status: null,
+    appliedAt: null,
+    approvedAt: null
   })
   const [isLoading, setIsLoading] = useState(true)
 
@@ -78,11 +92,21 @@ export function FPPromotion() {
       const response = await authenticatedFetch(`/api/user/fp-promotion-application?userId=${user.id}`)
       if (response.ok) {
         const data = await response.json()
-        if (data.application?.idDocumentUrl) {
+        if (data.application) {
+          // 申請ステータスを設定
+          setApplicationStatus({
+            hasApplication: true,
+            status: data.application.status,
+            appliedAt: data.application.appliedAt,
+            approvedAt: data.application.approvedAt
+          })
+
           // 既存の身分証URLを取得
-          const fileUrl = await fetchExistingIdDocumentUrl(user.id, data.application.idDocumentUrl)
-          if (fileUrl) {
-            setUploadedFileUrl(fileUrl)
+          if (data.application.idDocumentUrl) {
+            const fileUrl = await fetchExistingIdDocumentUrl(user.id, data.application.idDocumentUrl)
+            if (fileUrl) {
+              setUploadedFileUrl(fileUrl)
+            }
           }
         }
       }
@@ -310,12 +334,15 @@ export function FPPromotion() {
                   <div className="flex-1">
                     <h4 className="font-medium">LP面談完了</h4>
                     <p className="text-sm text-slate-600">ライフプランナーとの面談を完了する</p>
+                    {!conditions.testPassed && (
+                      <p className="text-xs text-orange-600 mt-1">※ 基礎テスト合格後に予約可能</p>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   {conditions.lpMeetingCompleted ? (
                     <Badge className="bg-green-100 text-green-800">完了</Badge>
-                  ) : (
+                  ) : conditions.testPassed ? (
                     <>
                       <Badge variant="secondary">未完了</Badge>
                       <Button
@@ -327,6 +354,8 @@ export function FPPromotion() {
                         <ArrowRight className="h-4 w-4 ml-1" />
                       </Button>
                     </>
+                  ) : (
+                    <Badge variant="secondary" className="bg-slate-100 text-slate-500">ロック中</Badge>
                   )}
                 </div>
               </div>
@@ -337,12 +366,15 @@ export function FPPromotion() {
                   <div className="flex-1">
                     <h4 className="font-medium">アンケート提出</h4>
                     <p className="text-sm text-slate-600">初回アンケート（10設問）を提出する</p>
+                    {!conditions.lpMeetingCompleted && (
+                      <p className="text-xs text-orange-600 mt-1">※ LP面談完了後に回答可能</p>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   {conditions.surveyCompleted ? (
                     <Badge className="bg-green-100 text-green-800">完了</Badge>
-                  ) : (
+                  ) : conditions.lpMeetingCompleted ? (
                     <>
                       <Badge variant="secondary">未完了</Badge>
                       <Button
@@ -354,6 +386,8 @@ export function FPPromotion() {
                         <ArrowRight className="h-4 w-4 ml-1" />
                       </Button>
                     </>
+                  ) : (
+                    <Badge variant="secondary" className="bg-slate-100 text-slate-500">ロック中</Badge>
                   )}
                 </div>
               </div>
@@ -372,10 +406,41 @@ export function FPPromotion() {
             </p>
           </div>
 
+          {/* 申請ステータスバナー */}
+          {applicationStatus.hasApplication && applicationStatus.status === 'PENDING' && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Clock className="h-5 w-5 text-yellow-600" />
+                <h4 className="font-semibold text-yellow-800">審査中</h4>
+              </div>
+              <p className="text-sm text-yellow-700">
+                昇格申請が審査中です。管理者による審査が完了するまでお待ちください。
+              </p>
+              {applicationStatus.appliedAt && (
+                <p className="text-xs text-yellow-600 mt-2">
+                  申請日: {new Date(applicationStatus.appliedAt).toLocaleDateString('ja-JP')}
+                </p>
+              )}
+            </div>
+          )}
+
+          {applicationStatus.hasApplication && applicationStatus.status === 'REJECTED' && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <XCircle className="h-5 w-5 text-red-600" />
+                <h4 className="font-semibold text-red-800">申請が却下されました</h4>
+              </div>
+              <p className="text-sm text-red-700">
+                昇格申請が却下されました。通知を確認し、条件を再度確認してから再申請してください。
+              </p>
+            </div>
+          )}
+
           {/* 昇格申請 */}
-          <div className="border-t pt-6">
-            <h3 className="text-lg font-semibold mb-4">昇格申請</h3>
-            <div className="space-y-4">
+          {conditions.surveyCompleted ? (
+            <div className="border-t pt-6">
+              <h3 className="text-lg font-semibold mb-4">昇格申請</h3>
+              <div className="space-y-4">
               <div className="p-4 border border-slate-200 rounded-xl">
                 <h4 className="font-medium mb-2">身分証アップロード</h4>
                 <p className="text-sm text-slate-600 mb-4">
@@ -471,12 +536,20 @@ export function FPPromotion() {
                 </div>
               </div>
 
-              <Button 
-                className="w-full" 
-                disabled={!conditions.isEligible || isApplying || !uploadedFileUrl || !contractAgreed}
+              <Button
+                className="w-full"
+                disabled={
+                  !conditions.isEligible ||
+                  isApplying ||
+                  !uploadedFileUrl ||
+                  !contractAgreed ||
+                  applicationStatus.status === 'PENDING'
+                }
                 onClick={handlePromotionApplication}
               >
-                {isApplying ? '申請中...' : 'FPエイド昇格申請'}
+                {isApplying ? '申請中...' :
+                 applicationStatus.status === 'PENDING' ? '審査中' :
+                 'FPエイド昇格申請'}
               </Button>
 
               {!conditions.isEligible && (
@@ -494,8 +567,21 @@ export function FPPromotion() {
                   業務委託契約書の締結が必要です
                 </p>
               )}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="border-t pt-6">
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 text-center">
+                <h3 className="text-lg font-semibold mb-2">昇格申請</h3>
+                <p className="text-sm text-slate-600 mb-4">
+                  すべての昇格条件を満たすと、昇格申請セクションが表示されます
+                </p>
+                <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
+                  <span>進捗: {completedCount}/3</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* 注意事項 */}
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
