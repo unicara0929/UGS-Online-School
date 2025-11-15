@@ -6,7 +6,7 @@ import nodemailer from 'nodemailer'
 
 // SMTPトランスポーターの作成
 const createTransporter = () => {
-  return nodemailer.createTransporter({
+  return nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: parseInt(process.env.SMTP_PORT || '587'),
     secure: false, // TLS
