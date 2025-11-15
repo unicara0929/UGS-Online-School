@@ -52,11 +52,12 @@ model User {
 }
 
 model PendingUser {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  referralCode String? // 紹介コード（URLから取得）
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@map("pending_users")
 }
