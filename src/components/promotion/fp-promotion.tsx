@@ -596,7 +596,6 @@ export function FPPromotion() {
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
             <h4 className="font-medium text-yellow-800 mb-2">注意事項</h4>
             <ul className="text-sm text-yellow-700 space-y-1">
-              <li>• 身分証の画像は鮮明で、文字が読み取れるものをアップロードしてください</li>
               <li>• 申請後、運営による確認が完了するまで数日かかる場合があります</li>
               <li>• 昇格後はFPエイド昇格後ガイダンスの視聴が必須となります</li>
             </ul>
