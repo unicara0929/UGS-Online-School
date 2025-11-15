@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { ContractStatus } from '@prisma/client'
-import { getAuthenticatedUser, checkRole, checkOwnershipOrAdmin, checkAdmin, RoleGroups } from '@/lib/auth/api-helpers'
+import { getAuthenticatedUser, checkRole, checkOwnershipOrAdmin, checkAdmin, RoleGroups, checkFPOnboarding } from '@/lib/auth/api-helpers'
 
 /**
  * 契約を更新
@@ -26,6 +26,7 @@ export async function PUT(
       )
     }
 
+    // FPエイドの場合はオンボーディング完了チェック（自分の契約を更新する場合のみ）
     const { contractId } = await context.params
     const body = await request.json()
     const { status, amount, rewardAmount } = body
@@ -60,6 +61,12 @@ export async function PUT(
         { error: 'アクセス権限がありません。自分のデータまたは管理者権限が必要です。' },
         { status: 403 }
       )
+    }
+
+    // FPエイドが自分の契約を更新する場合はオンボーディング完了チェック
+    if (contract.userId === authUser!.id) {
+      const { completed, error: onboardingError } = await checkFPOnboarding(authUser!.id, authUser!.role)
+      if (!completed) return onboardingError!
     }
 
     // 更新データを準備

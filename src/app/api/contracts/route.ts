@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { ContractType, ContractStatus } from '@prisma/client'
-import { getAuthenticatedUser, checkRole, RoleGroups } from '@/lib/auth/api-helpers'
+import { getAuthenticatedUser, checkRole, RoleGroups, checkFPOnboarding } from '@/lib/auth/api-helpers'
 
 /**
  * 契約一覧を取得
@@ -84,6 +84,10 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       )
     }
+
+    // FPエイドの場合はオンボーディング完了チェック
+    const { completed, error: onboardingError } = await checkFPOnboarding(authUser!.id, authUser!.role)
+    if (!completed) return onboardingError!
 
     const { contractNumber, contractType, signedAt, amount } = await request.json()
 

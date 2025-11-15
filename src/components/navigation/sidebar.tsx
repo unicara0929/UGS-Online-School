@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/contexts/auth-context'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, ChevronDown, ChevronRight } from 'lucide-react'
 import { navigation } from '@/lib/navigation'
 import Image from 'next/image'
 
@@ -16,6 +16,7 @@ export function Sidebar() {
   const pathname = usePathname()
   const [logoError, setLogoError] = useState(false)
   const [profileImage, setProfileImage] = useState<string | null>(null)
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     // プロフィール画像を読み込む
@@ -45,6 +46,56 @@ export function Sidebar() {
   const filteredNavigation = navigation.filter(item => 
     hasAnyRole(item.roles)
   )
+
+  // 子項目がアクティブかどうかをチェック
+  const isSubItemActive = (item: typeof navigation[0]) => {
+    if (!item.subItems) return false
+    return item.subItems.some(subItem => {
+      if (!subItem.href) return false
+      // 完全一致または、そのパスで始まる場合（ただし、/dashboardだけの場合は除外）
+      if (subItem.href === '/dashboard') {
+        return pathname === '/dashboard'
+      }
+      return pathname === subItem.href || pathname.startsWith(subItem.href + '/')
+    })
+  }
+
+  // 親項目がアクティブかどうかをチェック（hrefがある場合）
+  const isParentItemActive = (item: typeof navigation[0]) => {
+    if (!item.href) return false
+    // /dashboardの場合は完全一致のみ
+    if (item.href === '/dashboard') {
+      return pathname === '/dashboard'
+    }
+    return pathname === item.href || pathname.startsWith(item.href + '/')
+  }
+
+  // 項目が展開されているかどうか
+  const isExpanded = (itemName: string) => {
+    return expandedItems.has(itemName) || isSubItemActive(navigation.find(n => n.name === itemName)!)
+  }
+
+  // 展開状態を切り替え
+  const toggleExpanded = (itemName: string) => {
+    setExpandedItems(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(itemName)) {
+        newSet.delete(itemName)
+      } else {
+        newSet.add(itemName)
+      }
+      return newSet
+    })
+  }
+
+  // パスが変更されたときに、アクティブな親項目を自動展開
+  useEffect(() => {
+    navigation.forEach(item => {
+      if (item.subItems && isSubItemActive(item)) {
+        setExpandedItems(prev => new Set(prev).add(item.name))
+      }
+    })
+  }, [pathname])
 
   return (
     <>
@@ -110,9 +161,9 @@ export function Sidebar() {
                   {user?.name}
                 </p>
                 <Badge variant="secondary" className="text-xs mt-1">
-                  {user?.role === "member" ? "UGS会員" : 
-                   user?.role === "fp" ? "FPエイド" : 
-                   user?.role === "manager" ? "マネージャー" : "運営"}
+                  {user?.role === "member" ? "UGS Member" : 
+                   user?.role === "fp" ? "FP Aid" : 
+                   user?.role === "manager" ? "Manager" : "Admin"}
                 </Badge>
               </div>
             </div>
@@ -121,11 +172,89 @@ export function Sidebar() {
           {/* ナビゲーション */}
           <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
             {filteredNavigation.map((item) => {
-              const isActive = pathname === item.href
+              const hasSubItems = item.subItems && item.subItems.length > 0
+              const isExpandedItem = isExpanded(item.name)
+              // アクティブ状態の判定：/dashboardの場合は完全一致のみ、それ以外はパスで始まる場合
+              let isActive = false
+              if (item.href) {
+                if (item.href === '/dashboard') {
+                  isActive = pathname === '/dashboard'
+                } else {
+                  isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+                }
+              }
+              const hasActiveSubItem = isSubItemActive(item)
+
+              if (hasSubItems) {
+                return (
+                  <div key={item.name}>
+                    {/* 親項目 */}
+                    <button
+                      onClick={() => toggleExpanded(item.name)}
+                      className={`
+                        w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200
+                        ${hasActiveSubItem
+                          ? 'bg-gradient-to-r from-slate-700 to-slate-800 text-white shadow-md' 
+                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                        }
+                      `}
+                    >
+                      <item.icon className={`h-5 w-5 mr-3 ${hasActiveSubItem ? 'text-white' : 'text-slate-500'}`} />
+                      <span className="flex-1 text-left">{item.name}</span>
+                      {isExpandedItem ? (
+                        <ChevronDown className={`h-4 w-4 ${hasActiveSubItem ? 'text-white' : 'text-slate-500'}`} />
+                      ) : (
+                        <ChevronRight className={`h-4 w-4 ${hasActiveSubItem ? 'text-white' : 'text-slate-500'}`} />
+                      )}
+                    </button>
+                    
+                    {/* 子項目 */}
+                    {isExpandedItem && (
+                      <div className="ml-4 mt-1 space-y-1">
+                        {item.subItems!.filter(subItem => hasAnyRole(subItem.roles)).map((subItem) => {
+                          // 子項目のアクティブ状態判定
+                          let isSubActive = false
+                          if (subItem.href) {
+                            if (subItem.href === '/dashboard') {
+                              isSubActive = pathname === '/dashboard'
+                            } else {
+                              isSubActive = pathname === subItem.href || pathname.startsWith(subItem.href + '/')
+                            }
+                          }
+                          return (
+                            <Link
+                              key={subItem.name}
+                              href={subItem.href || '#'}
+                              className={`
+                                flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200
+                                ${isSubActive 
+                                  ? 'bg-gradient-to-r from-slate-700 to-slate-800 text-white shadow-md' 
+                                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                                }
+                              `}
+                              onClick={() => setIsOpen(false)}
+                            >
+                              <subItem.icon className={`h-4 w-4 mr-3 ${isSubActive ? 'text-white' : 'text-slate-500'}`} />
+                              <span className="flex-1">{subItem.name}</span>
+                              {subItem.badge && (
+                                <Badge variant="destructive" className="text-xs">
+                                  {subItem.badge}
+                                </Badge>
+                              )}
+                            </Link>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )
+              }
+
+              // 通常の項目（子項目なし）
               return (
                 <Link
                   key={item.name}
-                  href={item.href}
+                  href={item.href || '#'}
                   className={`
                     flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200
                     ${isActive 

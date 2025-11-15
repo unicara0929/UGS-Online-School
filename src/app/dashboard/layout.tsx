@@ -1,4 +1,5 @@
 import { SubscriptionGuard } from "@/components/auth/subscription-guard"
+import { FPOnboardingGuard } from "@/components/auth/fp-onboarding-guard"
 
 export default function DashboardLayout({
   children,
@@ -7,7 +8,9 @@ export default function DashboardLayout({
 }) {
   return (
     <SubscriptionGuard allowAccess={false}>
-      {children}
+      <FPOnboardingGuard>
+        {children}
+      </FPOnboardingGuard>
     </SubscriptionGuard>
   )
 }
