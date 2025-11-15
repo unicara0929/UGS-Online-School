@@ -67,57 +67,50 @@ export function ResetPasswordForm() {
       try {
         console.log('Checking session with hash:', hash)
 
-        // 認証状態の変更を監視（getSessionより先に設定）
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
-          console.log('Auth state change:', event, 'Session:', session ? 'exists' : 'null')
+        // URLハッシュフラグメントにaccess_tokenが含まれている場合、手動でセッションを確立
+        const accessToken = hashParams.get('access_token')
+        const refreshToken = hashParams.get('refresh_token')
+        const tokenType = hashParams.get('type')
 
-          if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
-            if (session) {
-              console.log('✓ Session established via recovery:', session.user.email)
-              setIsCheckingSession(false)
-              subscription.unsubscribe()
-            }
+        if (accessToken && refreshToken && tokenType === 'recovery') {
+          console.log('Manual session setup with tokens from hash fragment...')
+
+          // 手動でセッションを設定
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          })
+
+          if (error) {
+            console.error('Failed to set session:', error)
+            setError('セッションの確立に失敗しました。リンクが無効または期限切れの可能性があります。')
+            setIsCheckingSession(false)
+            return
           }
-        })
 
-        // 少し待ってからセッションを確認（ハッシュフラグメントの処理時間を確保）
-        await new Promise(resolve => setTimeout(resolve, 500))
+          if (data.session) {
+            console.log('✓ Session manually established:', data.session.user.email)
+            setIsCheckingSession(false)
 
-        // セッションを確認
+            // URLからハッシュフラグメントを削除（クリーンなURLにする）
+            window.history.replaceState({}, document.title, window.location.pathname)
+            return
+          }
+        }
+
+        // 既存のセッションを確認
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
         if (session) {
-          // セッションが既に確立されている
           console.log('✓ Session already established:', session.user.email)
           setIsCheckingSession(false)
-          subscription.unsubscribe()
           return
         }
 
-        // URLハッシュフラグメントを確認
-        if (hash.includes('access_token') || hash.includes('type=recovery')) {
-          console.log('Hash fragment detected, waiting for session...')
-
-          // タイムアウトを設定（15秒に延長）
-          setTimeout(() => {
-            subscription.unsubscribe()
-            supabase.auth.getSession().then(({ data: { session }, error }: { data: { session: any }, error: any }) => {
-              if (error || !session) {
-                console.error('Session timeout error:', error)
-                setError('リセットリンクが無効または期限切れです。再度パスワードリセットを申請してください。')
-              } else {
-                console.log('✓ Session established after timeout check')
-                setIsCheckingSession(false)
-              }
-            })
-          }, 15000)
-        } else {
-          // ハッシュフラグメントがない場合、エラーを表示
-          console.warn('No hash fragment found')
-          setError('リセットリンクが無効または期限切れです。再度パスワードリセットを申請してください。')
-          setIsCheckingSession(false)
-          subscription.unsubscribe()
-        }
+        // ハッシュフラグメントもセッションもない場合
+        console.warn('No valid hash fragment or session found')
+        setError('リセットリンクが無効または期限切れです。再度パスワードリセットを申請してください。')
+        setIsCheckingSession(false)
       } catch (err) {
         console.error('Check session error:', err)
         setError('セッションの確認中にエラーが発生しました')
