@@ -273,19 +273,21 @@ enum PromotionStatus {
 }
 
 model FPPromotionApplication {
-  id                 String                       @id @default(cuid())
-  userId             String
-  status             FPPromotionApplicationStatus @default(PENDING)
-  lpMeetingCompleted Boolean                      @default(false)
-  basicTestCompleted Boolean                      @default(false)
-  surveyCompleted    Boolean                      @default(false)
-  idDocumentUrl      String?
-  appliedAt          DateTime                     @default(now())
-  approvedAt         DateTime?
-  completedAt        DateTime?
-  createdAt          DateTime                     @default(now())
-  updatedAt          DateTime                     @updatedAt
-  user               User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                    String                       @id @default(cuid())
+  userId                String
+  status                FPPromotionApplicationStatus @default(PENDING)
+  lpMeetingCompleted    Boolean                      @default(false)
+  basicTestCompleted    Boolean                      @default(false)
+  surveyCompleted       Boolean                      @default(false)
+  idDocumentUrl         String?
+  promotionEmailSent    Boolean                      @default(false) // 昇格通知メール送信済みフラグ
+  promotionEmailSentAt  DateTime? // 昇格通知メール送信日時
+  appliedAt             DateTime                     @default(now())
+  approvedAt            DateTime?
+  completedAt           DateTime?
+  createdAt             DateTime                     @default(now())
+  updatedAt             DateTime                     @updatedAt
+  user                  User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId])
   @@map("fp_promotion_applications")

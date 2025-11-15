@@ -441,6 +441,9 @@ export function FPPromotion() {
             <div className="border-t pt-6">
               <h3 className="text-lg font-semibold mb-4">昇格申請</h3>
               <div className="space-y-4">
+              {/* 身分証アップロードと業務委託契約書は、申請前または審査完了（承認）後のみ表示 */}
+              {(!applicationStatus.hasApplication || applicationStatus.status === 'APPROVED') && (
+                <>
               <div className="p-4 border border-slate-200 rounded-xl">
                 <h4 className="font-medium mb-2">身分証アップロード</h4>
                 <p className="text-sm text-slate-600 mb-4">
@@ -535,37 +538,43 @@ export function FPPromotion() {
                   </div>
                 </div>
               </div>
-
-              <Button
-                className="w-full"
-                disabled={
-                  !conditions.isEligible ||
-                  isApplying ||
-                  !uploadedFileUrl ||
-                  !contractAgreed ||
-                  applicationStatus.status === 'PENDING'
-                }
-                onClick={handlePromotionApplication}
-              >
-                {isApplying ? '申請中...' :
-                 applicationStatus.status === 'PENDING' ? '審査中' :
-                 'FPエイド昇格申請'}
-              </Button>
-
-              {!conditions.isEligible && (
-                <p className="text-sm text-slate-500 text-center">
-                  昇格条件をすべて満たすと申請可能になります
-                </p>
+              </>
               )}
-              {conditions.isEligible && !uploadedFileUrl && (
-                <p className="text-sm text-slate-500 text-center">
-                  身分証のアップロードが必要です
-                </p>
+
+              {/* 申請ボタンは申請前のみ表示 */}
+              {!applicationStatus.hasApplication && (
+                <Button
+                  className="w-full"
+                  disabled={
+                    !conditions.isEligible ||
+                    isApplying ||
+                    !uploadedFileUrl ||
+                    !contractAgreed
+                  }
+                  onClick={handlePromotionApplication}
+                >
+                  {isApplying ? '申請中...' : 'FPエイド昇格申請'}
+                </Button>
               )}
-              {conditions.isEligible && uploadedFileUrl && !contractAgreed && (
-                <p className="text-sm text-slate-500 text-center">
-                  業務委託契約書の締結が必要です
-                </p>
+
+              {!applicationStatus.hasApplication && (
+                <>
+                  {!conditions.isEligible && (
+                    <p className="text-sm text-slate-500 text-center">
+                      昇格条件をすべて満たすと申請可能になります
+                    </p>
+                  )}
+                  {conditions.isEligible && !uploadedFileUrl && (
+                    <p className="text-sm text-slate-500 text-center">
+                      身分証のアップロードが必要です
+                    </p>
+                  )}
+                  {conditions.isEligible && uploadedFileUrl && !contractAgreed && (
+                    <p className="text-sm text-slate-500 text-center">
+                      業務委託契約書の締結が必要です
+                    </p>
+                  )}
+                </>
               )}
               </div>
             </div>

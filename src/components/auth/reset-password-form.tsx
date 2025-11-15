@@ -39,18 +39,18 @@ export function ResetPasswordForm() {
     if (typeof window === 'undefined') {
       return
     }
-    
+
     const supabase = getSupabase()
 
     // URLハッシュフラグメントからエラーを確認
     const hash = window.location.hash
     const hashParams = new URLSearchParams(hash.substring(1)) // #を削除
-    
+
     // エラーが含まれている場合
     if (hashParams.has('error')) {
       const errorCode = hashParams.get('error_code')
       const errorDescription = hashParams.get('error_description')
-      
+
       if (errorCode === 'otp_expired') {
         setError('リセットリンクが期限切れです。再度パスワードリセットを申請してください。')
       } else if (errorCode === 'access_denied') {
@@ -65,44 +65,58 @@ export function ResetPasswordForm() {
     // Supabaseのセッションを確認（リセットリンクから自動的にセッションが確立される）
     const checkSession = async () => {
       try {
-        // まず現在のセッションを確認
+        console.log('Checking session with hash:', hash)
+
+        // 認証状態の変更を監視（getSessionより先に設定）
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
+          console.log('Auth state change:', event, 'Session:', session ? 'exists' : 'null')
+
+          if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
+            if (session) {
+              console.log('✓ Session established via recovery:', session.user.email)
+              setIsCheckingSession(false)
+              subscription.unsubscribe()
+            }
+          }
+        })
+
+        // 少し待ってからセッションを確認（ハッシュフラグメントの処理時間を確保）
+        await new Promise(resolve => setTimeout(resolve, 500))
+
+        // セッションを確認
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
         if (session) {
           // セッションが既に確立されている
-          console.log('Session established:', session.user.email)
+          console.log('✓ Session already established:', session.user.email)
           setIsCheckingSession(false)
+          subscription.unsubscribe()
           return
         }
 
         // URLハッシュフラグメントを確認
         if (hash.includes('access_token') || hash.includes('type=recovery')) {
-          // ハッシュフラグメントがある場合、Supabaseが自動的にセッションを確立するのを待つ
           console.log('Hash fragment detected, waiting for session...')
-          
-          // 認証状態の変更を監視
-          const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
-            if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
-              console.log('Session established via recovery:', session?.user.email)
-              setIsCheckingSession(false)
-              subscription.unsubscribe()
-            }
-          })
 
-          // タイムアウトを設定（10秒）
+          // タイムアウトを設定（15秒に延長）
           setTimeout(() => {
             subscription.unsubscribe()
             supabase.auth.getSession().then(({ data: { session }, error }: { data: { session: any }, error: any }) => {
               if (error || !session) {
+                console.error('Session timeout error:', error)
                 setError('リセットリンクが無効または期限切れです。再度パスワードリセットを申請してください。')
+              } else {
+                console.log('✓ Session established after timeout check')
+                setIsCheckingSession(false)
               }
-              setIsCheckingSession(false)
             })
-          }, 10000)
+          }, 15000)
         } else {
           // ハッシュフラグメントがない場合、エラーを表示
+          console.warn('No hash fragment found')
           setError('リセットリンクが無効または期限切れです。再度パスワードリセットを申請してください。')
           setIsCheckingSession(false)
+          subscription.unsubscribe()
         }
       } catch (err) {
         console.error('Check session error:', err)

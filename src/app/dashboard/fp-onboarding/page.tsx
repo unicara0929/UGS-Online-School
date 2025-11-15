@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -51,99 +51,12 @@ export default function FPOnboardingPage() {
   const [isCompleting, setIsCompleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [hasCompleted, setHasCompleted] = useState(false)
+  const [showCompletionBanner, setShowCompletionBanner] = useState(false)
   const [vimeoPlayer, setVimeoPlayer] = useState<any>(null)
   const vimeoId = extractVimeoId(FP_ONBOARDING_VIMEO_ID)
 
-  useEffect(() => {
-    // FPエイドでない場合はダッシュボードにリダイレクト
-    if (user && user.role !== 'fp') {
-      router.push('/dashboard')
-    }
-  }, [user, router])
-
-  useEffect(() => {
-    // 既に完了しているか確認
-    checkCompletionStatus()
-  }, [user])
-
-  useEffect(() => {
-    // Vimeo Player APIを読み込んで視聴時間を追跡
-    if (!vimeoId || hasCompleted) return
-
-    const loadVimeoPlayer = async () => {
-      try {
-        // Vimeo Player APIを動的に読み込む
-        const script = document.createElement('script')
-        script.src = 'https://player.vimeo.com/api/player.js'
-        script.async = true
-        document.body.appendChild(script)
-
-        script.onload = () => {
-          // @ts-ignore - Vimeo Player APIはグローバルに読み込まれる
-          if (window.Vimeo && iframeRef.current) {
-            const player = new window.Vimeo.Player(iframeRef.current)
-            setVimeoPlayer(player)
-
-            // 動画の時間更新を監視
-            player.on('timeupdate', (data: { seconds: number; duration: number }) => {
-              if (data.duration > 0) {
-                const progress = data.seconds / data.duration
-                setWatchProgress(progress)
-
-                // 90%以上視聴したら自動的に完了処理を実行
-                if (progress >= COMPLETION_THRESHOLD && !hasCompleted && !isCompleting) {
-                  handleComplete()
-                }
-              }
-            })
-
-            // 動画終了時も完了処理を実行
-            player.on('ended', () => {
-              if (!hasCompleted && !isCompleting) {
-                handleComplete()
-              }
-            })
-          }
-        }
-      } catch (err) {
-        console.error('Error loading Vimeo Player API:', err)
-      }
-    }
-
-    loadVimeoPlayer()
-
-    return () => {
-      // クリーンアップ
-      if (vimeoPlayer) {
-        vimeoPlayer.off('timeupdate')
-        vimeoPlayer.off('ended')
-      }
-    }
-  }, [vimeoId, hasCompleted, isCompleting])
-
-  const checkCompletionStatus = async () => {
-    if (!user?.id) return
-
-    try {
-      const response = await authenticatedFetch(`/api/user/fp-onboarding-status`)
-      if (response.ok) {
-        const data = await response.json()
-        if (data.completed) {
-          setHasCompleted(true)
-          // 既に完了している場合はダッシュボードにリダイレクト
-          setTimeout(() => {
-            router.push('/dashboard')
-          }, 2000)
-        }
-      }
-    } catch (err) {
-      console.error('Error checking completion status:', err)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleComplete = async () => {
+  // 完了処理（useCallbackでメモ化してクロージャの問題を解決）
+  const handleComplete = useCallback(async () => {
     if (isCompleting || hasCompleted) return
 
     setIsCompleting(true)
@@ -160,17 +73,137 @@ export default function FPOnboardingPage() {
       }
 
       setHasCompleted(true)
-      
-      // 2秒後にダッシュボードにリダイレクト
-      setTimeout(() => {
-        router.push('/dashboard')
-      }, 2000)
+      setShowCompletionBanner(true)
+      console.log('FP onboarding completed successfully')
     } catch (err) {
       console.error('Error completing onboarding:', err)
       setError(err instanceof Error ? err.message : '完了処理に失敗しました')
       setIsCompleting(false)
     }
+  }, [isCompleting, hasCompleted])
+
+  // ダッシュボードに移動
+  const handleGoToDashboard = useCallback(() => {
+    router.push('/dashboard')
+  }, [router])
+
+  // FPエイドでない場合はダッシュボードにリダイレクト
+  useEffect(() => {
+    if (user && user.role !== 'fp') {
+      router.push('/dashboard')
+    }
+  }, [user, router])
+
+  // 既に完了しているか確認
+  useEffect(() => {
+    checkCompletionStatus()
+  }, [user])
+
+  // Vimeo Player APIスクリプトを読み込む（1回のみ）
+  useEffect(() => {
+    if (!vimeoId || hasCompleted) return
+
+    // 既にスクリプトが読み込まれているかチェック
+    const existingScript = document.querySelector('script[src="https://player.vimeo.com/api/player.js"]')
+
+    if (!existingScript) {
+      console.log('Loading Vimeo Player API script...')
+      const script = document.createElement('script')
+      script.src = 'https://player.vimeo.com/api/player.js'
+      script.async = true
+      document.body.appendChild(script)
+
+      script.onload = () => {
+        console.log('Vimeo Player API script loaded successfully')
+      }
+
+      script.onerror = () => {
+        console.error('Failed to load Vimeo Player API script')
+        setError('動画プレイヤーの読み込みに失敗しました')
+      }
+    }
+  }, [vimeoId, hasCompleted])
+
+  // iframeがロードされたときにVimeo Playerを初期化
+  const handleIframeLoad = useCallback(() => {
+    if (!iframeRef.current || hasCompleted) {
+      console.log('Skipping Player initialization - iframe not ready or already completed')
+      return
+    }
+
+    // @ts-ignore - Vimeo Player APIはグローバルに読み込まれる
+    if (!window.Vimeo) {
+      console.warn('Vimeo Player API not loaded yet, will retry on next iframe load')
+      return
+    }
+
+    try {
+      console.log('Initializing Vimeo Player...')
+      // @ts-ignore
+      const player = new window.Vimeo.Player(iframeRef.current)
+      setVimeoPlayer(player)
+
+      // 動画の時間更新を監視
+      player.on('timeupdate', (data: { seconds: number; duration: number }) => {
+        if (data.duration > 0) {
+          const progress = data.seconds / data.duration
+          setWatchProgress(progress)
+
+          // 90%以上視聴したら自動的に完了処理を実行
+          if (progress >= COMPLETION_THRESHOLD) {
+            console.log('90% threshold reached, triggering completion...')
+            handleComplete()
+          }
+        }
+      })
+
+      // 動画終了時も完了処理を実行
+      player.on('ended', () => {
+        console.log('Video ended, triggering completion...')
+        handleComplete()
+      })
+
+      console.log('✓ Vimeo Player initialized successfully')
+    } catch (err) {
+      console.error('Error initializing Vimeo Player:', err)
+      setError('動画プレイヤーの初期化に失敗しました')
+    }
+  }, [hasCompleted, handleComplete])
+
+  // クリーンアップ
+  useEffect(() => {
+    return () => {
+      if (vimeoPlayer) {
+        try {
+          vimeoPlayer.off('timeupdate')
+          vimeoPlayer.off('ended')
+        } catch (err) {
+          console.error('Error cleaning up Vimeo Player:', err)
+        }
+      }
+    }
+  }, [vimeoPlayer])
+
+  const checkCompletionStatus = async () => {
+    if (!user?.id) return
+
+    try {
+      const response = await authenticatedFetch(`/api/user/fp-onboarding-status`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.completed) {
+          setHasCompleted(true)
+          setShowCompletionBanner(true)
+          // 既に完了している場合は完了バナーを表示（自動リダイレクトはしない）
+        }
+      }
+    } catch (err) {
+      console.error('Error checking completion status:', err)
+    } finally {
+      setIsLoading(false)
+    }
   }
+
 
   if (isLoading) {
     return (
@@ -183,21 +216,6 @@ export default function FPOnboardingPage() {
     )
   }
 
-  if (hasCompleted) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <Card className="w-full max-w-2xl">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">動画ガイダンスを完了しました</h2>
-              <p className="text-slate-600 mb-4">ダッシュボードに移動します...</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -245,6 +263,7 @@ export default function FPOnboardingPage() {
                   allow="autoplay; fullscreen; picture-in-picture"
                   allowFullScreen
                   title="FPエイド向け動画ガイダンス"
+                  onLoad={handleIframeLoad}
                 />
               </div>
             )}
@@ -258,23 +277,44 @@ export default function FPOnboardingPage() {
               </div>
               <Progress value={watchProgress * 100} className="h-2" />
               <p className="text-xs text-slate-500">
-                {watchProgress >= COMPLETION_THRESHOLD
+                {hasCompleted
+                  ? '完了しました！ダッシュボードに移動するか、動画を続けてご覧いただけます。'
+                  : watchProgress >= COMPLETION_THRESHOLD
                   ? '視聴完了条件を満たしています。完了処理を実行中...'
                   : `あと${Math.round((COMPLETION_THRESHOLD - watchProgress) * 100)}%視聴すると完了します。`}
               </p>
             </div>
 
-            {watchProgress >= COMPLETION_THRESHOLD && !hasCompleted && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
-                  <p className="text-sm font-medium text-green-800">
-                    視聴完了条件を満たしました
-                  </p>
+            {/* 完了バナー */}
+            {showCompletionBanner && (
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-lg p-6 shadow-lg">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                      <CheckCircle className="h-7 w-7 text-white" />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-green-900 mb-2">
+                      🎉 FPエイドガイダンスを完了しました！
+                    </h3>
+                    <p className="text-sm text-green-800 mb-4">
+                      おめでとうございます！FPエイドとしての活動を開始できます。<br />
+                      ダッシュボードに移動して、紹介管理や契約管理などの機能をご利用いただけます。
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <Button
+                        onClick={handleGoToDashboard}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        ダッシュボードに移動
+                      </Button>
+                      <p className="text-xs text-green-700">
+                        動画を最後まで見たい場合は、このまま視聴を続けられます
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-sm text-green-700">
-                  動画ガイダンスの視聴が完了しました。完了処理を実行中です...
-                </p>
               </div>
             )}
 

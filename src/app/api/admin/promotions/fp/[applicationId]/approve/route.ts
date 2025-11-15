@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser, checkRole, Roles } from '@/lib/auth/api-helpers'
 import { UserRole } from '@prisma/client'
+import { sendFPPromotionApprovedEmail } from '@/lib/services/email-service'
 
 /**
  * FPエイド昇格申請を承認
@@ -69,11 +70,39 @@ export async function POST(
           type: 'PROMOTION_APPROVED',
           priority: 'SUCCESS',
           title: 'FPエイド昇格申請が承認されました',
-          message: 'おめでとうございます！FPエイド昇格申請が承認されました。身分証のアップロードと業務委託契約書の締結を完了してください。',
-          actionUrl: '/dashboard/promotion'
+          message: 'おめでとうございます！FPエイド昇格申請が承認されました。FPエイド向けガイダンス動画の視聴を完了してください。',
+          actionUrl: '/dashboard/fp-onboarding'
         }
       })
     })
+
+    // 4. メール送信（二重送信防止：promotionEmailSentフラグをチェック）
+    if (!application.promotionEmailSent) {
+      try {
+        await sendFPPromotionApprovedEmail({
+          to: application.user.email,
+          userName: application.user.name,
+          userEmail: application.user.email
+        })
+
+        // メール送信成功後、フラグを更新
+        await prisma.fPPromotionApplication.update({
+          where: { id: applicationId },
+          data: {
+            promotionEmailSent: true,
+            promotionEmailSentAt: new Date()
+          }
+        })
+
+        console.log('FP promotion approval email sent to:', application.user.email)
+      } catch (emailError) {
+        // メール送信失敗してもエラーにはしない（ログのみ）
+        console.error('Failed to send promotion approval email:', emailError)
+        // メール送信失敗の場合、フラグは更新しない（再試行可能にする）
+      }
+    } else {
+      console.log('Promotion email already sent, skipping')
+    }
 
     return NextResponse.json({
       success: true,
