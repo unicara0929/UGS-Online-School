@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { ReferralType, ReferralStatus } from '@prisma/client'
-import { getAuthenticatedUser, checkRole, RoleGroups } from '@/lib/auth/api-helpers'
+import { getAuthenticatedUser, checkRole, RoleGroups, checkFPOnboarding } from '@/lib/auth/api-helpers'
 
 /**
  * 紹介一覧を取得
@@ -17,6 +17,10 @@ export async function GET(request: NextRequest) {
     // FP以上のロールチェック
     const { error: roleError } = checkRole(authUser!.role, RoleGroups.FP_AND_ABOVE)
     if (roleError) return roleError
+
+    // FPエイドの場合はオンボーディング完了チェック
+    const { completed, error: onboardingError } = await checkFPOnboarding(authUser!.id, authUser!.role)
+    if (!completed) return onboardingError!
 
     const { searchParams } = new URL(request.url)
     const type = searchParams.get('type') as ReferralType | null // 'MEMBER' | 'FP'
@@ -85,6 +89,10 @@ export async function POST(request: NextRequest) {
     // FP以上のロールチェック
     const { error: roleError } = checkRole(authUser!.role, RoleGroups.FP_AND_ABOVE)
     if (roleError) return roleError
+
+    // FPエイドの場合はオンボーディング完了チェック
+    const { completed, error: onboardingError } = await checkFPOnboarding(authUser!.id, authUser!.role)
+    if (!completed) return onboardingError!
 
     const { referredId, referralType } = await request.json()
 

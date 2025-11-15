@@ -12,20 +12,30 @@ import {
   UserPlus,
   Bell,
   FileText,
-  MessageSquare
+  MessageSquare,
+  FolderOpen
 } from 'lucide-react'
 
 export interface NavItem {
   name: string
-  href: string
+  href?: string
   icon: React.ComponentType<{ className?: string }>
   roles: string[]
   badge?: string
+  subItems?: NavItem[] // 子項目をサポート
 }
 
 export const navigation: NavItem[] = [
   { name: 'ダッシュボード', href: '/dashboard', icon: Home, roles: ['member', 'fp', 'manager', 'admin'] },
-  { name: '教育コンテンツ', href: '/dashboard/courses', icon: BookOpen, roles: ['member', 'fp', 'manager', 'admin'] },
+  { 
+    name: 'コンテンツ', 
+    icon: FolderOpen, 
+    roles: ['member', 'fp', 'manager', 'admin'],
+    subItems: [
+      { name: '教育コンテンツ', href: '/dashboard/courses', icon: BookOpen, roles: ['member', 'fp', 'manager', 'admin'] },
+      { name: '資料コンテンツ', href: '/dashboard/materials', icon: FileText, roles: ['member', 'fp', 'manager', 'admin'] },
+    ]
+  },
   { name: '学習', href: '/dashboard/learn/1', icon: GraduationCap, roles: ['member', 'fp', 'manager', 'admin'] },
   { name: '報酬管理', href: '/dashboard/compensation', icon: DollarSign, roles: ['fp', 'manager', 'admin'] },
   { name: '紹介管理', href: '/dashboard/referrals', icon: UserPlus, roles: ['fp', 'manager', 'admin'] },

@@ -272,6 +272,63 @@ export function checkOwnershipOrAdmin(
 }
 
 /**
+ * FPエイド向け動画ガイダンス完了チェック
+ * FPエイドの場合、オンボーディングが完了しているか確認
+ */
+export async function checkFPOnboarding(
+  userId: string,
+  userRole: string
+): Promise<{ completed: boolean; error: NextResponse | null }> {
+  // FPエイドでない場合はチェック不要
+  if (userRole.toLowerCase() !== 'fp') {
+    return { completed: true, error: null }
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        fpOnboardingCompleted: true
+      }
+    })
+
+    if (!user) {
+      return {
+        completed: false,
+        error: NextResponse.json(
+          { error: 'ユーザーが見つかりません' },
+          { status: 404 }
+        )
+      }
+    }
+
+    if (!user.fpOnboardingCompleted) {
+      return {
+        completed: false,
+        error: NextResponse.json(
+          {
+            error: 'FPエイド向け動画ガイダンスを完了してください',
+            actionUrl: '/dashboard/fp-onboarding'
+          },
+          { status: 403 }
+        )
+      }
+    }
+
+    return { completed: true, error: null }
+  } catch (error) {
+    console.error('Check FP onboarding error:', error)
+    return {
+      completed: false,
+      error: NextResponse.json(
+        { error: 'オンボーディング状況の確認に失敗しました' },
+        { status: 500 }
+      )
+    }
+  }
+}
+
+/**
  * ロール定義（Prisma Enumと一致）
  */
 export const Roles = {

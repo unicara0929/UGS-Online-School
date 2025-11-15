@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -57,6 +57,12 @@ function LearningPage() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [lessonProgress, setLessonProgress] = useState(0)
 
+  // レッスンが切り替わったときに再生状態をリセット
+  useEffect(() => {
+    setIsPlaying(false)
+    setLessonProgress(0)
+  }, [currentLessonIndex])
+
   // モックデータ
   const courses: Course[] = [
     {
@@ -76,6 +82,7 @@ function LearningPage() {
           order: 1,
           content: "お金は単なる紙切れや数字ではありません。お金は価値の交換手段であり、時間と労力の対価です。このレッスンでは、お金の本質的な意味と、現代社会におけるお金の役割について詳しく学びます。",
           videoUrl: "https://example.com/video1",
+          vimeoId: "1135031850", // テスト用動画ID
           materials: ["お金の歴史.pdf", "価値の概念.pdf"]
         },
         { 
@@ -87,6 +94,7 @@ function LearningPage() {
           order: 2,
           content: "収入には様々な種類があります。給与所得、事業所得、投資所得など、それぞれに特徴があります。このレッスンでは、各収入の種類とその特徴、税務上の取り扱いについて学びます。",
           videoUrl: "https://example.com/video2",
+          vimeoId: "1135031850", // テスト用動画ID
           materials: ["収入の種類一覧.pdf", "税務ガイド.pdf"]
         },
         { 
@@ -98,6 +106,7 @@ function LearningPage() {
           order: 3,
           content: "税金は社会の基盤を支える重要な制度です。所得税、住民税、消費税など、様々な税金の仕組みを理解することで、適切な税務管理ができるようになります。",
           videoUrl: "https://example.com/video3",
+          vimeoId: "1135031850", // テスト用動画ID
           materials: ["税金の基礎.pdf", "計算例.pdf"]
         },
         { 
@@ -109,6 +118,7 @@ function LearningPage() {
           order: 4,
           content: "社会保険制度は、私たちの生活を支える重要なセーフティネットです。健康保険、年金保険、雇用保険、労災保険、介護保険の5つの制度について詳しく学びます。",
           videoUrl: "https://example.com/video4",
+          vimeoId: "1135031850", // テスト用動画ID
           materials: ["社会保険制度ガイド.pdf"]
         }
       ]
@@ -130,6 +140,7 @@ function LearningPage() {
           order: 1,
           content: "金融リテラシーとは、金融に関する知識と判断力のことです。このレッスンでは、金融の基本概念から始めて、日常生活で必要な金融知識を身につけます。",
           videoUrl: "https://example.com/video5",
+          vimeoId: "1135031850", // テスト用動画ID
           materials: ["金融リテラシー基礎.pdf"]
         }
       ]
@@ -151,6 +162,7 @@ function LearningPage() {
           order: 1,
           content: "起業は夢を現実にする第一歩です。このレッスンでは、起業に必要な基本的な知識と心構えについて学びます。",
           videoUrl: "https://example.com/video6",
+          vimeoId: "1135031850", // テスト用動画ID
           materials: ["起業ガイド.pdf"]
         }
       ]
@@ -357,6 +369,7 @@ function LearningPage() {
                     <CardContent className="p-0">
                       {currentLesson.vimeoId ? (
                         <iframe
+                          key={`vimeo-${currentLesson.id}`} // レッスンが切り替わったときにiframeを再マウント
                           src={`https://player.vimeo.com/video/${currentLesson.vimeoId}`}
                           loading="lazy"
                           allow="autoplay; fullscreen; picture-in-picture"

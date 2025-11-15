@@ -26,6 +26,8 @@ model User {
   profileImageUrl         String?
   notificationPreferences Json?
   lastLoginAt             DateTime?
+  fpOnboardingCompleted   Boolean                  @default(true) // FPエイド向け動画ガイダンス完了フラグ（既存ユーザーはtrue）
+  fpOnboardingCompletedAt DateTime?                // FPエイド向け動画ガイダンス完了日時
   createdAt               DateTime                 @default(now())
   updatedAt               DateTime                 @updatedAt
   compensations           Compensation[]
