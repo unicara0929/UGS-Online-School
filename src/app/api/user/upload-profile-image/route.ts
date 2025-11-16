@@ -48,8 +48,8 @@ export async function POST(request: NextRequest) {
     const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
     const fileName = `profile-images/${userId}/${timestamp}_${sanitizedFileName}`
 
-    // Supabase Storageにアップロード
-    const bucketName = process.env.SUPABASE_STORAGE_BUCKET_NAME || 'UGS-up-load'
+    // Supabase Storageにアップロード（プロフィール画像専用バケット）
+    const bucketName = 'profile-picture'
 
     console.log('Uploading profile image to bucket:', bucketName)
 
