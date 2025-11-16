@@ -5,13 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { formatCurrency } from "@/lib/utils"
 import {
   DollarSign,
@@ -59,7 +52,6 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
   const [stats, setStats] = useState<CompensationStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [statusFilter, setStatusFilter] = useState<string>('ALL')
   const [monthFilter, setMonthFilter] = useState<string>('')
 
   useEffect(() => {
@@ -68,16 +60,13 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
     } else {
       setIsLoading(false)
     }
-  }, [userRole, statusFilter, monthFilter])
+  }, [userRole, monthFilter])
 
   const fetchCompensations = async () => {
     try {
       setIsLoading(true)
 
       const params = new URLSearchParams()
-      if (statusFilter !== 'ALL') {
-        params.append('status', statusFilter)
-      }
       if (monthFilter) {
         params.append('month', monthFilter)
       }
@@ -225,20 +214,6 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
-              <label className="text-sm font-medium mb-2 block">ステータス</label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="全て" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL">全て</SelectItem>
-                  <SelectItem value="PENDING">未確定</SelectItem>
-                  <SelectItem value="CONFIRMED">確定済み</SelectItem>
-                  <SelectItem value="PAID">支払済み</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex-1">
               <label className="text-sm font-medium mb-2 block">対象月</label>
               <input
                 type="month"
@@ -247,12 +222,11 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
                 className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-500"
               />
             </div>
-            {(statusFilter !== 'ALL' || monthFilter) && (
+            {monthFilter && (
               <div className="flex items-end">
                 <Button
                   variant="outline"
                   onClick={() => {
-                    setStatusFilter('ALL')
                     setMonthFilter('')
                   }}
                 >
@@ -288,19 +262,8 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
                     </div>
                     <div className="text-right">
                       <p className="text-xl font-bold text-slate-900">{formatCurrency(compensation.amount)}</p>
-                      <Badge
-                        variant={
-                          compensation.status === 'PAID' ? 'default' :
-                          compensation.status === 'CONFIRMED' ? 'secondary' : 'outline'
-                        }
-                        className={
-                          compensation.status === 'PAID' ? 'bg-green-100 text-green-800' :
-                          compensation.status === 'CONFIRMED' ? 'bg-blue-100 text-blue-800' :
-                          'bg-gray-100 text-gray-800'
-                        }
-                      >
-                        {compensation.status === 'PAID' ? '支払済み' :
-                         compensation.status === 'CONFIRMED' ? '確定済み' : '未確定'}
+                      <Badge className="bg-green-100 text-green-800">
+                        支払済み
                       </Badge>
                     </div>
                   </div>
