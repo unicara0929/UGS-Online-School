@@ -53,12 +53,22 @@ export function AdminCompensationManagement() {
 
   const fetchCompensations = async () => {
     try {
-      // 全ユーザーの報酬を取得（ADMIN APIが必要）
-      // 現時点では、個別に取得する必要があるかもしれません
-      // ここではモックデータを表示
-      setIsLoading(false)
+      setIsLoading(true)
+      const response = await fetch('/api/admin/compensations', {
+        credentials: 'include',
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || '報酬情報の取得に失敗しました')
+      }
+
+      setCompensations(data.compensations)
     } catch (error) {
       console.error('Error fetching compensations:', error)
+      alert(error instanceof Error ? error.message : '報酬情報の取得に失敗しました')
+    } finally {
       setIsLoading(false)
     }
   }
