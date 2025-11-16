@@ -22,14 +22,22 @@ UGSオンラインスクールは、教育・昇格・報酬管理・イベン�
 - 動画・PDF教材の配信
 
 ### 🏆 昇格システム
-- **FPエイド昇格条件**
-  - 基礎編テスト合格
-  - LP面談完了
-  - アンケート提出
-- **マネージャー昇格条件**
-  - 報酬実績（直近3ヶ月平均70,000円以上）
-  - 紹介実績（UGS会員8名以上、FPエイド4名以上）
-  - 契約実績（直20被保達成）
+- **FPエイド昇格**
+  - 昇格条件
+    - 基礎編テスト合格
+    - LP面談完了
+    - アンケート提出
+  - 申請機能と管理者承認フロー
+  - 申請履歴の確認
+
+- **マネージャー昇格**
+  - 昇格条件の自動判定
+    - 報酬実績（直近3ヶ月平均70,000円以上）
+    - 紹介実績（UGS会員8名以上、FPエイド4名以上）
+    - 契約実績（直20被保達成）
+  - ワンクリック申請機能
+  - 管理者承認・却下機能（理由付き）
+  - 申請履歴の確認と通知
 
 ### 💰 報酬管理
 - リアルタイム報酬ダッシュボード
@@ -43,10 +51,30 @@ UGSオンラインスクールは、教育・昇格・報酬管理・イベン�
 - 出欠管理と代替対応
 
 ### 🔔 通知システム
-- アクション必須通知（赤）
-- 情報通知（青）
-- 達成通知（緑）
+- アクション必須通知（高優先度）
+- 情報通知（通常）
+- 達成通知（成功）
+- 昇格申請の承認・却下通知
 - 次に取るべきアクションの明示
+- 既読・未読管理
+
+### 👨‍💼 管理者機能
+- **昇格申請管理**
+  - FPエイド・マネージャー昇格申請の一括管理
+  - タブ形式での分離表示
+  - 承認・却下処理（理由付き）
+- **報酬管理**
+  - 月次報酬の自動生成
+  - 報酬の承認・支払い管理
+- **イベント管理**
+  - イベントの作成・編集・削除
+  - 参加者管理
+- **ユーザー管理**
+  - ロール変更
+  - アカウント管理
+- **教材管理**
+  - 教材のアップロード・管理
+  - 閲覧権限設定
 
 ## 🎨 デザインシステム
 
@@ -71,16 +99,24 @@ UGSオンラインスクールは、教育・昇格・報酬管理・イベン�
 ## 🚀 技術スタック
 
 ### フロントエンド
-- **Framework**: Next.js 15
+- **Framework**: Next.js 15 (App Router)
 - **UI**: React 19 + TypeScript
 - **Styling**: Tailwind CSS 4
 - **Icons**: Lucide React
-- **Components**: Radix UI + カスタムコンポーネント
+- **Components**: Radix UI + shadcn/ui + カスタムコンポーネント
+
+### バックエンド
+- **Runtime**: Next.js API Routes
+- **Database**: PostgreSQL (Supabase)
+- **ORM**: Prisma
+- **Authentication**: Supabase Auth
+- **File Storage**: Supabase Storage
 
 ### 開発ツール
 - **Package Manager**: npm
 - **Build Tool**: Turbopack
 - **Code Quality**: TypeScript, ESLint
+- **Database Management**: Prisma Studio
 
 ## 📦 インストール・セットアップ
 
@@ -132,22 +168,36 @@ http://localhost:3000
 
 ```
 src/
-├── app/                    # Next.js App Router
-│   ├── login/             # ログインページ
-│   ├── courses/           # 教材ページ
-│   ├── compensation/      # 報酬管理ページ
-│   ├── promotion/         # 昇格管理ページ
-│   └── layout.tsx         # ルートレイアウト
-├── components/            # Reactコンポーネント
-│   ├── auth/             # 認証関連
-│   ├── ui/               # 基本UIコンポーネント
-│   ├── dashboard/        # ダッシュボード
-│   ├── courses/          # 教材関連
-│   ├── promotion/        # 昇格関連
-│   └── navigation/       # ナビゲーション
-├── contexts/             # React Context
-├── lib/                  # ユーティリティ・型定義
-└── styles/               # グローバルスタイル
+├── app/                           # Next.js App Router
+│   ├── api/                      # APIルート
+│   │   ├── admin/               # 管理者用API
+│   │   │   ├── compensations/  # 報酬管理
+│   │   │   ├── events/         # イベント管理
+│   │   │   ├── promotions/     # 昇格申請管理
+│   │   │   └── materials/      # 教材管理
+│   │   ├── promotions/         # 昇格関連API
+│   │   ├── compensations/      # 報酬API
+│   │   └── events/             # イベントAPI
+│   ├── dashboard/              # ダッシュボードページ
+│   │   ├── admin/             # 管理者画面
+│   │   ├── promotion/         # 昇格管理
+│   │   ├── compensation/      # 報酬管理
+│   │   └── events/            # イベント管理
+│   ├── login/                 # ログインページ
+│   └── layout.tsx             # ルートレイアウト
+├── components/                # Reactコンポーネント
+│   ├── auth/                 # 認証関連
+│   ├── ui/                   # 基本UIコンポーネント (shadcn/ui)
+│   ├── dashboard/            # ダッシュボード
+│   ├── promotion/            # 昇格関連
+│   ├── admin/                # 管理者コンポーネント
+│   └── navigation/           # ナビゲーション
+├── contexts/                 # React Context (認証など)
+├── lib/                      # ユーティリティ・サービス
+│   ├── services/            # ビジネスロジック
+│   ├── auth/                # 認証ヘルパー
+│   └── utils/               # ユーティリティ関数
+└── prisma/                   # Prismaスキーマ・マイグレーション
 ```
 
 ## 🔄 開発フロー
@@ -164,10 +214,12 @@ src/
 2. **Phase 2** ✅
    - 実践編教材解放
    - FP昇格後ガイダンス
-   - 報酬管理機能
+   - 報酬管理機能（月次報酬生成、承認、支払い管理）
    - イベント機能（基本）
    - 月初MTG管理
-   - Mgr昇格機能
+   - マネージャー昇格機能（条件判定、申請、管理者承認・却下）
+   - 昇格申請履歴表示
+   - 通知システム統合
 
 3. **Phase 3** (将来実装)
    - チーム管理機能
@@ -178,10 +230,12 @@ src/
 
 ## 🎯 今後の拡張予定
 
-- **決済システム**: Stripe統合
-- **動画配信**: AWS S3 + CloudFront
-- **通知**: Firebase Cloud Messaging
-- **分析**: 詳細なKPIダッシュボード
+- **決済システム**: Stripe統合 ✅ (実装済み)
+- **ファイルストレージ**: Supabase Storage統合 ✅ (実装済み)
+- **チーム管理**: ダウンライン管理、ツリー表示
+- **分析ダッシュボード**: 詳細なKPI・レポート機能
+- **CSV/PDFエクスポート**: 報酬明細、申請履歴の出力
+- **リアルタイム通知**: プッシュ通知対応
 - **モバイルアプリ**: React Native対応
 
 ## 📄 ライセンス
