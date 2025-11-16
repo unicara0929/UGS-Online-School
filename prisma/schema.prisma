@@ -132,9 +132,9 @@ model Event {
   date            DateTime
   time            String?
   type            EventType           @default(OPTIONAL) // 後方互換性のため残す（非推奨）
-  targetRole      EventTargetRole     @default(ALL) // 対象ロール: UGS会員 / FPエイド / マネージャー / 全員
+  targetRoles     EventTargetRole[]   // 対象ロール（複数選択可能）: UGS会員 / FPエイド / マネージャー / 全員
   attendanceType  EventAttendanceType @default(OPTIONAL) // 参加設定: 必須 / 任意
-  isOnline        Boolean             @default(true)
+  venueType       EventVenueType      @default(ONLINE) // 開催形式: オンライン / オフライン / ハイブリッド
   location        String?
   maxParticipants Int?
   status          EventStatus         @default(UPCOMING)
@@ -195,6 +195,12 @@ enum EventTargetRole {
 enum EventAttendanceType {
   REQUIRED  // 必須
   OPTIONAL  // 任意
+}
+
+enum EventVenueType {
+  ONLINE    // オンラインのみ
+  OFFLINE   // オフラインのみ
+  HYBRID    // ハイブリッド（オンライン＋オフライン両方）
 }
 
 enum EventStatus {
@@ -494,4 +500,27 @@ enum CancelRequestStatus {
   APPROVED
   REJECTED
   COMPLETED
+}
+
+model Material {
+  id             String                 @id @default(cuid())
+  title          String
+  description    String?
+  fileUrl        String? // ファイルURL（Supabase Storageなど）
+  fileName       String?
+  fileSize       String? // 例: "2.5MB"
+  fileType       String? // 例: "PDF", "DOCX"
+  category       String? // 例: "マニュアル", "テンプレート"
+  viewableRoles  MaterialViewableRole[] // 閲覧可能ロール（複数選択）
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+
+  @@map("materials")
+}
+
+enum MaterialViewableRole {
+  ADMIN   // 管理者
+  MANAGER // マネージャー
+  FP      // FPエイド
+  MEMBER  // UGS会員
 }
