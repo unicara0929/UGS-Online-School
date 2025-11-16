@@ -294,9 +294,9 @@ function AdminReferralsPageContent() {
                                 </div>
                               </div>
 
-                              {/* 被紹介者情報 */}
+                              {/* 入会者情報 */}
                               <div className="md:col-span-3">
-                                <div className="text-sm text-slate-500 mb-1">被紹介者</div>
+                                <div className="text-sm text-slate-500 mb-1">入会者</div>
                                 <div className="flex items-center space-x-2">
                                   <User className="h-4 w-4 text-slate-400" />
                                   <div>
