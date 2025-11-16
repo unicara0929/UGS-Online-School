@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
 
     // ユーザーのロールに基づいてイベントをフィルタリング
     const userRole = authUser!.role
-    const userTargetRole = USER_ROLE_TO_EVENT_TARGET_ROLE[userRole] || 'MEMBER'
+    const userTargetRole = USER_ROLE_TO_EVENT_TARGET_ROLE[userRole as keyof typeof USER_ROLE_TO_EVENT_TARGET_ROLE] || 'MEMBER'
 
     const eventsPromise = prisma.event.findMany({
       where: {
