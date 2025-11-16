@@ -3,10 +3,19 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   FileText,
   DollarSign,
-  Loader2
+  Loader2,
+  Filter
 } from "lucide-react"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { useAuth } from "@/contexts/auth-context"
@@ -15,6 +24,7 @@ interface Contract {
   id: string
   userId: string
   contractNumber: string
+  productName: string | null
   contractType: 'INSURANCE' | 'OTHER'
   status: 'ACTIVE' | 'CANCELLED' | 'EXPIRED'
   signedAt: string
@@ -27,18 +37,31 @@ export function ContractList() {
   const { user } = useAuth()
   const [contracts, setContracts] = useState<Contract[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [statusFilter, setStatusFilter] = useState<string>('ALL')
+  const [monthFilter, setMonthFilter] = useState<string>('')
 
   useEffect(() => {
     if (user?.id) {
       fetchContracts()
     }
-  }, [user?.id])
+  }, [user?.id, statusFilter, monthFilter])
 
   const fetchContracts = async () => {
     if (!user?.id) return
 
     try {
-      const response = await fetch('/api/contracts')
+      const params = new URLSearchParams()
+      if (statusFilter !== 'ALL') {
+        params.append('status', statusFilter)
+      }
+      if (monthFilter) {
+        params.append('month', monthFilter)
+      }
+
+      const queryString = params.toString()
+      const url = `/api/contracts${queryString ? `?${queryString}` : ''}`
+
+      const response = await fetch(url)
       if (!response.ok) {
         throw new Error('契約一覧の取得に失敗しました')
       }
@@ -120,6 +143,56 @@ export function ContractList() {
         </Card>
       </div>
 
+      {/* フィルタ */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            フィルタ
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <label className="text-sm font-medium mb-2 block">ステータス</label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="全て" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">全て</SelectItem>
+                  <SelectItem value="ACTIVE">有効</SelectItem>
+                  <SelectItem value="CANCELLED">解約</SelectItem>
+                  <SelectItem value="EXPIRED">期限切れ</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex-1">
+              <label className="text-sm font-medium mb-2 block">契約月</label>
+              <input
+                type="month"
+                value={monthFilter}
+                onChange={(e) => setMonthFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-500"
+              />
+            </div>
+            {(statusFilter !== 'ALL' || monthFilter) && (
+              <div className="flex items-end">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setStatusFilter('ALL')
+                    setMonthFilter('')
+                  }}
+                >
+                  クリア
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* 契約一覧 */}
       <Card>
         <CardHeader>
@@ -148,6 +221,9 @@ export function ContractList() {
                       <FileText className="h-5 w-5 text-slate-600" />
                       <div>
                         <p className="font-medium text-slate-900">{contract.contractNumber}</p>
+                        {contract.productName && (
+                          <p className="text-sm font-medium text-slate-700">{contract.productName}</p>
+                        )}
                         <p className="text-sm text-slate-600">{getContractTypeLabel(contract.contractType)}</p>
                       </div>
                     </div>

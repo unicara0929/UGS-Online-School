@@ -5,6 +5,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { formatCurrency } from "@/lib/utils"
 import {
   DollarSign,
@@ -14,7 +21,8 @@ import {
   Calendar,
   Users,
   FileText,
-  Loader2
+  Loader2,
+  Filter
 } from "lucide-react"
 
 interface CompensationDashboardProps {
@@ -26,6 +34,7 @@ interface Compensation {
   userId: string
   month: string
   amount: number
+  contractCount: number
   breakdown: {
     memberReferral: number
     fpReferral: number
@@ -50,6 +59,8 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
   const [stats, setStats] = useState<CompensationStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [statusFilter, setStatusFilter] = useState<string>('ALL')
+  const [monthFilter, setMonthFilter] = useState<string>('')
 
   useEffect(() => {
     if (userRole !== 'member') {
@@ -57,12 +68,24 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
     } else {
       setIsLoading(false)
     }
-  }, [userRole])
+  }, [userRole, statusFilter, monthFilter])
 
   const fetchCompensations = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch('/api/compensations', {
+
+      const params = new URLSearchParams()
+      if (statusFilter !== 'ALL') {
+        params.append('status', statusFilter)
+      }
+      if (monthFilter) {
+        params.append('month', monthFilter)
+      }
+
+      const queryString = params.toString()
+      const url = `/api/compensations${queryString ? `?${queryString}` : ''}`
+
+      const response = await fetch(url, {
         credentials: 'include',
       })
 
@@ -191,66 +214,116 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
         </Card>
       </div>
 
-      {/* 今月の報酬内訳 */}
-      {stats?.currentMonth && (
+      {/* フィルタ */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            フィルタ
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <label className="text-sm font-medium mb-2 block">ステータス</label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="全て" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">全て</SelectItem>
+                  <SelectItem value="PENDING">未確定</SelectItem>
+                  <SelectItem value="CONFIRMED">確定済み</SelectItem>
+                  <SelectItem value="PAID">支払済み</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex-1">
+              <label className="text-sm font-medium mb-2 block">対象月</label>
+              <input
+                type="month"
+                value={monthFilter}
+                onChange={(e) => setMonthFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-500"
+              />
+            </div>
+            {(statusFilter !== 'ALL' || monthFilter) && (
+              <div className="flex items-end">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setStatusFilter('ALL')
+                    setMonthFilter('')
+                  }}
+                >
+                  クリア
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 報酬一覧 */}
+      {compensations.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>今月の報酬内訳</CardTitle>
-            <CardDescription>{stats.currentMonth.month}の詳細</CardDescription>
+            <CardTitle>報酬履歴</CardTitle>
+            <CardDescription>月別の報酬サマリー</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <Users className="h-4 w-4 mr-2 text-slate-600" />
-                  <span className="text-sm">UGS会員紹介報酬</span>
-                </div>
-                <span className="font-medium">{formatCurrency(stats.currentMonth.breakdown.memberReferral)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <Users className="h-4 w-4 mr-2 text-slate-600" />
-                  <span className="text-sm">FPエイド紹介報酬</span>
-                </div>
-                <span className="font-medium">{formatCurrency(stats.currentMonth.breakdown.fpReferral)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <FileText className="h-4 w-4 mr-2 text-slate-600" />
-                  <span className="text-sm">契約報酬</span>
-                </div>
-                <span className="font-medium">{formatCurrency(stats.currentMonth.breakdown.contract)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <TrendingUp className="h-4 w-4 mr-2 text-slate-600" />
-                  <span className="text-sm">ボーナス・インセンティブ</span>
-                </div>
-                <span className="font-medium">{formatCurrency(stats.currentMonth.breakdown.bonus)}</span>
-              </div>
-              {stats.currentMonth.breakdown.deduction > 0 && (
-                <div className="flex justify-between items-center text-red-600">
-                  <div className="flex items-center">
-                    <span className="text-sm">控除</span>
+              {compensations.map((compensation) => (
+                <div
+                  key={compensation.id}
+                  className="p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <Calendar className="h-5 w-5 text-slate-600" />
+                      <div>
+                        <p className="font-semibold text-slate-900">{compensation.month}</p>
+                        <p className="text-sm text-slate-600">契約件数: {compensation.contractCount}件</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xl font-bold text-slate-900">{formatCurrency(compensation.amount)}</p>
+                      <Badge
+                        variant={
+                          compensation.status === 'PAID' ? 'default' :
+                          compensation.status === 'CONFIRMED' ? 'secondary' : 'outline'
+                        }
+                        className={
+                          compensation.status === 'PAID' ? 'bg-green-100 text-green-800' :
+                          compensation.status === 'CONFIRMED' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                        }
+                      >
+                        {compensation.status === 'PAID' ? '支払済み' :
+                         compensation.status === 'CONFIRMED' ? '確定済み' : '未確定'}
+                      </Badge>
+                    </div>
                   </div>
-                  <span className="font-medium">-{formatCurrency(stats.currentMonth.breakdown.deduction)}</span>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                    <div>
+                      <p className="text-slate-600">会員紹介</p>
+                      <p className="font-medium">{formatCurrency(compensation.breakdown.memberReferral)}</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-600">FP紹介</p>
+                      <p className="font-medium">{formatCurrency(compensation.breakdown.fpReferral)}</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-600">契約報酬</p>
+                      <p className="font-medium">{formatCurrency(compensation.breakdown.contract)}</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-600">ボーナス</p>
+                      <p className="font-medium">{formatCurrency(compensation.breakdown.bonus)}</p>
+                    </div>
+                  </div>
                 </div>
-              )}
-              <hr className="border-slate-200" />
-              <div className="flex justify-between items-center font-bold">
-                <span>合計</span>
-                <span>{formatCurrency(stats.currentMonth.amount)}</span>
-              </div>
-            </div>
-            <div className="flex gap-2 mt-4">
-              <Button variant="outline" size="sm" disabled>
-                <Eye className="h-4 w-4 mr-2" />
-                PDF閲覧
-              </Button>
-              <Button variant="outline" size="sm" disabled>
-                <Download className="h-4 w-4 mr-2" />
-                CSV出力
-              </Button>
+              ))}
             </div>
           </CardContent>
         </Card>
