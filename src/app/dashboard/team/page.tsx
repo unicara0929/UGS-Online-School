@@ -1,60 +1,261 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { Loader2, Users, TrendingUp, FileCheck, Activity } from 'lucide-react'
+
+interface TeamMember {
+  id: string
+  name: string
+  email: string
+  role: string
+  createdAt: string
+  referralType: string
+  referralCreatedAt: string
+  subscription: {
+    status: string
+    currentPeriodEnd: string | null
+  } | null
+  stats: {
+    completedLessons: number
+    activeContracts: number
+  }
+}
+
+interface TeamStats {
+  totalMembers: number
+  activeMembers: number
+  totalCompletedLessons: number
+  avgCompletedLessons: number
+  totalActiveContracts: number
+  roleBreakdown: Record<string, number>
+  referralTypeBreakdown: Record<string, number>
+}
 
 export default function TeamPage() {
-  const placeholderMembers = [
-    { name: '田中 太郎', email: 'member@example.com', role: 'MEMBER', status: '学習中' },
-    { name: '佐藤 花子', email: 'fp@example.com', role: 'FP', status: '決済アクティブ' },
-  ]
+  const [members, setMembers] = useState<TeamMember[]>([])
+  const [stats, setStats] = useState<TeamStats | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetchTeamData()
+  }, [])
+
+  const fetchTeamData = async () => {
+    try {
+      setIsLoading(true)
+
+      // メンバー一覧と統計を並列で取得
+      const [membersResponse, statsResponse] = await Promise.all([
+        fetch('/api/team/members', { credentials: 'include' }),
+        fetch('/api/team/stats', { credentials: 'include' }),
+      ])
+
+      const membersData = await membersResponse.json()
+      const statsData = await statsResponse.json()
+
+      if (!membersResponse.ok || !membersData.success) {
+        throw new Error(membersData.error || 'メンバー情報の取得に失敗しました')
+      }
+
+      if (!statsResponse.ok || !statsData.success) {
+        throw new Error(statsData.error || '統計情報の取得に失敗しました')
+      }
+
+      setMembers(membersData.members)
+      setStats(statsData.stats)
+    } catch (err) {
+      console.error('Failed to fetch team data:', err)
+      setError(err instanceof Error ? err.message : 'データの取得に失敗しました')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const getRoleLabel = (role: string) => {
+    const labels: Record<string, string> = {
+      MEMBER: 'UGS会員',
+      FP: 'FPエイド',
+      MANAGER: 'マネージャー',
+      ADMIN: '管理者',
+    }
+    return labels[role] || role
+  }
+
+  const getRoleBadgeColor = (role: string) => {
+    const colors: Record<string, string> = {
+      MEMBER: 'bg-blue-100 text-blue-800',
+      FP: 'bg-green-100 text-green-800',
+      MANAGER: 'bg-purple-100 text-purple-800',
+      ADMIN: 'bg-red-100 text-red-800',
+    }
+    return colors[role] || 'bg-slate-100 text-slate-800'
+  }
+
+  const getSubscriptionStatus = (subscription: TeamMember['subscription']) => {
+    if (!subscription) return '未加入'
+    if (subscription.status === 'ACTIVE') return 'アクティブ'
+    if (subscription.status === 'CANCELED') return '解約済み'
+    return subscription.status
+  }
+
+  const getSubscriptionBadgeColor = (subscription: TeamMember['subscription']) => {
+    if (!subscription || subscription.status !== 'ACTIVE') {
+      return 'bg-slate-100 text-slate-600'
+    }
+    return 'bg-green-100 text-green-800'
+  }
+
+  if (isLoading) {
+    return (
+      <ProtectedRoute requiredRoles={['manager', 'admin']}>
+        <div className="min-h-screen p-6 flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+            <p className="text-slate-600">チーム情報を読み込み中...</p>
+          </div>
+        </div>
+      </ProtectedRoute>
+    )
+  }
+
+  if (error) {
+    return (
+      <ProtectedRoute requiredRoles={['manager', 'admin']}>
+        <div className="min-h-screen p-6 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="pt-6">
+              <p className="text-red-600">{error}</p>
+            </CardContent>
+          </Card>
+        </div>
+      </ProtectedRoute>
+    )
+  }
 
   return (
     <ProtectedRoute requiredRoles={['manager', 'admin']}>
       <div className="min-h-screen p-6 space-y-6 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">チーム管理</h1>
-          <p className="text-slate-600 mt-1">配下メンバーの一覧（プレースホルダー）</p>
+          <p className="text-slate-600 mt-1">紹介した配下メンバーの管理</p>
         </div>
 
-        <Card>
+        {/* 統計カード */}
+        {stats && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-slate-600">総メンバー数</CardTitle>
+                  <Users className="h-5 w-5 text-blue-600" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-slate-900">{stats.totalMembers}</p>
+                <p className="text-xs text-slate-500 mt-1">承認済み紹介</p>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-slate-600">アクティブ会員</CardTitle>
+                  <Activity className="h-5 w-5 text-green-600" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-slate-900">{stats.activeMembers}</p>
+                <p className="text-xs text-slate-500 mt-1">有料サブスクリプション</p>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-slate-600">平均学習進捗</CardTitle>
+                  <TrendingUp className="h-5 w-5 text-purple-600" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-slate-900">{stats.avgCompletedLessons}</p>
+                <p className="text-xs text-slate-500 mt-1">レッスン完了数/人</p>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-slate-600">契約実績</CardTitle>
+                  <FileCheck className="h-5 w-5 text-orange-600" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-slate-900">{stats.totalActiveContracts}</p>
+                <p className="text-xs text-slate-500 mt-1">アクティブな契約</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* メンバー一覧 */}
+        <Card className="shadow-lg">
           <CardHeader>
             <CardTitle>メンバー一覧</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>名前</TableHead>
-                  <TableHead>メール</TableHead>
-                  <TableHead>ステータス</TableHead>
-                  <TableHead>状況</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {placeholderMembers.map((m) => (
-                  <TableRow key={m.email}>
-                    <TableCell className="font-medium">{m.name}</TableCell>
-                    <TableCell>{m.email}</TableCell>
-                    <TableCell>{m.role}</TableCell>
-                    <TableCell>{m.status}</TableCell>
+            {members.length === 0 ? (
+              <div className="p-8 text-center text-slate-500">
+                <Users className="h-12 w-12 mx-auto mb-4 text-slate-400" />
+                <p>まだメンバーがいません</p>
+                <p className="text-sm mt-2">紹介リンクを共有して、メンバーを招待しましょう</p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>名前</TableHead>
+                    <TableHead>メール</TableHead>
+                    <TableHead>ロール</TableHead>
+                    <TableHead>サブスク状況</TableHead>
+                    <TableHead className="text-right">学習進捗</TableHead>
+                    <TableHead className="text-right">契約数</TableHead>
+                    <TableHead>紹介日</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>今後の実装予定</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="list-disc list-inside text-slate-700 space-y-1">
-              <li>メンバー招待（メール招待）</li>
-              <li>ステータス変更／昇格申請の承認フロー</li>
-              <li>学習・決済・成果の可視化（集計指標）</li>
-              <li>チーム別フィルタ／検索／エクスポート</li>
-            </ul>
+                </TableHeader>
+                <TableBody>
+                  {members.map((member) => (
+                    <TableRow key={member.id}>
+                      <TableCell className="font-medium">{member.name}</TableCell>
+                      <TableCell className="text-slate-600">{member.email}</TableCell>
+                      <TableCell>
+                        <Badge className={getRoleBadgeColor(member.role)}>
+                          {getRoleLabel(member.role)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getSubscriptionBadgeColor(member.subscription)}>
+                          {getSubscriptionStatus(member.subscription)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {member.stats.completedLessons} レッスン
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {member.stats.activeContracts} 件
+                      </TableCell>
+                      <TableCell className="text-slate-600">
+                        {new Date(member.referralCreatedAt).toLocaleDateString('ja-JP')}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
       </div>
