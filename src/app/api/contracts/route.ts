@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status') as ContractStatus | null
+    const month = searchParams.get('month') // YYYY-MM format
 
     // 認証ユーザーのデータのみを取得
     const where: any = {
@@ -33,6 +34,18 @@ export async function GET(request: NextRequest) {
 
     if (status) {
       where.status = status
+    }
+
+    // 月でフィルタリング（YYYY-MM形式）
+    if (month) {
+      const startDate = new Date(`${month}-01`)
+      const endDate = new Date(startDate)
+      endDate.setMonth(endDate.getMonth() + 1)
+
+      where.signedAt = {
+        gte: startDate,
+        lt: endDate
+      }
     }
 
     const contracts = await prisma.contract.findMany({
@@ -48,6 +61,7 @@ export async function GET(request: NextRequest) {
         id: contract.id,
         userId: contract.userId,
         contractNumber: contract.contractNumber,
+        productName: contract.productName,
         contractType: contract.contractType,
         status: contract.status,
         signedAt: contract.signedAt,

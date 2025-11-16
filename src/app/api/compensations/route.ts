@@ -19,11 +19,26 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const { searchParams } = new URL(request.url)
+    const monthFilter = searchParams.get('month') // YYYY-MM format
+    const statusFilter = searchParams.get('status') as 'PENDING' | 'CONFIRMED' | 'PAID' | null
+
+    // フィルタ条件を構築
+    const where: any = {
+      userId,
+    }
+
+    if (monthFilter) {
+      where.month = monthFilter
+    }
+
+    if (statusFilter) {
+      where.status = statusFilter
+    }
+
     // 自分の報酬を取得（新しい順）
     const compensations = await prisma.compensation.findMany({
-      where: {
-        userId,
-      },
+      where,
       orderBy: {
         month: 'desc',
       },
