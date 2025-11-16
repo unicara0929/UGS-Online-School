@@ -24,7 +24,9 @@ function AdminEventsPageContent() {
     description: "",
     date: "",
     time: "",
-    type: "optional",
+    type: "optional", // 後方互換性のため残す
+    targetRole: "all",
+    attendanceType: "optional",
     isOnline: true,
     location: "",
     maxParticipants: 50,
@@ -51,7 +53,9 @@ function AdminEventsPageContent() {
         description: event.description,
         date: event.date,
         time: event.time,
-        type: event.type,
+        type: event.type, // 後方互換性のため残す
+        targetRole: event.targetRole || 'all',
+        attendanceType: event.attendanceType || 'optional',
         isOnline: event.isOnline,
         location: event.location,
         maxParticipants: event.maxParticipants,
@@ -100,7 +104,9 @@ function AdminEventsPageContent() {
         description: "",
         date: "",
         time: "",
-        type: "optional",
+        type: "optional", // 後方互換性のため残す
+        targetRole: "all",
+        attendanceType: "optional",
         isOnline: true,
         location: "",
         maxParticipants: 50,
@@ -168,6 +174,24 @@ function AdminEventsPageContent() {
       case 'optional': return '任意'
       case 'manager-only': return 'Mgr限定'
       default: return type
+    }
+  }
+
+  const getTargetRoleLabel = (targetRole: string) => {
+    switch (targetRole) {
+      case 'all': return '全員'
+      case 'member': return 'UGS会員'
+      case 'fp': return 'FPエイド'
+      case 'manager': return 'マネージャー'
+      default: return targetRole
+    }
+  }
+
+  const getAttendanceTypeLabel = (attendanceType: string) => {
+    switch (attendanceType) {
+      case 'required': return '必須'
+      case 'optional': return '任意'
+      default: return attendanceType
     }
   }
 
@@ -272,16 +296,30 @@ function AdminEventsPageContent() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
-                        イベントタイプ
+                        対象ロール
                       </label>
                       <select
-                        value={newEvent.type}
-                        onChange={(e) => setNewEvent({...newEvent, type: e.target.value as CreateEventForm['type']})}
+                        value={newEvent.targetRole}
+                        onChange={(e) => setNewEvent({...newEvent, targetRole: e.target.value as CreateEventForm['targetRole']})}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                      >
+                        <option value="all">全員</option>
+                        <option value="member">UGS会員</option>
+                        <option value="fp">FPエイド</option>
+                        <option value="manager">マネージャー</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        参加設定
+                      </label>
+                      <select
+                        value={newEvent.attendanceType}
+                        onChange={(e) => setNewEvent({...newEvent, attendanceType: e.target.value as CreateEventForm['attendanceType']})}
                         className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
                       >
                         <option value="optional">任意</option>
                         <option value="required">必須</option>
-                        <option value="manager-only">Mgr限定</option>
                       </select>
                     </div>
                     <div>
@@ -402,9 +440,14 @@ function AdminEventsPageContent() {
                   <Card key={event.id} className="hover:shadow-xl transition-all duration-300">
                     <CardHeader>
                       <div className="flex items-center justify-between mb-2">
-                        <Badge variant={getEventTypeColor(event.type)}>
-                          {getEventTypeLabel(event.type)}
-                        </Badge>
+                        <div className="flex items-center space-x-2">
+                          <Badge variant="outline">
+                            {getTargetRoleLabel(event.targetRole)}
+                          </Badge>
+                          <Badge variant={event.attendanceType === 'required' ? 'destructive' : 'secondary'}>
+                            {getAttendanceTypeLabel(event.attendanceType)}
+                          </Badge>
+                        </div>
                         <div className="flex items-center space-x-2">
                           <Button size="sm" variant="outline">
                             <Edit className="h-4 w-4" />
@@ -492,7 +535,9 @@ type AdminEventItem = {
   description: string
   date: string
   time: string
-  type: 'required' | 'optional' | 'manager-only'
+  type: 'required' | 'optional' | 'manager-only' // 後方互換性のため残す
+  targetRole: 'member' | 'fp' | 'manager' | 'all'
+  attendanceType: 'required' | 'optional'
   isOnline: boolean
   location: string
   maxParticipants: number | null
@@ -512,7 +557,9 @@ type CreateEventForm = {
   description: string
   date: string
   time: string
-  type: 'required' | 'optional' | 'manager-only'
+  type: 'required' | 'optional' | 'manager-only' // 後方互換性のため残す
+  targetRole: 'member' | 'fp' | 'manager' | 'all'
+  attendanceType: 'required' | 'optional'
   isOnline: boolean
   location: string
   maxParticipants: number | null

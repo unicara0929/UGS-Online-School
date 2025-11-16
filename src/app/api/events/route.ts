@@ -8,10 +8,30 @@ const EVENT_TYPE_MAP = {
   MANAGER_ONLY: 'manager-only',
 } as const
 
+const EVENT_TARGET_ROLE_MAP = {
+  MEMBER: 'member',
+  FP: 'fp',
+  MANAGER: 'manager',
+  ALL: 'all',
+} as const
+
+const EVENT_ATTENDANCE_TYPE_MAP = {
+  REQUIRED: 'required',
+  OPTIONAL: 'optional',
+} as const
+
 const EVENT_STATUS_MAP = {
   UPCOMING: 'upcoming',
   COMPLETED: 'completed',
   CANCELLED: 'cancelled',
+} as const
+
+// ユーザーロールをEventTargetRoleにマッピング
+const USER_ROLE_TO_EVENT_TARGET_ROLE = {
+  MEMBER: 'MEMBER',
+  FP: 'FP',
+  MANAGER: 'MANAGER',
+  ADMIN: 'ALL', // 管理者は全イベントにアクセス可能
 } as const
 
 export async function GET(request: NextRequest) {
@@ -41,7 +61,17 @@ export async function GET(request: NextRequest) {
       setTimeout(() => reject(new Error('リクエストがタイムアウトしました')), 8000)
     })
 
+    // ユーザーのロールに基づいてイベントをフィルタリング
+    const userRole = authUser!.role
+    const userTargetRole = USER_ROLE_TO_EVENT_TARGET_ROLE[userRole] || 'MEMBER'
+
     const eventsPromise = prisma.event.findMany({
+      where: {
+        OR: [
+          { targetRole: 'ALL' }, // 全員対象のイベント
+          { targetRole: userTargetRole }, // ユーザーのロールに一致するイベント
+        ],
+      },
       orderBy: { date: 'asc' },
       include: includeOptions,
       take: 100, // 最大100件に制限
@@ -51,6 +81,8 @@ export async function GET(request: NextRequest) {
 
     const formattedEvents = events.map((event) => {
       const typeKey = event.type as keyof typeof EVENT_TYPE_MAP
+      const targetRoleKey = event.targetRole as keyof typeof EVENT_TARGET_ROLE_MAP
+      const attendanceTypeKey = event.attendanceType as keyof typeof EVENT_ATTENDANCE_TYPE_MAP
       const statusKey = event.status as keyof typeof EVENT_STATUS_MAP
 
       const currentParticipants =
@@ -68,7 +100,9 @@ export async function GET(request: NextRequest) {
         description: event.description ?? '',
         date: event.date.toISOString(),
         time: event.time ?? '',
-        type: EVENT_TYPE_MAP[typeKey] ?? 'optional',
+        type: EVENT_TYPE_MAP[typeKey] ?? 'optional', // 後方互換性のため残す
+        targetRole: EVENT_TARGET_ROLE_MAP[targetRoleKey] ?? 'all',
+        attendanceType: EVENT_ATTENDANCE_TYPE_MAP[attendanceTypeKey] ?? 'optional',
         isOnline: event.isOnline,
         location: event.location ?? '',
         maxParticipants: event.maxParticipants ?? null,

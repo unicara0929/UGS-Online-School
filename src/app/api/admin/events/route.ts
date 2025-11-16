@@ -8,6 +8,18 @@ const EVENT_TYPE_MAP = {
   MANAGER_ONLY: 'manager-only',
 } as const
 
+const EVENT_TARGET_ROLE_MAP = {
+  MEMBER: 'member',
+  FP: 'fp',
+  MANAGER: 'manager',
+  ALL: 'all',
+} as const
+
+const EVENT_ATTENDANCE_TYPE_MAP = {
+  REQUIRED: 'required',
+  OPTIONAL: 'optional',
+} as const
+
 const EVENT_STATUS_MAP = {
   UPCOMING: 'upcoming',
   COMPLETED: 'completed',
@@ -18,6 +30,18 @@ const EVENT_TYPE_INPUT_MAP: Record<string, 'REQUIRED' | 'OPTIONAL' | 'MANAGER_ON
   required: 'REQUIRED',
   optional: 'OPTIONAL',
   'manager-only': 'MANAGER_ONLY',
+}
+
+const EVENT_TARGET_ROLE_INPUT_MAP: Record<string, 'MEMBER' | 'FP' | 'MANAGER' | 'ALL'> = {
+  member: 'MEMBER',
+  fp: 'FP',
+  manager: 'MANAGER',
+  all: 'ALL',
+}
+
+const EVENT_ATTENDANCE_TYPE_INPUT_MAP: Record<string, 'REQUIRED' | 'OPTIONAL'> = {
+  required: 'REQUIRED',
+  optional: 'OPTIONAL',
 }
 
 const EVENT_STATUS_INPUT_MAP: Record<string, 'UPCOMING' | 'COMPLETED' | 'CANCELLED'> = {
@@ -56,6 +80,8 @@ export async function GET(request: NextRequest) {
 
     const formattedEvents = events.map((event) => {
       const typeKey = event.type as keyof typeof EVENT_TYPE_MAP
+      const targetRoleKey = event.targetRole as keyof typeof EVENT_TARGET_ROLE_MAP
+      const attendanceTypeKey = event.attendanceType as keyof typeof EVENT_ATTENDANCE_TYPE_MAP
       const statusKey = event.status as keyof typeof EVENT_STATUS_MAP
 
       return {
@@ -64,7 +90,9 @@ export async function GET(request: NextRequest) {
         description: event.description ?? '',
         date: event.date.toISOString(),
         time: event.time ?? '',
-        type: EVENT_TYPE_MAP[typeKey] ?? 'optional',
+        type: EVENT_TYPE_MAP[typeKey] ?? 'optional', // 後方互換性のため残す
+        targetRole: EVENT_TARGET_ROLE_MAP[targetRoleKey] ?? 'all',
+        attendanceType: EVENT_ATTENDANCE_TYPE_MAP[attendanceTypeKey] ?? 'optional',
         isOnline: event.isOnline,
         location: event.location ?? '',
         maxParticipants: event.maxParticipants ?? null,
@@ -106,7 +134,9 @@ export async function POST(request: NextRequest) {
       description,
       date,
       time,
-      type = 'optional',
+      type = 'optional', // 後方互換性のため残す
+      targetRole = 'all',
+      attendanceType = 'optional',
       isOnline = true,
       location,
       maxParticipants,
@@ -121,6 +151,8 @@ export async function POST(request: NextRequest) {
     }
 
     const eventType = EVENT_TYPE_INPUT_MAP[type] ?? 'OPTIONAL'
+    const eventTargetRole = EVENT_TARGET_ROLE_INPUT_MAP[targetRole] ?? 'ALL'
+    const eventAttendanceType = EVENT_ATTENDANCE_TYPE_INPUT_MAP[attendanceType] ?? 'OPTIONAL'
     const eventStatus = EVENT_STATUS_INPUT_MAP[status] ?? 'UPCOMING'
 
     const createdEvent = await prisma.event.create({
@@ -129,13 +161,18 @@ export async function POST(request: NextRequest) {
         description,
         date: new Date(date),
         time,
-        type: eventType,
+        type: eventType, // 後方互換性のため残す
+        targetRole: eventTargetRole,
+        attendanceType: eventAttendanceType,
         isOnline,
         location,
         maxParticipants: maxParticipants !== undefined ? Number(maxParticipants) : null,
         status: eventStatus,
       },
     })
+
+    const targetRoleKey = createdEvent.targetRole as keyof typeof EVENT_TARGET_ROLE_MAP
+    const attendanceTypeKey = createdEvent.attendanceType as keyof typeof EVENT_ATTENDANCE_TYPE_MAP
 
     return NextResponse.json({
       success: true,
@@ -145,7 +182,9 @@ export async function POST(request: NextRequest) {
         description: createdEvent.description ?? '',
         date: createdEvent.date.toISOString(),
         time: createdEvent.time ?? '',
-        type,
+        type, // 後方互換性のため残す
+        targetRole: EVENT_TARGET_ROLE_MAP[targetRoleKey] ?? 'all',
+        attendanceType: EVENT_ATTENDANCE_TYPE_MAP[attendanceTypeKey] ?? 'optional',
         isOnline: createdEvent.isOnline,
         location: createdEvent.location ?? '',
         maxParticipants: createdEvent.maxParticipants ?? null,
