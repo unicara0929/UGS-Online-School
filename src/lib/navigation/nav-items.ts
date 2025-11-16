@@ -46,6 +46,7 @@ export const navigation: NavItem[] = [
   { name: 'イベント管理', href: '/dashboard/admin/events', icon: Calendar, roles: ['admin'] },
   { name: 'LP面談管理（管理者）', href: '/dashboard/admin/lp-meetings', icon: MessageSquare, roles: ['admin'] },
   { name: '昇格申請管理', href: '/dashboard/admin/promotions', icon: Award, roles: ['admin'] },
+  { name: '紹介管理（管理者）', href: '/dashboard/admin/referrals', icon: UserPlus, roles: ['admin'] },
   { name: '報酬管理（管理者）', href: '/dashboard/admin/compensations', icon: DollarSign, roles: ['admin'] },
   { name: 'チーム管理', href: '/dashboard/team', icon: Users, roles: ['manager', 'admin'] },
   { name: '分析', href: '/dashboard/analytics', icon: BarChart3, roles: ['admin'] },
