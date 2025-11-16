@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react'
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { Sidebar } from "@/components/navigation/sidebar"
+import { PageHeader } from "@/components/dashboard/page-header"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/contexts/auth-context"
-import { LogOut, Calendar, Clock, Video, CheckCircle, XCircle, Loader2, Plus, X } from "lucide-react"
+import { Calendar, Clock, Video, CheckCircle, XCircle, Loader2, Plus, X } from "lucide-react"
 import { formatDateTime } from "@/lib/utils/format"
 import { authenticatedFetch } from "@/lib/utils/api-client"
 
@@ -39,7 +40,7 @@ interface LPMeeting {
 }
 
 function LPMeetingRequestPageContent() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const [meeting, setMeeting] = useState<LPMeeting | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -210,29 +211,7 @@ function LPMeetingRequestPageContent() {
       <Sidebar />
 
       <div className="flex-1 md:ml-64">
-        <header className="bg-white shadow-lg border-b border-slate-200">
-          <div className="px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div className="flex items-center">
-                <h1 className="text-2xl font-bold text-slate-900">LP面談予約</h1>
-              </div>
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-medium">
-                      {user?.name.charAt(0)}
-                    </span>
-                  </div>
-                  <span className="text-sm font-medium text-slate-700">{user?.name}</span>
-                  <Button variant="ghost" size="sm" onClick={logout}>
-                    <LogOut className="h-4 w-4 mr-1" />
-                    ログアウト
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
+        <PageHeader title="LP面談予約" />
 
         <main className="px-4 sm:px-6 lg:px-8 py-8">
           {meeting && !showRequestForm ? (
