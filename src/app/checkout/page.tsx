@@ -13,17 +13,29 @@ export const dynamic = 'force-dynamic'
 function CheckoutContent() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [referralCode, setReferralCode] = useState<string | null>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
   const email = searchParams.get('email')
   const name = searchParams.get('name')
+
+  // LocalStorageから紹介コードを取得
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedRef = localStorage.getItem('referralCode')
+      if (savedRef) {
+        setReferralCode(savedRef)
+        console.log('Referral code loaded for checkout:', savedRef)
+      }
+    }
+  }, [])
 
   const handleCheckout = async () => {
     setIsLoading(true)
     setError('')
 
     try {
-      // Stripe Checkout Sessionを作成
+      // Stripe Checkout Sessionを作成（紹介コードも含める）
       const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: {
@@ -32,6 +44,7 @@ function CheckoutContent() {
         body: JSON.stringify({
           email: email,
           name: name,
+          referralCode: referralCode, // 紹介コードを追加
         }),
       })
 

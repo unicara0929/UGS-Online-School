@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/contexts/auth-context'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -20,8 +20,28 @@ export function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [logoError, setLogoError] = useState(false)
+  const [referralCode, setReferralCode] = useState<string | null>(null)
   const { register } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // URLから紹介コードを取得し、LocalStorageに保存
+  useEffect(() => {
+    const refParam = searchParams.get('ref')
+    if (refParam) {
+      // LocalStorageに保存（ページ遷移しても保持）
+      localStorage.setItem('referralCode', refParam)
+      setReferralCode(refParam)
+      console.log('Referral code saved:', refParam)
+    } else {
+      // URLにrefがない場合、LocalStorageから取得
+      const savedRef = localStorage.getItem('referralCode')
+      if (savedRef) {
+        setReferralCode(savedRef)
+        console.log('Referral code loaded from storage:', savedRef)
+      }
+    }
+  }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -48,7 +68,7 @@ export function RegisterForm() {
     }
 
     try {
-      // 仮登録ユーザーを保存
+      // 仮登録ユーザーを保存（紹介コードも一緒に送る）
       const response = await fetch('/api/pending-users', {
         method: 'POST',
         headers: {
@@ -56,7 +76,8 @@ export function RegisterForm() {
         },
         body: JSON.stringify({
           email: formData.email,
-          name: formData.name
+          name: formData.name,
+          referralCode: referralCode // 紹介コードを含める
         })
       })
 

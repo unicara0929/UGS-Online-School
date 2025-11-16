@@ -3,8 +3,8 @@ import { stripe } from '@/lib/stripe'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, name } = await request.json()
-    console.log('Creating checkout session for:', { email, name })
+    const { email, name, referralCode } = await request.json()
+    console.log('Creating checkout session for:', { email, name, referralCode })
     console.log('Environment variables:', {
       hasStripeSecretKey: !!process.env.STRIPE_SECRET_KEY,
       appUrl: process.env.NEXT_PUBLIC_APP_URL
@@ -67,8 +67,19 @@ export async function POST(request: NextRequest) {
       throw new Error(`Failed to get or create price: ${err.message}`)
     }
 
-    // Checkout Sessionを作成
+    // Checkout Sessionを作成（紹介コードをmetadataに含める）
     console.log('Creating checkout session with price:', priceId)
+    const sessionMetadata: Record<string, string> = {
+      userName: name,
+      userEmail: email,
+    }
+
+    // 紹介コードがある場合、metadataに追加
+    if (referralCode) {
+      sessionMetadata.referralCode = referralCode
+      console.log('Referral code added to session metadata:', referralCode)
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -79,17 +90,11 @@ export async function POST(request: NextRequest) {
       ],
       mode: 'subscription',
       customer_email: email,
-      metadata: {
-        userName: name,
-        userEmail: email,
-      },
+      metadata: sessionMetadata,
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`,
       subscription_data: {
-        metadata: {
-          userName: name,
-          userEmail: email,
-        },
+        metadata: sessionMetadata,
       },
     })
     console.log('Checkout session created:', session.id)
