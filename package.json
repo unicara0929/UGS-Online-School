@@ -9,7 +9,11 @@
     "setup:storage": "tsx scripts/setup-storage.ts",
     "test:api": "tsx scripts/test-api.ts",
     "test:api:http": "tsx scripts/test-api-http.ts",
-    "test:seed": "tsx scripts/seed-basic-test-survey.ts"
+    "test:seed": "tsx scripts/seed-basic-test-survey.ts",
+    "db:seed": "tsx prisma/seed.ts"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

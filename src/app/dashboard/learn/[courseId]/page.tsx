@@ -61,8 +61,8 @@ declare global {
   }
 }
 
-// モックデータ（コンポーネント外で定義）
-const COURSES: Course[] = [
+// モックデータは削除され、APIから取得するようになりました
+const COURSES_OLD: Course[] = [
   {
     id: "1",
     title: "所得を増やす",
@@ -174,14 +174,76 @@ function LearningPage() {
   const courseId = params.courseId as string
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
+  const [course, setCourse] = useState<Course | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const [currentLessonIndex, setCurrentLessonIndex] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
   const [lessonProgress, setLessonProgress] = useState(0)
   const [vimeoPlayer, setVimeoPlayer] = useState<any>(null)
 
-  // コースデータを取得（useCallbackより前に定義）
-  const course = COURSES.find(c => c.id === courseId)
+  // コースデータをAPIから取得
+  useEffect(() => {
+    const fetchCourse = async () => {
+      try {
+        setIsLoading(true)
+        const response = await fetch(`/api/courses/${courseId}`, {
+          credentials: 'include',
+        })
+
+        const data = await response.json()
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || 'コース情報の取得に失敗しました')
+        }
+
+        setCourse(data.course)
+      } catch (err) {
+        console.error('Failed to fetch course:', err)
+        setCourse(null)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchCourse()
+  }, [courseId])
+
   const currentLesson = course?.lessons[currentLessonIndex]
+
+  // レッスン完了を記録する関数
+  const handleCompleteLesson = async () => {
+    if (!course || !currentLesson) return
+
+    try {
+      const response = await fetch('/api/courses/progress', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          courseId: course.id,
+          lessonId: currentLesson.id,
+          isCompleted: true,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        // コースデータを再取得して進捗を更新
+        const courseResponse = await fetch(`/api/courses/${courseId}`, {
+          credentials: 'include',
+        })
+        const courseData = await courseResponse.json()
+        if (courseResponse.ok && courseData.success) {
+          setCourse(courseData.course)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to mark lesson as complete:', err)
+    }
+  }
 
   // レッスンが切り替わったときに再生状態をリセット
   useEffect(() => {
@@ -289,6 +351,23 @@ function LearningPage() {
     }
   }, [vimeoPlayer])
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              </div>
+              <p className="text-slate-600">コースを読み込み中...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   if (!course) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -297,8 +376,8 @@ function LearningPage() {
             <div className="text-center">
               <h2 className="text-xl font-semibold text-slate-900 mb-2">コースが見つかりません</h2>
               <p className="text-slate-600 mb-4">指定されたコースは存在しません。</p>
-              <Button onClick={() => router.push('/dashboard')}>
-                ダッシュボードに戻る
+              <Button onClick={() => router.push('/dashboard/courses')}>
+                コース一覧に戻る
               </Button>
             </div>
           </CardContent>
@@ -360,12 +439,6 @@ function LearningPage() {
       // Vimeo Playerが初期化されていない場合は手動でトグル
       setIsPlaying(!isPlaying)
     }
-  }
-
-  const handleCompleteLesson = () => {
-    // レッスン完了の処理
-    setLessonProgress(100)
-    // 実際のアプリケーションでは、ここでAPIを呼び出してレッスン完了を記録
   }
 
   return (

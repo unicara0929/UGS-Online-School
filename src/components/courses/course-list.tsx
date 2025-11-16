@@ -1,18 +1,20 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { useAuth } from "@/contexts/auth-context"
-import { 
-  BookOpen, 
-  Lock, 
-  Play, 
+import {
+  BookOpen,
+  Lock,
+  Play,
   CheckCircle,
   Clock,
   FileText,
-  Video
+  Video,
+  Loader2
 } from "lucide-react"
 import Link from "next/link"
 
@@ -21,7 +23,7 @@ interface Course {
   title: string
   description: string
   category: 'income' | 'lifestyle' | 'startup'
-  level: 'basic' | 'advanced'
+  level: 'basic' | 'advanced' | 'intermediate'
   lessons: Lesson[]
   isLocked: boolean
   progress: number
@@ -38,64 +40,55 @@ interface Lesson {
 
 export function CourseList() {
   const { user, canAccessFPContent } = useAuth()
+  const [courses, setCourses] = useState<Course[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  // モックデータ
-  const courses: Course[] = [
-    {
-      id: "1",
-      title: "所得を増やす",
-      description: "マネーリテラシー全般 - 知識をつけて、稼ぐ力を育てる",
-      category: "income",
-      level: "basic",
-      progress: 25,
-      isLocked: false,
-      lessons: [
-        { id: "1-1", title: "お金の基本概念", description: "お金の本質と価値について学ぶ", duration: 15, isCompleted: true, order: 1 },
-        { id: "1-2", title: "収入の種類と特徴", description: "給与、事業収入、投資収入の違い", duration: 20, isCompleted: true, order: 2 },
-        { id: "1-3", title: "税金の基礎知識", description: "所得税、住民税の仕組み", duration: 25, isCompleted: false, order: 3 },
-        { id: "1-4", title: "社会保険制度", description: "健康保険、年金制度の理解", duration: 18, isCompleted: false, order: 4 },
-        { id: "1-5", title: "資産形成の考え方", description: "長期投資の重要性", duration: 22, isCompleted: false, order: 5 },
-        { id: "1-6", title: "リスクとリターン", description: "投資におけるリスク管理", duration: 16, isCompleted: false, order: 6 },
-        { id: "1-7", title: "複利の力", description: "複利効果の理解と活用", duration: 14, isCompleted: false, order: 7 },
-        { id: "1-8", title: "ライフプランニング基礎", description: "人生設計とお金の計画", duration: 28, isCompleted: false, order: 8 }
-      ]
-    },
-    {
-      id: "2",
-      title: "生き方を豊かにする",
-      description: "金融・経済を正しく理解し、お金を「怖いもの」から「使いこなす力」へ",
-      category: "lifestyle",
-      level: "basic",
-      progress: 0,
-      isLocked: false,
-      lessons: [
-        { id: "2-1", title: "金融リテラシー基礎", description: "金融の基本概念", duration: 20, isCompleted: false, order: 1 },
-        { id: "2-2", title: "経済の仕組み", description: "経済活動の理解", duration: 25, isCompleted: false, order: 2 },
-        { id: "2-3", title: "投資の基本", description: "投資の種類と特徴", duration: 22, isCompleted: false, order: 3 },
-        { id: "2-4", title: "保険の役割", description: "保険の必要性と選び方", duration: 18, isCompleted: false, order: 4 },
-        { id: "2-5", title: "ライフイベントとお金", description: "人生の節目でのお金の管理", duration: 24, isCompleted: false, order: 5 },
-        { id: "2-6", title: "消費者保護", description: "消費者としての権利と注意点", duration: 16, isCompleted: false, order: 6 },
-        { id: "2-7", title: "マインドセット", description: "豊かな人生のための考え方", duration: 20, isCompleted: false, order: 7 }
-      ]
-    },
-    {
-      id: "3",
-      title: "スタートアップ支援",
-      description: "ゼロから事業を立ち上げるために必要な知識・仕組みを学ぶ",
-      category: "startup",
-      level: "basic",
-      progress: 0,
-      isLocked: !canAccessFPContent(),
-      lessons: [
-        { id: "3-1", title: "起業の基礎知識", description: "起業に必要な基本知識", duration: 30, isCompleted: false, order: 1 },
-        { id: "3-2", title: "ビジネスモデル設計", description: "持続可能なビジネスモデル", duration: 35, isCompleted: false, order: 2 },
-        { id: "3-3", title: "マーケティング入門", description: "顧客獲得の基本戦略", duration: 28, isCompleted: false, order: 3 },
-        { id: "3-4", title: "セールス基礎", description: "営業スキルの基本", duration: 32, isCompleted: false, order: 4 },
-        { id: "3-5", title: "会計・財務基礎", description: "事業運営の財務管理", duration: 40, isCompleted: false, order: 5 },
-        { id: "3-6", title: "法務・コンプライアンス", description: "事業運営の法的要件", duration: 25, isCompleted: false, order: 6 }
-      ]
+  useEffect(() => {
+    fetchCourses()
+  }, [])
+
+  const fetchCourses = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch('/api/courses', {
+        credentials: 'include',
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'コース情報の取得に失敗しました')
+      }
+
+      setCourses(data.courses)
+    } catch (err) {
+      console.error('Failed to fetch courses:', err)
+      setError(err instanceof Error ? err.message : 'コース情報の取得に失敗しました')
+    } finally {
+      setIsLoading(false)
     }
-  ]
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-600">{error}</p>
+        <Button onClick={fetchCourses} className="mt-4">
+          再読み込み
+        </Button>
+      </div>
+    )
+  }
+
 
   const getCategoryLabel = (category: string) => {
     switch (category) {
