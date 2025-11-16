@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
                 bonus: data.bonusAmount,
                 deduction: 0,
               },
-              status: 'PENDING',
+              status: 'PAID',
             },
           })
           addedCount++
@@ -82,6 +82,7 @@ export async function POST(request: NextRequest) {
                 bonus: data.bonusAmount,
                 deduction: 0,
               },
+              status: 'PAID',
             },
           })
           updatedCount++

@@ -6,13 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
   DollarSign,
-  Calendar,
-  CheckCircle,
-  Clock,
-  Loader2,
-  Download,
-  Eye,
-  Upload
+  Upload,
+  Loader2
 } from "lucide-react"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { useAuth } from "@/contexts/auth-context"
@@ -43,9 +38,6 @@ export function AdminCompensationManagement() {
   const { user } = useAuth()
   const [compensations, setCompensations] = useState<Compensation[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [generateMonth, setGenerateMonth] = useState('')
-  const [showGenerateForm, setShowGenerateForm] = useState(false)
 
   useEffect(() => {
     if (user?.role === 'admin') {
@@ -75,79 +67,6 @@ export function AdminCompensationManagement() {
     }
   }
 
-  const handleGenerateCompensation = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (!generateMonth) return
-
-    setIsGenerating(true)
-    try {
-      const response = await fetch('/api/admin/compensations/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          month: generateMonth
-        })
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || '報酬生成に失敗しました')
-      }
-
-      const data = await response.json()
-      alert(`報酬生成が完了しました。成功: ${data.summary.succeeded}件、スキップ: ${data.summary.skipped}件、失敗: ${data.summary.failed}件`)
-      setShowGenerateForm(false)
-      setGenerateMonth('')
-      await fetchCompensations()
-    } catch (error: any) {
-      alert(error.message || '報酬生成に失敗しました')
-    } finally {
-      setIsGenerating(false)
-    }
-  }
-
-  const handleApprove = async (compensationId: string) => {
-    try {
-      const response = await fetch(`/api/admin/compensations/${compensationId}/approve`, {
-        method: 'POST'
-      })
-
-      if (!response.ok) {
-        throw new Error('報酬の承認に失敗しました')
-      }
-
-      await fetchCompensations()
-    } catch (error: any) {
-      alert(error.message || '報酬の承認に失敗しました')
-    }
-  }
-
-  const handlePay = async (compensationId: string) => {
-    try {
-      const response = await fetch(`/api/admin/compensations/${compensationId}/pay`, {
-        method: 'POST'
-      })
-
-      if (!response.ok) {
-        throw new Error('報酬の支払いマークに失敗しました')
-      }
-
-      await fetchCompensations()
-    } catch (error: any) {
-      alert(error.message || '報酬の支払いマークに失敗しました')
-    }
-  }
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'PAID':
-        return <Badge className="bg-green-100 text-green-800">支払済み</Badge>
-      case 'CONFIRMED':
-        return <Badge className="bg-blue-100 text-blue-800">承認済み</Badge>
-      default:
-        return <Badge className="bg-yellow-100 text-yellow-800">未承認</Badge>
-    }
-  }
 
   if (user?.role !== 'admin') {
     return (
@@ -171,83 +90,28 @@ export function AdminCompensationManagement() {
 
   return (
     <div className="space-y-6">
-      {/* 報酬生成フォーム */}
-      {showGenerateForm && (
-        <Card>
-          <CardHeader>
-            <CardTitle>月次報酬を生成</CardTitle>
-            <CardDescription>指定した月の報酬を自動計算して生成します</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleGenerateCompensation} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  対象月（YYYY-MM形式） *
-                </label>
-                <input
-                  type="month"
-                  value={generateMonth}
-                  onChange={(e) => setGenerateMonth(e.target.value)}
-                  required
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
-                />
-              </div>
-              <div className="flex space-x-2">
-                <Button type="submit" disabled={isGenerating}>
-                  {isGenerating ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      生成中...
-                    </>
-                  ) : (
-                    <>
-                      <DollarSign className="h-4 w-4 mr-2" />
-                      報酬を生成
-                    </>
-                  )}
-                </Button>
-                <Button type="button" variant="outline" onClick={() => setShowGenerateForm(false)}>
-                  キャンセル
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
-
       {/* 報酬一覧 */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>報酬管理</CardTitle>
-              <CardDescription>全ユーザーの報酬を管理します</CardDescription>
+              <CardDescription>全ユーザーの報酬を管理します（CSV一括アップロードで更新）</CardDescription>
             </div>
-            {!showGenerateForm && (
-              <div className="flex gap-2">
-                <Link href="/dashboard/admin/csv-upload">
-                  <Button variant="outline">
-                    <Upload className="h-4 w-4 mr-2" />
-                    CSV一括アップロード
-                  </Button>
-                </Link>
-                <Button onClick={() => setShowGenerateForm(true)}>
-                  <DollarSign className="h-4 w-4 mr-2" />
-                  報酬を生成
-                </Button>
-              </div>
-            )}
+            <Link href="/dashboard/admin/csv-upload">
+              <Button variant="outline">
+                <Upload className="h-4 w-4 mr-2" />
+                CSV一括アップロード
+              </Button>
+            </Link>
           </div>
         </CardHeader>
         <CardContent>
           {compensations.length === 0 ? (
             <div className="text-center py-8">
               <DollarSign className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-              <p className="text-slate-600">まだ報酬が生成されていません</p>
-              <Button onClick={() => setShowGenerateForm(true)} className="mt-4">
-                <DollarSign className="h-4 w-4 mr-2" />
-                最初の報酬を生成
-              </Button>
+              <p className="text-slate-600">まだ報酬データがありません</p>
+              <p className="text-sm text-slate-500 mt-2">CSV一括アップロードから報酬データを登録してください</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -279,27 +143,7 @@ export function AdminCompensationManagement() {
                     </div>
                   </div>
                   <div className="flex items-center space-x-4">
-                    {getStatusBadge(compensation.status)}
-                    {compensation.status === 'PENDING' && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleApprove(compensation.id)}
-                      >
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        承認
-                      </Button>
-                    )}
-                    {compensation.status === 'CONFIRMED' && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handlePay(compensation.id)}
-                      >
-                        <DollarSign className="h-4 w-4 mr-1" />
-                        支払済み
-                      </Button>
-                    )}
+                    <Badge className="bg-green-100 text-green-800">支払済み</Badge>
                   </div>
                 </div>
               ))}

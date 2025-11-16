@@ -21,7 +21,6 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const monthFilter = searchParams.get('month') // YYYY-MM format
-    const statusFilter = searchParams.get('status') as 'PENDING' | 'CONFIRMED' | 'PAID' | null
 
     // フィルタ条件を構築
     const where: any = {
@@ -30,10 +29,6 @@ export async function GET(request: NextRequest) {
 
     if (monthFilter) {
       where.month = monthFilter
-    }
-
-    if (statusFilter) {
-      where.status = statusFilter
     }
 
     // 自分の報酬を取得（新しい順）
@@ -53,9 +48,8 @@ export async function GET(request: NextRequest) {
     const currentMonthCompensation = compensations.find((c) => c.month === currentMonth)
     const lastMonthCompensation = compensations.find((c) => c.month === lastMonth)
 
-    // 総額計算（支払済みのみ）
-    const totalPaid = compensations
-      .filter((c) => c.status === 'PAID')
+    // 総額計算（全件）
+    const total = compensations
       .reduce((sum, c) => sum + c.amount, 0)
 
     // 直近3ヶ月の平均
@@ -86,7 +80,7 @@ export async function GET(request: NextRequest) {
       stats: {
         currentMonth: currentMonthCompensation || null,
         lastMonth: lastMonthCompensation || null,
-        total: totalPaid,
+        total,
         recentAverage,
         trend,
       },
