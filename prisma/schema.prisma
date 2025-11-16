@@ -131,7 +131,9 @@ model Event {
   description     String?
   date            DateTime
   time            String?
-  type            EventType           @default(OPTIONAL)
+  type            EventType           @default(OPTIONAL) // 後方互換性のため残す（非推奨）
+  targetRole      EventTargetRole     @default(ALL) // 対象ロール: UGS会員 / FPエイド / マネージャー / 全員
+  attendanceType  EventAttendanceType @default(OPTIONAL) // 参加設定: 必須 / 任意
   isOnline        Boolean             @default(true)
   location        String?
   maxParticipants Int?
@@ -181,6 +183,18 @@ enum EventType {
   REQUIRED
   OPTIONAL
   MANAGER_ONLY
+}
+
+enum EventTargetRole {
+  MEMBER    // UGS会員
+  FP        // FPエイド
+  MANAGER   // マネージャー
+  ALL       // 全員
+}
+
+enum EventAttendanceType {
+  REQUIRED  // 必須
+  OPTIONAL  // 任意
 }
 
 enum EventStatus {

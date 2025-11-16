@@ -81,7 +81,9 @@ function EventsPageContent() {
             description: event.description,
             date: event.date,
             time: event.time,
-            type: event.type,
+            type: event.type, // 後方互換性のため残す
+            targetRole: event.targetRole || 'all',
+            attendanceType: event.attendanceType || 'optional',
             isOnline: event.isOnline,
             location: event.location,
             maxParticipants: event.maxParticipants,
@@ -367,7 +369,9 @@ type EventItem = {
   description: string
   date: string
   time: string
-  type: 'required' | 'optional' | 'manager-only'
+  type: 'required' | 'optional' | 'manager-only' // 後方互換性のため残す
+  targetRole: 'member' | 'fp' | 'manager' | 'all'
+  attendanceType: 'required' | 'optional'
   isOnline: boolean
   location: string
   maxParticipants: number | null
