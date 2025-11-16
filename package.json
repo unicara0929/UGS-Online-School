@@ -6,6 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
+    "setup:storage": "tsx scripts/setup-storage.ts",
     "test:api": "tsx scripts/test-api.ts",
     "test:api:http": "tsx scripts/test-api-http.ts",
     "test:seed": "tsx scripts/seed-basic-test-survey.ts"
