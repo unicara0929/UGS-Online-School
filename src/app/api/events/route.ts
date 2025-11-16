@@ -26,6 +26,12 @@ const EVENT_STATUS_MAP = {
   CANCELLED: 'cancelled',
 } as const
 
+const EVENT_VENUE_TYPE_MAP = {
+  ONLINE: 'online',
+  OFFLINE: 'offline',
+  HYBRID: 'hybrid',
+} as const
+
 // ユーザーロールをEventTargetRoleにマッピング
 const USER_ROLE_TO_EVENT_TARGET_ROLE = {
   MEMBER: 'MEMBER',
@@ -68,8 +74,8 @@ export async function GET(request: NextRequest) {
     const eventsPromise = prisma.event.findMany({
       where: {
         OR: [
-          { targetRole: 'ALL' }, // 全員対象のイベント
-          { targetRole: userTargetRole }, // ユーザーのロールに一致するイベント
+          { targetRoles: { has: 'ALL' } }, // 全員対象のイベント
+          { targetRoles: { has: userTargetRole } }, // ユーザーのロールに一致するイベント
         ],
       },
       orderBy: { date: 'asc' },
@@ -81,12 +87,12 @@ export async function GET(request: NextRequest) {
 
     const formattedEvents = events.map((event) => {
       const typeKey = event.type as keyof typeof EVENT_TYPE_MAP
-      const targetRoleKey = event.targetRole as keyof typeof EVENT_TARGET_ROLE_MAP
       const attendanceTypeKey = event.attendanceType as keyof typeof EVENT_ATTENDANCE_TYPE_MAP
       const statusKey = event.status as keyof typeof EVENT_STATUS_MAP
+      const venueTypeKey = event.venueType as keyof typeof EVENT_VENUE_TYPE_MAP
 
       const currentParticipants =
-        '_count' in event ? event._count.registrations : 0
+        '_count' in event ? (event._count as { registrations: number }).registrations : 0
 
       const isRegistered =
         'registrations' in event
@@ -101,9 +107,9 @@ export async function GET(request: NextRequest) {
         date: event.date.toISOString(),
         time: event.time ?? '',
         type: EVENT_TYPE_MAP[typeKey] ?? 'optional', // 後方互換性のため残す
-        targetRole: EVENT_TARGET_ROLE_MAP[targetRoleKey] ?? 'all',
+        targetRoles: (event.targetRoles || []).map(role => EVENT_TARGET_ROLE_MAP[role as keyof typeof EVENT_TARGET_ROLE_MAP]),
         attendanceType: EVENT_ATTENDANCE_TYPE_MAP[attendanceTypeKey] ?? 'optional',
-        isOnline: event.isOnline,
+        venueType: EVENT_VENUE_TYPE_MAP[venueTypeKey] ?? 'online',
         location: event.location ?? '',
         maxParticipants: event.maxParticipants ?? null,
         currentParticipants,

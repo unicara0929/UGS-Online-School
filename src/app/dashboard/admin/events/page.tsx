@@ -25,9 +25,9 @@ function AdminEventsPageContent() {
     date: "",
     time: "",
     type: "optional", // 後方互換性のため残す
-    targetRole: "all",
+    targetRoles: [],
     attendanceType: "optional",
-    isOnline: true,
+    venueType: "online",
     location: "",
     maxParticipants: 50,
     status: "upcoming",
@@ -54,9 +54,9 @@ function AdminEventsPageContent() {
         date: event.date,
         time: event.time,
         type: event.type, // 後方互換性のため残す
-        targetRole: event.targetRole || 'all',
+        targetRoles: event.targetRoles || [],
         attendanceType: event.attendanceType || 'optional',
-        isOnline: event.isOnline,
+        venueType: event.venueType || 'online',
         location: event.location,
         maxParticipants: event.maxParticipants,
         status: event.status,
@@ -105,9 +105,9 @@ function AdminEventsPageContent() {
         date: "",
         time: "",
         type: "optional", // 後方互換性のため残す
-        targetRole: "all",
+        targetRoles: [],
         attendanceType: "optional",
-        isOnline: true,
+        venueType: "online",
         location: "",
         maxParticipants: 50,
         status: "upcoming",
@@ -295,19 +295,32 @@ function AdminEventsPageContent() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
-                        対象ロール
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        対象ロール（複数選択可）
                       </label>
-                      <select
-                        value={newEvent.targetRole}
-                        onChange={(e) => setNewEvent({...newEvent, targetRole: e.target.value as CreateEventForm['targetRole']})}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
-                      >
-                        <option value="all">全員</option>
-                        <option value="member">UGS会員</option>
-                        <option value="fp">FPエイド</option>
-                        <option value="manager">マネージャー</option>
-                      </select>
+                      <div className="space-y-2">
+                        {[
+                          { value: 'member' as const, label: 'UGS会員' },
+                          { value: 'fp' as const, label: 'FPエイド' },
+                          { value: 'manager' as const, label: 'マネージャー' },
+                          { value: 'all' as const, label: '全員' }
+                        ].map(role => (
+                          <label key={role.value} className="flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={newEvent.targetRoles.includes(role.value)}
+                              onChange={(e) => {
+                                const roles = e.target.checked
+                                  ? [...newEvent.targetRoles, role.value]
+                                  : newEvent.targetRoles.filter(r => r !== role.value)
+                                setNewEvent({...newEvent, targetRoles: roles})
+                              }}
+                              className="w-4 h-4 text-slate-600 bg-slate-100 border-slate-300 rounded focus:ring-slate-500 focus:ring-2"
+                            />
+                            <span className="ml-2 text-sm text-slate-700">{role.label}</span>
+                          </label>
+                        ))}
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -340,17 +353,27 @@ function AdminEventsPageContent() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
                         開催形式
                       </label>
-                      <select
-                        value={newEvent.isOnline ? "online" : "offline"}
-                        onChange={(e) => setNewEvent({...newEvent, isOnline: e.target.value === "online"})}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
-                      >
-                        <option value="online">オンライン</option>
-                        <option value="offline">オフライン</option>
-                      </select>
+                      <div className="space-y-2">
+                        {[
+                          { value: 'online' as const, label: 'オンライン' },
+                          { value: 'offline' as const, label: 'オフライン' },
+                          { value: 'hybrid' as const, label: 'ハイブリッド（オンライン＋オフライン）' }
+                        ].map(venue => (
+                          <label key={venue.value} className="flex items-center cursor-pointer">
+                            <input
+                              type="radio"
+                              name="venueType"
+                              checked={newEvent.venueType === venue.value}
+                              onChange={() => setNewEvent({...newEvent, venueType: venue.value})}
+                              className="w-4 h-4 text-slate-600 bg-slate-100 border-slate-300 focus:ring-slate-500 focus:ring-2"
+                            />
+                            <span className="ml-2 text-sm text-slate-700">{venue.label}</span>
+                          </label>
+                        ))}
+                      </div>
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -412,9 +435,9 @@ function AdminEventsPageContent() {
                           date: "",
                           time: "",
                           type: "optional",
-                          targetRole: "all",
+                          targetRoles: [],
                           attendanceType: "optional",
-                          isOnline: true,
+                          venueType: "online",
                           location: "",
                           maxParticipants: 50,
                           status: "upcoming",
@@ -442,10 +465,12 @@ function AdminEventsPageContent() {
                   <Card key={event.id} className="hover:shadow-xl transition-all duration-300">
                     <CardHeader>
                       <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          <Badge variant="outline">
-                            {getTargetRoleLabel(event.targetRole)}
-                          </Badge>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {event.targetRoles.map(role => (
+                            <Badge key={role} variant="outline">
+                              {getTargetRoleLabel(role)}
+                            </Badge>
+                          ))}
                           <Badge variant={event.attendanceType === 'required' ? 'destructive' : 'secondary'}>
                             {getAttendanceTypeLabel(event.attendanceType)}
                           </Badge>
@@ -478,12 +503,17 @@ function AdminEventsPageContent() {
                           {event.time || "時間未定"}
                         </div>
                         <div className="flex items-center text-sm text-slate-600">
-                          {event.isOnline ? (
+                          {event.venueType === 'online' ? (
                             <Video className="h-4 w-4 mr-2" />
-                          ) : (
+                          ) : event.venueType === 'offline' ? (
                             <MapPin className="h-4 w-4 mr-2" />
+                          ) : (
+                            <>
+                              <Video className="h-4 w-4 mr-1" />
+                              <MapPin className="h-4 w-4 mr-2" />
+                            </>
                           )}
-                          {event.location || (event.isOnline ? "オンライン" : "未設定")}
+                          {event.location || (event.venueType === 'online' ? "オンライン" : event.venueType === 'hybrid' ? "ハイブリッド" : "未設定")}
                         </div>
                         <div className="flex items-center text-sm text-slate-600">
                           <Users className="h-4 w-4 mr-2" />
@@ -538,9 +568,9 @@ type AdminEventItem = {
   date: string
   time: string
   type: 'required' | 'optional' | 'manager-only' // 後方互換性のため残す
-  targetRole: 'member' | 'fp' | 'manager' | 'all'
+  targetRoles: ('member' | 'fp' | 'manager' | 'all')[]
   attendanceType: 'required' | 'optional'
-  isOnline: boolean
+  venueType: 'online' | 'offline' | 'hybrid'
   location: string
   maxParticipants: number | null
   status: 'upcoming' | 'completed' | 'cancelled'
@@ -560,9 +590,9 @@ type CreateEventForm = {
   date: string
   time: string
   type: 'required' | 'optional' | 'manager-only' // 後方互換性のため残す
-  targetRole: 'member' | 'fp' | 'manager' | 'all'
+  targetRoles: ('member' | 'fp' | 'manager' | 'all')[] // 複数選択可能
   attendanceType: 'required' | 'optional'
-  isOnline: boolean
+  venueType: 'online' | 'offline' | 'hybrid' // オンライン / オフライン / ハイブリッド
   location: string
   maxParticipants: number | null
   status: 'upcoming' | 'completed' | 'cancelled'

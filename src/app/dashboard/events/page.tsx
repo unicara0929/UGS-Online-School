@@ -82,9 +82,9 @@ function EventsPageContent() {
             date: event.date,
             time: event.time,
             type: event.type, // 後方互換性のため残す
-            targetRole: event.targetRole || 'all',
+            targetRoles: event.targetRoles || [],
             attendanceType: event.attendanceType || 'optional',
-            isOnline: event.isOnline,
+            venueType: event.venueType || 'online',
             location: event.location,
             maxParticipants: event.maxParticipants,
             currentParticipants: event.currentParticipants,
@@ -292,10 +292,15 @@ function EventsPageContent() {
                           {event.time || '時間未定'}
                       </div>
                       <div className="flex items-center text-sm text-slate-600">
-                        {event.isOnline ? (
+                        {event.venueType === 'online' ? (
                           <Video className="h-4 w-4 mr-2" />
-                        ) : (
+                        ) : event.venueType === 'offline' ? (
                           <MapPin className="h-4 w-4 mr-2" />
+                        ) : (
+                          <>
+                            <Video className="h-4 w-4 mr-1" />
+                            <MapPin className="h-4 w-4 mr-2" />
+                          </>
                         )}
                         {event.location}
                       </div>
@@ -370,9 +375,9 @@ type EventItem = {
   date: string
   time: string
   type: 'required' | 'optional' | 'manager-only' // 後方互換性のため残す
-  targetRole: 'member' | 'fp' | 'manager' | 'all'
+  targetRoles: ('member' | 'fp' | 'manager' | 'all')[]
   attendanceType: 'required' | 'optional'
-  isOnline: boolean
+  venueType: 'online' | 'offline' | 'hybrid'
   location: string
   maxParticipants: number | null
   currentParticipants: number

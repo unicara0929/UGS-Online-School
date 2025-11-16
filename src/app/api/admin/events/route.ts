@@ -26,10 +26,22 @@ const EVENT_STATUS_MAP = {
   CANCELLED: 'cancelled',
 } as const
 
+const EVENT_VENUE_TYPE_MAP = {
+  ONLINE: 'online',
+  OFFLINE: 'offline',
+  HYBRID: 'hybrid',
+} as const
+
 const EVENT_TYPE_INPUT_MAP: Record<string, 'REQUIRED' | 'OPTIONAL' | 'MANAGER_ONLY'> = {
   required: 'REQUIRED',
   optional: 'OPTIONAL',
   'manager-only': 'MANAGER_ONLY',
+}
+
+const EVENT_VENUE_TYPE_INPUT_MAP: Record<string, 'ONLINE' | 'OFFLINE' | 'HYBRID'> = {
+  online: 'ONLINE',
+  offline: 'OFFLINE',
+  hybrid: 'HYBRID',
 }
 
 const EVENT_TARGET_ROLE_INPUT_MAP: Record<string, 'MEMBER' | 'FP' | 'MANAGER' | 'ALL'> = {
@@ -80,9 +92,9 @@ export async function GET(request: NextRequest) {
 
     const formattedEvents = events.map((event) => {
       const typeKey = event.type as keyof typeof EVENT_TYPE_MAP
-      const targetRoleKey = event.targetRole as keyof typeof EVENT_TARGET_ROLE_MAP
       const attendanceTypeKey = event.attendanceType as keyof typeof EVENT_ATTENDANCE_TYPE_MAP
       const statusKey = event.status as keyof typeof EVENT_STATUS_MAP
+      const venueTypeKey = event.venueType as keyof typeof EVENT_VENUE_TYPE_MAP
 
       return {
         id: event.id,
@@ -91,9 +103,9 @@ export async function GET(request: NextRequest) {
         date: event.date.toISOString(),
         time: event.time ?? '',
         type: EVENT_TYPE_MAP[typeKey] ?? 'optional', // 後方互換性のため残す
-        targetRole: EVENT_TARGET_ROLE_MAP[targetRoleKey] ?? 'all',
+        targetRoles: (event.targetRoles || []).map(role => EVENT_TARGET_ROLE_MAP[role as keyof typeof EVENT_TARGET_ROLE_MAP]),
         attendanceType: EVENT_ATTENDANCE_TYPE_MAP[attendanceTypeKey] ?? 'optional',
-        isOnline: event.isOnline,
+        venueType: EVENT_VENUE_TYPE_MAP[venueTypeKey] ?? 'online',
         location: event.location ?? '',
         maxParticipants: event.maxParticipants ?? null,
         status: EVENT_STATUS_MAP[statusKey] ?? 'upcoming',
@@ -135,9 +147,9 @@ export async function POST(request: NextRequest) {
       date,
       time,
       type = 'optional', // 後方互換性のため残す
-      targetRole = 'all',
+      targetRoles = [],
       attendanceType = 'optional',
-      isOnline = true,
+      venueType = 'online',
       location,
       maxParticipants,
       status = 'upcoming',
@@ -151,8 +163,9 @@ export async function POST(request: NextRequest) {
     }
 
     const eventType = EVENT_TYPE_INPUT_MAP[type] ?? 'OPTIONAL'
-    const eventTargetRole = EVENT_TARGET_ROLE_INPUT_MAP[targetRole] ?? 'ALL'
+    const eventTargetRoles = targetRoles.map((role: string) => EVENT_TARGET_ROLE_INPUT_MAP[role] ?? 'ALL')
     const eventAttendanceType = EVENT_ATTENDANCE_TYPE_INPUT_MAP[attendanceType] ?? 'OPTIONAL'
+    const eventVenueType = EVENT_VENUE_TYPE_INPUT_MAP[venueType] ?? 'ONLINE'
     const eventStatus = EVENT_STATUS_INPUT_MAP[status] ?? 'UPCOMING'
 
     const createdEvent = await prisma.event.create({
@@ -162,17 +175,17 @@ export async function POST(request: NextRequest) {
         date: new Date(date),
         time,
         type: eventType, // 後方互換性のため残す
-        targetRole: eventTargetRole,
+        targetRoles: eventTargetRoles,
         attendanceType: eventAttendanceType,
-        isOnline,
+        venueType: eventVenueType,
         location,
         maxParticipants: maxParticipants !== undefined ? Number(maxParticipants) : null,
         status: eventStatus,
       },
     })
 
-    const targetRoleKey = createdEvent.targetRole as keyof typeof EVENT_TARGET_ROLE_MAP
     const attendanceTypeKey = createdEvent.attendanceType as keyof typeof EVENT_ATTENDANCE_TYPE_MAP
+    const venueTypeKey = createdEvent.venueType as keyof typeof EVENT_VENUE_TYPE_MAP
 
     return NextResponse.json({
       success: true,
@@ -183,9 +196,9 @@ export async function POST(request: NextRequest) {
         date: createdEvent.date.toISOString(),
         time: createdEvent.time ?? '',
         type, // 後方互換性のため残す
-        targetRole: EVENT_TARGET_ROLE_MAP[targetRoleKey] ?? 'all',
+        targetRoles: (createdEvent.targetRoles || []).map(role => EVENT_TARGET_ROLE_MAP[role as keyof typeof EVENT_TARGET_ROLE_MAP]),
         attendanceType: EVENT_ATTENDANCE_TYPE_MAP[attendanceTypeKey] ?? 'optional',
-        isOnline: createdEvent.isOnline,
+        venueType: EVENT_VENUE_TYPE_MAP[venueTypeKey] ?? 'online',
         location: createdEvent.location ?? '',
         maxParticipants: createdEvent.maxParticipants ?? null,
         status,
