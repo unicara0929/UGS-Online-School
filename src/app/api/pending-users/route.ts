@@ -9,10 +9,10 @@ import {
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, name, referralCode } = await request.json()
+    const { email, name, password, referralCode } = await request.json()
 
-    if (!email || !name) {
-      return createValidationErrorResponse('Email and name are required')
+    if (!email || !name || !password) {
+      return createValidationErrorResponse('Email, name, and password are required')
     }
 
     // 既存の仮登録ユーザーをチェック
@@ -33,11 +33,12 @@ export async function POST(request: NextRequest) {
       return createConflictErrorResponse('このメールアドレスは既に登録されています')
     }
 
-    // 仮登録ユーザーを作成（紹介コードも保存）
+    // 仮登録ユーザーを作成（紹介コードとハッシュ化されたパスワードも保存）
     const pendingUser = await prisma.pendingUser.create({
       data: {
         email,
         name,
+        password, // ハッシュ化されたパスワードを保存
         referralCode: referralCode || null, // 紹介コードがあれば保存
       }
     })

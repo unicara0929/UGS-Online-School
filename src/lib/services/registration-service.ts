@@ -10,25 +10,28 @@ import { generateUniqueReferralCode } from '@/lib/services/referral-code-generat
 
 /**
  * Supabaseユーザーの作成または取得
+ * @param email ユーザーのメールアドレス
+ * @param name ユーザーの名前
+ * @param password ハッシュ化されたパスワード（PendingUserから取得）
  */
-export async function findOrCreateSupabaseUser(email: string, name: string) {
+export async function findOrCreateSupabaseUser(email: string, name: string, password: string) {
   const { data: existingUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers()
-  
+
   if (listError) {
     throw new Error(`Supabaseユーザー一覧の取得に失敗しました: ${listError.message}`)
   }
-  
+
   const existingUser = existingUsers?.users.find(u => u.email === email)
-  
+
   if (existingUser) {
     console.log('Using existing Supabase user:', { userId: existingUser.id, email })
     return { user: existingUser }
   }
-  
-  // 新規ユーザーを作成
+
+  // 新規ユーザーを作成（PendingUserから取得したパスワードを使用）
   const { data: newUser, error: supabaseError } = await supabaseAdmin.auth.admin.createUser({
     email,
-    password: 'temp_password_' + Math.random().toString(36).substring(7),
+    password: password, // PendingUserから取得したハッシュ化されたパスワードを使用
     user_metadata: {
       name,
       role: 'MEMBER'
@@ -40,7 +43,7 @@ export async function findOrCreateSupabaseUser(email: string, name: string) {
     throw new Error(`Supabaseユーザー作成に失敗しました: ${supabaseError.message}`)
   }
 
-  console.log('Supabase user created:', { userId: newUser.user.id, email })
+  console.log('Supabase user created with user-provided password:', { userId: newUser.user.id, email })
   return newUser
 }
 

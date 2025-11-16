@@ -36,11 +36,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Supabaseユーザーの作成または取得
+    // PendingUserからパスワードを取得
+    if (!pendingUser.password) {
+      console.error('Password not found in pending user:', email)
+      return NextResponse.json(
+        { error: 'パスワード情報が見つかりません' },
+        { status: 400 }
+      )
+    }
+
+    // Supabaseユーザーの作成または取得（PendingUserのパスワードを使用）
     // 根本的な解決: サービス関数を使用してロジックを分離し、可読性を向上
     let supabaseUser
     try {
-      supabaseUser = await findOrCreateSupabaseUser(email, name)
+      supabaseUser = await findOrCreateSupabaseUser(email, name, pendingUser.password)
     } catch (error: any) {
       console.error('Supabase user creation error:', error)
       return NextResponse.json(
