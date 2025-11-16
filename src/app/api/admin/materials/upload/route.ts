@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
+import { nanoid } from 'nanoid'
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,15 +37,17 @@ export async function POST(request: NextRequest) {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // ファイル名にタイムスタンプを追加してユニークにする
-    const timestamp = Date.now()
+    // 元のファイル名から拡張子を取得
     const fileExtension = file.name.split('.').pop()
-    const fileName = `${timestamp}-${file.name}`
+
+    // ストレージに保存するファイル名は英数字のみ（日本語などの特殊文字を避ける）
+    // nanoidでユニークなIDを生成し、拡張子を追加
+    const safeFileName = `${nanoid()}.${fileExtension}`
 
     // ファイルをSupabase Storageにアップロード
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('materials')
-      .upload(fileName, file, {
+      .upload(safeFileName, file, {
         cacheControl: '3600',
         upsert: false,
       })
@@ -60,7 +63,7 @@ export async function POST(request: NextRequest) {
     // 公開URLを取得
     const { data: publicUrlData } = supabase.storage
       .from('materials')
-      .getPublicUrl(fileName)
+      .getPublicUrl(safeFileName)
 
     const fileUrl = publicUrlData.publicUrl
 

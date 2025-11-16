@@ -16,7 +16,6 @@ type Material = {
   fileName: string
   fileSize: string
   fileType: string
-  category: string
   viewableRoles: ('admin' | 'manager' | 'fp' | 'member')[]
   createdAt: string
   updatedAt: string
@@ -529,20 +528,13 @@ function MaterialsPageContent() {
                             </span>
                           ))}
                         </div>
-                        <div className="flex items-center justify-between">
+                        {material.fileType && material.fileSize && (
                           <div className="text-sm text-slate-500">
-                            {material.category && (
-                              <span className="inline-block px-2 py-1 bg-slate-100 rounded text-xs mr-2">
-                                {material.category}
-                              </span>
-                            )}
-                            {material.fileType && material.fileSize && (
-                              <span>
-                                {material.fileType} • {material.fileSize}
-                              </span>
-                            )}
+                            <span>
+                              {material.fileType} • {material.fileSize}
+                            </span>
                           </div>
-                        </div>
+                        )}
                         {material.fileUrl && (
                           <Button
                             variant="outline"
