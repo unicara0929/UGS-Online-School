@@ -126,7 +126,7 @@ export function ContractList() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>契約一覧</CardTitle>
-              <CardDescription>あなたの契約実績（スプレッドシートから管理者が更新）</CardDescription>
+              <CardDescription>あなたの契約実績</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -135,7 +135,6 @@ export function ContractList() {
             <div className="text-center py-8">
               <FileText className="h-12 w-12 text-slate-400 mx-auto mb-4" />
               <p className="text-slate-600">まだ契約が登録されていません</p>
-              <p className="text-sm text-slate-500 mt-2">契約情報は管理者がスプレッドシートから一括更新します</p>
             </div>
           ) : (
             <div className="space-y-4">
