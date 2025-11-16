@@ -412,6 +412,8 @@ function AdminEventsPageContent() {
                           date: "",
                           time: "",
                           type: "optional",
+                          targetRole: "all",
+                          attendanceType: "optional",
                           isOnline: true,
                           location: "",
                           maxParticipants: 50,
