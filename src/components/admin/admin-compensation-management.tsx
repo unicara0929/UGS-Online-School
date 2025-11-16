@@ -4,17 +4,19 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { 
-  DollarSign, 
+import {
+  DollarSign,
   Calendar,
   CheckCircle,
   Clock,
   Loader2,
   Download,
-  Eye
+  Eye,
+  Upload
 } from "lucide-react"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { useAuth } from "@/contexts/auth-context"
+import Link from "next/link"
 
 interface Compensation {
   id: string
@@ -222,10 +224,18 @@ export function AdminCompensationManagement() {
               <CardDescription>全ユーザーの報酬を管理します</CardDescription>
             </div>
             {!showGenerateForm && (
-              <Button onClick={() => setShowGenerateForm(true)}>
-                <DollarSign className="h-4 w-4 mr-2" />
-                報酬を生成
-              </Button>
+              <div className="flex gap-2">
+                <Link href="/dashboard/admin/csv-upload">
+                  <Button variant="outline">
+                    <Upload className="h-4 w-4 mr-2" />
+                    CSV一括アップロード
+                  </Button>
+                </Link>
+                <Button onClick={() => setShowGenerateForm(true)}>
+                  <DollarSign className="h-4 w-4 mr-2" />
+                  報酬を生成
+                </Button>
+              </div>
             )}
           </div>
         </CardHeader>
