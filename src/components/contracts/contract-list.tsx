@@ -2,14 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { 
-  FileText, 
-  Plus, 
-  CheckCircle, 
-  XCircle, 
-  Clock,
+import {
+  FileText,
   DollarSign,
   Loader2
 } from "lucide-react"
@@ -32,8 +27,6 @@ export function ContractList() {
   const { user } = useAuth()
   const [contracts, setContracts] = useState<Contract[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [showAddForm, setShowAddForm] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     if (user?.id) {
@@ -55,44 +48,6 @@ export function ContractList() {
       console.error('Error fetching contracts:', error)
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  const handleAddContract = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (!user?.id) return
-
-    const formData = new FormData(e.currentTarget)
-    const contractNumber = formData.get('contractNumber') as string
-    const contractType = formData.get('contractType') as 'INSURANCE' | 'OTHER'
-    const signedAt = formData.get('signedAt') as string
-    const amount = formData.get('amount') ? parseInt(formData.get('amount') as string) : null
-
-    setIsSubmitting(true)
-    try {
-      const response = await fetch('/api/contracts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contractNumber,
-          contractType,
-          signedAt,
-          amount
-        })
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || '契約の登録に失敗しました')
-      }
-
-      await fetchContracts()
-      setShowAddForm(false)
-      e.currentTarget.reset()
-    } catch (error: any) {
-      alert(error.message || '契約の登録に失敗しました')
-    } finally {
-      setIsSubmitting(false)
     }
   }
 
@@ -165,99 +120,14 @@ export function ContractList() {
         </Card>
       </div>
 
-      {/* 契約追加フォーム */}
-      {showAddForm && (
-        <Card>
-          <CardHeader>
-            <CardTitle>契約を登録</CardTitle>
-            <CardDescription>新しい契約を登録します</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleAddContract} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  契約番号 *
-                </label>
-                <input
-                  type="text"
-                  name="contractNumber"
-                  required
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
-                  placeholder="CONTRACT-001"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  契約タイプ *
-                </label>
-                <select
-                  name="contractType"
-                  required
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
-                >
-                  <option value="INSURANCE">保険契約</option>
-                  <option value="OTHER">その他</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  契約日 *
-                </label>
-                <input
-                  type="date"
-                  name="signedAt"
-                  required
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  契約金額（円）
-                </label>
-                <input
-                  type="number"
-                  name="amount"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
-                  placeholder="100000"
-                />
-              </div>
-              <div className="flex space-x-2">
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      登録中...
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="h-4 w-4 mr-2" />
-                      登録
-                    </>
-                  )}
-                </Button>
-                <Button type="button" variant="outline" onClick={() => setShowAddForm(false)}>
-                  キャンセル
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
-
       {/* 契約一覧 */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>契約一覧</CardTitle>
-              <CardDescription>あなたの契約実績</CardDescription>
+              <CardDescription>あなたの契約実績（スプレッドシートから管理者が更新）</CardDescription>
             </div>
-            {!showAddForm && (
-              <Button onClick={() => setShowAddForm(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                契約を追加
-              </Button>
-            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -265,10 +135,7 @@ export function ContractList() {
             <div className="text-center py-8">
               <FileText className="h-12 w-12 text-slate-400 mx-auto mb-4" />
               <p className="text-slate-600">まだ契約が登録されていません</p>
-              <Button onClick={() => setShowAddForm(true)} className="mt-4">
-                <Plus className="h-4 w-4 mr-2" />
-                最初の契約を登録
-              </Button>
+              <p className="text-sm text-slate-500 mt-2">契約情報は管理者がスプレッドシートから一括更新します</p>
             </div>
           ) : (
             <div className="space-y-4">
