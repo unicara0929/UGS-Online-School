@@ -366,18 +366,21 @@ model Notification {
 }
 
 model PromotionApplication {
-  id          String          @id @default(cuid())
-  userId      String
-  targetRole  UserRole
-  status      PromotionStatus @default(PENDING)
-  appliedAt   DateTime        @default(now())
-  reviewedAt  DateTime?
-  reviewedBy  String?
-  reviewNotes String?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reviewer    User?           @relation("PromotionReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
+  id              String          @id @default(cuid())
+  userId          String
+  targetRole      UserRole
+  status          PromotionStatus @default(PENDING)
+  appliedAt       DateTime        @default(now())
+  approvedAt      DateTime?
+  rejectedAt      DateTime?
+  rejectionReason String?
+  reviewedAt      DateTime?
+  reviewedBy      String?
+  reviewNotes     String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewer        User?           @relation("PromotionReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
 
   @@unique([userId, targetRole])
   @@map("promotion_applications")
