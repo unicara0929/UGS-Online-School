@@ -36,7 +36,7 @@ export default function CompletePaymentPage() {
 
         // 仮登録の有効期限を計算（登録から7日後）
         if (!data.hasActiveSubscription && user.email) {
-          const createdAt = new Date(user.created_at || Date.now())
+          const createdAt = new Date(user.createdAt || Date.now())
           const expiration = new Date(createdAt)
           expiration.setDate(expiration.getDate() + 7)
           setExpirationDate(expiration.toLocaleDateString('ja-JP'))
@@ -101,7 +101,7 @@ export default function CompletePaymentPage() {
               </div>
             </div>
             <CardTitle className="text-3xl font-bold text-slate-900">
-              🎉 ようこそ、{user?.user_metadata?.name || user?.email?.split('@')[0]}さん！
+              🎉 ようこそ、{user?.name || user?.email?.split('@')[0]}さん！
             </CardTitle>
             <CardDescription className="text-lg mt-2">
               アカウントの登録がもう少しで完了します
