@@ -8,6 +8,9 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  tls: {
+    rejectUnauthorized: false
+  },
 })
 
 export interface PaymentConfirmationEmailData {
@@ -35,9 +38,10 @@ export interface SubscriptionCancelledEmailData {
 
 export async function sendPaymentConfirmationEmail(data: PaymentConfirmationEmailData) {
   const mailOptions = {
-    from: process.env.SMTP_USER,
+    from: `"UGSオンラインスクール" <${process.env.SMTP_USER}>`,
     to: data.to,
     subject: 'UGSオンラインスクール - 決済完了のお知らせ',
+    encoding: 'utf-8',
     html: `
       <!DOCTYPE html>
       <html>
@@ -136,9 +140,10 @@ export async function sendPaymentConfirmationEmail(data: PaymentConfirmationEmai
  */
 export async function sendPaymentFailedEmail(data: PaymentFailedEmailData) {
   const mailOptions = {
-    from: process.env.SMTP_USER,
+    from: `"UGSオンラインスクール" <${process.env.SMTP_USER}>`,
     to: data.to,
     subject: 'UGSオンラインスクール - 決済失敗のお知らせ',
+    encoding: 'utf-8',
     html: `
       <!DOCTYPE html>
       <html>
@@ -227,9 +232,10 @@ export async function sendPaymentFailedEmail(data: PaymentFailedEmailData) {
  */
 export async function sendSubscriptionCancelledEmail(data: SubscriptionCancelledEmailData) {
   const mailOptions = {
-    from: process.env.SMTP_USER,
+    from: `"UGSオンラインスクール" <${process.env.SMTP_USER}>`,
     to: data.to,
     subject: 'UGSオンラインスクール - サブスクリプションキャンセルのお知らせ',
+    encoding: 'utf-8',
     html: `
       <!DOCTYPE html>
       <html>

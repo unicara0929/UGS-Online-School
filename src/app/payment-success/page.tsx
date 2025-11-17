@@ -159,7 +159,9 @@ function PaymentSuccessContent() {
               <>
                 <div className="flex justify-between">
                   <span className="text-slate-600">お支払い金額</span>
-                  <span className="font-semibold">¥5,500</span>
+                  <span className="font-semibold">
+                    ¥{sessionData.amount_total?.toLocaleString('ja-JP') || '5,500'}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-600">サブスクリプションID</span>

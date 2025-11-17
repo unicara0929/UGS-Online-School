@@ -88,6 +88,16 @@ export function RegisterForm() {
 
       if (!response.ok) {
         const errorData = await response.json()
+
+        // 重複メールアドレスの場合は専用ページにリダイレクト
+        if (errorData.errorCode === 'ALREADY_REGISTERED_PENDING') {
+          window.location.href = `/already-registered?email=${encodeURIComponent(formData.email)}&status=pending`
+          return
+        } else if (errorData.errorCode === 'ALREADY_REGISTERED') {
+          window.location.href = `/already-registered?email=${encodeURIComponent(formData.email)}`
+          return
+        }
+
         throw new Error(errorData.error || '仮登録に失敗しました')
       }
 
@@ -96,7 +106,7 @@ export function RegisterForm() {
         email: formData.email,
         name: formData.name,
       })
-      
+
       window.location.href = `/checkout?${params.toString()}`
     } catch (err) {
       console.error('登録エラー:', err)
