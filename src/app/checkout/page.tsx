@@ -36,6 +36,7 @@ function CheckoutContent() {
 
     try {
       // Stripe Checkout Sessionを作成（紹介コードも含める）
+      console.log('Sending request to create checkout session...')
       const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: {
@@ -48,14 +49,36 @@ function CheckoutContent() {
         }),
       })
 
-      const data = await response.json()
+      console.log('Response status:', response.status)
+      console.log('Response ok:', response.ok)
+
+      // レスポンスのテキストを取得してJSONパースを試みる
+      const responseText = await response.text()
+      console.log('Response text:', responseText)
+
+      let data
+      try {
+        data = JSON.parse(responseText)
+        console.log('Parsed data:', data)
+      } catch (parseError) {
+        console.error('Failed to parse JSON:', parseError)
+        setError('サーバーからの応答の解析に失敗しました')
+        return
+      }
+
       const { sessionId, url, error: sessionError, details, code } = data
 
       if (!response.ok || sessionError) {
         const errorMessage = details || sessionError || '決済セッションの作成に失敗しました'
         const errorCode = code ? ` (${code})` : ''
         setError(`${errorMessage}${errorCode}`)
-        console.error('API Error:', { sessionError, details, code, data })
+        console.error('API Error Details:', {
+          status: response.status,
+          sessionError,
+          details,
+          code,
+          fullData: data
+        })
         return
       }
 
@@ -196,10 +219,32 @@ function CheckoutContent() {
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl">UGSオンラインスクール</CardTitle>
                 <CardDescription>全機能利用可能</CardDescription>
-                <div className="mt-4">
-                  <span className="text-4xl font-bold text-slate-900">¥5,500</span>
-                  <span className="text-slate-600">/月</span>
-                </div>
+                {process.env.NEXT_PUBLIC_STRIPE_SETUP_FEE_ENABLED === 'true' ? (
+                  <div className="mt-4 space-y-2">
+                    <div className="text-sm text-slate-600">
+                      <div className="flex justify-between px-4">
+                        <span>初回登録費用</span>
+                        <span>¥33,000</span>
+                      </div>
+                      <div className="flex justify-between px-4">
+                        <span>月額利用料（1ヶ月目）</span>
+                        <span>¥5,500</span>
+                      </div>
+                    </div>
+                    <div className="border-t pt-2">
+                      <div className="text-sm text-slate-500 mb-1">今日のお支払い</div>
+                      <span className="text-4xl font-bold text-slate-900">¥38,500</span>
+                    </div>
+                    <div className="text-sm text-slate-600 pt-2">
+                      <span className="text-slate-900 font-semibold">2ヶ月目以降：</span> ¥5,500/月
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-4">
+                    <span className="text-4xl font-bold text-slate-900">¥5,500</span>
+                    <span className="text-slate-600">/月</span>
+                  </div>
+                )}
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -231,17 +276,22 @@ function CheckoutContent() {
                   </div>
                 )}
 
-                <Button 
+                <Button
                   onClick={handleCheckout}
                   disabled={isLoading}
-                  className="w-full" 
+                  className="w-full"
                   size="lg"
                 >
-                  {isLoading ? '処理中...' : '¥5,500で決済する'}
+                  {isLoading ? '処理中...' :
+                   process.env.NEXT_PUBLIC_STRIPE_SETUP_FEE_ENABLED === 'true'
+                     ? '¥38,500で決済する'
+                     : '¥5,500で決済する'}
                 </Button>
 
                 <p className="text-xs text-slate-500 text-center">
-                  月額¥5,500でいつでもキャンセル可能
+                  {process.env.NEXT_PUBLIC_STRIPE_SETUP_FEE_ENABLED === 'true'
+                    ? '初回のみ登録費用が含まれます。2ヶ月目以降は月額¥5,500'
+                    : '月額¥5,500でいつでもキャンセル可能'}
                 </p>
               </CardContent>
             </Card>

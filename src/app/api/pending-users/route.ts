@@ -21,7 +21,11 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingPendingUser) {
-      return createConflictErrorResponse('このメールアドレスは既に仮登録されています')
+      return NextResponse.json({
+        error: 'このメールアドレスは既に仮登録されています',
+        errorCode: 'ALREADY_REGISTERED_PENDING',
+        email
+      }, { status: 409 })
     }
 
     // 既存の正式ユーザーをチェック
@@ -30,7 +34,11 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingUser) {
-      return createConflictErrorResponse('このメールアドレスは既に登録されています')
+      return NextResponse.json({
+        error: 'このメールアドレスは既に登録されています',
+        errorCode: 'ALREADY_REGISTERED',
+        email
+      }, { status: 409 })
     }
 
     // 仮登録ユーザーを作成（紹介コードとハッシュ化されたパスワードも保存）

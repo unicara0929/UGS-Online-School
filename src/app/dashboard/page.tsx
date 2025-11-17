@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { ProtectedRoute } from "@/components/auth/protected-route"
+import { PaymentGuard } from "@/components/auth/payment-guard"
 import { Sidebar } from "@/components/navigation/sidebar"
 import { CompensationDashboard } from "@/components/dashboard/compensation-dashboard"
 import { CourseList } from "@/components/courses/course-list"
@@ -140,7 +141,9 @@ function Dashboard() {
 export default function DashboardPage() {
   return (
     <ProtectedRoute>
-      <Dashboard />
+      <PaymentGuard>
+        <Dashboard />
+      </PaymentGuard>
     </ProtectedRoute>
   )
 }

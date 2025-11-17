@@ -80,11 +80,21 @@ export async function POST(request: NextRequest) {
       console.log('Referral code added to session metadata:', referralCode)
     }
 
+    // 初回登録費用のPrice ID（環境変数から取得、なければ登録費用なし）
+    const setupFeePriceId = process.env.STRIPE_SETUP_FEE_PRICE_ID
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
+        // セットアップ費用がある場合は最初に追加
+        ...(setupFeePriceId ? [
+          {
+            price: setupFeePriceId,  // 初回登録費用 33,000円
+            quantity: 1,
+          }
+        ] : []),
         {
-          price: priceId,
+          price: priceId,  // 月額5,500円
           quantity: 1,
         },
       ],
@@ -97,6 +107,14 @@ export async function POST(request: NextRequest) {
         metadata: sessionMetadata,
       },
     })
+
+    if (setupFeePriceId) {
+      console.log('✅ Setup fee added:', setupFeePriceId)
+      console.log('💰 Total first payment: ¥38,500 (¥33,000 + ¥5,500)')
+    } else {
+      console.log('⚠️ No setup fee configured (STRIPE_SETUP_FEE_PRICE_ID not set)')
+      console.log('💰 Total first payment: ¥5,500')
+    }
     console.log('Checkout session created:', session.id)
     console.log('Checkout URL:', session.url)
     

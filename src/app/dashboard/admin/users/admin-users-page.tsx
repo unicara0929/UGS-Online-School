@@ -61,13 +61,21 @@ export default function AdminUsersPage() {
   const [subscriptions, setSubscriptions] = useState<SubscriptionInfo[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  
+
   // フィルター機能
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'active' | 'canceled' | 'past_due' | 'unpaid'>('all')
   const [roleFilter, setRoleFilter] = useState<'all' | 'MEMBER' | 'FP' | 'MANAGER' | 'ADMIN'>('all')
   const [sortField, setSortField] = useState<'name' | 'email' | 'createdAt' | 'lastSignIn'>('createdAt')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+
+  // 一括メール送信機能
+  const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set())
+  const [showEmailModal, setShowEmailModal] = useState(false)
+  const [emailSubject, setEmailSubject] = useState('')
+  const [emailBody, setEmailBody] = useState('')
+  const [isSending, setIsSending] = useState(false)
+  const [sendResult, setSendResult] = useState<{ success: number; failed: number; total: number } | null>(null)
 
   useEffect(() => {
     fetchUsers()
@@ -215,6 +223,69 @@ export default function AdminUsersPage() {
     }
   }
 
+  // チェックボックス関連のハンドラー
+  const handleSelectUser = (userId: string) => {
+    const newSelected = new Set(selectedUserIds)
+    if (newSelected.has(userId)) {
+      newSelected.delete(userId)
+    } else {
+      newSelected.add(userId)
+    }
+    setSelectedUserIds(newSelected)
+  }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allIds = new Set(filteredUsers.filter(u => u.type === 'registered').map(u => u.id))
+      setSelectedUserIds(allIds)
+    } else {
+      setSelectedUserIds(new Set())
+    }
+  }
+
+  // メール送信処理
+  const handleSendEmail = async () => {
+    if (!emailSubject.trim() || !emailBody.trim()) {
+      alert('件名と本文を入力してください')
+      return
+    }
+
+    setIsSending(true)
+    setSendResult(null)
+
+    try {
+      const response = await fetch('/api/admin/users/bulk-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          userIds: Array.from(selectedUserIds),
+          subject: emailSubject,
+          body: emailBody,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('メール送信に失敗しました')
+      }
+
+      const result = await response.json()
+      setSendResult(result)
+
+      // 成功したら選択をクリア
+      setSelectedUserIds(new Set())
+      setEmailSubject('')
+      setEmailBody('')
+    } catch (error) {
+      console.error('メール送信エラー:', error)
+      alert('メール送信中にエラーが発生しました')
+    } finally {
+      setIsSending(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
@@ -240,6 +311,9 @@ export default function AdminUsersPage() {
   }
 
   const filteredUsers = getFilteredAndSortedUsers()
+
+  const isAllSelected = filteredUsers.filter(u => u.type === 'registered').length > 0 &&
+    filteredUsers.filter(u => u.type === 'registered').every(u => selectedUserIds.has(u.id))
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -377,16 +451,35 @@ export default function AdminUsersPage() {
         {/* ユーザーテーブル */}
         <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
           <div className="bg-gradient-to-r from-slate-50 to-blue-50 px-6 py-4 border-b border-slate-200">
-            <h2 className="text-lg font-semibold text-slate-800 flex items-center">
-              <Users className="h-5 w-5 mr-2 text-blue-600" />
-              ユーザー一覧
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-slate-800 flex items-center">
+                <Users className="h-5 w-5 mr-2 text-blue-600" />
+                ユーザー一覧
+              </h2>
+              {selectedUserIds.size > 0 && (
+                <Button
+                  onClick={() => setShowEmailModal(true)}
+                  className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all duration-200"
+                >
+                  <Mail className="h-4 w-4" />
+                  <span>一括メール送信 ({selectedUserIds.size}名)</span>
+                </Button>
+              )}
+            </div>
           </div>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50/50 hover:bg-slate-50">
-                  <TableHead 
+                  <TableHead className="py-4 px-6 font-semibold text-slate-700 w-12">
+                    <input
+                      type="checkbox"
+                      checked={isAllSelected}
+                      onChange={(e) => handleSelectAll(e.target.checked)}
+                      className="w-4 h-4 text-blue-600 bg-white border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
+                    />
+                  </TableHead>
+                  <TableHead
                     className="cursor-pointer hover:bg-slate-100 transition-colors py-4 px-6 font-semibold text-slate-700"
                     onClick={() => handleSort('name')}
                   >
@@ -429,11 +522,21 @@ export default function AdminUsersPage() {
               </TableHeader>
               <TableBody>
                 {filteredUsers.map((user, index) => (
-                  <TableRow 
-                    key={user.id} 
+                  <TableRow
+                    key={user.id}
                     className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/50 transition-all duration-200 border-b border-slate-100"
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
+                    <TableCell className="py-4 px-6">
+                      {user.type === 'registered' && (
+                        <input
+                          type="checkbox"
+                          checked={selectedUserIds.has(user.id)}
+                          onChange={() => handleSelectUser(user.id)}
+                          className="w-4 h-4 text-blue-600 bg-white border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
+                        />
+                      )}
+                    </TableCell>
                     <TableCell className="py-4 px-6">
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-lg">
@@ -567,6 +670,170 @@ export default function AdminUsersPage() {
                 >
                   データを更新
                 </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 一括メール送信モーダル */}
+        {showEmailModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 rounded-t-2xl">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-white flex items-center">
+                    <Mail className="h-5 w-5 mr-2" />
+                    一括メール送信 ({selectedUserIds.size}名)
+                  </h2>
+                  <button
+                    onClick={() => {
+                      setShowEmailModal(false)
+                      setSendResult(null)
+                    }}
+                    className="text-white hover:bg-white/20 rounded-lg p-2 transition-all"
+                  >
+                    <span className="text-2xl">&times;</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4">
+                {sendResult ? (
+                  // 送信結果表示
+                  <div className="text-center py-8">
+                    <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
+                      sendResult.success === sendResult.total
+                        ? 'bg-green-100'
+                        : 'bg-yellow-100'
+                    }`}>
+                      {sendResult.success === sendResult.total ? (
+                        <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        <AlertCircle className="w-8 h-8 text-yellow-600" />
+                      )}
+                    </div>
+                    <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                      送信完了
+                    </h3>
+                    <p className="text-slate-600 mb-6">
+                      {sendResult.total}名中 {sendResult.success}名に送信成功
+                      {sendResult.failed > 0 && ` (${sendResult.failed}名失敗)`}
+                    </p>
+                    <Button
+                      onClick={() => {
+                        setShowEmailModal(false)
+                        setSendResult(null)
+                      }}
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                    >
+                      閉じる
+                    </Button>
+                  </div>
+                ) : (
+                  // メール作成フォーム
+                  <>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        件名 <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={emailSubject}
+                        onChange={(e) => setEmailSubject(e.target.value)}
+                        placeholder="例: 【重要】お支払いについてのお知らせ"
+                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        disabled={isSending}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        本文 <span className="text-red-500">*</span>
+                      </label>
+                      <textarea
+                        value={emailBody}
+                        onChange={(e) => setEmailBody(e.target.value)}
+                        placeholder="メール本文を入力してください"
+                        rows={10}
+                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        disabled={isSending}
+                      />
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const cursorPos = document.querySelector('textarea')?.selectionStart || emailBody.length
+                            const newBody = emailBody.slice(0, cursorPos) + '{{payment_link}}' + emailBody.slice(cursorPos)
+                            setEmailBody(newBody)
+                          }}
+                          disabled={isSending}
+                          className="text-xs"
+                        >
+                          <CreditCard className="h-3 w-3 mr-1" />
+                          決済リンク挿入
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const cursorPos = document.querySelector('textarea')?.selectionStart || emailBody.length
+                            const newBody = emailBody.slice(0, cursorPos) + '{{name}}' + emailBody.slice(cursorPos)
+                            setEmailBody(newBody)
+                          }}
+                          disabled={isSending}
+                          className="text-xs"
+                        >
+                          名前挿入
+                        </Button>
+                      </div>
+                      <p className="mt-2 text-xs text-slate-500">
+                        💡 <strong>{'{{payment_link}}'}</strong> を入力すると、各ユーザー専用の決済リンクに自動変換されます
+                      </p>
+                    </div>
+
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                      <p className="text-sm text-blue-800">
+                        <strong>送信先:</strong> {selectedUserIds.size}名のユーザー
+                      </p>
+                    </div>
+
+                    <div className="flex space-x-3 pt-4">
+                      <Button
+                        onClick={() => {
+                          setShowEmailModal(false)
+                          setSendResult(null)
+                        }}
+                        variant="outline"
+                        className="flex-1"
+                        disabled={isSending}
+                      >
+                        キャンセル
+                      </Button>
+                      <Button
+                        onClick={handleSendEmail}
+                        className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                        disabled={isSending || !emailSubject.trim() || !emailBody.trim()}
+                      >
+                        {isSending ? (
+                          <>
+                            <span className="animate-spin mr-2">⏳</span>
+                            送信中...
+                          </>
+                        ) : (
+                          <>
+                            <Mail className="h-4 w-4 mr-2" />
+                            送信する
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>

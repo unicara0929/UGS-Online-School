@@ -205,6 +205,7 @@ UGSオンラインスクール事務局
       subject,
       text,
       html,
+      encoding: 'utf-8',
     })
 
     console.log('FP promotion email sent:', info.messageId)
