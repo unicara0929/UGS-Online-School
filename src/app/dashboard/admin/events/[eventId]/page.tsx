@@ -61,6 +61,14 @@ function EventDetailPageContent() {
   const [roleFilter, setRoleFilter] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState<string>('')
 
+  // メール送信関連
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([])
+  const [showEmailModal, setShowEmailModal] = useState(false)
+  const [emailTemplate, setEmailTemplate] = useState<'payment_reminder' | 'event_reminder' | 'custom'>('payment_reminder')
+  const [customSubject, setCustomSubject] = useState('')
+  const [customBody, setCustomBody] = useState('')
+  const [isSendingEmail, setIsSendingEmail] = useState(false)
+
   // 参加者データ取得
   const fetchParticipants = async () => {
     setIsLoading(true)
@@ -142,6 +150,74 @@ function EventDetailPageContent() {
 
   const handleExportCSV = () => {
     window.location.href = `/api/admin/events/${eventId}/participants/export`
+  }
+
+  // 全選択/全解除
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedUserIds(filteredParticipants.map(p => p.userId))
+    } else {
+      setSelectedUserIds([])
+    }
+  }
+
+  // 個別選択
+  const handleSelectUser = (userId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedUserIds(prev => [...prev, userId])
+    } else {
+      setSelectedUserIds(prev => prev.filter(id => id !== userId))
+    }
+  }
+
+  // メール送信処理
+  const handleSendEmail = async () => {
+    if (selectedUserIds.length === 0) {
+      alert('送信先を選択してください')
+      return
+    }
+
+    if (emailTemplate === 'custom' && (!customSubject || !customBody)) {
+      alert('カスタムメールの場合、件名と本文を入力してください')
+      return
+    }
+
+    if (!confirm(`${selectedUserIds.length}名にメールを送信しますか？`)) {
+      return
+    }
+
+    setIsSendingEmail(true)
+
+    try {
+      const response = await fetch(`/api/admin/events/${eventId}/send-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          userIds: selectedUserIds,
+          templateType: emailTemplate,
+          subject: customSubject,
+          customBody: customBody,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'メール送信に失敗しました')
+      }
+
+      alert(data.message)
+      setShowEmailModal(false)
+      setSelectedUserIds([])
+      setCustomSubject('')
+      setCustomBody('')
+    } catch (err) {
+      console.error('Failed to send email:', err)
+      alert(err instanceof Error ? err.message : 'メール送信に失敗しました')
+    } finally {
+      setIsSendingEmail(false)
+    }
   }
 
   if (isLoading) {
@@ -323,6 +399,14 @@ function EventDetailPageContent() {
                   {/* アクションボタン */}
                   <div className="flex gap-2">
                     <Button
+                      variant="default"
+                      onClick={() => setShowEmailModal(true)}
+                      disabled={selectedUserIds.length === 0}
+                    >
+                      <Mail className="h-4 w-4 mr-2" />
+                      選択したユーザーにメール送信 ({selectedUserIds.length})
+                    </Button>
+                    <Button
                       variant="outline"
                       onClick={handleExportCSV}
                       disabled={participants.length === 0}
@@ -351,6 +435,14 @@ function EventDetailPageContent() {
                     <table className="w-full">
                       <thead className="bg-slate-50">
                         <tr>
+                          <th className="px-4 py-3 w-12">
+                            <input
+                              type="checkbox"
+                              checked={selectedUserIds.length === filteredParticipants.length && filteredParticipants.length > 0}
+                              onChange={(e) => handleSelectAll(e.target.checked)}
+                              className="w-4 h-4 text-slate-600 bg-slate-100 border-slate-300 rounded focus:ring-slate-500"
+                            />
+                          </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">名前</th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">メール</th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">ロール</th>
@@ -362,6 +454,14 @@ function EventDetailPageContent() {
                       <tbody className="divide-y divide-slate-200">
                         {filteredParticipants.map((participant) => (
                           <tr key={participant.id} className="hover:bg-slate-50">
+                            <td className="px-4 py-3">
+                              <input
+                                type="checkbox"
+                                checked={selectedUserIds.includes(participant.userId)}
+                                onChange={(e) => handleSelectUser(participant.userId, e.target.checked)}
+                                className="w-4 h-4 text-slate-600 bg-slate-100 border-slate-300 rounded focus:ring-slate-500"
+                              />
+                            </td>
                             <td className="px-4 py-3 text-sm text-slate-900">{participant.userName}</td>
                             <td className="px-4 py-3 text-sm text-slate-600">{participant.userEmail}</td>
                             <td className="px-4 py-3 text-sm">
@@ -386,6 +486,116 @@ function EventDetailPageContent() {
                 )}
               </CardContent>
             </Card>
+
+            {/* メール送信モーダル */}
+            {showEmailModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold text-slate-900 mb-4">メール送信</h3>
+
+                    <div className="space-y-4">
+                      {/* 送信先表示 */}
+                      <div>
+                        <p className="text-sm text-slate-600">
+                          送信先: {selectedUserIds.length}名
+                        </p>
+                      </div>
+
+                      {/* テンプレート選択 */}
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          メールテンプレート
+                        </label>
+                        <select
+                          value={emailTemplate}
+                          onChange={(e) => setEmailTemplate(e.target.value as any)}
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                        >
+                          <option value="payment_reminder">支払いリマインド</option>
+                          <option value="event_reminder">イベントリマインド</option>
+                          <option value="custom">カスタムメール</option>
+                        </select>
+                      </div>
+
+                      {/* テンプレートの説明 */}
+                      <div className="bg-slate-50 p-3 rounded-lg text-sm text-slate-600">
+                        {emailTemplate === 'payment_reminder' && (
+                          <p>未払いユーザーに支払いを促すメールを送信します。</p>
+                        )}
+                        {emailTemplate === 'event_reminder' && (
+                          <p>イベント開催のリマインドメールを送信します。</p>
+                        )}
+                        {emailTemplate === 'custom' && (
+                          <p>カスタムメールを作成して送信します。</p>
+                        )}
+                      </div>
+
+                      {/* カスタムメールの場合 */}
+                      {emailTemplate === 'custom' && (
+                        <>
+                          <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                              件名
+                            </label>
+                            <input
+                              type="text"
+                              value={customSubject}
+                              onChange={(e) => setCustomSubject(e.target.value)}
+                              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                              placeholder="メールの件名を入力"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                              本文
+                            </label>
+                            <textarea
+                              value={customBody}
+                              onChange={(e) => setCustomBody(e.target.value)}
+                              rows={8}
+                              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                              placeholder="メールの本文を入力"
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      {/* ボタン */}
+                      <div className="flex gap-2 justify-end pt-4 border-t">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setShowEmailModal(false)
+                            setCustomSubject('')
+                            setCustomBody('')
+                          }}
+                          disabled={isSendingEmail}
+                        >
+                          キャンセル
+                        </Button>
+                        <Button
+                          onClick={handleSendEmail}
+                          disabled={isSendingEmail}
+                        >
+                          {isSendingEmail ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              送信中...
+                            </>
+                          ) : (
+                            <>
+                              <Mail className="h-4 w-4 mr-2" />
+                              送信
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </main>
       </div>
