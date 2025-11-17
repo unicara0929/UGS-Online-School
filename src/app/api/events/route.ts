@@ -54,7 +54,11 @@ export async function GET(request: NextRequest) {
           _count: { select: { registrations: true } },
           registrations: {
             where: { userId },
-            select: { id: true },
+            select: {
+              id: true,
+              paymentStatus: true,
+              paidAt: true,
+            },
             take: 1, // 1件だけ取得すれば十分
           },
         }
@@ -100,6 +104,11 @@ export async function GET(request: NextRequest) {
             event.registrations.length > 0
           : false
 
+      const registration =
+        'registrations' in event && Array.isArray(event.registrations) && event.registrations.length > 0
+          ? event.registrations[0]
+          : null
+
       return {
         id: event.id,
         title: event.title,
@@ -115,6 +124,10 @@ export async function GET(request: NextRequest) {
         currentParticipants,
         status: EVENT_STATUS_MAP[statusKey] ?? 'upcoming',
         isRegistered,
+        // 有料イベント関連
+        isPaid: event.isPaid,
+        price: event.price ?? null,
+        paymentStatus: registration?.paymentStatus ?? null,
       }
     })
 

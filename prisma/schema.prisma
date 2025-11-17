@@ -151,6 +151,10 @@ model Event {
   location        String?
   maxParticipants Int?
   status          EventStatus         @default(UPCOMING)
+  // 有料イベント関連
+  isPaid          Boolean             @default(false) // 有料イベントかどうか
+  price           Int?                // 価格（円）- isPaid=trueの場合は必須
+  stripePriceId   String?             // Stripe Price ID
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
   registrations   EventRegistration[]
@@ -159,12 +163,24 @@ model Event {
 }
 
 model EventRegistration {
-  id        String   @id @default(cuid())
-  userId    String
-  eventId   String
-  createdAt DateTime @default(now())
-  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                     String              @id @default(cuid())
+  userId                 String
+  eventId                String
+  // 支払い関連
+  paymentStatus          EventPaymentStatus  @default(PENDING) // 支払いステータス
+  stripePaymentIntentId  String?             // Stripe PaymentIntent ID
+  stripeSessionId        String?             // Stripe Checkout Session ID
+  paidAmount             Int?                // 支払い金額（円）
+  paidAt                 DateTime?           // 支払い完了日時
+  // キャンセル・返金関連
+  canceledAt             DateTime?           // キャンセル日時
+  cancelReason           String?             // キャンセル理由
+  refundStatus           EventRefundStatus   @default(NONE) // 返金ステータス
+  refundedAt             DateTime?           // 返金完了日時
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @default(now()) @updatedAt
+  event                  Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user                   User                @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, eventId])
   @@map("event_registrations")
@@ -529,6 +545,22 @@ enum CancelRequestStatus {
   APPROVED
   REJECTED
   COMPLETED
+}
+
+enum EventPaymentStatus {
+  PENDING   // 支払い待ち
+  FREE      // 無料イベント
+  PAID      // 支払い完了
+  FAILED    // 支払い失敗
+  REFUNDED  // 返金済み
+}
+
+enum EventRefundStatus {
+  NONE        // 返金なし
+  REQUESTED   // 返金リクエスト
+  PROCESSING  // 返金処理中
+  COMPLETED   // 返金完了
+  FAILED      // 返金失敗
 }
 
 model Material {
