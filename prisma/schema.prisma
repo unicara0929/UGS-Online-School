@@ -28,6 +28,17 @@ model User {
   lastLoginAt             DateTime?
   fpOnboardingCompleted   Boolean                  @default(true) // FPエイド向け動画ガイダンス完了フラグ（既存ユーザーはtrue）
   fpOnboardingCompletedAt DateTime?                // FPエイド向け動画ガイダンス完了日時
+  // 会員管理フィールド
+  membershipStatus        MembershipStatus         @default(ACTIVE) // 会員ステータス
+  membershipStatusReason  String?                  // ステータス変更理由
+  membershipStatusChangedAt DateTime?              // ステータス変更日時
+  membershipStatusChangedBy String?                // ステータス変更者（管理者ID）
+  suspensionStartDate     DateTime?                // 休会開始日
+  suspensionEndDate       DateTime?                // 休会終了予定日
+  canceledAt              DateTime?                // 退会日時
+  cancellationReason      String?                  // 退会理由
+  delinquentSince         DateTime?                // 滞納開始日
+  reactivatedAt           DateTime?                // 再開日時
   createdAt               DateTime                 @default(now())
   updatedAt               DateTime                 @updatedAt
   compensations           Compensation[]
@@ -216,6 +227,17 @@ enum SubscriptionStatus {
   CANCELED
   PAST_DUE
   UNPAID
+}
+
+enum MembershipStatus {
+  PENDING      // 仮登録（決済未完了）
+  ACTIVE       // 有効会員（通常の状態）
+  SUSPENDED    // 休会中（ユーザー申請による一時停止）
+  PAST_DUE     // 支払い遅延（決済失敗、猶予期間中）
+  DELINQUENT   // 長期滞納（猶予期間経過後も未払い）
+  CANCELED     // 退会済み（ユーザーによる退会申請）
+  TERMINATED   // 強制解約（運営による強制解約）
+  EXPIRED      // 期限切れ（仮登録の有効期限切れ）
 }
 
 enum CourseCategory {
