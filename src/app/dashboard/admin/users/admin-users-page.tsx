@@ -79,6 +79,13 @@ export default function AdminUsersPage() {
   const [isSending, setIsSending] = useState(false)
   const [sendResult, setSendResult] = useState<{ success: number; failed: number; total: number } | null>(null)
 
+  // 一括会員ステータス変更機能
+  const [showStatusModal, setShowStatusModal] = useState(false)
+  const [newMembershipStatus, setNewMembershipStatus] = useState<string>('')
+  const [statusChangeReason, setStatusChangeReason] = useState('')
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
+  const [statusUpdateResult, setStatusUpdateResult] = useState<{ success: number; failed: number; total: number } | null>(null)
+
   useEffect(() => {
     fetchUsers()
     fetchPendingUsers()
@@ -292,6 +299,57 @@ export default function AdminUsersPage() {
     }
   }
 
+  const handleBulkStatusUpdate = async () => {
+    if (!newMembershipStatus) {
+      alert('変更後のステータスを選択してください')
+      return
+    }
+
+    if (!confirm(`選択した${selectedUserIds.size}名のユーザーの会員ステータスを「${newMembershipStatus}」に変更しますか？`)) {
+      return
+    }
+
+    setIsUpdatingStatus(true)
+    setStatusUpdateResult(null)
+
+    try {
+      const response = await fetch('/api/admin/users/bulk-membership-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          userIds: Array.from(selectedUserIds),
+          membershipStatus: newMembershipStatus,
+          reason: statusChangeReason.trim() || undefined,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('ステータス変更に失敗しました')
+      }
+
+      const result = await response.json()
+      setStatusUpdateResult({
+        success: result.successCount,
+        failed: result.failedCount,
+        total: result.total,
+      })
+
+      // 成功したら選択をクリアしてユーザー一覧を再取得
+      setSelectedUserIds(new Set())
+      setNewMembershipStatus('')
+      setStatusChangeReason('')
+      await fetchUsers()
+    } catch (error) {
+      console.error('ステータス変更エラー:', error)
+      alert('ステータス変更中にエラーが発生しました')
+    } finally {
+      setIsUpdatingStatus(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
@@ -480,13 +538,22 @@ export default function AdminUsersPage() {
                 ユーザー一覧
               </h2>
               {selectedUserIds.size > 0 && (
-                <Button
-                  onClick={() => setShowEmailModal(true)}
-                  className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all duration-200"
-                >
-                  <Mail className="h-4 w-4" />
-                  <span>一括メール送信 ({selectedUserIds.size}名)</span>
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => setShowStatusModal(true)}
+                    className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-md hover:shadow-lg transition-all duration-200"
+                  >
+                    <UserCheck className="h-4 w-4" />
+                    <span>ステータス変更 ({selectedUserIds.size}名)</span>
+                  </Button>
+                  <Button
+                    onClick={() => setShowEmailModal(true)}
+                    className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all duration-200"
+                  >
+                    <Mail className="h-4 w-4" />
+                    <span>一括メール送信 ({selectedUserIds.size}名)</span>
+                  </Button>
+                </div>
               )}
             </div>
           </div>
@@ -632,23 +699,33 @@ export default function AdminUsersPage() {
                     </TableCell>
                     <TableCell className="py-4 px-6">
                       {user.type === 'registered' && (
-                        <div className="flex flex-wrap gap-1">
-                          {['MEMBER', 'FP', 'MANAGER', 'ADMIN'].map((role) => (
-                            <Button
-                              key={role}
-                              variant={user.role === role ? 'default' : 'outline'}
-                              size="sm"
-                              onClick={() => updateUserRole(user.id, role)}
-                              disabled={user.role === role}
-                              className={`text-xs px-3 py-1 h-auto transition-all duration-200 ${
-                                user.role === role 
-                                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md' 
-                                  : 'hover:bg-gradient-to-r hover:from-slate-50 hover:to-blue-50 border-slate-300'
-                              }`}
-                            >
-                              {getRoleLabel(role)}
-                            </Button>
-                          ))}
+                        <div className="space-y-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => window.location.href = `/dashboard/admin/users/${user.id}`}
+                            className="w-full text-xs"
+                          >
+                            詳細を見る
+                          </Button>
+                          <div className="flex flex-wrap gap-1">
+                            {['MEMBER', 'FP', 'MANAGER', 'ADMIN'].map((role) => (
+                              <Button
+                                key={role}
+                                variant={user.role === role ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => updateUserRole(user.id, role)}
+                                disabled={user.role === role}
+                                className={`text-xs px-3 py-1 h-auto transition-all duration-200 ${
+                                  user.role === role
+                                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+                                    : 'hover:bg-gradient-to-r hover:from-slate-50 hover:to-blue-50 border-slate-300'
+                                }`}
+                              >
+                                {getRoleLabel(role)}
+                              </Button>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </TableCell>
@@ -693,6 +770,147 @@ export default function AdminUsersPage() {
                 >
                   データを更新
                 </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 一括ステータス変更モーダル */}
+        {showStatusModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4 rounded-t-2xl">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-white flex items-center">
+                    <UserCheck className="h-5 w-5 mr-2" />
+                    一括ステータス変更 ({selectedUserIds.size}名)
+                  </h2>
+                  <button
+                    onClick={() => {
+                      setShowStatusModal(false)
+                      setStatusUpdateResult(null)
+                    }}
+                    className="text-white hover:bg-white/20 rounded-lg p-2 transition-all"
+                  >
+                    <span className="text-2xl">&times;</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4">
+                {statusUpdateResult ? (
+                  // 更新結果表示
+                  <div className="text-center py-8">
+                    <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
+                      statusUpdateResult.success === statusUpdateResult.total
+                        ? 'bg-green-100'
+                        : 'bg-yellow-100'
+                    }`}>
+                      {statusUpdateResult.success === statusUpdateResult.total ? (
+                        <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        <AlertCircle className="w-8 h-8 text-yellow-600" />
+                      )}
+                    </div>
+                    <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                      更新完了
+                    </h3>
+                    <p className="text-slate-600 mb-6">
+                      {statusUpdateResult.total}名中 {statusUpdateResult.success}名の更新に成功
+                      {statusUpdateResult.failed > 0 && ` (${statusUpdateResult.failed}名失敗)`}
+                    </p>
+                    <Button
+                      onClick={() => {
+                        setShowStatusModal(false)
+                        setStatusUpdateResult(null)
+                      }}
+                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                    >
+                      閉じる
+                    </Button>
+                  </div>
+                ) : (
+                  // ステータス変更フォーム
+                  <>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        新しいステータス <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={newMembershipStatus}
+                        onChange={(e) => setNewMembershipStatus(e.target.value)}
+                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        disabled={isUpdatingStatus}
+                      >
+                        <option value="">選択してください</option>
+                        <option value="PENDING">仮登録</option>
+                        <option value="ACTIVE">有効会員</option>
+                        <option value="SUSPENDED">休会中</option>
+                        <option value="PAST_DUE">支払い遅延</option>
+                        <option value="DELINQUENT">長期滞納</option>
+                        <option value="CANCELED">退会済み</option>
+                        <option value="TERMINATED">強制解約</option>
+                        <option value="EXPIRED">期限切れ</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        変更理由（任意）
+                      </label>
+                      <textarea
+                        value={statusChangeReason}
+                        onChange={(e) => setStatusChangeReason(e.target.value)}
+                        placeholder="ステータス変更の理由を入力してください"
+                        rows={4}
+                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                        disabled={isUpdatingStatus}
+                      />
+                    </div>
+
+                    <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
+                      <p className="text-sm text-purple-800">
+                        <strong>対象:</strong> {selectedUserIds.size}名のユーザー
+                      </p>
+                      <p className="text-xs text-purple-600 mt-2">
+                        ⚠️ この操作は取り消せません。慎重に実行してください。
+                      </p>
+                    </div>
+
+                    <div className="flex space-x-3 pt-4">
+                      <Button
+                        onClick={() => {
+                          setShowStatusModal(false)
+                          setStatusUpdateResult(null)
+                        }}
+                        variant="outline"
+                        className="flex-1"
+                        disabled={isUpdatingStatus}
+                      >
+                        キャンセル
+                      </Button>
+                      <Button
+                        onClick={handleBulkStatusUpdate}
+                        className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                        disabled={isUpdatingStatus || !newMembershipStatus}
+                      >
+                        {isUpdatingStatus ? (
+                          <>
+                            <span className="animate-spin mr-2">⏳</span>
+                            更新中...
+                          </>
+                        ) : (
+                          <>
+                            <UserCheck className="h-4 w-4 mr-2" />
+                            変更する
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
