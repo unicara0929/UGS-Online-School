@@ -335,6 +335,9 @@ FPエイド以上のユーザーが、保険契約などの契約実績を確認
 - **表示内容**:
   - 自分の契約一覧（管理者はすべての契約を閲覧可能）
   - 契約番号、商品名、契約タイプ、契約日、金額、報酬額、ステータス
+- **フィルタ機能**:
+  - **ステータスフィルタ**: 全て / 有効 / 解約 / 期限切れ
+  - **月別フィルタ**: 契約月（YYYY-MM形式）で絞り込み
 
 ### 使い方
 
@@ -342,6 +345,7 @@ FPエイド以上のユーザーが、保険契約などの契約実績を確認
    - サイドバーから「契約管理」をクリック
    - 契約一覧で自分の契約を確認
    - 統計情報で契約実績を把握
+   - ステータスや月別フィルタで絞り込み
 
 2. **契約の登録（管理者のみ）**
    - CSV一括アップロード機能を使用（詳細は「CSV一括アップロード機能」セクション参照）
@@ -349,7 +353,8 @@ FPエイド以上のユーザーが、保険契約などの契約実績を確認
 
 ### APIエンドポイント
 
-- `GET /api/contracts` - 契約一覧を取得（ユーザーIDでフィルタリング）
+- `GET /api/contracts` - 契約一覧を取得
+  - クエリパラメータ: `status` (ACTIVE/CANCELLED/EXPIRED), `month` (YYYY-MM形式)
 - `GET /api/contracts/[contractId]` - 特定の契約を取得
 - **CSV一括アップロード（管理者）:**
   - `POST /api/admin/contracts/upload/preview` - CSVデータのプレビュー
@@ -565,7 +570,7 @@ FPエイド昇格の条件の一つである「アンケート提出」を実現
 ## 5. 報酬管理機能
 
 ### 概要
-FPエイド以上のユーザーが自分の報酬を確認し、管理者が全ユーザーの報酬を管理するための機能です。報酬データは**管理者によるCSV一括アップロード**または自動生成で登録されます。
+FPエイド以上のユーザーが自分の報酬を確認し、管理者が全ユーザーの報酬を管理するための機能です。報酬データは**管理者によるCSV一括アップロードのみ**で登録されます。
 
 ### アクセス権限
 - **報酬の閲覧**: FPエイド（`fp`）、マネージャー（`manager`）、管理者（`admin`）
@@ -577,41 +582,37 @@ FPエイド以上のユーザーが自分の報酬を確認し、管理者が全
 #### 5.1 報酬情報（ユーザー）
 - **場所**: `/dashboard/compensation`
 - **表示内容**:
-  - 支払済み報酬の一覧のみ（ステータス: `PAID`）
+  - 報酬サマリー:
+    - 今月の報酬
+    - 先月の報酬
+    - 累計報酬（全期間合計）
+    - 前月比トレンド
+  - 月別フィルタ機能
   - 各報酬の詳細：
     - 対象月
     - 合計報酬額
-    - 基本報酬額
-    - ボーナス額
     - 契約件数
+    - 報酬の内訳：
+      - UGS会員紹介報酬（memberReferral）
+      - FPエイド紹介報酬（fpReferral）
+      - 契約報酬（contract）
+      - ボーナス（bonus）
+  - **FPユーザー向け**: マネージャー昇格条件の進捗表示
 
-**重要**: 現在の実装では、ユーザーは**支払済み（PAID）**の報酬データのみ閲覧できます。保留中（PENDING）や承認済み（CONFIRMED）の報酬は表示されません。
+**重要**: CSVアップロードされた報酬は全て**支払済み（PAID）**ステータスで登録されます。
 
 #### 5.2 報酬管理（管理者）
 - **場所**: `/dashboard/admin/compensations`
 - **機能**:
-  - 全ユーザーの報酬一覧を管理
-  - 報酬の生成、承認、支払い管理
-  - CSV一括アップロードボタン（新機能）
+  - 全ユーザーの報酬一覧を閲覧
+  - 月別フィルタリング
+  - CSV一括アップロードへのリンク
 
-##### 5.2.1 月次報酬の自動生成
-- 指定した月の報酬を自動計算して生成
-- 報酬の内訳：
-  - 基本報酬額（baseAmount）
-  - ボーナス額（bonusAmount）
-  - 契約件数（contractCount）
-- ステータス: `PENDING`（保留中）
-
-##### 5.2.2 報酬の承認
-- 生成された報酬を確認し、承認する
-- 承認後、ステータスが`CONFIRMED`（承認済み）に更新
-- ユーザーに通知が送信される
-
-##### 5.2.3 報酬の支払い管理
-- 承認済みの報酬を支払い済みとしてマーク
-- 支払い完了後、ステータスが`PAID`（支払済み）に更新
-- ユーザーに通知が送信される
-- **重要**: ユーザーは支払済み報酬のみ閲覧可能になります
+**報酬登録の流れ**:
+1. 管理者が報酬データをCSV形式で準備
+2. 「CSV一括アップロード」ボタンから一括アップロードページへ移動
+3. CSVファイルをアップロードしてプレビュー確認
+4. インポート実行で一括登録・更新（全て支払済みステータスで登録）
 
 ### 使い方
 
@@ -619,50 +620,61 @@ FPエイド以上のユーザーが自分の報酬を確認し、管理者が全
 
 1. **報酬を確認**
    - サイドバーから「報酬管理」をクリック
-   - 支払済み報酬の一覧を確認
+   - サマリーカードで今月・先月・累計報酬を確認
+   - 月別フィルタで特定月の報酬を絞り込み
    - 各報酬の詳細（対象月、金額、内訳）を確認
+
+2. **昇格条件の確認（FPユーザーのみ）**
+   - 報酬ページ下部のマネージャー昇格条件セクションを確認
+   - 各条件の達成状況を進捗バーで確認
 
 #### 管理者
 
-1. **報酬を自動生成**
+1. **報酬一覧の確認**
    - サイドバーから「報酬管理（管理者）」をクリック
-   - 「報酬を生成」ボタンをクリック
-   - 対象月（YYYY-MM形式）を入力
-   - 「報酬を生成」ボタンをクリック
+   - 全ユーザーの報酬一覧を確認
+   - 月別フィルタで絞り込み
 
 2. **CSV一括アップロード**
-   - 「CSV一括アップロード」ボタンをクリック（詳細は「CSV一括アップロード機能」セクション参照）
-
-3. **報酬を承認**
-   - 生成された報酬一覧を確認
-   - 各報酬の「承認」ボタンをクリック
-
-4. **報酬を支払い済みにする**
-   - 承認済みの報酬の「支払済み」ボタンをクリック
-   - 支払い完了後、ステータスが「支払済み」に更新される
-   - ユーザー側で閲覧可能になる
+   - 「CSV一括アップロード」ボタンをクリック
+   - `/dashboard/admin/csv-upload` ページへ移動
+   - 詳細は「CSV一括アップロード機能」セクション参照
 
 ### APIエンドポイント
 
 #### ユーザー向け:
-- `GET /api/compensations` - 自分の報酬一覧を取得（支払済みのみ）
+- `GET /api/compensations` - 自分の報酬一覧と統計情報を取得
+  - クエリパラメータ: `month` - 対象月フィルタ（YYYY-MM形式、任意）
+  - レスポンス: 報酬一覧、統計情報（currentMonth, lastMonth, total, recentAverage, trend）
 
 #### 管理者向け:
 - `GET /api/admin/compensations` - 全ユーザーの報酬一覧を取得
-- `POST /api/admin/compensations/generate` - 月次報酬を自動生成
-- `POST /api/admin/compensations/{compensationId}/approve` - 報酬を承認
-- `POST /api/admin/compensations/{compensationId}/pay` - 報酬を支払い済みにする
+  - クエリパラメータ: `month`, `status` - フィルタリング用（任意）
 - **CSV一括アップロード:**
   - `POST /api/admin/compensations/upload/preview` - CSVデータのプレビュー
-  - `POST /api/admin/compensations/upload/confirm` - CSV一括インポート
+  - `POST /api/admin/compensations/upload/confirm` - CSV一括インポート（全て支払済みで登録）
 
 ### データベースモデル
-- `Compensation` - 報酬情報（対象月、合計額、内訳、ステータス）
+```prisma
+model Compensation {
+  id            String
+  userId        String
+  month         String        // YYYY-MM形式
+  amount        Int           // 合計報酬額
+  contractCount Int           // 契約件数
+  breakdown     Json          // 内訳 {memberReferral, fpReferral, contract, bonus, deduction}
+  status        String        // 常に "PAID"
+  createdAt     DateTime
+  updatedAt     DateTime
+}
+```
 
 ### 重要な変更点
-- **ユーザー表示の簡素化**: ユーザーは支払済み（PAID）の報酬のみ閲覧可能
-- **CSV一括アップロード追加**: 管理者は報酬データをCSVで一括登録可能
-- **報酬ステータス**: PENDING（保留中）→ CONFIRMED（承認済み）→ PAID（支払済み）
+- **CSV一括アップロードのみ**: 報酬データの登録はCSV一括アップロードのみで行います
+- **自動生成機能の廃止**: 月次報酬の自動生成機能は廃止されました
+- **承認・支払いワークフローの廃止**: 報酬の承認・支払い管理機能は廃止されました
+- **全て支払済みステータス**: CSVアップロードされた報酬は全て支払済み（PAID）ステータスで登録されます
+- **累計報酬の計算**: ユーザー向けAPIで全報酬の合計を累計報酬として表示します
 
 ---
 
@@ -918,8 +930,34 @@ user456,2024-01,300000,250000,50000,3
 - `DELETE /api/admin/events/[eventId]` - イベントを削除（管理者）
 
 ### データベースモデル
-- `Event` - イベント情報（対象ロール、参加設定、日時、場所）
-- `EventRegistration` - ユーザーのイベント参加登録
+```prisma
+model Event {
+  id                String
+  title             String
+  description       String?
+  date              DateTime
+  time              String?
+  type              EventType            @default(OPTIONAL)      // 後方互換性のため残す（非推奨）
+  targetRoles       EventTargetRole[]                            // 対象ロール（複数選択可能）: MEMBER / FP / MANAGER / ALL
+  attendanceType    EventAttendanceType  @default(OPTIONAL)      // 参加設定: REQUIRED / OPTIONAL
+  venueType         EventVenueType       @default(ONLINE)        // 開催形式: ONLINE / OFFLINE / HYBRID
+  location          String?
+  maxParticipants   Int?
+  currentParticipants Int               @default(0)
+  createdAt         DateTime
+  updatedAt         DateTime
+}
+
+model EventRegistration {
+  id        String
+  eventId   String
+  userId    String
+  status    String    // REGISTERED / CANCELLED
+  createdAt DateTime
+}
+```
+
+**重要**: `type`フィールドは後方互換性のために残されていますが、現在は`targetRoles`（対象ロール）と`attendanceType`（参加設定）の2つのフィールドで管理されています。
 
 ---
 
@@ -1477,10 +1515,26 @@ FPエイド昇格の条件の一つである「LP面談完了」を実現する�
   - 名前（姓・名）
   - プロフィール画像
   - 電話番号
-  - 都道府県
+  - 業種（industry）- 以下から選択:
+    - 金融・保険業
+    - 不動産業
+    - 税理士・会計士
+    - コンサルティング業
+    - IT・通信業
+    - 製造業
+    - 卸売・小売業
+    - 医療・福祉
+    - 教育・学習支援業
+    - サービス業
+    - 建設業
+    - 運輸業
+    - 公務員
+    - 学生
+    - その他
+  - 活動地域（都道府県）
   - 住所
   - 生年月日
-  - 性別
+  - 性別（男性・女性・その他・回答しない）
   - 自己紹介（bio）
 
 #### 16.2 アカウント設定
