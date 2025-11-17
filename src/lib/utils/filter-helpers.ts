@@ -39,6 +39,17 @@ export function filterUsersByStatus<T extends { type?: 'pending' | 'registered';
 }
 
 /**
+ * ユーザーを会員ステータスでフィルター
+ */
+export function filterUsersByMembershipStatus<T extends { membershipStatus?: string }>(
+  users: T[],
+  membershipStatusFilter: 'all' | 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'PAST_DUE' | 'DELINQUENT' | 'CANCELED' | 'TERMINATED' | 'EXPIRED'
+): T[] {
+  if (membershipStatusFilter === 'all') return users
+  return users.filter(user => user.membershipStatus === membershipStatusFilter)
+}
+
+/**
  * ユーザーをロールでフィルター
  */
 export function filterUsersByRole<T extends { role: string }>(

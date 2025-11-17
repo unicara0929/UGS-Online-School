@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Users, UserCheck, UserX, Mail, Calendar, CreditCard, AlertCircle, Search, Filter, ArrowUpDown } from 'lucide-react'
 import { getRoleLabel, getRoleBadgeVariant, formatDate, formatCurrency } from '@/lib/utils/user-helpers'
-import { filterUsersBySearch, filterUsersByStatus, filterUsersByRole, sortUsers } from '@/lib/utils/filter-helpers'
+import { filterUsersBySearch, filterUsersByStatus, filterUsersByMembershipStatus, filterUsersByRole, sortUsers } from '@/lib/utils/filter-helpers'
 import { getSubscriptionStatus } from '@/lib/utils/subscription-helpers'
 
 interface SubscriptionInfo {
@@ -47,6 +47,7 @@ interface SupabaseUser {
   email_confirmed_at: string | null
   last_sign_in_at: string | null
   role: string
+  membershipStatus?: string
   raw_user_meta_data: {
     name?: string
     [key: string]: any
@@ -65,6 +66,7 @@ export default function AdminUsersPage() {
   // フィルター機能
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'active' | 'canceled' | 'past_due' | 'unpaid'>('all')
+  const [membershipStatusFilter, setMembershipStatusFilter] = useState<'all' | 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'PAST_DUE' | 'DELINQUENT' | 'CANCELED' | 'TERMINATED' | 'EXPIRED'>('all')
   const [roleFilter, setRoleFilter] = useState<'all' | 'MEMBER' | 'FP' | 'MANAGER' | 'ADMIN'>('all')
   const [sortField, setSortField] = useState<'name' | 'email' | 'createdAt' | 'lastSignIn'>('createdAt')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
@@ -173,6 +175,7 @@ export default function AdminUsersPage() {
       name: string
       email: string
       role: string
+      membershipStatus?: string
       createdAt: string
       lastSignIn: string | null
       subscription: SubscriptionInfo | null
@@ -186,6 +189,7 @@ export default function AdminUsersPage() {
         name: pending.name,
         email: pending.email,
         role: 'PENDING',
+        membershipStatus: 'PENDING',
         createdAt: pending.createdAt,
         lastSignIn: null as string | null,
         subscription: null as SubscriptionInfo | null,
@@ -197,6 +201,7 @@ export default function AdminUsersPage() {
         name: user.raw_user_meta_data?.name || '名前未設定',
         email: user.email,
         role: user.role,
+        membershipStatus: user.membershipStatus || 'ACTIVE',
         createdAt: user.created_at,
         lastSignIn: user.last_sign_in_at,
         subscription: (subscriptions.find(sub => sub.userId === user.id) || null) as SubscriptionInfo | null,
@@ -208,6 +213,7 @@ export default function AdminUsersPage() {
     // ヘルパー関数を使用してフィルターとソートを適用
     let filtered: UserItem[] = filterUsersBySearch(allUsers, searchTerm) as UserItem[]
     filtered = filterUsersByStatus(filtered, statusFilter) as UserItem[]
+    filtered = filterUsersByMembershipStatus(filtered, membershipStatusFilter) as UserItem[]
     filtered = filterUsersByRole(filtered, roleFilter) as UserItem[]
     filtered = sortUsers(filtered, sortField, sortDirection) as UserItem[]
 
@@ -411,7 +417,7 @@ export default function AdminUsersPage() {
                 onChange={(e) => setStatusFilter(e.target.value as any)}
                 className="px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-all duration-200"
               >
-                <option value="all">すべてのステータス</option>
+                <option value="all">決済ステータス: すべて</option>
                 <option value="pending">仮登録</option>
                 <option value="active">アクティブ</option>
                 <option value="canceled">キャンセル済み</option>
@@ -420,11 +426,27 @@ export default function AdminUsersPage() {
               </select>
 
               <select
+                value={membershipStatusFilter}
+                onChange={(e) => setMembershipStatusFilter(e.target.value as any)}
+                className="px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-all duration-200"
+              >
+                <option value="all">会員ステータス: すべて</option>
+                <option value="PENDING">仮登録</option>
+                <option value="ACTIVE">有効会員</option>
+                <option value="SUSPENDED">休会中</option>
+                <option value="PAST_DUE">支払い遅延</option>
+                <option value="DELINQUENT">長期滞納</option>
+                <option value="CANCELED">退会済み</option>
+                <option value="TERMINATED">強制解約</option>
+                <option value="EXPIRED">期限切れ</option>
+              </select>
+
+              <select
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value as any)}
                 className="px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-all duration-200"
               >
-                <option value="all">すべてのステータス</option>
+                <option value="all">ロール: すべて</option>
                 <option value="PENDING">仮登録</option>
                 <option value="MEMBER">メンバー</option>
                 <option value="FP">FPエイド</option>
@@ -437,6 +459,7 @@ export default function AdminUsersPage() {
                 onClick={() => {
                   setSearchTerm('')
                   setStatusFilter('all')
+                  setMembershipStatusFilter('all')
                   setRoleFilter('all')
                 }}
                 className="flex items-center justify-center space-x-2 bg-gradient-to-r from-slate-50 to-blue-50 hover:from-slate-100 hover:to-blue-100 border-slate-300 text-slate-700 hover:text-slate-800 shadow-sm hover:shadow-md transition-all duration-200 rounded-xl py-3"
