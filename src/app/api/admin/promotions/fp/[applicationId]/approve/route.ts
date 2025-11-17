@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { supabaseAdmin } from '@/lib/supabase'
 import { getAuthenticatedUser, checkRole, Roles } from '@/lib/auth/api-helpers'
 import { UserRole } from '@prisma/client'
 import { sendFPPromotionApprovedEmail } from '@/lib/services/email-service'
@@ -75,6 +76,17 @@ export async function POST(
         }
       })
     })
+
+    // Supabaseのuser_metadataも更新（Prismaと同期）
+    try {
+      await supabaseAdmin.auth.admin.updateUserById(application.userId, {
+        user_metadata: { role: UserRole.FP }
+      })
+      console.log('Supabase user_metadata updated for FP promotion:', application.userId)
+    } catch (supabaseError) {
+      console.error('Failed to update Supabase user_metadata:', supabaseError)
+      // Supabase更新失敗しても処理は続行（Prismaは既に更新済み）
+    }
 
     // 4. メール送信（二重送信防止：promotionEmailSentフラグをチェック）
     if (!application.promotionEmailSent) {
