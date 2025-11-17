@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Users, UserCheck, UserX, Mail, Calendar, CreditCard, AlertCircle, Search, Filter, ArrowUpDown } from 'lucide-react'
+import { Users, UserCheck, UserX, Mail, Calendar, CreditCard, AlertCircle, Search, Filter, ArrowUpDown, Download } from 'lucide-react'
 import { getRoleLabel, getRoleBadgeVariant, formatDate, formatCurrency } from '@/lib/utils/user-helpers'
 import { filterUsersBySearch, filterUsersByStatus, filterUsersByMembershipStatus, filterUsersByRole, sortUsers } from '@/lib/utils/filter-helpers'
 import { getSubscriptionStatus } from '@/lib/utils/subscription-helpers'
@@ -299,6 +299,29 @@ export default function AdminUsersPage() {
     }
   }
 
+  const handleExportCSV = async () => {
+    try {
+      const response = await fetch('/api/admin/users/export', {
+        credentials: 'include'
+      })
+      if (!response.ok) {
+        throw new Error('CSVエクスポートに失敗しました')
+      }
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `users_export_${new Date().toISOString().slice(0, 10)}.csv`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (error) {
+      console.error('CSV export error:', error)
+      alert('CSVエクスポートに失敗しました')
+    }
+  }
+
   const handleBulkStatusUpdate = async () => {
     if (!newMembershipStatus) {
       alert('変更後のステータスを選択してください')
@@ -524,6 +547,15 @@ export default function AdminUsersPage() {
               >
                 <Filter className="h-4 w-4" />
                 <span>リセット</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={handleExportCSV}
+                className="flex items-center justify-center space-x-2 bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 border-green-300 text-green-700 hover:text-green-800 shadow-sm hover:shadow-md transition-all duration-200 rounded-xl py-3"
+              >
+                <Download className="h-4 w-4" />
+                <span>CSV出力</span>
               </Button>
             </div>
           </div>
