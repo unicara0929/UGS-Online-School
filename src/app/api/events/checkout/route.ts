@@ -72,21 +72,38 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    // 既存のRegistrationがある場合の処理
+    let registration = existingRegistration
+
     if (existingRegistration) {
-      return NextResponse.json(
-        { error: '既にこのイベントに登録済みです' },
-        { status: 400 }
-      )
+      // 既に支払い完了している場合はエラー
+      if (existingRegistration.paymentStatus === 'PAID') {
+        return NextResponse.json(
+          { error: '既にこのイベントの支払いが完了しています' },
+          { status: 400 }
+        )
+      }
+
+      // PENDING状態の場合は、新しいCheckout Sessionを作成するために既存のRegistrationを使用
+      console.log('Existing PENDING registration found, creating new checkout session')
+    } else {
+      // 新規登録の場合、EventRegistrationをPENDINGステータスで作成
+      registration = await prisma.eventRegistration.create({
+        data: {
+          userId: user.id,
+          eventId: event.id,
+          paymentStatus: 'PENDING',
+        },
+      })
     }
 
-    // EventRegistrationをPENDINGステータスで作成
-    const registration = await prisma.eventRegistration.create({
-      data: {
-        userId: user.id,
-        eventId: event.id,
-        paymentStatus: 'PENDING',
-      },
-    })
+    // registrationが存在することを確認
+    if (!registration) {
+      return NextResponse.json(
+        { error: 'Registrationの作成に失敗しました' },
+        { status: 500 }
+      )
+    }
 
     // Stripe Checkout Sessionを作成
     const subscription = user.subscriptions?.[0]
@@ -113,12 +130,14 @@ export async function POST(request: NextRequest) {
     })
 
     // Checkout Session IDを登録レコードに保存
-    await prisma.eventRegistration.update({
-      where: { id: registration.id },
-      data: {
-        stripeSessionId: checkoutSession.id,
-      },
-    })
+    if (registration) {
+      await prisma.eventRegistration.update({
+        where: { id: registration.id },
+        data: {
+          stripeSessionId: checkoutSession.id,
+        },
+      })
+    }
 
     return NextResponse.json({
       success: true,

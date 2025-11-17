@@ -169,37 +169,88 @@ function EventsPageContent() {
     return true
   }
 
+  // 有料イベントの決済処理（新規申込 or PENDING状態からの再決済）
+  const handleCheckout = async (eventId: string) => {
+    setIsSubmitting(true)
+    try {
+      const response = await fetch('/api/events/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ eventId }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'チェックアウトの作成に失敗しました')
+      }
+
+      // Stripe Checkoutページにリダイレクト
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl
+      }
+    } catch (err) {
+      console.error('Failed to create checkout session:', err)
+      alert(err instanceof Error ? err.message : 'チェックアウトの作成に失敗しました')
+      setIsSubmitting(false)
+    }
+  }
+
+  // イベント登録のキャンセル（PENDING状態のみ）
+  const handleCancelRegistration = async (eventId: string) => {
+    if (!confirm('申し込みをキャンセルしますか？')) return
+
+    setIsSubmitting(true)
+    try {
+      const response = await fetch('/api/events/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ eventId }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'キャンセルに失敗しました')
+      }
+
+      // イベント一覧を更新（isRegistered=false, paymentStatus=nullに）
+      setEvents(prev =>
+        prev.map(item =>
+          item.id === eventId
+            ? {
+                ...item,
+                isRegistered: false,
+                paymentStatus: null,
+                currentParticipants: Math.max(0, item.currentParticipants - 1),
+              }
+            : item
+        )
+      )
+
+      alert('申し込みをキャンセルしました')
+    } catch (err) {
+      console.error('Failed to cancel registration:', err)
+      alert(err instanceof Error ? err.message : 'キャンセルに失敗しました')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   const handleToggleRegistration = async (event: EventItem) => {
     if (!user?.id) return
 
-    // 有料イベントの申し込みの場合、チェックアウトページにリダイレクト
+    // 有料イベントの場合、決済処理へ
     if (event.isPaid && !event.isRegistered) {
-      setIsSubmitting(true)
-      try {
-        const response = await fetch('/api/events/checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({
-            eventId: event.id,
-          }),
-        })
+      await handleCheckout(event.id)
+      return
+    }
 
-        const data = await response.json()
-
-        if (!response.ok || !data.success) {
-          throw new Error(data.error || 'チェックアウトの作成に失敗しました')
-        }
-
-        // Stripe Checkoutページにリダイレクト
-        if (data.checkoutUrl) {
-          window.location.href = data.checkoutUrl
-        }
-      } catch (err) {
-        console.error('Failed to create checkout session:', err)
-        alert(err instanceof Error ? err.message : 'チェックアウトの作成に失敗しました')
-        setIsSubmitting(false)
-      }
+    // 有料イベントでPENDING状態の場合も決済処理へ
+    if (event.isPaid && event.paymentStatus === 'PENDING') {
+      await handleCheckout(event.id)
       return
     }
 
@@ -337,7 +388,34 @@ function EventsPageContent() {
                     </div>
 
                     <div className="mt-4 flex gap-2">
-                      {canRegisterForEvent(event) ? (
+                      {/* PENDING状態：支払い完了ボタン＋キャンセルボタン */}
+                      {event.isPaid && event.paymentStatus === 'PENDING' ? (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="default"
+                            className="flex-1"
+                            disabled={isSubmitting}
+                            onClick={() => handleCheckout(event.id)}
+                          >
+                            支払いを完了する
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={isSubmitting}
+                            onClick={() => handleCancelRegistration(event.id)}
+                          >
+                            キャンセル
+                          </Button>
+                        </>
+                      ) : /* PAID状態：参加確定メッセージ */
+                      event.isPaid && event.paymentStatus === 'PAID' ? (
+                        <div className="w-full text-center py-2 text-sm text-green-600 font-medium">
+                          ✓ 参加確定（お支払い完了）
+                        </div>
+                      ) : /* 未登録 or 無料イベント */
+                      canRegisterForEvent(event) ? (
                         <Button
                           size="sm"
                           variant={event.isRegistered ? "outline" : "default"}
