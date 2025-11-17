@@ -94,21 +94,18 @@ function AdminLPMeetingsPageContent() {
 
   const fetchFPs = async () => {
     try {
-      // Prismaから直接FPエイドを取得
-      const response = await fetch('/api/admin/users', {
+      // PrismaからFPエイド以上のユーザーを取得
+      const response = await fetch('/api/admin/fp-users', {
         credentials: 'include'
       })
       if (!response.ok) {
         throw new Error('FPエイド一覧の取得に失敗しました')
       }
       const data = await response.json()
-      // roleが'FP'または'fp'のユーザーをフィルタ
-      const fpUsers = data.users?.filter((u: any) => {
-        const role = u.role?.toLowerCase() || ''
-        return role === 'fp'
-      }).map((u: any) => ({
+      // FPエイド、マネージャー、管理者を含む
+      const fpUsers = data.users?.map((u: any) => ({
         id: u.id,
-        name: u.raw_user_meta_data?.name || u.email?.split('@')[0] || '名前不明',
+        name: u.name || u.email?.split('@')[0] || '名前不明',
         email: u.email
       })) || []
       setFps(fpUsers)
