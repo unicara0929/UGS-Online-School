@@ -14,13 +14,23 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ hasApplication: false, application: null, pendingActions: [] })
     }
 
+    // ユーザー情報を取得（ロール確認のため）
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true }
+    })
+
+    if (!user) {
+      return NextResponse.json({ error: 'ユーザーが見つかりません' }, { status: 404 })
+    }
+
     // FP昇格申請を取得
     const application = await prisma.fPPromotionApplication.findUnique({
       where: { userId },
     })
 
     if (!application) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         hasApplication: false,
         application: null,
         pendingActions: []
@@ -28,16 +38,22 @@ export async function GET(request: NextRequest) {
     }
 
     // 未完了のアクションを特定
-    const pendingActions: string[] = []
-    if (!application.lpMeetingCompleted) {
-      pendingActions.push('lpMeeting')
+    // ただし、既にFPエイド以上のロール（fp, manager, admin）の場合は空の配列を返す
+    let pendingActions: string[] = []
+
+    // UGS会員（member）の場合のみ、未完了アクションを返す
+    if (user.role === 'MEMBER') {
+      if (!application.lpMeetingCompleted) {
+        pendingActions.push('lpMeeting')
+      }
+      if (!application.basicTestCompleted) {
+        pendingActions.push('basicTest')
+      }
+      if (!application.surveyCompleted) {
+        pendingActions.push('survey')
+      }
     }
-    if (!application.basicTestCompleted) {
-      pendingActions.push('basicTest')
-    }
-    if (!application.surveyCompleted) {
-      pendingActions.push('survey')
-    }
+    // FPエイド以上（fp, manager, admin）の場合は、pendingActionsは空のまま
 
     return NextResponse.json({
       hasApplication: true,

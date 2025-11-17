@@ -18,6 +18,33 @@ const createTransporter = () => {
 }
 
 /**
+ * 汎用メール送信関数
+ */
+export async function sendEmail(params: {
+  to: string
+  subject: string
+  html: string
+}) {
+  const { to, subject, html } = params
+
+  try {
+    const transporter = createTransporter()
+
+    await transporter.sendMail({
+      from: `"UGSオンラインスクール" <${process.env.SMTP_USER}>`,
+      to,
+      subject,
+      html,
+    })
+
+    console.log(`Email sent to: ${to}`)
+  } catch (error) {
+    console.error('Failed to send email:', error)
+    throw error
+  }
+}
+
+/**
  * FPエイド昇格通知メールを送信
  */
 export async function sendFPPromotionApprovedEmail(params: {
