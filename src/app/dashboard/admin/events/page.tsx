@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import { ja } from "date-fns/locale"
 import { ProtectedRoute } from "@/components/auth/protected-route"
@@ -14,6 +15,7 @@ import { Plus, Calendar, Clock, MapPin, Users, Video, Edit, Trash2, Loader2 } fr
 
 function AdminEventsPageContent() {
   const { user } = useAuth()
+  const router = useRouter()
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [events, setEvents] = useState<AdminEventItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -573,6 +575,19 @@ function AdminEventsPageContent() {
                           参加者はまだいません
                         </p>
                       )}
+
+                      {/* 参加者管理ボタン */}
+                      <div className="mt-4">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => router.push(`/dashboard/admin/events/${event.id}`)}
+                        >
+                          <Users className="h-4 w-4 mr-2" />
+                          参加者を管理
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
