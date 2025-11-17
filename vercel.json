@@ -5,6 +5,16 @@
   "regions": ["hnd1"],
   "env": {
     "PRISMA_GENERATE_DATAPROXY": "false"
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/update-delinquent-status",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/resume-suspended-users",
+      "schedule": "0 1 * * *"
+    }
+  ]
 }
 
