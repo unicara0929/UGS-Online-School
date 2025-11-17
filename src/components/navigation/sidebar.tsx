@@ -161,9 +161,9 @@ export function Sidebar() {
                   {user?.name}
                 </p>
                 <Badge variant="secondary" className="text-xs mt-1">
-                  {user?.role === "member" ? "UGS Member" : 
-                   user?.role === "fp" ? "FP Aid" : 
-                   user?.role === "manager" ? "Manager" : "Admin"}
+                  {user?.role === "member" ? "UGS会員" :
+                   user?.role === "fp" ? "FPエイド" :
+                   user?.role === "manager" ? "マネージャー" : "管理者"}
                 </Badge>
               </div>
             </div>
