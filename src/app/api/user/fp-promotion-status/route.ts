@@ -38,10 +38,10 @@ export async function GET(request: NextRequest) {
     }
 
     // 未完了のアクションを特定
-    // ただし、既にFPエイド以上のロール（fp, manager, admin）の場合は空の配列を返す
+    // ただし、既にFPエイド以上のロール（FP, MANAGER, ADMIN）の場合は空の配列を返す
     let pendingActions: string[] = []
 
-    // UGS会員（member）の場合のみ、未完了アクションを返す
+    // UGS会員（MEMBER）の場合のみ、未完了アクションを返す
     if (user.role === 'MEMBER') {
       if (!application.lpMeetingCompleted) {
         pendingActions.push('lpMeeting')
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
         pendingActions.push('survey')
       }
     }
-    // FPエイド以上（fp, manager, admin）の場合は、pendingActionsは空のまま
+    // FPエイド以上（FP, MANAGER, ADMIN）の場合は、pendingActionsは空のまま
 
     return NextResponse.json({
       hasApplication: true,
