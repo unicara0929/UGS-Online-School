@@ -21,15 +21,20 @@ const JAPANESE_PREFECTURES = [
   '熊本県', '大分県', '宮崎県', '鹿児島県', '沖縄県'
 ]
 
-const ATTRIBUTES = [
-  'FP（ファイナンシャルプランナー）',
-  '保険営業',
-  '証券営業',
-  '銀行員',
-  '税理士',
-  '公認会計士',
-  '不動産営業',
-  'その他金融関係',
+const INDUSTRIES = [
+  '金融・保険業',
+  '不動産業',
+  '税理士・会計士',
+  'コンサルティング業',
+  'IT・通信業',
+  '製造業',
+  '卸売・小売業',
+  '医療・福祉',
+  '教育・学習支援業',
+  'サービス業',
+  '建設業',
+  '運輸業',
+  '公務員',
   '学生',
   'その他'
 ]
@@ -455,17 +460,17 @@ function ProfileSettingsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    属性
+                    業種
                   </label>
                   <select
                     value={profile.attribute}
                     onChange={(e) => setProfile({...profile, attribute: e.target.value})}
                     className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md bg-white"
                   >
-                    <option value="">選択してください</option>
-                    {ATTRIBUTES.map((attr) => (
-                      <option key={attr} value={attr}>
-                        {attr}
+                    <option value="">業種を選択してください</option>
+                    {INDUSTRIES.map((industry) => (
+                      <option key={industry} value={industry}>
+                        {industry}
                       </option>
                     ))}
                   </select>
