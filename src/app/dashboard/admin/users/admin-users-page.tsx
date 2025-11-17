@@ -52,6 +52,7 @@ interface SupabaseUser {
     [key: string]: any
   }
   subscription?: SubscriptionInfo
+  hasSupabaseAuth?: boolean // Supabase認証が存在するか
 }
 
 export default function AdminUsersPage() {
@@ -168,6 +169,7 @@ export default function AdminUsersPage() {
       lastSignIn: string | null
       subscription: SubscriptionInfo | null
       type: 'pending' | 'registered'
+      hasSupabaseAuth?: boolean
     }
 
     const allUsers: UserItem[] = [
@@ -179,7 +181,8 @@ export default function AdminUsersPage() {
         createdAt: pending.createdAt,
         lastSignIn: null as string | null,
         subscription: null as SubscriptionInfo | null,
-        type: 'pending' as const
+        type: 'pending' as const,
+        hasSupabaseAuth: false, // 仮登録はSupabase認証なし
       })),
       ...users.map(user => ({
         id: user.id,
@@ -189,7 +192,8 @@ export default function AdminUsersPage() {
         createdAt: user.created_at,
         lastSignIn: user.last_sign_in_at,
         subscription: (subscriptions.find(sub => sub.userId === user.id) || null) as SubscriptionInfo | null,
-        type: 'registered' as const
+        type: 'registered' as const,
+        hasSupabaseAuth: user.hasSupabaseAuth ?? true,
       }))
     ]
 
@@ -441,6 +445,12 @@ export default function AdminUsersPage() {
                             <Badge variant="outline" className="text-orange-600 border-orange-300 bg-orange-50 mt-1">
                               <UserX className="h-3 w-3 mr-1" />
                               仮登録
+                            </Badge>
+                          )}
+                          {user.type === 'registered' && user.hasSupabaseAuth === false && (
+                            <Badge variant="outline" className="text-red-600 border-red-300 bg-red-50 mt-1">
+                              <AlertCircle className="h-3 w-3 mr-1" />
+                              認証なし
                             </Badge>
                           )}
                         </div>

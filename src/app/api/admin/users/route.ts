@@ -4,8 +4,19 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
-    // Supabaseからユーザー一覧を取得
-    const { data: users, error } = await supabaseAdmin.auth.admin.listUsers()
+    // 1. Prismaからすべてのユーザーを取得（こちらをベースにする）
+    const prismaUsers = await prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        createdAt: true,
+      }
+    })
+
+    // 2. Supabaseからユーザー一覧を取得（認証情報用）
+    const { data: supabaseData, error } = await supabaseAdmin.auth.admin.listUsers()
 
     if (error) {
       console.error('Supabase users fetch error:', error)
@@ -15,28 +26,30 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Prismaからすべてのユーザーのロールを取得
-    const prismaUsers = await prisma.user.findMany({
-      select: {
-        id: true,
-        role: true,
+    // 3. Supabaseユーザーのマップを作成
+    const supabaseMap = new Map(
+      supabaseData.users.map(user => [user.id, user])
+    )
+
+    // 4. Prismaユーザーをベースに、Supabaseの認証情報を付加
+    const formattedUsers = prismaUsers.map((prismaUser) => {
+      const supabaseUser = supabaseMap.get(prismaUser.id)
+
+      return {
+        id: prismaUser.id,
+        email: prismaUser.email,
+        created_at: supabaseUser?.created_at || prismaUser.createdAt.toISOString(),
+        email_confirmed_at: supabaseUser?.email_confirmed_at || null,
+        last_sign_in_at: supabaseUser?.last_sign_in_at || null,
+        role: prismaUser.role, // Prismaのロールが正
+        raw_user_meta_data: {
+          name: prismaUser.name, // Prismaの名前が正
+          role: prismaUser.role,
+        },
+        // データ整合性フラグ
+        hasSupabaseAuth: !!supabaseUser,
       }
     })
-
-    // SupabaseユーザーIDとPrismaロールのマップを作成
-    const roleMap = new Map(prismaUsers.map(user => [user.id, user.role]))
-
-    // ユーザー情報を整形（Prismaのロールを優先）
-    const formattedUsers = users.users.map((user) => ({
-      id: user.id,
-      email: user.email,
-      created_at: user.created_at,
-      email_confirmed_at: user.email_confirmed_at,
-      last_sign_in_at: user.last_sign_in_at,
-      // Prismaのロールを優先、存在しない場合はuser_metadataのロール、それもなければMEMBER
-      role: roleMap.get(user.id) || user.user_metadata?.role || 'MEMBER',
-      raw_user_meta_data: user.user_metadata || {},
-    }))
 
     return NextResponse.json({ users: formattedUsers })
   } catch (error) {
