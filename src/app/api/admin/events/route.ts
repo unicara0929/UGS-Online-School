@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
+import { createEventPrice } from '@/lib/services/event-price-service'
 
 const EVENT_TYPE_MAP = {
   REQUIRED: 'required',
@@ -153,11 +154,21 @@ export async function POST(request: NextRequest) {
       location,
       maxParticipants,
       status = 'upcoming',
+      isPaid = false,
+      price,
     } = body || {}
 
     if (!title || !date) {
       return NextResponse.json(
         { success: false, error: 'title と date は必須です' },
+        { status: 400 }
+      )
+    }
+
+    // 有料イベントの場合、価格が必須
+    if (isPaid && (!price || price <= 0)) {
+      return NextResponse.json(
+        { success: false, error: '有料イベントの場合、価格（0円より大きい金額）が必須です' },
         { status: 400 }
       )
     }
@@ -181,8 +192,29 @@ export async function POST(request: NextRequest) {
         location,
         maxParticipants: maxParticipants !== undefined ? Number(maxParticipants) : null,
         status: eventStatus,
+        isPaid,
+        price: isPaid ? Number(price) : null,
       },
     })
+
+    // 有料イベントの場合、Stripe Priceを作成
+    if (isPaid && price) {
+      try {
+        await createEventPrice({
+          eventId: createdEvent.id,
+          eventTitle: createdEvent.title,
+          price: Number(price),
+        })
+      } catch (stripeError) {
+        console.error('Failed to create Stripe Price:', stripeError)
+        // Stripe Price作成失敗時はイベントを削除してエラーを返す
+        await prisma.event.delete({ where: { id: createdEvent.id } })
+        return NextResponse.json(
+          { success: false, error: 'Stripe決済設定の作成に失敗しました' },
+          { status: 500 }
+        )
+      }
+    }
 
     const attendanceTypeKey = createdEvent.attendanceType as keyof typeof EVENT_ATTENDANCE_TYPE_MAP
     const venueTypeKey = createdEvent.venueType as keyof typeof EVENT_VENUE_TYPE_MAP

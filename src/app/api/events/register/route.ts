@@ -57,6 +57,17 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === 'register') {
+      // 有料イベントの場合は直接登録を拒否
+      if (event.isPaid) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: '有料イベントは決済が必要です。チェックアウトページから申し込みしてください。',
+          },
+          { status: 400 }
+        )
+      }
+
       if (event.registrations.length > 0) {
         return NextResponse.json({
           success: true,
@@ -78,10 +89,12 @@ export async function POST(request: NextRequest) {
         )
       }
 
+      // 無料イベントとして登録
       await prisma.eventRegistration.create({
         data: {
           userId,
           eventId,
+          paymentStatus: 'FREE', // 無料イベント
         },
       })
     } else if (action === 'unregister') {

@@ -32,6 +32,8 @@ function AdminEventsPageContent() {
     location: "",
     maxParticipants: 50,
     status: "upcoming",
+    isPaid: false,
+    price: null,
   })
 
   const fetchEvents = async () => {
@@ -112,6 +114,8 @@ function AdminEventsPageContent() {
         location: "",
         maxParticipants: 50,
         status: "upcoming",
+        isPaid: false,
+        price: null,
       })
       setShowCreateForm(false)
     } catch (err) {
@@ -332,6 +336,54 @@ function AdminEventsPageContent() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-2">
+                        イベントタイプ
+                      </label>
+                      <div className="space-y-2">
+                        <label className="flex items-center cursor-pointer">
+                          <input
+                            type="radio"
+                            name="isPaid"
+                            checked={!newEvent.isPaid}
+                            onChange={() => setNewEvent({...newEvent, isPaid: false, price: null})}
+                            className="w-4 h-4 text-slate-600 bg-slate-100 border-slate-300 focus:ring-slate-500 focus:ring-2"
+                          />
+                          <span className="ml-2 text-sm text-slate-700">無料</span>
+                        </label>
+                        <label className="flex items-center cursor-pointer">
+                          <input
+                            type="radio"
+                            name="isPaid"
+                            checked={newEvent.isPaid}
+                            onChange={() => setNewEvent({...newEvent, isPaid: true})}
+                            className="w-4 h-4 text-slate-600 bg-slate-100 border-slate-300 focus:ring-slate-500 focus:ring-2"
+                          />
+                          <span className="ml-2 text-sm text-slate-700">有料</span>
+                        </label>
+                      </div>
+                    </div>
+                    {newEvent.isPaid && (
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          価格（円）
+                        </label>
+                        <input
+                          type="number"
+                          value={newEvent.price ?? ""}
+                          onChange={(e) => {
+                            const value = e.target.value
+                            setNewEvent({
+                              ...newEvent,
+                              price: value === "" ? null : parseInt(value),
+                            })
+                          }}
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                          placeholder="例: 3000"
+                          min="0"
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
                         開催形式
                       </label>
                       <div className="space-y-2">
@@ -419,6 +471,8 @@ function AdminEventsPageContent() {
                           location: "",
                           maxParticipants: 50,
                           status: "upcoming",
+                          isPaid: false,
+                          price: null,
                         })
                       }}
                     >
@@ -574,4 +628,6 @@ type CreateEventForm = {
   location: string
   maxParticipants: number | null
   status: 'upcoming' | 'completed' | 'cancelled'
+  isPaid: boolean // 有料イベントかどうか
+  price: number | null // 価格（円）
 }

@@ -13,6 +13,13 @@ import Stripe from 'stripe'
  * checkout.session.completed イベントの処理
  */
 export async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session): Promise<void> {
+  // イベント支払いの場合
+  if (session.metadata?.type === 'event') {
+    await handleEventPaymentCompleted(session)
+    return
+  }
+
+  // サブスクリプション支払いの場合
   if (session.mode !== 'subscription') return
 
   const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
@@ -48,6 +55,37 @@ export async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Se
 
   // 紹介コードが含まれている場合、紹介を自動登録
   await handleReferralRegistration(session)
+}
+
+/**
+ * イベント支払い完了の処理
+ */
+async function handleEventPaymentCompleted(session: Stripe.Checkout.Session): Promise<void> {
+  const { eventId, userId, registrationId } = session.metadata || {}
+
+  if (!registrationId) {
+    console.error('Missing registrationId in event payment session metadata')
+    return
+  }
+
+  try {
+    // EventRegistrationを更新: PENDING → PAID
+    await prisma.eventRegistration.update({
+      where: { id: registrationId },
+      data: {
+        paymentStatus: 'PAID',
+        stripePaymentIntentId: session.payment_intent as string,
+        paidAmount: session.amount_total || 0,
+        paidAt: new Date(),
+      },
+    })
+
+    console.log(`Event payment completed: eventId=${eventId}, userId=${userId}, registrationId=${registrationId}`)
+
+    // TODO: イベント参加確定メールを送信（後続フェーズで実装）
+  } catch (error) {
+    console.error('Failed to update event registration payment status:', error)
+  }
 }
 
 /**

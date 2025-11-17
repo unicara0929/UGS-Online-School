@@ -91,6 +91,9 @@ function EventsPageContent() {
             currentParticipants: event.currentParticipants,
             isRegistered: event.isRegistered,
             status: event.status,
+            isPaid: event.isPaid || false,
+            price: event.price || null,
+            paymentStatus: event.paymentStatus || null,
           }))
 
           setEvents(formattedEvents)
@@ -169,6 +172,38 @@ function EventsPageContent() {
   const handleToggleRegistration = async (event: EventItem) => {
     if (!user?.id) return
 
+    // 有料イベントの申し込みの場合、チェックアウトページにリダイレクト
+    if (event.isPaid && !event.isRegistered) {
+      setIsSubmitting(true)
+      try {
+        const response = await fetch('/api/events/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            eventId: event.id,
+          }),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || 'チェックアウトの作成に失敗しました')
+        }
+
+        // Stripe Checkoutページにリダイレクト
+        if (data.checkoutUrl) {
+          window.location.href = data.checkoutUrl
+        }
+      } catch (err) {
+        console.error('Failed to create checkout session:', err)
+        alert(err instanceof Error ? err.message : 'チェックアウトの作成に失敗しました')
+        setIsSubmitting(false)
+      }
+      return
+    }
+
+    // 無料イベントまたはキャンセルの場合は既存ロジック
     const action = event.isRegistered ? 'unregister' : 'register'
 
     setIsSubmitting(true)
@@ -248,9 +283,26 @@ function EventsPageContent() {
                 <Card key={event.id} className="hover:shadow-xl transition-all duration-300">
                   <CardHeader>
                     <div className="flex items-center justify-between mb-2">
-                      <Badge variant={getEventTypeColor(event.type)}>
-                        {getEventTypeLabel(event.type)}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={getEventTypeColor(event.type)}>
+                          {getEventTypeLabel(event.type)}
+                        </Badge>
+                        {event.isPaid && (
+                          <Badge variant="outline" className="bg-amber-50 border-amber-300 text-amber-700">
+                            ¥{event.price?.toLocaleString()}
+                          </Badge>
+                        )}
+                        {event.isRegistered && event.paymentStatus === 'PAID' && (
+                          <Badge variant="outline" className="bg-green-50 border-green-300 text-green-700">
+                            支払い済み
+                          </Badge>
+                        )}
+                        {event.isRegistered && event.paymentStatus === 'PENDING' && (
+                          <Badge variant="outline" className="bg-yellow-50 border-yellow-300 text-yellow-700">
+                            支払い待ち
+                          </Badge>
+                        )}
+                      </div>
                       <div className="flex items-center text-sm text-slate-500">
                         <Users className="h-4 w-4 mr-1" />
                         {event.currentParticipants}/{event.maxParticipants}名
@@ -286,18 +338,23 @@ function EventsPageContent() {
 
                     <div className="mt-4 flex gap-2">
                       {canRegisterForEvent(event) ? (
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           variant={event.isRegistered ? "outline" : "default"}
                           className="flex-1"
                           disabled={isSubmitting}
                           onClick={() => handleToggleRegistration(event)}
                         >
-                          {event.isRegistered ? "キャンセル" : "申し込む"}
+                          {event.isRegistered
+                            ? "キャンセル"
+                            : event.isPaid
+                              ? `¥${event.price?.toLocaleString()}で申し込む`
+                              : "申し込む"
+                          }
                         </Button>
                       ) : (
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           disabled
                           className="flex-1"
                         >
@@ -361,4 +418,7 @@ type EventItem = {
   currentParticipants: number
   isRegistered: boolean
   status: 'upcoming' | 'completed' | 'cancelled'
+  isPaid: boolean
+  price: number | null
+  paymentStatus: string | null
 }
