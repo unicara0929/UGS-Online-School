@@ -58,6 +58,7 @@ model User {
   basicTestResults        BasicTestResult[]
   surveySubmissions       SurveySubmission[]
   cancelRequests          CancelRequest[]
+  membershipStatusHistory MembershipStatusHistory[]
 
   @@map("users")
 }
@@ -551,4 +552,19 @@ enum MaterialViewableRole {
   MANAGER // マネージャー
   FP      // FPエイド
   MEMBER  // UGS会員
+}
+
+// 会員ステータス変更履歴
+model MembershipStatusHistory {
+  id            String           @id @default(cuid())
+  userId        String
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fromStatus    MembershipStatus // 変更前のステータス
+  toStatus      MembershipStatus // 変更後のステータス
+  reason        String?          // 変更理由
+  changedBy     String?          // 変更者（管理者の場合はそのID、システムの場合は"SYSTEM"）
+  changedByName String?          // 変更者名（表示用）
+  createdAt     DateTime         @default(now())
+
+  @@map("membership_status_history")
 }
