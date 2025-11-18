@@ -19,6 +19,7 @@ function PaymentSuccessContent() {
   useEffect(() => {
     if (sessionId) {
       // セッション情報を取得
+      // 注意: 登録完了処理とメール送信はStripe Webhookで処理されます
       fetch(`/api/get-session?session_id=${sessionId}`)
         .then(res => res.json())
         .then(data => {
@@ -26,62 +27,6 @@ function PaymentSuccessContent() {
             setError(data.error)
           } else {
             setSessionData(data.session)
-            
-            // 決済完了メールを送信
-            if (data.session?.metadata?.userEmail && data.session?.metadata?.userName) {
-              // サブスクリプションIDを取得
-              const subscriptionId = typeof data.session.subscription === 'string' 
-                ? data.session.subscription 
-                : data.session.subscription?.id || 'N/A'
-
-              fetch('/api/send-payment-success-email', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                  to: data.session.metadata.userEmail, 
-                  name: data.session.metadata.userName,
-                  subscriptionId: subscriptionId
-                }),
-              }).catch(err => {
-                console.error('Failed to send email:', err)
-              })
-
-              // 登録完了処理（仮登録ユーザーを正式ユーザーに移行）
-              const email = data.session.metadata?.userEmail || data.session.customer_email || ''
-              const name = data.session.metadata?.userName || ''
-              const stripeCustomerId = typeof data.session.customer === 'string' 
-                ? data.session.customer 
-                : data.session.customer?.id || null
-              const stripeSubscriptionId = typeof data.session.subscription === 'string' 
-                ? data.session.subscription 
-                : data.session.subscription?.id || null
-
-              if (email && name) {
-                fetch('/api/complete-registration', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    email,
-                    name,
-                    stripeCustomerId,
-                    stripeSubscriptionId,
-                  }),
-                })
-                .then(regRes => regRes.json())
-                .then(regData => {
-                  if (regData.error) {
-                    console.error('Failed to complete user registration:', regData.error)
-                  } else {
-                    console.log('User registration completed successfully:', regData)
-                  }
-                })
-                .catch(regErr => {
-                  console.error('Error completing user registration:', regErr)
-                })
-              } else {
-                console.error('Missing email or name for registration:', { email, name })
-              }
-            }
           }
         })
         .catch(err => {

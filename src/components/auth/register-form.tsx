@@ -7,7 +7,6 @@ import { useAuth } from '@/contexts/auth-context'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import bcrypt from 'bcryptjs'
 
 export function RegisterForm() {
   const [formData, setFormData] = useState({
@@ -69,10 +68,7 @@ export function RegisterForm() {
     }
 
     try {
-      // パスワードをハッシュ化
-      const hashedPassword = await bcrypt.hash(formData.password, 10)
-
-      // 仮登録ユーザーを保存（紹介コードとハッシュ化されたパスワードも一緒に送る）
+      // 仮登録ユーザーを保存（パスワードはサーバーサイドでハッシュ化される）
       const response = await fetch('/api/pending-users', {
         method: 'POST',
         headers: {
@@ -81,7 +77,7 @@ export function RegisterForm() {
         body: JSON.stringify({
           email: formData.email,
           name: formData.name,
-          password: hashedPassword, // ハッシュ化されたパスワードを送信
+          password: formData.password, // プレーンパスワードを送信（サーバーサイドでハッシュ化）
           referralCode: referralCode // 紹介コードを含める
         })
       })

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import bcrypt from 'bcryptjs'
 import {
   createValidationErrorResponse,
   createConflictErrorResponse,
@@ -41,12 +42,15 @@ export async function POST(request: NextRequest) {
       }, { status: 409 })
     }
 
+    // パスワードをサーバーサイドでハッシュ化
+    const hashedPassword = await bcrypt.hash(password, 10)
+
     // 仮登録ユーザーを作成（紹介コードとハッシュ化されたパスワードも保存）
     const pendingUser = await prisma.pendingUser.create({
       data: {
         email,
         name,
-        password, // ハッシュ化されたパスワードを保存
+        password: hashedPassword, // ハッシュ化されたパスワードを保存
         referralCode: referralCode || null, // 紹介コードがあれば保存
       }
     })
