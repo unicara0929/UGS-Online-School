@@ -3,6 +3,17 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { stripe } from '@/lib/stripe'
 
+// =====================================
+// 定数
+// =====================================
+
+/** 管理者権限を持つロール */
+const ADMIN_ROLES = ['ADMIN', 'MANAGER'] as const
+
+// =====================================
+// ユーザー詳細情報取得 API
+// =====================================
+
 /**
  * ユーザー詳細情報取得 API
  * 管理者が特定ユーザーの詳細情報を取得
@@ -28,7 +39,7 @@ export async function GET(
       select: { role: true }
     })
 
-    if (!adminUser || (adminUser.role !== 'ADMIN' && adminUser.role !== 'MANAGER')) {
+    if (!adminUser || !ADMIN_ROLES.includes(adminUser.role as any)) {
       return NextResponse.json(
         { error: '管理者権限が必要です' },
         { status: 403 }
@@ -149,7 +160,7 @@ export async function PUT(
       select: { role: true }
     })
 
-    if (!adminUser || (adminUser.role !== 'ADMIN' && adminUser.role !== 'MANAGER')) {
+    if (!adminUser || !ADMIN_ROLES.includes(adminUser.role as any)) {
       return NextResponse.json(
         { error: '管理者権限が必要です' },
         { status: 403 }

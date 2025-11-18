@@ -9,6 +9,65 @@ import { Lock, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
+// =====================================
+// 定数
+// =====================================
+
+/** パスワードの最小文字数 */
+const MIN_PASSWORD_LENGTH = 6
+
+/** 成功後のリダイレクト待機時間（ミリ秒） */
+const REDIRECT_DELAY_MS = 3000
+
+/** エラーメッセージの翻訳マップ */
+const ERROR_TRANSLATIONS: Record<string, string> = {
+  'New password should be different from the old password.': '新しいパスワードは現在のパスワードと異なる必要があります。',
+  'Password should be at least 6 characters': 'パスワードは6文字以上である必要があります',
+  'Invalid password': '無効なパスワードです',
+  'Password is too weak': 'パスワードが弱すぎます',
+  'User not found': 'ユーザーが見つかりません',
+  'Session expired': 'セッションが期限切れです',
+  'Invalid session': '無効なセッションです',
+}
+
+/** セッションエラーを判定するキーワード */
+const SESSION_ERROR_KEYWORDS = ['セッション', '期限切れ', '無効']
+
+// =====================================
+// ヘルパー関数
+// =====================================
+
+/**
+ * エラーメッセージを日本語に翻訳
+ * @param message 英語のエラーメッセージ
+ * @returns 日本語のエラーメッセージ
+ */
+function translateErrorMessage(message: string): string {
+  // 完全一致をチェック
+  if (ERROR_TRANSLATIONS[message]) {
+    return ERROR_TRANSLATIONS[message]
+  }
+
+  // 部分一致をチェック
+  for (const [key, value] of Object.entries(ERROR_TRANSLATIONS)) {
+    if (message.includes(key)) {
+      return value
+    }
+  }
+
+  // 翻訳が見つからない場合は元のメッセージを返す
+  return message
+}
+
+/**
+ * エラーメッセージがセッション関連かどうかを判定
+ * @param errorMessage エラーメッセージ
+ * @returns セッション関連エラーの場合true
+ */
+function isSessionError(errorMessage: string): boolean {
+  return SESSION_ERROR_KEYWORDS.some(keyword => errorMessage.includes(keyword))
+}
+
 export function ResetPasswordForm() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -130,8 +189,8 @@ export function ResetPasswordForm() {
     setSuccess(false)
 
     // パスワードのバリデーション
-    if (password.length < 6) {
-      setFormError('パスワードは6文字以上である必要があります')
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      setFormError(`パスワードは${MIN_PASSWORD_LENGTH}文字以上である必要があります`)
       setIsLoading(false)
       return
     }
@@ -164,7 +223,7 @@ export function ResetPasswordForm() {
         const errorMessage = translateErrorMessage(updateError.message)
 
         // セッション関連のエラーかどうかを判定
-        if (errorMessage.includes('セッション') || errorMessage.includes('期限切れ') || errorMessage.includes('無効')) {
+        if (isSessionError(errorMessage)) {
           setSessionError(errorMessage)
         } else {
           // 入力関連のエラー（パスワードが前回と同じなど）
@@ -175,16 +234,16 @@ export function ResetPasswordForm() {
       }
 
       setSuccess(true)
-      // 3秒後にログインページにリダイレクト
+      // リダイレクト待機時間後にログインページへ遷移
       setTimeout(() => {
         router.push('/login')
-      }, 3000)
+      }, REDIRECT_DELAY_MS)
     } catch (err) {
       console.error('パスワード更新エラー:', err)
       const errorMessage = err instanceof Error ? err.message : 'パスワードの更新に失敗しました'
 
       // セッション関連のエラーかどうかを判定
-      if (errorMessage.includes('セッション') || errorMessage.includes('期限切れ') || errorMessage.includes('無効')) {
+      if (isSessionError(errorMessage)) {
         setSessionError(errorMessage)
       } else {
         setFormError(errorMessage)
@@ -194,33 +253,6 @@ export function ResetPasswordForm() {
     }
   }
 
-  // エラーメッセージを日本語に変換する関数
-  const translateErrorMessage = (message: string): string => {
-    const errorTranslations: Record<string, string> = {
-      'New password should be different from the old password.': '新しいパスワードは現在のパスワードと異なる必要があります。',
-      'Password should be at least 6 characters': 'パスワードは6文字以上である必要があります',
-      'Invalid password': '無効なパスワードです',
-      'Password is too weak': 'パスワードが弱すぎます',
-      'User not found': 'ユーザーが見つかりません',
-      'Session expired': 'セッションが期限切れです',
-      'Invalid session': '無効なセッションです',
-    }
-
-    // 完全一致をチェック
-    if (errorTranslations[message]) {
-      return errorTranslations[message]
-    }
-
-    // 部分一致をチェック
-    for (const [key, value] of Object.entries(errorTranslations)) {
-      if (message.includes(key)) {
-        return value
-      }
-    }
-
-    // 翻訳が見つからない場合は元のメッセージを返す
-    return message
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -330,13 +362,13 @@ export function ResetPasswordForm() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all shadow-sm hover:shadow-md"
-                    placeholder="6文字以上"
+                    placeholder={`${MIN_PASSWORD_LENGTH}文字以上`}
                     required
-                    minLength={6}
+                    minLength={MIN_PASSWORD_LENGTH}
                   />
                 </div>
                 <p className="text-xs text-slate-500 mt-1">
-                  パスワードは6文字以上である必要があります
+                  パスワードは{MIN_PASSWORD_LENGTH}文字以上である必要があります
                 </p>
               </div>
 
@@ -354,7 +386,7 @@ export function ResetPasswordForm() {
                     className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all shadow-sm hover:shadow-md"
                     placeholder="パスワードを再入力"
                     required
-                    minLength={6}
+                    minLength={MIN_PASSWORD_LENGTH}
                   />
                 </div>
               </div>

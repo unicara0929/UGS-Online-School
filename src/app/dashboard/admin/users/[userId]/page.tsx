@@ -19,6 +19,30 @@ import {
 import { formatDate, formatCurrency } from '@/lib/utils/format'
 import { getRoleLabel, getRoleBadgeVariant } from '@/lib/utils/user-helpers'
 
+// =====================================
+// 定数
+// =====================================
+
+/** 利用可能なユーザーロール */
+const USER_ROLES = [
+  { value: 'MEMBER', label: 'メンバー' },
+  { value: 'FP', label: 'FPエイド' },
+  { value: 'MANAGER', label: 'マネージャー' },
+  { value: 'ADMIN', label: '管理者' },
+] as const
+
+/** 会員ステータスのオプション */
+const MEMBERSHIP_STATUS_OPTIONS = [
+  { value: 'PENDING', label: '仮登録' },
+  { value: 'ACTIVE', label: '有効会員' },
+  { value: 'SUSPENDED', label: '休会中' },
+  { value: 'PAST_DUE', label: '支払い遅延' },
+  { value: 'DELINQUENT', label: '長期滞納' },
+  { value: 'CANCELED', label: '退会済み' },
+  { value: 'TERMINATED', label: '強制解約' },
+  { value: 'EXPIRED', label: '期限切れ' },
+] as const
+
 interface UserDetail {
   id: string
   email: string
@@ -267,10 +291,9 @@ export default function UserDetailPage() {
                     onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
                     className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="MEMBER">メンバー</option>
-                    <option value="FP">FPエイド</option>
-                    <option value="MANAGER">マネージャー</option>
-                    <option value="ADMIN">管理者</option>
+                    {USER_ROLES.map(({ value, label }) => (
+                      <option key={value} value={value}>{label}</option>
+                    ))}
                   </select>
                 ) : (
                   <div className="mt-1">
@@ -288,14 +311,9 @@ export default function UserDetailPage() {
                     onChange={(e) => setEditForm({ ...editForm, membershipStatus: e.target.value })}
                     className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="PENDING">仮登録</option>
-                    <option value="ACTIVE">有効会員</option>
-                    <option value="SUSPENDED">休会中</option>
-                    <option value="PAST_DUE">支払い遅延</option>
-                    <option value="DELINQUENT">長期滞納</option>
-                    <option value="CANCELED">退会済み</option>
-                    <option value="TERMINATED">強制解約</option>
-                    <option value="EXPIRED">期限切れ</option>
+                    {MEMBERSHIP_STATUS_OPTIONS.map(({ value, label }) => (
+                      <option key={value} value={value}>{label}</option>
+                    ))}
                   </select>
                 ) : (
                   <div className="mt-1">
