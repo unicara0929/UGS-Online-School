@@ -40,7 +40,7 @@ export const navigation: NavItem[] = [
   { name: '紹介管理', href: '/dashboard/referrals', icon: UserPlus, roles: ['fp', 'manager', 'admin'] },
   { name: '契約管理', href: '/dashboard/contracts', icon: FileText, roles: ['fp', 'manager', 'admin'] },
   { name: '通知', href: '/dashboard/notifications', icon: Bell, roles: ['member', 'fp', 'manager', 'admin'] },
-  { name: '昇格管理', href: '/dashboard/promotion', icon: Award, roles: ['member', 'fp', 'manager'] },
+  { name: '昇格管理', href: '/dashboard/promotion', icon: Award, roles: ['member', 'fp'] },
   { name: 'LP面談予約', href: '/dashboard/lp-meeting/request', icon: MessageSquare, roles: ['member'] },
   { name: 'LP面談管理', href: '/dashboard/lp-meeting/manage', icon: MessageSquare, roles: ['fp'] },
   { name: 'イベント', href: '/dashboard/events', icon: Calendar, roles: ['member', 'fp', 'manager', 'admin'] },
