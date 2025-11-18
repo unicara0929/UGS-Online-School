@@ -76,14 +76,26 @@ export async function POST(request: NextRequest) {
       })
 
       if (approvedApplication) {
-        await tx.fPPromotionApplication.update({
-          where: { id: approvedApplication.id },
-          data: {
-            status: 'COMPLETED',
-            completedAt: new Date()
-          }
-        })
-        console.log('FP promotion application marked as COMPLETED:', approvedApplication.id)
+        // COMPLETED への更新条件: 3つ全て必要
+        // 1. FPオンボーディング完了（この関数で更新済み）
+        // 2. 業務委託契約書への同意
+        // 3. 身分証のアップロード
+        const allConditionsMet =
+          approvedApplication.contractAgreed &&
+          approvedApplication.idDocumentUrl !== null
+
+        if (allConditionsMet) {
+          await tx.fPPromotionApplication.update({
+            where: { id: approvedApplication.id },
+            data: {
+              status: 'COMPLETED',
+              completedAt: new Date()
+            }
+          })
+          console.log('FP promotion application marked as COMPLETED:', approvedApplication.id)
+        } else {
+          console.log('FP onboarding completed, but waiting for contract agreement and ID document upload')
+        }
       }
     })
 

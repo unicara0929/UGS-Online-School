@@ -350,6 +350,9 @@ model FPPromotionApplication {
   basicTestCompleted    Boolean                      @default(false)
   surveyCompleted       Boolean                      @default(false)
   idDocumentUrl         String?
+  idDocumentUploadedAt  DateTime? // 身分証アップロード日時
+  contractAgreed        Boolean                      @default(false) // 業務委託契約書への同意
+  contractAgreedAt      DateTime? // 契約書同意日時
   promotionEmailSent    Boolean                      @default(false) // 昇格通知メール送信済みフラグ
   promotionEmailSentAt  DateTime? // 昇格通知メール送信日時
   appliedAt             DateTime                     @default(now())
