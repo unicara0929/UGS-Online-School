@@ -47,6 +47,7 @@ function LPMeetingRequestPageContent() {
   const [showRequestForm, setShowRequestForm] = useState(false)
   const [preferredDates, setPreferredDates] = useState<string[]>([])
   const [memberNotes, setMemberNotes] = useState('')
+  const [validationError, setValidationError] = useState('')
 
   useEffect(() => {
     if (user?.id) {
@@ -110,13 +111,74 @@ function LPMeetingRequestPageContent() {
   }
 
   const removePreferredDate = (index: number) => {
-    setPreferredDates(preferredDates.filter((_, i) => i !== index))
+    const updated = preferredDates.filter((_, i) => i !== index)
+    setPreferredDates(updated)
+
+    // バリデーション再実行
+    const error = validatePreferredDates(updated)
+    setValidationError(error)
+  }
+
+  /**
+   * 2つの時間帯が重複しているかチェック
+   * 各時間帯は開始時刻から60分間とする
+   * @param date1 1つ目の開始日時
+   * @param date2 2つ目の開始日時
+   * @returns 重複している場合true
+   */
+  const checkTimeOverlap = (date1: Date, date2: Date): boolean => {
+    const MEETING_DURATION_MS = 60 * 60 * 1000 // 60分をミリ秒で表現
+
+    const start1 = date1.getTime()
+    const end1 = start1 + MEETING_DURATION_MS
+    const start2 = date2.getTime()
+    const end2 = start2 + MEETING_DURATION_MS
+
+    // 重複条件: 時間帯1の開始が時間帯2の終了より前 AND 時間帯2の開始が時間帯1の終了より前
+    return start1 < end2 && start2 < end1
+  }
+
+  /**
+   * 候補日時のバリデーションを実行
+   * @param dates 候補日時の配列
+   * @returns エラーメッセージ（エラーがない場合は空文字）
+   */
+  const validatePreferredDates = (dates: string[]): string => {
+    // 空の値をフィルタリング
+    const validDates = dates.filter(d => d)
+    if (validDates.length < 2) {
+      return '' // 2つ未満の場合はチェック不要
+    }
+
+    const dateObjects = validDates.map(d => new Date(d))
+
+    for (let i = 0; i < dateObjects.length; i++) {
+      for (let j = i + 1; j < dateObjects.length; j++) {
+        if (checkTimeOverlap(dateObjects[i], dateObjects[j])) {
+          const formatDate = (d: Date) => {
+            return d.toLocaleString('ja-JP', {
+              month: 'numeric',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            })
+          }
+          return `候補${i + 1}と候補${j + 1}が重複しています（${formatDate(dateObjects[i])}〜 / ${formatDate(dateObjects[j])}〜）`
+        }
+      }
+    }
+
+    return ''
   }
 
   const updatePreferredDate = (index: number, value: string) => {
     const updated = [...preferredDates]
     updated[index] = value
     setPreferredDates(updated)
+
+    // バリデーション実行
+    const error = validatePreferredDates(updated)
+    setValidationError(error)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -142,6 +204,13 @@ function LPMeetingRequestPageContent() {
         alert('希望日時は未来の日時を選択してください')
         return
       }
+    }
+
+    // 候補日時の重複チェック（60分面談として1分でも重複があればエラー）
+    const overlapError = validatePreferredDates(preferredDates)
+    if (overlapError) {
+      alert(`${overlapError}\n\n面談時間は1枠60分のため、重複しない時間帯を選択してください。`)
+      return
     }
 
     setIsSubmitting(true)
@@ -379,9 +448,22 @@ function LPMeetingRequestPageContent() {
                         </Button>
                       )}
                     </div>
-                    <p className="text-xs text-slate-500 mt-2">
-                      {preferredDates.length}/5 選択済み
-                    </p>
+                    <div className="mt-2 space-y-1">
+                      <p className="text-xs text-slate-500">
+                        {preferredDates.length}/5 選択済み
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        ※面談時間は1枠60分です。重複しない時間帯を選択してください。
+                      </p>
+                      {validationError && (
+                        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <p className="text-sm text-red-800">
+                            <XCircle className="h-4 w-4 inline mr-1" />
+                            {validationError}
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div>
@@ -399,7 +481,7 @@ function LPMeetingRequestPageContent() {
 
                   <Button
                     type="submit"
-                    disabled={isSubmitting || preferredDates.length !== 5}
+                    disabled={isSubmitting || preferredDates.length !== 5 || !!validationError}
                     className="w-full"
                   >
                     {isSubmitting ? (
