@@ -97,13 +97,12 @@ export function RegisterForm() {
         throw new Error(errorData.error || '仮登録に失敗しました')
       }
 
-      // 決済ページにリダイレクト
+      // メール確認待ちページにリダイレクト
       const params = new URLSearchParams({
         email: formData.email,
-        name: formData.name,
       })
 
-      window.location.href = `/checkout?${params.toString()}`
+      window.location.href = `/verify-email-pending?${params.toString()}`
     } catch (err) {
       console.error('登録エラー:', err)
       setError(err instanceof Error ? err.message : '登録に失敗しました')

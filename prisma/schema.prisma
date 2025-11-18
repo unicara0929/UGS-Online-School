@@ -65,13 +65,16 @@ model User {
 }
 
 model PendingUser {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  name         String
-  password     String   // ハッシュ化されたパスワード（一時保存）
-  referralCode String?  // 紹介コード（URLから取得）
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                String   @id @default(cuid())
+  email             String   @unique
+  name              String
+  password          String   // ハッシュ化されたパスワード（一時保存）
+  referralCode      String?  // 紹介コード（URLから取得）
+  emailVerified     Boolean  @default(false) // メール認証済みフラグ
+  verificationToken String?  @unique // メール認証トークン
+  tokenExpiresAt    DateTime? // トークン有効期限
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@map("pending_users")
 }

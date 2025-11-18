@@ -242,3 +242,107 @@ UGSオンラインスクール事務局
     throw error
   }
 }
+
+/**
+ * メールアドレス確認メールを送信
+ */
+export async function sendEmailVerification(params: {
+  to: string
+  userName: string
+  verificationLink: string
+}) {
+  const { to, userName, verificationLink } = params
+
+  const subject = '【UGSオンラインスクール】メールアドレスの確認'
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0; font-size: 28px;">UGSオンラインスクール</h1>
+      </div>
+
+      <div style="background: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 10px 10px;">
+        <h2 style="color: #333; margin-top: 0;">メールアドレスの確認</h2>
+
+        <p>こんにちは、<strong>${userName}</strong>様</p>
+
+        <p>UGSオンラインスクールへのご登録ありがとうございます。</p>
+
+        <p>登録を完了するには、以下のボタンをクリックしてメールアドレスを確認してください：</p>
+
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${verificationLink}"
+             style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">
+            メールアドレスを確認する
+          </a>
+        </div>
+
+        <p style="color: #666; font-size: 14px;">
+          ボタンが機能しない場合は、以下のリンクをコピーしてブラウザに貼り付けてください：<br>
+          <a href="${verificationLink}" style="color: #667eea; word-break: break-all;">${verificationLink}</a>
+        </p>
+
+        <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; padding: 15px; margin: 20px 0;">
+          <p style="margin: 0; color: #856404; font-size: 14px;">
+            <strong>⚠️ 重要：</strong> このリンクは24時間有効です。期限が切れた場合は、再度登録してください。
+          </p>
+        </div>
+
+        <p style="color: #666; font-size: 14px; margin-top: 30px;">
+          このメールに心当たりがない場合は、無視していただいて構いません。
+        </p>
+
+        <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
+
+        <p style="color: #999; font-size: 12px; text-align: center;">
+          © 2025 UGSオンラインスクール. All rights reserved.
+        </p>
+      </div>
+    </body>
+    </html>
+  `
+
+  const text = `
+UGSオンラインスクール - メールアドレスの確認
+
+こんにちは、${userName}様
+
+UGSオンラインスクールへのご登録ありがとうございます。
+
+登録を完了するには、以下のリンクをクリックしてメールアドレスを確認してください：
+
+${verificationLink}
+
+⚠️ このリンクは24時間有効です。期限が切れた場合は、再度登録してください。
+
+このメールに心当たりがない場合は、無視していただいて構いません。
+
+---
+© 2025 UGSオンラインスクール. All rights reserved.
+  `
+
+  try {
+    const transporter = createTransporter()
+
+    const info = await transporter.sendMail({
+      from: `"UGSオンラインスクール" <${process.env.SMTP_USER}>`,
+      to,
+      subject,
+      text,
+      html,
+      encoding: 'utf-8',
+    })
+
+    console.log('Verification email sent:', info.messageId)
+    return { success: true, messageId: info.messageId }
+  } catch (error) {
+    console.error('Failed to send verification email:', error)
+    throw error
+  }
+}
