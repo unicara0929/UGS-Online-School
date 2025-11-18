@@ -33,14 +33,30 @@ export async function POST(request: NextRequest) {
     })
 
     if (!event) {
+      console.error('Event not found:', eventId)
       return NextResponse.json(
         { error: 'イベントが見つかりません' },
         { status: 404 }
       )
     }
 
+    console.log('Event checkout request:', {
+      eventId: event.id,
+      title: event.title,
+      isPaid: event.isPaid,
+      price: event.price,
+      stripePriceId: event.stripePriceId,
+      userId: authUser.id
+    })
+
     // 無料イベントの場合はエラー
     if (!event.isPaid || !event.price || !event.stripePriceId) {
+      console.error('Invalid paid event configuration:', {
+        eventId: event.id,
+        isPaid: event.isPaid,
+        price: event.price,
+        stripePriceId: event.stripePriceId
+      })
       return NextResponse.json(
         { error: 'このイベントは有料イベントではありません' },
         { status: 400 }
@@ -107,6 +123,14 @@ export async function POST(request: NextRequest) {
 
     // Stripe Checkout Sessionを作成
     const subscription = user.subscriptions?.[0]
+
+    console.log('Creating Stripe checkout session:', {
+      customerId: subscription?.stripeCustomerId || 'none',
+      email: subscription?.stripeCustomerId ? undefined : user.email,
+      stripePriceId: event.stripePriceId,
+      eventTitle: event.title
+    })
+
     const checkoutSession = await stripe.checkout.sessions.create({
       customer: subscription?.stripeCustomerId || undefined,
       customer_email: subscription?.stripeCustomerId ? undefined : user.email,
@@ -129,6 +153,8 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    console.log('Checkout session created successfully:', checkoutSession.id)
+
     // Checkout Session IDを登録レコードに保存
     if (registration) {
       await prisma.eventRegistration.update({
@@ -146,8 +172,26 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Event checkout error:', error)
+
+    // Stripeエラーの詳細を出力
+    if (error && typeof error === 'object' && 'type' in error) {
+      console.error('Stripe error details:', {
+        type: (error as any).type,
+        message: (error as any).message,
+        code: (error as any).code,
+        param: (error as any).param
+      })
+    }
+
+    // より詳細なエラーメッセージを返す（開発環境のみ）
+    const isDev = process.env.NODE_ENV === 'development'
+    const errorMessage = isDev && error instanceof Error ? error.message : 'チェックアウトセッションの作成に失敗しました'
+
     return NextResponse.json(
-      { error: 'チェックアウトセッションの作成に失敗しました' },
+      {
+        error: errorMessage,
+        details: isDev ? String(error) : undefined
+      },
       { status: 500 }
     )
   }
