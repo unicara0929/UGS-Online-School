@@ -58,6 +58,18 @@ export async function PUT(
       )
     }
 
+    // 既存イベントを取得
+    const existingEvent = await prisma.event.findUnique({
+      where: { id: eventId }
+    })
+
+    if (!existingEvent) {
+      return NextResponse.json(
+        { success: false, error: 'イベントが見つかりません' },
+        { status: 404 }
+      )
+    }
+
     const body = await request.json()
     const {
       title,
@@ -108,6 +120,49 @@ export async function PUT(
         { success: false, error: '有料イベントの場合、価格（0円より大きい金額）が必須です' },
         { status: 400 }
       )
+    }
+
+    // isPaidまたはpriceが変更された場合、Stripe Priceを同期
+    const isPaidChanged = isPaid !== undefined && isPaid !== existingEvent.isPaid
+    const priceChanged = price !== undefined && Number(price) !== existingEvent.price
+
+    if (isPaidChanged || priceChanged) {
+      const finalIsPaid = isPaid !== undefined ? isPaid : existingEvent.isPaid
+      const finalPrice = price !== undefined ? Number(price) : existingEvent.price
+
+      if (finalIsPaid && finalPrice && finalPrice > 0) {
+        // 有料イベント: Stripe Priceを作成または更新
+        try {
+          const { updateEventPrice } = await import('@/lib/services/event-price-service')
+          const newPriceId = await updateEventPrice({
+            eventId,
+            eventTitle: title || existingEvent.title,
+            oldStripePriceId: existingEvent.stripePriceId,
+            newPrice: finalPrice,
+          })
+          updateData.stripePriceId = newPriceId
+          console.log('Stripe Price updated:', { eventId, newPriceId })
+        } catch (error) {
+          console.error('Failed to update Stripe Price:', error)
+          return NextResponse.json(
+            { success: false, error: 'Stripe決済設定の更新に失敗しました' },
+            { status: 500 }
+          )
+        }
+      } else {
+        // 無料イベント: Stripe Priceを無効化
+        if (existingEvent.stripePriceId) {
+          try {
+            const { deleteEventPrice } = await import('@/lib/services/event-price-service')
+            await deleteEventPrice(existingEvent.stripePriceId)
+            console.log('Stripe Price deleted:', { eventId, priceId: existingEvent.stripePriceId })
+          } catch (error) {
+            console.error('Failed to delete Stripe Price:', error)
+            // エラーでも続行（イベント更新は止めない）
+          }
+        }
+        updateData.stripePriceId = null
+      }
     }
 
     const updatedEvent = await prisma.event.update({

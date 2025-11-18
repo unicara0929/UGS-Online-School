@@ -63,6 +63,59 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Stripe上でPriceが有効か検証
+    try {
+      const stripePrice = await stripe.prices.retrieve(event.stripePriceId)
+
+      // Priceが無効化されていないか確認
+      if (!stripePrice.active) {
+        console.error('Stripe Price is inactive:', {
+          eventId: event.id,
+          priceId: event.stripePriceId
+        })
+        return NextResponse.json(
+          { error: 'この決済プランは現在利用できません。管理者にお問い合わせください。' },
+          { status: 400 }
+        )
+      }
+
+      // 金額の整合性チェック
+      if (stripePrice.unit_amount !== event.price) {
+        console.error('Price mismatch detected:', {
+          eventId: event.id,
+          dbPrice: event.price,
+          stripePrice: stripePrice.unit_amount,
+          priceId: event.stripePriceId
+        })
+        return NextResponse.json(
+          { error: '決済金額に不整合があります。管理者にお問い合わせください。' },
+          { status: 400 }
+        )
+      }
+
+      console.log('Stripe Price validation passed:', {
+        priceId: event.stripePriceId,
+        amount: stripePrice.unit_amount,
+        active: stripePrice.active
+      })
+    } catch (error: any) {
+      // Stripe APIエラー（Priceが見つからない = 環境不一致の可能性）
+      console.error('Failed to retrieve Stripe Price:', {
+        eventId: event.id,
+        priceId: event.stripePriceId,
+        errorType: error.type,
+        errorMessage: error.message
+      })
+
+      return NextResponse.json(
+        {
+          error: 'この決済プランが見つかりません。Stripe環境（test/本番）の切り替えが行われた可能性があります。管理者にお問い合わせください。',
+          details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        },
+        { status: 400 }
+      )
+    }
+
     // ユーザー情報を取得
     const user = await prisma.user.findUnique({
       where: { id: authUser.id },
