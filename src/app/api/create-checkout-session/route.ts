@@ -86,13 +86,6 @@ export async function POST(request: NextRequest) {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
-        // セットアップ費用がある場合は最初に追加
-        ...(setupFeePriceId ? [
-          {
-            price: setupFeePriceId,  // 初回登録費用 33,000円
-            quantity: 1,
-          }
-        ] : []),
         {
           price: priceId,  // 月額5,500円
           quantity: 1,
@@ -104,6 +97,15 @@ export async function POST(request: NextRequest) {
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`,
       subscription_data: {
+        // 初回登録費用を初回invoiceにのみ追加（案B: add_invoice_items使用）
+        ...(setupFeePriceId ? {
+          add_invoice_items: [
+            {
+              price: setupFeePriceId,  // 初回登録費用 33,000円
+              quantity: 1,
+            }
+          ],
+        } : {}),
         metadata: sessionMetadata,
       },
     })
