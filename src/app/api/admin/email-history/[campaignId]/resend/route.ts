@@ -6,6 +6,7 @@ import {
   createEmailCampaign,
   type EmailRecipient,
 } from '@/lib/services/email-history-service'
+import { createPaymentLink } from '@/lib/services/payment-link-service'
 
 // SMTPトランスポーターの作成
 const createTransporter = () => {
@@ -85,14 +86,43 @@ export async function POST(
     const transporter = createTransporter()
     const recipients: EmailRecipient[] = []
 
+    // 決済リンクが必要かチェック
+    const needsPaymentLink = originalCampaign.body.includes('{{payment_link}}')
+    console.log('📧 メール再送開始')
+    console.log('💳 決済リンクが必要:', needsPaymentLink)
+
     // 各ユーザーにメールを再送
     for (const log of originalCampaign.logs) {
       try {
+        console.log(`\n--- ${log.user.email} へのメール再送開始 ---`)
+
         // 本文中の {{name}} を実際の名前に置換
-        const personalizedBody = originalCampaign.body.replace(
+        let personalizedBody = originalCampaign.body.replace(
           /{{name}}/g,
           log.user.name
         )
+
+        // 決済リンクが必要な場合、ユーザーごとに新規生成
+        if (needsPaymentLink) {
+          console.log('💳 決済リンク生成中...')
+          const paymentLink = await createPaymentLink(log.user.email, log.user.name)
+
+          if (paymentLink) {
+            console.log(`✅ 決済リンク: ${paymentLink}`)
+            personalizedBody = personalizedBody.replace(/{{payment_link}}/g, paymentLink)
+            console.log(`📝 置換後の本文: ${personalizedBody.substring(0, 200)}...`)
+          } else {
+            // 決済リンク作成失敗時は、そのユーザーへの送信をスキップ
+            console.error(`❌ 決済リンク作成失敗: ${log.user.email}`)
+            recipients.push({
+              userId: log.user.id,
+              email: log.user.email,
+              status: 'FAILED',
+              errorMessage: '決済リンクの作成に失敗しました',
+            })
+            continue
+          }
+        }
 
         await transporter.sendMail({
           from: `"UGSオンラインスクール事務局" <${process.env.SMTP_USER}>`,
@@ -117,6 +147,7 @@ export async function POST(
           email: log.user.email,
           status: 'SENT',
         })
+        console.log(`✅ メール送信成功: ${log.user.email}`)
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : '送信失敗'
         recipients.push({
