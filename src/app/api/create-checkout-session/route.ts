@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
+import { prisma } from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,6 +16,25 @@ export async function POST(request: NextRequest) {
         { error: 'Email and name are required' },
         { status: 400 }
       )
+    }
+
+    // PendingUserから紹介コードを取得（DBの情報を優先）
+    let finalReferralCode = referralCode
+    try {
+      const pendingUser = await prisma.pendingUser.findUnique({
+        where: { email },
+        select: { referralCode: true }
+      })
+
+      if (pendingUser?.referralCode) {
+        finalReferralCode = pendingUser.referralCode
+        console.log('Using referral code from PendingUser:', finalReferralCode)
+      } else if (referralCode) {
+        console.log('Using referral code from request (PendingUser not found or no code):', referralCode)
+      }
+    } catch (error) {
+      console.error('Failed to fetch PendingUser referral code:', error)
+      // エラーが発生してもリクエストの紹介コードで続行
     }
 
     // テストモード用の商品と価格を確実に取得/作成
@@ -74,10 +94,10 @@ export async function POST(request: NextRequest) {
       userEmail: email,
     }
 
-    // 紹介コードがある場合、metadataに追加
-    if (referralCode) {
-      sessionMetadata.referralCode = referralCode
-      console.log('Referral code added to session metadata:', referralCode)
+    // 紹介コードがある場合、metadataに追加（PendingUserの紹介コードを優先）
+    if (finalReferralCode) {
+      sessionMetadata.referralCode = finalReferralCode
+      console.log('Referral code added to session metadata:', finalReferralCode)
     }
 
     // 初回登録費用のPrice ID（環境変数から取得、なければ登録費用なし）

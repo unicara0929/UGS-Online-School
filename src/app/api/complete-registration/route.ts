@@ -21,12 +21,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 仮登録ユーザーを検索
+    // 仮登録ユーザーを検索（紹介コードも含めて取得）
     const pendingUser = await prisma.pendingUser.findUnique({
-      where: { email }
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        password: true,
+        referralCode: true,
+        createdAt: true,
+        updatedAt: true
+      }
     })
 
-    console.log('Pending user lookup:', { email, found: !!pendingUser })
+    console.log('Pending user lookup:', { email, found: !!pendingUser, hasReferralCode: !!pendingUser?.referralCode })
 
     if (!pendingUser) {
       console.error('Pending user not found for email:', email)
@@ -67,6 +76,62 @@ export async function POST(request: NextRequest) {
     // サブスクリプションの作成（既に存在する場合はスキップ）
     // 根本的な解決: サービス関数を使用してロジックを分離し、可読性を向上
     await createSubscriptionIfNotExists(user.id, stripeCustomerId, stripeSubscriptionId)
+
+    // 紹介コードがある場合、紹介レコードを作成
+    if (pendingUser.referralCode) {
+      try {
+        console.log('Processing referral code from PendingUser:', pendingUser.referralCode)
+
+        const referrer = await prisma.user.findUnique({
+          where: { referralCode: pendingUser.referralCode },
+          select: { id: true, role: true }
+        })
+
+        if (referrer && referrer.id !== user.id) {
+          // 紹介タイプを決定（紹介者のロールに基づく）
+          const referralType = referrer.role === 'FP' ? 'FP' : 'MEMBER'
+
+          // 既存の紹介をチェック
+          const existingReferral = await prisma.referral.findUnique({
+            where: {
+              referrerId_referredId: {
+                referrerId: referrer.id,
+                referredId: user.id
+              }
+            }
+          })
+
+          if (!existingReferral) {
+            await prisma.referral.create({
+              data: {
+                referrerId: referrer.id,
+                referredId: user.id,
+                referralType: referralType as any,
+                status: 'PENDING'
+              }
+            })
+            console.log('Referral registered from complete-registration:', {
+              referralCode: pendingUser.referralCode,
+              referrerId: referrer.id,
+              referredId: user.id,
+              referralType
+            })
+          } else {
+            console.log('Referral already exists, skipping:', {
+              referrerId: referrer.id,
+              referredId: user.id
+            })
+          }
+        } else if (referrer?.id === user.id) {
+          console.log('Self-referral detected, skipping')
+        } else {
+          console.log('Referrer not found for code:', pendingUser.referralCode)
+        }
+      } catch (error) {
+        console.error('Failed to register referral from PendingUser:', error)
+        // 紹介登録失敗でも処理は続行
+      }
+    }
 
     // 仮登録ユーザーを削除
     await prisma.pendingUser.delete({
