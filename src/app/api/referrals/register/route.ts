@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { ReferralStatus } from '@prisma/client'
+import { Roles } from '@/lib/auth/api-helpers'
 
 /**
  * 紹介コードで紹介を登録
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 紹介タイプを決定（被紹介者のロールに基づく）
-    const referralType = referredUser.role === 'FP' ? 'FP' : 'MEMBER'
+    const referralType = referredUser.role === Roles.FP ? 'FP' : 'MEMBER'
 
     // 既存の紹介をチェック
     const existingReferral = await prisma.referral.findUnique({

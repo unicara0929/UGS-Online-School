@@ -5,6 +5,7 @@ import {
   findOrCreatePrismaUser,
   createSubscriptionIfNotExists,
 } from '@/lib/services/registration-service'
+import { Roles } from '@/lib/auth/api-helpers'
 
 export async function POST(request: NextRequest) {
   try {
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
 
         if (referrer && referrer.id !== user.id) {
           // 紹介タイプを決定（紹介者のロールに基づく）
-          const referralType = referrer.role === 'FP' ? 'FP' : 'MEMBER'
+          const referralType = referrer.role === Roles.FP ? 'FP' : 'MEMBER'
 
           // 既存の紹介をチェック
           const existingReferral = await prisma.referral.findUnique({
