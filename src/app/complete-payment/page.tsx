@@ -131,7 +131,7 @@ export default function CompletePaymentPage() {
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200">
               <div className="text-center">
                 <p className="text-sm text-slate-600 mb-2">月額料金</p>
-                <p className="text-4xl font-bold text-slate-900">¥2,980</p>
+                <p className="text-4xl font-bold text-slate-900">¥5,500</p>
                 <p className="text-sm text-slate-600 mt-1">(税込)</p>
               </div>
             </div>
