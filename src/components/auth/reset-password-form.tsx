@@ -14,7 +14,8 @@ export function ResetPasswordForm() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isCheckingSession, setIsCheckingSession] = useState(true)
-  const [error, setError] = useState('')
+  const [sessionError, setSessionError] = useState('') // セッション関連のエラー（リンク期限切れなど）
+  const [formError, setFormError] = useState('') // フォーム入力のエラー（パスワード不一致など）
   const [success, setSuccess] = useState(false)
   const [logoError, setLogoError] = useState(false)
   const router = useRouter()
@@ -52,11 +53,11 @@ export function ResetPasswordForm() {
       const errorDescription = hashParams.get('error_description')
 
       if (errorCode === 'otp_expired') {
-        setError('リセットリンクが期限切れです。再度パスワードリセットを申請してください。')
+        setSessionError('リセットリンクが期限切れです。再度パスワードリセットを申請してください。')
       } else if (errorCode === 'access_denied') {
-        setError('アクセスが拒否されました。リセットリンクが無効または期限切れの可能性があります。')
+        setSessionError('アクセスが拒否されました。リセットリンクが無効または期限切れの可能性があります。')
       } else {
-        setError(errorDescription || 'リセットリンクの処理中にエラーが発生しました。')
+        setSessionError(errorDescription || 'リセットリンクの処理中にエラーが発生しました。')
       }
       setIsCheckingSession(false)
       return
@@ -83,7 +84,7 @@ export function ResetPasswordForm() {
 
           if (error) {
             console.error('Failed to set session:', error)
-            setError('セッションの確立に失敗しました。リンクが無効または期限切れの可能性があります。')
+            setSessionError('セッションの確立に失敗しました。リンクが無効または期限切れの可能性があります。')
             setIsCheckingSession(false)
             return
           }
@@ -109,11 +110,11 @@ export function ResetPasswordForm() {
 
         // ハッシュフラグメントもセッションもない場合
         console.warn('No valid hash fragment or session found')
-        setError('リセットリンクが無効または期限切れです。再度パスワードリセットを申請してください。')
+        setSessionError('リセットリンクが無効または期限切れです。再度パスワードリセットを申請してください。')
         setIsCheckingSession(false)
       } catch (err) {
         console.error('Check session error:', err)
-        setError('セッションの確認中にエラーが発生しました')
+        setSessionError('セッションの確認中にエラーが発生しました')
         setIsCheckingSession(false)
       }
     }
@@ -124,30 +125,33 @@ export function ResetPasswordForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    setError('')
+    setFormError('')
+    setSessionError('')
     setSuccess(false)
 
     // パスワードのバリデーション
     if (password.length < 6) {
-      setError('パスワードは6文字以上である必要があります')
+      setFormError('パスワードは6文字以上である必要があります')
       setIsLoading(false)
       return
     }
 
     if (password !== confirmPassword) {
-      setError('パスワードが一致しません')
+      setFormError('パスワードが一致しません')
       setIsLoading(false)
       return
     }
 
     try {
       const supabase = getSupabase()
-      
+
       // セッションを再確認
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      
-      if (sessionError || !session) {
-        throw new Error('セッションが無効です。リセットリンクが期限切れの可能性があります。再度パスワードリセットを申請してください。')
+      const { data: { session }, error: checkSessionError } = await supabase.auth.getSession()
+
+      if (checkSessionError || !session) {
+        setSessionError('セッションが無効です。リセットリンクが期限切れの可能性があります。再度パスワードリセットを申請してください。')
+        setIsLoading(false)
+        return
       }
 
       // パスワードを更新
@@ -158,7 +162,16 @@ export function ResetPasswordForm() {
       if (updateError) {
         // エラーメッセージを日本語に変換
         const errorMessage = translateErrorMessage(updateError.message)
-        throw new Error(errorMessage)
+
+        // セッション関連のエラーかどうかを判定
+        if (errorMessage.includes('セッション') || errorMessage.includes('期限切れ') || errorMessage.includes('無効')) {
+          setSessionError(errorMessage)
+        } else {
+          // 入力関連のエラー（パスワードが前回と同じなど）
+          setFormError(errorMessage)
+        }
+        setIsLoading(false)
+        return
       }
 
       setSuccess(true)
@@ -169,7 +182,13 @@ export function ResetPasswordForm() {
     } catch (err) {
       console.error('パスワード更新エラー:', err)
       const errorMessage = err instanceof Error ? err.message : 'パスワードの更新に失敗しました'
-      setError(errorMessage)
+
+      // セッション関連のエラーかどうかを判定
+      if (errorMessage.includes('セッション') || errorMessage.includes('期限切れ') || errorMessage.includes('無効')) {
+        setSessionError(errorMessage)
+      } else {
+        setFormError(errorMessage)
+      }
     } finally {
       setIsLoading(false)
     }
@@ -244,13 +263,13 @@ export function ResetPasswordForm() {
                 </div>
               </div>
             </div>
-          ) : error ? (
+          ) : sessionError ? (
             <div className="space-y-4">
               <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-3">
                 <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-red-800">エラー</p>
-                  <p className="text-sm text-red-700 mt-1">{error}</p>
+                  <p className="text-sm font-medium text-red-800">セッションエラー</p>
+                  <p className="text-sm text-red-700 mt-1">{sessionError}</p>
                 </div>
               </div>
               <div className="space-y-3">
@@ -286,12 +305,15 @@ export function ResetPasswordForm() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
-              {error && (
+              {formError && (
                 <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-3">
                   <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-red-800">エラー</p>
-                    <p className="text-sm text-red-700 mt-1">{error}</p>
+                    <p className="text-sm font-medium text-red-800">入力エラー</p>
+                    <p className="text-sm text-red-700 mt-1">{formError}</p>
+                    <p className="text-sm text-red-600 mt-2">
+                      修正して再度送信してください。
+                    </p>
                   </div>
                 </div>
               )}
