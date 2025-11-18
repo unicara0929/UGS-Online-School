@@ -5,15 +5,22 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle, CreditCard, Shield, ArrowLeft } from "lucide-react"
+import { CheckCircle, CreditCard, Shield, ArrowLeft, Users } from "lucide-react"
 import Link from "next/link"
 
 export const dynamic = 'force-dynamic'
+
+interface ReferrerInfo {
+  id: string
+  name: string
+  role: string
+}
 
 function CheckoutContent() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [referralCode, setReferralCode] = useState<string | null>(null)
+  const [referrerInfo, setReferrerInfo] = useState<ReferrerInfo | null>(null)
   const [emailVerified, setEmailVerified] = useState(false)
   const [checkingEmail, setCheckingEmail] = useState(true)
   const router = useRouter()
@@ -59,16 +66,31 @@ function CheckoutContent() {
     checkEmailVerification()
   }, [email, verified])
 
-  // LocalStorageから紹介コードを取得
+  // 紹介情報を取得（PendingUserから）
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedRef = localStorage.getItem('referralCode')
-      if (savedRef) {
-        setReferralCode(savedRef)
-        console.log('Referral code loaded for checkout:', savedRef)
+    const fetchReferralInfo = async () => {
+      if (!email) return
+
+      try {
+        const res = await fetch(`/api/pending-users/referral-info?email=${encodeURIComponent(email)}`)
+        const data = await res.json()
+
+        if (res.ok && data.hasReferral) {
+          setReferralCode(data.referralCode)
+          setReferrerInfo(data.referrer)
+          console.log('Referral info loaded:', {
+            code: data.referralCode,
+            referrer: data.referrer?.name
+          })
+        }
+      } catch (err) {
+        console.error('Failed to fetch referral info:', err)
+        // エラーでも処理は続行
       }
     }
-  }, [])
+
+    fetchReferralInfo()
+  }, [email])
 
   const handleCheckout = async () => {
     setIsLoading(true)
@@ -224,6 +246,29 @@ function CheckoutContent() {
                     {email}
                   </div>
                 </div>
+
+                {/* 紹介情報 */}
+                {referralCode && referrerInfo && (
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center mb-2">
+                      <Users className="h-5 w-5 text-blue-600 mr-2" />
+                      <span className="font-semibold text-blue-900">紹介情報</span>
+                    </div>
+                    <div className="text-sm text-blue-800 space-y-1">
+                      <p>
+                        <strong>{referrerInfo.name}</strong>さんの紹介で登録されました
+                      </p>
+                      <p className="text-xs text-blue-600">
+                        紹介コード: <span className="font-mono">{referralCode}</span>
+                      </p>
+                      {referrerInfo.role === 'FP' && (
+                        <Badge variant="secondary" className="mt-2 bg-blue-100 text-blue-800 border-blue-300">
+                          FP紹介特典適用
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
