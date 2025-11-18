@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
 import { sendEmail } from '@/lib/services/email-service'
+import {
+  createEmailCampaign,
+  type EmailRecipient,
+} from '@/lib/services/email-history-service'
 
 /**
  * イベント参加者一括メール送信API
@@ -67,9 +71,9 @@ export async function POST(
     }
 
     // メール送信処理
-    let successCount = 0
-    let failCount = 0
-    const errors: string[] = []
+    const recipients: EmailRecipient[] = []
+    let finalSubject = subject || ''
+    let finalBody = customBody || ''
 
     for (const registration of registrations) {
       try {
@@ -80,9 +84,13 @@ export async function POST(
         if (templateType === 'payment_reminder') {
           emailSubject = `【支払い未完了】${event.title}の参加費をお支払いください`
           emailBody = generatePaymentReminderEmail(event, registration)
+          finalSubject = emailSubject
+          finalBody = emailBody
         } else if (templateType === 'event_reminder') {
           emailSubject = `【開催間近】${event.title}のリマインド`
           emailBody = generateEventReminderEmail(event, registration)
+          finalSubject = emailSubject
+          finalBody = emailBody
         } else if (templateType === 'custom') {
           // カスタムメールの場合はそのまま使用
           if (!subject || !customBody) {
@@ -96,13 +104,42 @@ export async function POST(
           html: emailBody,
         })
 
-        successCount++
+        recipients.push({
+          userId: registration.user.id,
+          email: registration.user.email,
+          status: 'SENT',
+        })
       } catch (error) {
         console.error(`Failed to send email to ${registration.user.email}:`, error)
-        failCount++
-        errors.push(`${registration.user.email}: ${error instanceof Error ? error.message : '送信失敗'}`)
+        const errorMessage = error instanceof Error ? error.message : '送信失敗'
+        recipients.push({
+          userId: registration.user.id,
+          email: registration.user.email,
+          status: 'FAILED',
+          errorMessage,
+        })
       }
     }
+
+    // メール送信履歴を記録
+    await createEmailCampaign(
+      {
+        subject: finalSubject,
+        body: finalBody,
+        templateType,
+        sourceType: 'EVENT_MANAGEMENT',
+        eventId,
+        totalCount: registrations.length,
+        sentBy: authUser!.id,
+      },
+      recipients
+    )
+
+    const successCount = recipients.filter((r) => r.status === 'SENT').length
+    const failCount = recipients.filter((r) => r.status !== 'SENT').length
+    const errors = recipients
+      .filter((r) => r.status !== 'SENT')
+      .map((r) => `${r.email}: ${r.errorMessage}`)
 
     return NextResponse.json({
       success: true,
