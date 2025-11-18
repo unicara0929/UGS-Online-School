@@ -14,7 +14,14 @@ FPエイドに昇格したユーザーに対して、動画ガイダンスを必
   - `fpOnboardingCompleted`: Boolean（デフォルト: true、既存ユーザーへの影響を最小化）
   - `fpOnboardingCompletedAt`: DateTime?（完了日時）
 
-**マイグレーション**: `prisma/migrations/add_fp_onboarding_fields.sql`
+- `FPPromotionApplication`テーブルに以下のフィールドを追加：
+  - `contractAgreed`: Boolean（デフォルト: false、業務委託契約書への同意）
+  - `contractAgreedAt`: DateTime?（契約書同意日時）
+  - `idDocumentUploadedAt`: DateTime?（身分証アップロード日時）
+
+**マイグレーション**:
+- `prisma/migrations/add_fp_onboarding_fields.sql`
+- `prisma/migrations/add_contract_and_id_document_fields.sql`
 
 ### 2. FP昇格承認時の処理
 
@@ -22,6 +29,8 @@ FPエイドに昇格したユーザーに対して、動画ガイダンスを必
 
 - FP昇格承認時に`fpOnboardingCompleted: false`を設定
 - これにより、新規FPエイドは動画ガイダンス未完了として扱われる
+- 昇格申請のステータスは`APPROVED`に更新される
+- **注意**: `COMPLETED`ステータスへの遷移は、承認後の3つの手続き（契約同意、身分証アップロード、動画視聴）がすべて完了した時点で自動的に行われる
 
 ### 3. 動画ガイダンスページ
 
@@ -65,6 +74,11 @@ FPエイドに昇格したユーザーに対して、動画ガイダンスを必
 - `POST /api/user/fp-onboarding/complete`
 - 動画ガイダンスの視聴完了を記録
 - `fpOnboardingCompleted: true`と`fpOnboardingCompletedAt`を設定
+- **重要**: トランザクション内で以下の処理を実行:
+  1. ユーザーの`fpOnboardingCompleted`フラグを`true`に更新
+  2. 最新の`APPROVED`状態のFP昇格申請を取得
+  3. 承認後の3条件（契約同意、身分証アップロード、動画視聴）がすべて完了しているかチェック
+  4. すべて完了している場合、昇格申請ステータスを`COMPLETED`に更新
 
 ### 6. API側のオンボーディングチェック
 
@@ -110,23 +124,39 @@ npx prisma migrate deploy
 
 1. **FP昇格承認時**:
    - 管理者がFP昇格申請を承認
+   - ユーザーロールが`FP`に更新される
    - `fpOnboardingCompleted: false`が設定される
+   - 昇格申請ステータスが`APPROVED`に更新される
 
-2. **ログイン時**:
+2. **承認後の手続き（3つの必須項目）**:
+   - **業務委託契約書への同意**: ユーザーが契約内容を確認して同意
+   - **身分証のアップロード**: 本人確認書類を提出
+   - **動画ガイダンスの視聴**: FPエイド業務の動画を90%以上視聴
+
+3. **ログイン時**:
    - FPエイドユーザーがログイン
    - `FPOnboardingGuard`がオンボーディング状況をチェック
    - 未完了の場合は`/dashboard/fp-onboarding`にリダイレクト
 
-3. **動画視聴**:
+4. **動画視聴**:
    - ユーザーが動画を視聴
    - 視聴進捗がリアルタイムで表示される
    - 90%以上視聴した時点で自動的に完了処理が実行される
 
-4. **完了後**:
+5. **動画視聴完了時の処理**:
    - `fpOnboardingCompleted: true`が設定される
-   - 通常のFPエイド機能にアクセス可能になる
+   - 3つの手続きがすべて完了しているかチェック
+     - `contractAgreed === true`
+     - `idDocumentUrl !== null`
+     - `fpOnboardingCompleted === true`（この時点で完了）
+   - すべて完了している場合、昇格申請ステータスを`COMPLETED`に更新
+   - 一部未完了の場合は`APPROVED`のまま（他の手続き完了を待つ）
 
-5. **APIアクセス時**:
+6. **完了後**:
+   - 通常のFPエイド機能にアクセス可能になる
+   - 昇格プロセスが完全に完了（ステータス: `COMPLETED`）
+
+7. **APIアクセス時**:
    - FPエイド機能のAPIにアクセスする際、オンボーディング完了状況をチェック
    - 未完了の場合は403エラーを返す
 
