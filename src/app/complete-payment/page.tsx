@@ -6,7 +6,6 @@ import { useAuth } from '@/contexts/auth-context'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, Clock, CreditCard, AlertCircle, Loader2 } from 'lucide-react'
-import Link from 'next/link'
 
 export default function CompletePaymentPage() {
   const router = useRouter()
@@ -58,13 +57,13 @@ export default function CompletePaymentPage() {
   const handleStartPayment = async () => {
     try {
       // Stripe Checkoutセッションを作成
-      const response = await fetch('/api/stripe/create-checkout-session', {
+      const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID,
-          userId: user?.id
+          email: user?.email,
+          name: user?.name
         })
       })
 
@@ -129,10 +128,25 @@ export default function CompletePaymentPage() {
 
             {/* 料金プラン */}
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200">
-              <div className="text-center">
-                <p className="text-sm text-slate-600 mb-2">月額料金</p>
-                <p className="text-4xl font-bold text-slate-900">¥5,500</p>
-                <p className="text-sm text-slate-600 mt-1">(税込)</p>
+              <div className="text-center space-y-2">
+                <div className="text-sm text-slate-600">
+                  <div className="flex justify-between px-4">
+                    <span>初回登録費用</span>
+                    <span>¥33,000</span>
+                  </div>
+                  <div className="flex justify-between px-4">
+                    <span>月額利用料（1ヶ月目）</span>
+                    <span>¥5,500</span>
+                  </div>
+                </div>
+                <div className="border-t pt-2">
+                  <div className="text-sm text-slate-500 mb-1">今日のお支払い</div>
+                  <p className="text-4xl font-bold text-slate-900">¥38,500</p>
+                  <p className="text-sm text-slate-600 mt-1">(税込)</p>
+                </div>
+                <div className="text-sm text-slate-600 pt-2">
+                  <span className="text-slate-900 font-semibold">2ヶ月目以降：</span> ¥5,500/月
+                </div>
               </div>
             </div>
 
@@ -150,7 +164,7 @@ export default function CompletePaymentPage() {
               <div className="flex items-start">
                 <AlertCircle className="h-5 w-5 text-yellow-600 mr-3 mt-0.5 flex-shrink-0" />
                 <div className="text-sm text-yellow-800 space-y-1">
-                  <p className="font-semibold">決済が完了するまでは一部機能が制限されます</p>
+                  <p className="font-semibold">決済を完了してサービスをご利用ください</p>
                   {expirationDate && (
                     <p>有効期限：<strong>{expirationDate}</strong>まで</p>
                   )}
@@ -159,18 +173,6 @@ export default function CompletePaymentPage() {
                   </p>
                 </div>
               </div>
-            </div>
-
-            {/* 後で決済するリンク */}
-            <div className="text-center pt-4 border-t">
-              <p className="text-sm text-slate-600 mb-3">
-                後で決済したい場合は、マイページからいつでも手続きできます
-              </p>
-              <Link href="/dashboard">
-                <Button variant="outline" className="w-full">
-                  後で決済する（マイページへ）
-                </Button>
-              </Link>
             </div>
           </CardContent>
         </Card>
