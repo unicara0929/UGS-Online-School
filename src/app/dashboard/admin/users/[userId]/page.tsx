@@ -5,66 +5,90 @@ import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  User,
-  Mail,
-  Calendar,
-  CreditCard,
-  ArrowLeft,
-  Shield,
-  Activity,
-  FileText,
-  Edit
-} from 'lucide-react'
-import { formatDate, formatCurrency } from '@/lib/utils/format'
-import { getRoleLabel, getRoleBadgeVariant } from '@/lib/utils/user-helpers'
-
-// =====================================
-// 定数
-// =====================================
-
-/** 利用可能なユーザーロール */
-const USER_ROLES = [
-  { value: 'MEMBER', label: 'メンバー' },
-  { value: 'FP', label: 'FPエイド' },
-  { value: 'MANAGER', label: 'マネージャー' },
-  { value: 'ADMIN', label: '管理者' },
-] as const
-
-/** 会員ステータスのオプション */
-const MEMBERSHIP_STATUS_OPTIONS = [
-  { value: 'PENDING', label: '仮登録' },
-  { value: 'ACTIVE', label: '有効会員' },
-  { value: 'SUSPENDED', label: '休会中' },
-  { value: 'PAST_DUE', label: '支払い遅延' },
-  { value: 'DELINQUENT', label: '長期滞納' },
-  { value: 'CANCELED', label: '退会済み' },
-  { value: 'TERMINATED', label: '強制解約' },
-  { value: 'EXPIRED', label: '期限切れ' },
-] as const
+import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, CreditCard, AlertCircle, UserCheck, FileText, Users } from 'lucide-react'
+import { getRoleLabel, getRoleBadgeVariant, formatDate } from '@/lib/utils/user-helpers'
 
 interface UserDetail {
+  // 基本情報
   id: string
   email: string
   name: string
   role: string
+
+  // プロフィール情報
+  phone: string | null
+  address: string | null
+  bio: string | null
+  attribute: string | null
+  gender: string | null
+  birthDate: string | null
+  prefecture: string | null
+  profileImageUrl: string | null
+
+  // 会員管理情報
   membershipStatus: string
-  membershipStatusReason?: string
-  membershipStatusChangedAt?: string
-  membershipStatusChangedBy?: string
+  membershipStatusReason: string | null
+  membershipStatusChangedAt: string | null
+  membershipStatusChangedBy: string | null
+  suspensionStartDate: string | null
+  suspensionEndDate: string | null
+  canceledAt: string | null
+  cancellationReason: string | null
+  delinquentSince: string | null
+  reactivatedAt: string | null
+
+  // その他
+  referralCode: string | null
+  lastLoginAt: string | null
   createdAt: string
-  suspensionStartDate?: string
-  suspensionEndDate?: string
-  canceledAt?: string
-  cancellationReason?: string
-  delinquentSince?: string
-  reactivatedAt?: string
-  subscription?: any
-  referralsGiven?: any[]
-  referralsReceived?: any[]
-  supabaseAuth?: any
-  stripeCustomer?: any
-  invoices?: any[]
+  updatedAt: string
+
+  // リレーション情報
+  subscription: any
+  referrer: {
+    id: string
+    name: string
+    email: string
+    role: string
+  } | null
+  referralInfo: any
+  fpPromotionApplication: any
+
+  // Supabase認証情報
+  supabaseAuth: {
+    emailConfirmedAt: string | null
+    lastSignInAt: string | null
+    createdAt: string
+  } | null
+  hasSupabaseAuth: boolean
+}
+
+const getMembershipStatusLabel = (status: string) => {
+  const labels: Record<string, string> = {
+    PENDING: '仮登録',
+    ACTIVE: '有効会員',
+    SUSPENDED: '休会中',
+    PAST_DUE: '支払い遅延',
+    DELINQUENT: '長期滞納',
+    CANCELED: '退会済み',
+    TERMINATED: '強制解約',
+    EXPIRED: '期限切れ',
+  }
+  return labels[status] || status
+}
+
+const getMembershipStatusVariant = (status: string) => {
+  const variants: Record<string, any> = {
+    ACTIVE: 'default',
+    PENDING: 'secondary',
+    SUSPENDED: 'secondary',
+    PAST_DUE: 'destructive',
+    DELINQUENT: 'destructive',
+    CANCELED: 'outline',
+    TERMINATED: 'destructive',
+    EXPIRED: 'outline',
+  }
+  return variants[status] || 'outline'
 }
 
 export default function UserDetailPage() {
@@ -75,22 +99,9 @@ export default function UserDetailPage() {
   const [user, setUser] = useState<UserDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [isEditing, setIsEditing] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-
-  // 編集フォームの状態
-  const [editForm, setEditForm] = useState({
-    name: '',
-    email: '',
-    role: '',
-    membershipStatus: '',
-    membershipStatusReason: ''
-  })
 
   useEffect(() => {
-    if (userId) {
-      fetchUserDetail()
-    }
+    fetchUserDetail()
   }, [userId])
 
   const fetchUserDetail = async () => {
@@ -104,14 +115,6 @@ export default function UserDetailPage() {
       }
       const data = await response.json()
       setUser(data.user)
-      // 編集フォームを初期化
-      setEditForm({
-        name: data.user.name,
-        email: data.user.email,
-        role: data.user.role,
-        membershipStatus: data.user.membershipStatus,
-        membershipStatusReason: data.user.membershipStatusReason || ''
-      })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'エラーが発生しました')
     } finally {
@@ -119,70 +122,18 @@ export default function UserDetailPage() {
     }
   }
 
-  const handleSave = async () => {
-    if (!user) return
-
-    try {
-      setIsSaving(true)
-      const response = await fetch(`/api/admin/users/${userId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(editForm)
-      })
-
-      if (!response.ok) {
-        throw new Error('ユーザー情報の更新に失敗しました')
-      }
-
-      const data = await response.json()
-      setUser(data.user)
-      setIsEditing(false)
-      alert('ユーザー情報を更新しました')
-    } catch (err) {
-      alert(err instanceof Error ? err.message : '更新に失敗しました')
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  const handleCancelEdit = () => {
-    // 編集をキャンセルして元の値に戻す
-    if (user) {
-      setEditForm({
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        membershipStatus: user.membershipStatus,
-        membershipStatusReason: user.membershipStatusReason || ''
-      })
-    }
-    setIsEditing(false)
-  }
-
-  const getMembershipStatusBadge = (status: string) => {
-    const statusMap: Record<string, { label: string; className: string }> = {
-      PENDING: { label: '仮登録', className: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
-      ACTIVE: { label: '有効会員', className: 'bg-green-100 text-green-800 border-green-200' },
-      SUSPENDED: { label: '休会中', className: 'bg-blue-100 text-blue-800 border-blue-200' },
-      PAST_DUE: { label: '支払い遅延', className: 'bg-orange-100 text-orange-800 border-orange-200' },
-      DELINQUENT: { label: '長期滞納', className: 'bg-red-100 text-red-800 border-red-200' },
-      CANCELED: { label: '退会済み', className: 'bg-gray-100 text-gray-800 border-gray-200' },
-      TERMINATED: { label: '強制解約', className: 'bg-purple-100 text-purple-800 border-purple-200' },
-      EXPIRED: { label: '期限切れ', className: 'bg-slate-100 text-slate-800 border-slate-200' },
-    }
-    const config = statusMap[status] || { label: status, className: 'bg-gray-100 text-gray-800' }
-    return <Badge className={config.className}>{config.label}</Badge>
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-slate-600">読み込み中...</p>
+          <div className="relative">
+            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
+              <User className="h-10 w-10 text-white animate-pulse" />
+            </div>
+            <div className="absolute inset-0 w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mx-auto animate-ping opacity-20"></div>
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">ユーザー情報を読み込み中...</h2>
+          <p className="text-slate-600">データを取得しています</p>
         </div>
       </div>
     )
@@ -190,276 +141,296 @@ export default function UserDetailPage() {
 
   if (error || !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600">{error || 'ユーザーが見つかりません'}</p>
-          <Button onClick={() => router.back()} className="mt-4">
-            戻る
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <div className="container mx-auto p-6">
+          <Button
+            onClick={() => router.push('/dashboard/admin/users')}
+            variant="outline"
+            className="mb-6"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            ユーザー一覧に戻る
           </Button>
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-3">
+                <AlertCircle className="h-5 w-5 text-red-600" />
+                <p className="text-red-800">{error || 'ユーザーが見つかりません'}</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* ヘッダー */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="outline"
-              onClick={() => router.back()}
-              className="flex items-center space-x-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>戻る</span>
-            </Button>
-            <h1 className="text-3xl font-bold text-slate-900">ユーザー詳細</h1>
-          </div>
-          <div className="flex items-center space-x-2">
-            {isEditing ? (
-              <>
-                <Button
-                  variant="outline"
-                  onClick={handleCancelEdit}
-                  disabled={isSaving}
-                >
-                  キャンセル
-                </Button>
-                <Button
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
-                >
-                  {isSaving ? '保存中...' : '保存'}
-                </Button>
-              </>
-            ) : (
-              <Button
-                onClick={() => setIsEditing(true)}
-                className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
-              >
-                <Edit className="h-4 w-4" />
-                <span>編集</span>
-              </Button>
-            )}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <div className="container mx-auto p-6 space-y-6">
+        {/* 戻るボタン */}
+        <Button
+          onClick={() => router.push('/dashboard/admin/users')}
+          variant="outline"
+          className="bg-white hover:bg-slate-50"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          ユーザー一覧に戻る
+        </Button>
+
+        {/* ヘッダーセクション */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 p-8 text-white shadow-2xl">
+          <div className="absolute inset-0 bg-black/20"></div>
+          <div className="relative z-10">
+            <div className="flex items-start justify-between">
+              <div className="flex items-start space-x-6">
+                <div className="w-24 h-24 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-3xl shadow-2xl border-4 border-white/30">
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h1 className="text-4xl font-bold mb-2">{user.name}</h1>
+                  <p className="text-blue-100 text-lg mb-3">{user.email}</p>
+                  <div className="flex items-center space-x-3">
+                    <Badge variant={getRoleBadgeVariant(user.role)} className="text-sm px-3 py-1">
+                      {getRoleLabel(user.role)}
+                    </Badge>
+                    <Badge 
+                      variant={getMembershipStatusVariant(user.membershipStatus)} 
+                      className="text-sm px-3 py-1"
+                    >
+                      {getMembershipStatusLabel(user.membershipStatus)}
+                    </Badge>
+                    {!user.hasSupabaseAuth && (
+                      <Badge variant="destructive" className="text-sm px-3 py-1">
+                        <AlertCircle className="h-3 w-3 mr-1" />
+                        認証なし
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* 基本情報 */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <User className="h-5 w-5 mr-2" />
-              基本情報
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-slate-600">名前</label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={editForm.name}
-                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                    className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                ) : (
-                  <p className="text-lg font-semibold text-slate-900">{user.name}</p>
-                )}
-              </div>
-              <div>
-                <label className="text-sm font-medium text-slate-600">メールアドレス</label>
-                {isEditing ? (
-                  <input
-                    type="email"
-                    value={editForm.email}
-                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                    className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                ) : (
-                  <p className="text-lg text-slate-900">{user.email}</p>
-                )}
-              </div>
-              <div>
-                <label className="text-sm font-medium text-slate-600">ロール</label>
-                {isEditing ? (
-                  <select
-                    value={editForm.role}
-                    onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
-                    className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    {USER_ROLES.map(({ value, label }) => (
-                      <option key={value} value={value}>{label}</option>
-                    ))}
-                  </select>
-                ) : (
-                  <div className="mt-1">
-                    <Badge variant={getRoleBadgeVariant(user.role)}>
-                      {getRoleLabel(user.role)}
-                    </Badge>
-                  </div>
-                )}
-              </div>
-              <div>
-                <label className="text-sm font-medium text-slate-600">会員ステータス</label>
-                {isEditing ? (
-                  <select
-                    value={editForm.membershipStatus}
-                    onChange={(e) => setEditForm({ ...editForm, membershipStatus: e.target.value })}
-                    className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    {MEMBERSHIP_STATUS_OPTIONS.map(({ value, label }) => (
-                      <option key={value} value={value}>{label}</option>
-                    ))}
-                  </select>
-                ) : (
-                  <div className="mt-1">
-                    {getMembershipStatusBadge(user.membershipStatus)}
-                  </div>
-                )}
-              </div>
-              <div>
-                <label className="text-sm font-medium text-slate-600">登録日</label>
-                <p className="text-slate-900">{formatDate(user.createdAt)}</p>
-              </div>
-              {user.membershipStatusChangedAt && (
-                <div>
-                  <label className="text-sm font-medium text-slate-600">ステータス変更日</label>
-                  <p className="text-slate-900">{formatDate(user.membershipStatusChangedAt)}</p>
-                </div>
-              )}
-            </div>
-
-            {(isEditing || user.membershipStatusReason) && (
-              <div className="border-t pt-4">
-                <label className="text-sm font-medium text-slate-600">ステータス変更理由</label>
-                {isEditing ? (
-                  <textarea
-                    value={editForm.membershipStatusReason}
-                    onChange={(e) => setEditForm({ ...editForm, membershipStatusReason: e.target.value })}
-                    rows={3}
-                    className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                    placeholder="変更理由を入力（任意）"
-                  />
-                ) : (
-                  <>
-                    <p className="text-slate-900 mt-1">{user.membershipStatusReason}</p>
-                    {user.membershipStatusChangedBy && (
-                      <p className="text-sm text-slate-500 mt-1">変更者: {user.membershipStatusChangedBy}</p>
-                    )}
-                  </>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* 休会・退会情報 */}
-        {(user.suspensionStartDate || user.canceledAt) && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Activity className="h-5 w-5 mr-2" />
-                休会・退会情報
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* プロフィール情報 */}
+          <Card className="shadow-xl border-slate-200">
+            <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200">
+              <CardTitle className="flex items-center text-slate-800">
+                <User className="h-5 w-5 mr-2 text-blue-600" />
+                プロフィール情報
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {user.suspensionStartDate && (
-                <div>
-                  <label className="text-sm font-medium text-slate-600">休会期間</label>
-                  <p className="text-slate-900">
-                    {formatDate(user.suspensionStartDate)} 〜 {user.suspensionEndDate ? formatDate(user.suspensionEndDate) : '未定'}
-                  </p>
+            <CardContent className="p-6 space-y-4">
+              <InfoRow icon={<Phone className="h-4 w-4" />} label="電話番号" value={user.phone || '未設定'} />
+              <InfoRow icon={<MapPin className="h-4 w-4" />} label="都道府県" value={user.prefecture || '未設定'} />
+              <InfoRow icon={<MapPin className="h-4 w-4" />} label="住所" value={user.address || '未設定'} />
+              <InfoRow icon={<User className="h-4 w-4" />} label="性別" value={user.gender || '未設定'} />
+              <InfoRow icon={<Calendar className="h-4 w-4" />} label="生年月日" value={user.birthDate ? formatDate(user.birthDate) : '未設定'} />
+              <InfoRow icon={<FileText className="h-4 w-4" />} label="属性" value={user.attribute || '未設定'} />
+              {user.bio && (
+                <div className="pt-4 border-t border-slate-200">
+                  <p className="text-sm font-semibold text-slate-600 mb-2">自己紹介</p>
+                  <p className="text-slate-700 whitespace-pre-wrap">{user.bio}</p>
                 </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* 会員管理情報 */}
+          <Card className="shadow-xl border-slate-200">
+            <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200">
+              <CardTitle className="flex items-center text-slate-800">
+                <UserCheck className="h-5 w-5 mr-2 text-blue-600" />
+                会員管理情報
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
+              <InfoRow 
+                icon={<AlertCircle className="h-4 w-4" />} 
+                label="会員ステータス" 
+                value={getMembershipStatusLabel(user.membershipStatus)} 
+              />
+              {user.membershipStatusChangedAt && (
+                <InfoRow 
+                  icon={<Calendar className="h-4 w-4" />} 
+                  label="ステータス変更日時" 
+                  value={formatDate(user.membershipStatusChangedAt)} 
+                />
+              )}
+              {user.membershipStatusReason && (
+                <InfoRow 
+                  icon={<FileText className="h-4 w-4" />} 
+                  label="変更理由" 
+                  value={user.membershipStatusReason} 
+                />
+              )}
+              {user.membershipStatusChangedBy && (
+                <InfoRow 
+                  icon={<User className="h-4 w-4" />} 
+                  label="変更者" 
+                  value={user.membershipStatusChangedBy} 
+                />
+              )}
+              {user.suspensionStartDate && (
+                <InfoRow 
+                  icon={<Calendar className="h-4 w-4" />} 
+                  label="休会開始日" 
+                  value={formatDate(user.suspensionStartDate)} 
+                />
+              )}
+              {user.suspensionEndDate && (
+                <InfoRow 
+                  icon={<Calendar className="h-4 w-4" />} 
+                  label="休会終了予定日" 
+                  value={formatDate(user.suspensionEndDate)} 
+                />
               )}
               {user.canceledAt && (
-                <div>
-                  <label className="text-sm font-medium text-slate-600">退会日</label>
-                  <p className="text-slate-900">{formatDate(user.canceledAt)}</p>
-                  {user.cancellationReason && (
-                    <p className="text-sm text-slate-600 mt-1">理由: {user.cancellationReason}</p>
-                  )}
-                </div>
+                <InfoRow 
+                  icon={<Calendar className="h-4 w-4" />} 
+                  label="退会日" 
+                  value={formatDate(user.canceledAt)} 
+                />
+              )}
+              {user.cancellationReason && (
+                <InfoRow 
+                  icon={<FileText className="h-4 w-4" />} 
+                  label="退会理由" 
+                  value={user.cancellationReason} 
+                />
               )}
               {user.delinquentSince && (
-                <div>
-                  <label className="text-sm font-medium text-slate-600">滞納開始日</label>
-                  <p className="text-slate-900">{formatDate(user.delinquentSince)}</p>
-                </div>
+                <InfoRow 
+                  icon={<Calendar className="h-4 w-4" />} 
+                  label="滞納開始日" 
+                  value={formatDate(user.delinquentSince)} 
+                />
+              )}
+              {user.reactivatedAt && (
+                <InfoRow 
+                  icon={<Calendar className="h-4 w-4" />} 
+                  label="再開日" 
+                  value={formatDate(user.reactivatedAt)} 
+                />
               )}
             </CardContent>
           </Card>
-        )}
 
-        {/* サブスクリプション情報 */}
-        {user.subscription && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <CreditCard className="h-5 w-5 mr-2" />
-                サブスクリプション情報
+          {/* 認証情報 */}
+          <Card className="shadow-xl border-slate-200">
+            <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200">
+              <CardTitle className="flex items-center text-slate-800">
+                <Mail className="h-5 w-5 mr-2 text-blue-600" />
+                認証情報
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-slate-600">ステータス</label>
-                  <p className="text-slate-900">{user.subscription.status}</p>
-                </div>
-                {user.subscription.stripeDetails && (
-                  <>
-                    <div>
-                      <label className="text-sm font-medium text-slate-600">月額料金</label>
-                      <p className="text-slate-900">{formatCurrency(user.subscription.stripeDetails.amount)}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-slate-600">次回請求日</label>
-                      <p className="text-slate-900">{formatDate(user.subscription.stripeDetails.currentPeriodEnd)}</p>
-                    </div>
-                  </>
-                )}
-              </div>
+            <CardContent className="p-6 space-y-4">
+              <InfoRow icon={<Calendar className="h-4 w-4" />} label="登録日" value={formatDate(user.createdAt)} />
+              <InfoRow icon={<Calendar className="h-4 w-4" />} label="更新日" value={formatDate(user.updatedAt)} />
+              <InfoRow 
+                icon={<Calendar className="h-4 w-4" />} 
+                label="最終ログイン" 
+                value={user.lastLoginAt ? formatDate(user.lastLoginAt) : '未ログイン'} 
+              />
+              {user.supabaseAuth && (
+                <>
+                  <InfoRow 
+                    icon={<Mail className="h-4 w-4" />} 
+                    label="メール認証日" 
+                    value={user.supabaseAuth.emailConfirmedAt ? formatDate(user.supabaseAuth.emailConfirmedAt) : '未認証'} 
+                  />
+                  <InfoRow 
+                    icon={<Calendar className="h-4 w-4" />} 
+                    label="最終サインイン" 
+                    value={user.supabaseAuth.lastSignInAt ? formatDate(user.supabaseAuth.lastSignInAt) : '未サインイン'} 
+                  />
+                </>
+              )}
             </CardContent>
           </Card>
-        )}
 
-        {/* 請求履歴 */}
-        {user.invoices && user.invoices.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <FileText className="h-5 w-5 mr-2" />
-                請求履歴
+          {/* 紹介情報 */}
+          <Card className="shadow-xl border-slate-200">
+            <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200">
+              <CardTitle className="flex items-center text-slate-800">
+                <Users className="h-5 w-5 mr-2 text-blue-600" />
+                紹介情報
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {user.invoices.slice(0, 5).map((invoice: any) => (
-                  <div key={invoice.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                    <div>
-                      <p className="font-medium text-slate-900">
-                        {formatCurrency(invoice.amount_due)} {invoice.currency.toUpperCase()}
-                      </p>
-                      <p className="text-sm text-slate-600">
-                        {invoice.created ? formatDate(new Date(invoice.created * 1000).toISOString()) : '不明'}
-                      </p>
+            <CardContent className="p-6 space-y-4">
+              <InfoRow 
+                icon={<FileText className="h-4 w-4" />} 
+                label="紹介コード" 
+                value={user.referralCode || '未設定'} 
+              />
+              {user.referrer ? (
+                <>
+                  <div className="pt-4 border-t border-slate-200">
+                    <p className="text-sm font-semibold text-slate-600 mb-3">紹介者情報</p>
+                    <div className="bg-slate-50 rounded-lg p-4 space-y-2">
+                      <InfoRow icon={<User className="h-4 w-4" />} label="名前" value={user.referrer.name} />
+                      <InfoRow icon={<Mail className="h-4 w-4" />} label="メール" value={user.referrer.email} />
+                      <InfoRow icon={<UserCheck className="h-4 w-4" />} label="ロール" value={getRoleLabel(user.referrer.role)} />
                     </div>
-                    <Badge className={
-                      invoice.status === 'paid' ? 'bg-green-100 text-green-800' :
-                      invoice.status === 'open' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-gray-100 text-gray-800'
-                    }>
-                      {invoice.status}
-                    </Badge>
                   </div>
-                ))}
-              </div>
+                </>
+              ) : (
+                <p className="text-slate-500 text-sm">紹介者なし（直接登録）</p>
+              )}
             </CardContent>
           </Card>
-        )}
+
+          {/* サブスクリプション情報 */}
+          {user.subscription && (
+            <Card className="shadow-xl border-slate-200 lg:col-span-2">
+              <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200">
+                <CardTitle className="flex items-center text-slate-800">
+                  <CreditCard className="h-5 w-5 mr-2 text-blue-600" />
+                  サブスクリプション情報
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <InfoRow 
+                    icon={<FileText className="h-4 w-4" />} 
+                    label="Stripe カスタマーID" 
+                    value={user.subscription.stripeCustomerId || '未設定'} 
+                  />
+                  <InfoRow 
+                    icon={<FileText className="h-4 w-4" />} 
+                    label="Stripe サブスクリプションID" 
+                    value={user.subscription.stripeSubscriptionId || '未設定'} 
+                  />
+                  <InfoRow 
+                    icon={<AlertCircle className="h-4 w-4" />} 
+                    label="ステータス" 
+                    value={user.subscription.status} 
+                  />
+                  <InfoRow 
+                    icon={<Calendar className="h-4 w-4" />} 
+                    label="現在の期間終了日" 
+                    value={user.subscription.currentPeriodEnd ? formatDate(user.subscription.currentPeriodEnd) : '未設定'} 
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="flex items-start space-x-3">
+      <div className="flex-shrink-0 w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 mt-0.5">
+        {icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-slate-600">{label}</p>
+        <p className="text-slate-900 break-words">{value}</p>
       </div>
     </div>
   )
