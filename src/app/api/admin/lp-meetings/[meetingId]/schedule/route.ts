@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { LPMeetingStatus, MeetingPlatform, NotificationType, NotificationPriority } from '@prisma/client'
 import { createNotification } from '@/lib/services/notification-service'
 import { formatDateTime } from '@/lib/utils/format'
-import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
+import { getAuthenticatedUser, checkAdmin, Roles } from '@/lib/auth/api-helpers'
 
 /**
  * 面談を確定（管理者）
@@ -76,7 +76,7 @@ export async function POST(
       select: { id: true, role: true }
     })
 
-    if (!fp || fp.role !== 'FP') {
+    if (!fp || fp.role !== Roles.FP) {
       return NextResponse.json(
         { error: 'FPエイドが見つかりません' },
         { status: 404 }

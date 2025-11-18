@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { Roles } from '@/lib/auth/api-helpers'
 
 export async function GET(request: NextRequest) {
   try {
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest) {
     let pendingActions: string[] = []
 
     // UGS会員（MEMBER）の場合のみ、未完了アクションを返す
-    if (user.role === 'MEMBER') {
+    if (user.role === Roles.MEMBER) {
       if (!application.lpMeetingCompleted) {
         pendingActions.push('lpMeeting')
       }

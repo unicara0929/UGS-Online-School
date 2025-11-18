@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
+import { getAuthenticatedUser, Roles } from '@/lib/auth/api-helpers'
 
 /**
  * FPエイド向け動画ガイダンスの完了状況を取得
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     }
 
     // FPエイドでない場合は完了扱い
-    if (user.role !== 'FP') {
+    if (user.role !== Roles.FP) {
       return NextResponse.json({
         completed: true,
         message: 'FPエイドではないため、オンボーディングは不要です'
