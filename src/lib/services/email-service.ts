@@ -346,3 +346,129 @@ ${verificationLink}
     throw error
   }
 }
+
+/**
+ * イベント参加確認メールを送信
+ */
+export async function sendEventConfirmationEmail(params: {
+  to: string
+  userName: string
+  eventTitle: string
+  eventDate: string
+  eventTime?: string
+  eventLocation?: string
+  venueType: string
+  eventId: string
+}) {
+  const { to, userName, eventTitle, eventDate, eventTime, eventLocation, venueType, eventId } = params
+
+  const subject = `【UGSオンラインスクール】イベント参加確定：${eventTitle}`
+
+  const venueTypeText = venueType === 'ONLINE' ? 'オンライン開催' :
+                        venueType === 'OFFLINE' ? 'オフライン開催' : 'ハイブリッド開催'
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0; font-size: 28px;">UGSオンラインスクール</h1>
+      </div>
+
+      <div style="background: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 10px 10px;">
+        <h2 style="color: #333; margin-top: 0;">イベント参加が確定しました</h2>
+
+        <p>こんにちは、<strong>${userName}</strong>様</p>
+
+        <p>以下のイベントへの参加が確定しました。</p>
+
+        <div style="background: #f8f9fa; border-left: 4px solid #667eea; padding: 20px; margin: 20px 0;">
+          <h3 style="margin-top: 0; color: #667eea;">${eventTitle}</h3>
+          <div style="margin: 10px 0;">
+            <strong>📅 日時:</strong> ${eventDate}${eventTime ? ` ${eventTime}` : ''}
+          </div>
+          <div style="margin: 10px 0;">
+            <strong>📍 開催形式:</strong> ${venueTypeText}
+          </div>
+          ${eventLocation ? `
+          <div style="margin: 10px 0;">
+            <strong>🏢 場所:</strong> ${eventLocation}
+          </div>
+          ` : ''}
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/events"
+             style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">
+            イベント詳細を確認
+          </a>
+        </div>
+
+        <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; padding: 15px; margin: 20px 0;">
+          <p style="margin: 0; color: #856404; font-size: 14px;">
+            <strong>⚠️ キャンセルについて:</strong><br>
+            イベントをキャンセルする場合は、マイページのイベント一覧からキャンセル手続きを行ってください。
+          </p>
+        </div>
+
+        <p style="color: #666; font-size: 14px; margin-top: 30px;">
+          ご参加をお待ちしております！
+        </p>
+
+        <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
+
+        <p style="color: #999; font-size: 12px; text-align: center;">
+          © 2025 UGSオンラインスクール. All rights reserved.
+        </p>
+      </div>
+    </body>
+    </html>
+  `
+
+  const text = `
+UGSオンラインスクール - イベント参加確定
+
+こんにちは、${userName}様
+
+以下のイベントへの参加が確定しました。
+
+【イベント情報】
+タイトル: ${eventTitle}
+日時: ${eventDate}${eventTime ? ` ${eventTime}` : ''}
+開催形式: ${venueTypeText}
+${eventLocation ? `場所: ${eventLocation}` : ''}
+
+イベント詳細: ${process.env.NEXT_PUBLIC_APP_URL}/dashboard/events
+
+⚠️ キャンセルについて:
+イベントをキャンセルする場合は、マイページのイベント一覧からキャンセル手続きを行ってください。
+
+ご参加をお待ちしております！
+
+---
+© 2025 UGSオンラインスクール. All rights reserved.
+  `
+
+  try {
+    const transporter = createTransporter()
+
+    const info = await transporter.sendMail({
+      from: `"UGSオンラインスクール" <${process.env.SMTP_USER}>`,
+      to,
+      subject,
+      text,
+      html,
+      encoding: 'utf-8',
+    })
+
+    console.log('Event confirmation email sent:', info.messageId)
+    return { success: true, messageId: info.messageId }
+  } catch (error) {
+    console.error('Failed to send event confirmation email:', error)
+    throw error
+  }
+}

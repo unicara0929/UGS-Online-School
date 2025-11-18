@@ -5,6 +5,7 @@
 
 import { stripe } from '@/lib/stripe'
 import { sendPaymentConfirmationEmail, sendPaymentFailedEmail, sendSubscriptionCancelledEmail } from '@/lib/email'
+import { sendEventConfirmationEmail } from '@/lib/services/email-service'
 import { prisma } from '@/lib/prisma'
 import { ReferralStatus } from '@prisma/client'
 import Stripe from 'stripe'
@@ -70,7 +71,7 @@ async function handleEventPaymentCompleted(session: Stripe.Checkout.Session): Pr
 
   try {
     // EventRegistrationを更新: PENDING → PAID
-    await prisma.eventRegistration.update({
+    const registration = await prisma.eventRegistration.update({
       where: { id: registrationId },
       data: {
         paymentStatus: 'PAID',
@@ -78,11 +79,36 @@ async function handleEventPaymentCompleted(session: Stripe.Checkout.Session): Pr
         paidAmount: session.amount_total || 0,
         paidAt: new Date(),
       },
+      include: {
+        event: true,
+        user: true,
+      }
     })
 
     console.log(`Event payment completed: eventId=${eventId}, userId=${userId}, registrationId=${registrationId}`)
 
-    // TODO: イベント参加確定メールを送信（後続フェーズで実装）
+    // イベント参加確定メールを送信
+    try {
+      await sendEventConfirmationEmail({
+        to: registration.user.email,
+        userName: registration.user.name,
+        eventTitle: registration.event.title,
+        eventDate: registration.event.date.toLocaleDateString('ja-JP', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          weekday: 'long'
+        }),
+        eventTime: registration.event.time || undefined,
+        eventLocation: registration.event.location || undefined,
+        venueType: registration.event.venueType,
+        eventId: registration.event.id,
+      })
+      console.log('Event confirmation email sent to:', registration.user.email)
+    } catch (emailError) {
+      console.error('Failed to send event confirmation email:', emailError)
+      // メール送信失敗でも処理は続行
+    }
   } catch (error) {
     console.error('Failed to update event registration payment status:', error)
   }
