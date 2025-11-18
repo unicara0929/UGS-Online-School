@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
 
 /**
  * Cron Job: 長期滞納ステータス自動更新
@@ -114,6 +115,20 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   // 管理者のみ手動実行可能
-  // TODO: 管理者認証を追加
-  return GET(request)
+  const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+  if (authError) return authError
+
+  const { error: adminError } = checkAdmin(authUser!.role)
+  if (adminError) return adminError
+
+  // 管理者認証済みなので、CRON_SECRETチェックをスキップするため
+  // 新しいリクエストを作成してAuthorizationヘッダーを設定
+  const modifiedRequest = new NextRequest(request.url, {
+    headers: {
+      ...Object.fromEntries(request.headers),
+      'authorization': `Bearer ${process.env.CRON_SECRET || 'admin-manual-execution'}`
+    }
+  })
+
+  return GET(modifiedRequest)
 }

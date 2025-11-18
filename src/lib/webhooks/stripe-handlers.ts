@@ -101,7 +101,7 @@ async function handleReferralRegistration(session: Stripe.Checkout.Session): Pro
     // 紹介コードから紹介者を取得
     const referrer = await prisma.user.findUnique({
       where: { referralCode },
-      select: { id: true }
+      select: { id: true, role: true }
     })
 
     if (!referrer) return
@@ -114,8 +114,9 @@ async function handleReferralRegistration(session: Stripe.Checkout.Session): Pro
 
     if (!referred || referrer.id === referred.id) return
 
-    // 紹介タイプを決定（被紹介者のロールに基づく）
-    const referralType = referred.role === 'FP' ? 'FP' : 'MEMBER'
+    // 紹介タイプを決定（紹介者のロールに基づく）
+    // FP が紹介した場合は FP_REFERRAL、それ以外は MEMBER_REFERRAL
+    const referralType = referrer.role === 'FP' ? 'FP' : 'MEMBER'
 
     // 既存の紹介をチェック
     const existingReferral = await prisma.referral.findUnique({
