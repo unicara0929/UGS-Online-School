@@ -52,12 +52,38 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // 完了フラグを更新
-    await prisma.user.update({
-      where: { id: authUser.id },
-      data: {
-        fpOnboardingCompleted: true,
-        fpOnboardingCompletedAt: new Date()
+    // トランザクションで処理
+    await prisma.$transaction(async (tx) => {
+      // 1. 完了フラグを更新
+      await tx.user.update({
+        where: { id: authUser.id },
+        data: {
+          fpOnboardingCompleted: true,
+          fpOnboardingCompletedAt: new Date()
+        }
+      })
+
+      // 2. FP昇格申請のステータスをCOMPLETEDに更新
+      // 最新のAPPROVED状態の申請を取得
+      const approvedApplication = await tx.fPPromotionApplication.findFirst({
+        where: {
+          userId: authUser.id,
+          status: 'APPROVED'
+        },
+        orderBy: {
+          approvedAt: 'desc'
+        }
+      })
+
+      if (approvedApplication) {
+        await tx.fPPromotionApplication.update({
+          where: { id: approvedApplication.id },
+          data: {
+            status: 'COMPLETED',
+            completedAt: new Date()
+          }
+        })
+        console.log('FP promotion application marked as COMPLETED:', approvedApplication.id)
       }
     })
 
