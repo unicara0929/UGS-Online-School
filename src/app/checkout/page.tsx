@@ -14,10 +14,50 @@ function CheckoutContent() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [referralCode, setReferralCode] = useState<string | null>(null)
+  const [emailVerified, setEmailVerified] = useState(false)
+  const [checkingEmail, setCheckingEmail] = useState(true)
   const router = useRouter()
   const searchParams = useSearchParams()
   const email = searchParams.get('email')
   const name = searchParams.get('name')
+  const verified = searchParams.get('verified') // メール認証完了フラグ
+
+  // メールアドレス認証チェック
+  useEffect(() => {
+    const checkEmailVerification = async () => {
+      if (!email) {
+        setError('メールアドレスが指定されていません')
+        setCheckingEmail(false)
+        return
+      }
+
+      // URLパラメータでverified=trueがある場合は認証済みとみなす
+      if (verified === 'true') {
+        setEmailVerified(true)
+        setCheckingEmail(false)
+        return
+      }
+
+      try {
+        // PendingUserのメール認証状態を確認
+        const res = await fetch(`/api/pending-users/check?email=${encodeURIComponent(email)}`)
+        const data = await res.json()
+
+        if (res.ok && data.emailVerified) {
+          setEmailVerified(true)
+        } else {
+          setError('メールアドレスの確認が完了していません。メールボックスを確認してください。')
+        }
+      } catch (err) {
+        console.error('Email verification check error:', err)
+        setError('メール認証状態の確認に失敗しました')
+      } finally {
+        setCheckingEmail(false)
+      }
+    }
+
+    checkEmailVerification()
+  }, [email, verified])
 
   // LocalStorageから紹介コードを取得
   useEffect(() => {
