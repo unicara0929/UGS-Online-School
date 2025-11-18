@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { getAuthenticatedUser, checkRole, RoleGroups } from '@/lib/auth/api-helpers'
 
 /**
  * ユーザーデータCSVエクスポートAPI
@@ -8,28 +8,13 @@ import { prisma } from '@/lib/prisma'
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
 
-    if (authError || !authUser) {
-      return NextResponse.json(
-        { error: '認証が必要です' },
-        { status: 401 }
-      )
-    }
-
-    // 管理者権限チェック
-    const adminUser = await prisma.user.findUnique({
-      where: { id: authUser.id },
-      select: { role: true }
-    })
-
-    if (!adminUser || (adminUser.role !== 'ADMIN' && adminUser.role !== 'MANAGER')) {
-      return NextResponse.json(
-        { error: '管理者権限が必要です' },
-        { status: 403 }
-      )
-    }
+    // 管理者権限チェック（MANAGER以上）
+    const { error: roleError } = checkRole(authUser!.role, RoleGroups.MANAGER_AND_ABOVE)
+    if (roleError) return roleError
 
     // ユーザー一覧を取得
     const users = await prisma.user.findMany({

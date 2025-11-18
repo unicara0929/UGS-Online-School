@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
+import { getAuthenticatedUser, Roles } from '@/lib/auth/api-helpers'
 
 /**
  * FPエイド向け動画ガイダンスの完了を記録
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     }
 
     // FPエイドでない場合はエラー
-    if (user.role !== 'FP') {
+    if (user.role !== Roles.FP) {
       return NextResponse.json(
         { error: 'FPエイドではないため、オンボーディングは不要です' },
         { status: 400 }

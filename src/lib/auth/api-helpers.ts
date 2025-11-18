@@ -330,12 +330,13 @@ export async function checkFPOnboarding(
 
 /**
  * ロール定義（Prisma Enumと一致）
+ * データベースに保存されている実際の値（大文字）を使用
  */
 export const Roles = {
-  MEMBER: 'member',
-  FP: 'fp',
-  MANAGER: 'manager',
-  ADMIN: 'admin',
+  MEMBER: 'MEMBER',
+  FP: 'FP',
+  MANAGER: 'MANAGER',
+  ADMIN: 'ADMIN',
 } as const
 
 /**
