@@ -18,6 +18,60 @@ function EventsPageContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [paymentMessage, setPaymentMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+
+  // 決済確認処理（Stripeからのリダイレクト後）
+  useEffect(() => {
+    const verifyPayment = async () => {
+      const params = new URLSearchParams(window.location.search)
+      const sessionId = params.get('session_id')
+
+      if (!sessionId) return
+
+      console.log('[PAYMENT_VERIFY] Session ID found in URL:', sessionId)
+
+      try {
+        const response = await fetch('/api/events/verify-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ sessionId })
+        })
+
+        const data = await response.json()
+
+        if (data.success) {
+          console.log('[PAYMENT_VERIFY] Payment verified:', data)
+          setPaymentMessage({
+            type: 'success',
+            text: '決済が完了しました！イベントへの参加が確定しました。'
+          })
+
+          // URLからsession_idを削除（履歴に残さない）
+          window.history.replaceState({}, '', '/dashboard/events')
+
+          // イベント一覧を再読み込み
+          setTimeout(() => {
+            window.location.reload()
+          }, 2000)
+        } else {
+          console.warn('[PAYMENT_VERIFY] Payment verification failed:', data)
+          setPaymentMessage({
+            type: 'error',
+            text: data.message || '決済の確認に失敗しました'
+          })
+        }
+      } catch (error) {
+        console.error('[PAYMENT_VERIFY] Error:', error)
+        setPaymentMessage({
+          type: 'error',
+          text: '決済の確認中にエラーが発生しました'
+        })
+      }
+    }
+
+    verifyPayment()
+  }, [])
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -317,6 +371,16 @@ function EventsPageContent() {
               <Card className="border-red-200 bg-red-50">
                 <CardContent className="py-4">
                   <p className="text-sm text-red-600">{error}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {paymentMessage && (
+              <Card className={paymentMessage.type === 'success' ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
+                <CardContent className="py-4">
+                  <p className={`text-sm font-medium ${paymentMessage.type === 'success' ? 'text-green-800' : 'text-red-600'}`}>
+                    {paymentMessage.text}
+                  </p>
                 </CardContent>
               </Card>
             )}
