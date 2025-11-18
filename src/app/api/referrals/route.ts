@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { ReferralType, ReferralStatus } from '@prisma/client'
-import { getAuthenticatedUser, checkRole, RoleGroups, checkFPOnboarding } from '@/lib/auth/api-helpers'
+import { getAuthenticatedUser, checkRole, RoleGroups, checkFPOnboarding, Roles } from '@/lib/auth/api-helpers'
 
 /**
  * 紹介一覧を取得
@@ -150,14 +150,14 @@ export async function POST(request: NextRequest) {
     }
 
     // 紹介タイプとユーザーロールの整合性をチェック
-    if (referralType === 'MEMBER' && referredUser.role !== 'MEMBER') {
+    if (referralType === 'MEMBER' && referredUser.role !== Roles.MEMBER) {
       return NextResponse.json(
         { error: 'UGS会員紹介は、UGS会員のみが対象です' },
         { status: 400 }
       )
     }
 
-    if (referralType === 'FP' && referredUser.role !== 'FP') {
+    if (referralType === 'FP' && referredUser.role !== Roles.FP) {
       return NextResponse.json(
         { error: 'FPエイド紹介は、FPエイドのみが対象です' },
         { status: 400 }
