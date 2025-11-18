@@ -129,24 +129,39 @@ export default function CompletePaymentPage() {
             {/* 料金プラン */}
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200">
               <div className="text-center space-y-2">
-                <div className="text-sm text-slate-600">
-                  <div className="flex justify-between px-4">
-                    <span>初回登録費用</span>
-                    <span>¥33,000</span>
-                  </div>
-                  <div className="flex justify-between px-4">
-                    <span>月額利用料（1ヶ月目）</span>
-                    <span>¥5,500</span>
-                  </div>
-                </div>
-                <div className="border-t pt-2">
-                  <div className="text-sm text-slate-500 mb-1">今日のお支払い</div>
-                  <p className="text-4xl font-bold text-slate-900">¥38,500</p>
-                  <p className="text-sm text-slate-600 mt-1">(税込)</p>
-                </div>
-                <div className="text-sm text-slate-600 pt-2">
-                  <span className="text-slate-900 font-semibold">2ヶ月目以降：</span> ¥5,500/月
-                </div>
+                {process.env.NEXT_PUBLIC_STRIPE_SETUP_FEE_ENABLED === 'true' ? (
+                  <>
+                    <div className="text-sm text-slate-600">
+                      <div className="flex justify-between px-4">
+                        <span>初回登録費用</span>
+                        <span>¥33,000</span>
+                      </div>
+                      <div className="flex justify-between px-4">
+                        <span>月額利用料（1ヶ月目）</span>
+                        <span>¥5,500</span>
+                      </div>
+                    </div>
+                    <div className="border-t pt-2">
+                      <div className="text-sm text-slate-500 mb-1">今日のお支払い</div>
+                      <p className="text-4xl font-bold text-slate-900">¥38,500</p>
+                      <p className="text-sm text-slate-600 mt-1">(税込)</p>
+                    </div>
+                    <div className="text-sm text-slate-600 pt-2">
+                      <span className="text-slate-900 font-semibold">2ヶ月目以降：</span> ¥5,500/月
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="border-t pt-2">
+                      <div className="text-sm text-slate-500 mb-1">月額料金</div>
+                      <p className="text-4xl font-bold text-slate-900">¥5,500</p>
+                      <p className="text-sm text-slate-600 mt-1">(税込)</p>
+                    </div>
+                    <div className="text-sm text-slate-600 pt-2">
+                      月額¥5,500でいつでもキャンセル可能
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
@@ -156,7 +171,9 @@ export default function CompletePaymentPage() {
               className="w-full h-14 text-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all"
             >
               <CreditCard className="h-5 w-5 mr-2" />
-              今すぐ決済して利用開始
+              {process.env.NEXT_PUBLIC_STRIPE_SETUP_FEE_ENABLED === 'true'
+                ? '¥38,500で決済して利用開始'
+                : '¥5,500で決済して利用開始'}
             </Button>
 
             {/* 注意事項 */}
