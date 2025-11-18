@@ -40,7 +40,7 @@ export async function GET(
     // Prismaのenum（大文字）をアプリケーション側のロール型（小文字）に変換
     const role = prismaRoleToAppRole(user.role)
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
       user: {
         id: user.id,
@@ -48,6 +48,14 @@ export async function GET(
         name: user.name,
         role: role,
         referralCode: user.referralCode,
+        phone: user.phone,
+        address: user.address,
+        bio: user.bio,
+        attribute: user.attribute,
+        gender: user.gender,
+        birthDate: user.birthDate,
+        prefecture: user.prefecture,
+        profileImageUrl: user.profileImageUrl,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
         lastLoginAt: user.lastLoginAt
