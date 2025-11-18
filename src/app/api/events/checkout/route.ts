@@ -123,17 +123,32 @@ export async function POST(request: NextRequest) {
 
     // Stripe Checkout Sessionを作成
     const subscription = user.subscriptions?.[0]
+    let customerId: string | undefined = subscription?.stripeCustomerId || undefined
+
+    // Customer IDが存在する場合、Stripeで有効か確認
+    if (customerId) {
+      try {
+        await stripe.customers.retrieve(customerId)
+        console.log('Stripe Customer exists:', customerId)
+      } catch (error: any) {
+        console.warn('Stripe Customer not found, will create new session without customer:', {
+          customerId,
+          error: error.message
+        })
+        customerId = undefined
+      }
+    }
 
     console.log('Creating Stripe checkout session:', {
-      customerId: subscription?.stripeCustomerId || 'none',
-      email: subscription?.stripeCustomerId ? undefined : user.email,
+      customerId: customerId || 'none',
+      email: customerId ? undefined : user.email,
       stripePriceId: event.stripePriceId,
       eventTitle: event.title
     })
 
     const checkoutSession = await stripe.checkout.sessions.create({
-      customer: subscription?.stripeCustomerId || undefined,
-      customer_email: subscription?.stripeCustomerId ? undefined : user.email,
+      customer: customerId || undefined,
+      customer_email: customerId ? undefined : user.email,
       payment_method_types: ['card'],
       line_items: [
         {
