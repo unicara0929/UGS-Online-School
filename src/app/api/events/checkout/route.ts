@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'payment', // サブスクリプションではなく一回限りの支払い
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/events?payment=success&eventId=${event.id}`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/events?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/events?payment=canceled&eventId=${event.id}`,
       metadata: {
         type: 'event',
