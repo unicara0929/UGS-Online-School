@@ -126,17 +126,20 @@ model Lesson {
 }
 
 model CourseProgress {
-  id          String    @id @default(cuid())
-  userId      String
-  courseId    String
-  lessonId    String?
-  isCompleted Boolean   @default(false)
-  completedAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  lesson      Lesson?   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String    @id @default(cuid())
+  userId         String
+  courseId       String
+  lessonId       String?
+  isCompleted    Boolean   @default(false)
+  completedAt    DateTime?
+  currentTime    Int?      // 動画視聴位置（秒）
+  videoDuration  Int?      // 動画の長さ（秒）
+  lastWatchedAt  DateTime? // 最後に視聴した日時
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  course         Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lesson         Lesson?   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, courseId, lessonId])
   @@map("course_progress")

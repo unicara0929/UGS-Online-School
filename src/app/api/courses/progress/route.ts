@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
 
     const userId = authUser!.id
     const body = await request.json()
-    const { courseId, lessonId, isCompleted } = body
+    const { courseId, lessonId, isCompleted, currentTime, videoDuration } = body
 
     if (!courseId || !lessonId) {
       return NextResponse.json(
@@ -55,6 +55,9 @@ export async function POST(request: NextRequest) {
       update: {
         isCompleted,
         completedAt: isCompleted ? new Date() : null,
+        currentTime,
+        videoDuration,
+        lastWatchedAt: new Date(),
       },
       create: {
         userId,
@@ -62,6 +65,9 @@ export async function POST(request: NextRequest) {
         lessonId,
         isCompleted,
         completedAt: isCompleted ? new Date() : null,
+        currentTime,
+        videoDuration,
+        lastWatchedAt: new Date(),
       },
     })
 
@@ -73,6 +79,9 @@ export async function POST(request: NextRequest) {
         lessonId: progress.lessonId,
         isCompleted: progress.isCompleted,
         completedAt: progress.completedAt?.toISOString() ?? null,
+        currentTime: progress.currentTime ?? null,
+        videoDuration: progress.videoDuration ?? null,
+        lastWatchedAt: progress.lastWatchedAt?.toISOString() ?? null,
       },
     })
   } catch (error) {
@@ -122,6 +131,9 @@ export async function GET(request: NextRequest) {
       lessonId: p.lessonId,
       isCompleted: p.isCompleted,
       completedAt: p.completedAt?.toISOString() ?? null,
+      currentTime: p.currentTime ?? null,
+      videoDuration: p.videoDuration ?? null,
+      lastWatchedAt: p.lastWatchedAt?.toISOString() ?? null,
       lesson: p.lesson
         ? {
             id: p.lesson.id,
