@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import nodemailer from 'nodemailer'
-import { stripe } from '@/lib/stripe'
 import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
 import {
   createEmailCampaign,
   type EmailRecipient,
 } from '@/lib/services/email-history-service'
+import { createPaymentLink } from '@/lib/services/payment-link-service'
 
 // SMTPトランスポーターの作成
 const createTransporter = () => {
@@ -19,91 +19,6 @@ const createTransporter = () => {
       pass: process.env.SMTP_PASS,
     },
   })
-}
-
-// ユーザーの決済リンクを作成
-async function createPaymentLink(email: string, name: string): Promise<string | null> {
-  try {
-    console.log(`  🔄 createPaymentLink開始: ${email}, ${name}`)
-    const targetAmount = 5500 // ¥5,500
-
-    // ¥5,500の価格を検索
-    const allPrices = await stripe.prices.list({
-      limit: 100,
-      active: true,
-    })
-
-    const targetPrice = allPrices.data.find(p =>
-      p.unit_amount === targetAmount &&
-      p.currency === 'jpy' &&
-      p.active === true &&
-      p.recurring?.interval === 'month'
-    )
-
-    let priceId: string
-
-    if (targetPrice) {
-      priceId = targetPrice.id
-      console.log(`  ✅ 既存の価格を使用: ${priceId}`)
-    } else {
-      // 価格が見つからない場合は新規作成
-      console.log(`  ⚠️ 価格が見つからないため新規作成中...`)
-      const product = await stripe.products.create({
-        name: 'UGSオンラインスクール 月額プラン',
-        description: '学び → 実践 → 自立を一体化したFP育成プラットフォーム',
-      })
-
-      const price = await stripe.prices.create({
-        unit_amount: targetAmount,
-        currency: 'jpy',
-        recurring: {
-          interval: 'month',
-          interval_count: 1,
-        },
-        product: product.id,
-      })
-      priceId = price.id
-      console.log(`  ✅ 新規価格作成: ${priceId}`)
-    }
-
-    // Checkout Sessionを作成
-    console.log(`  🔄 Checkout Session作成中...`)
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
-      mode: 'subscription',
-      customer_email: email,
-      metadata: {
-        userName: name,
-        userEmail: email,
-      },
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`,
-      subscription_data: {
-        metadata: {
-          userName: name,
-          userEmail: email,
-        },
-      },
-    })
-
-    console.log(`  ✅ Session作成成功: ${session.id}`)
-    console.log(`  🔗 元のURL: ${session.url}`)
-
-    // 短縮URLを生成
-    const shortUrl = `${process.env.NEXT_PUBLIC_APP_URL}/pay/${session.id}`
-    console.log(`  ✂️ 短縮URL: ${shortUrl}`)
-
-    return shortUrl
-  } catch (error) {
-    console.error(`  ❌ 決済リンク作成エラー (${email}):`, error)
-    return null
-  }
 }
 
 export async function POST(request: NextRequest) {
