@@ -25,10 +25,10 @@ export async function GET(request: NextRequest) {
     })
 
     // アクティブなサブスクリプションの判定
-    // status が 'ACTIVE' の場合に有効とみなす
-    const hasActiveSubscription = subscription
-      ? subscription.status === 'ACTIVE'
-      : false
+    // subscription レコードが存在しない場合のみ false（初回未決済）
+    // 既存会員（PAST_DUE, UNPAID）や解約済み（CANCELED）の場合は true
+    // → /complete-payment 画面は初回未決済者のみに表示
+    const hasActiveSubscription = subscription !== null
 
     return NextResponse.json({
       success: true,
