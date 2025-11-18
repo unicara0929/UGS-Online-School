@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import nodemailer from 'nodemailer'
 import { stripe } from '@/lib/stripe'
+import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
+import {
+  createEmailCampaign,
+  type EmailRecipient,
+} from '@/lib/services/email-history-service'
 
 // SMTPトランスポーターの作成
 const createTransporter = () => {
@@ -103,6 +108,14 @@ async function createPaymentLink(email: string, name: string): Promise<string | 
 
 export async function POST(request: NextRequest) {
   try {
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
+
+    // 管理者チェック
+    const { error: adminError } = checkAdmin(authUser!.role)
+    if (adminError) return adminError
+
     const { userIds, subject, body } = await request.json()
 
     // バリデーション
@@ -142,8 +155,7 @@ export async function POST(request: NextRequest) {
     }
 
     const transporter = createTransporter()
-    let successCount = 0
-    let failedCount = 0
+    const recipients: EmailRecipient[] = []
 
     // 決済リンクが必要かチェック
     const needsPaymentLink = body.includes('{{payment_link}}')
@@ -169,7 +181,12 @@ export async function POST(request: NextRequest) {
           } else {
             // 決済リンク作成失敗時は、そのユーザーへの送信をスキップ
             console.error(`❌ 決済リンク作成失敗: ${user.email}`)
-            failedCount++
+            recipients.push({
+              userId: user.id,
+              email: user.email,
+              status: 'FAILED',
+              errorMessage: '決済リンクの作成に失敗しました',
+            })
             continue
           }
         }
@@ -192,13 +209,38 @@ export async function POST(request: NextRequest) {
           encoding: 'utf-8',
         })
 
-        successCount++
+        recipients.push({
+          userId: user.id,
+          email: user.email,
+          status: 'SENT',
+        })
         console.log(`メール送信成功: ${user.email}`)
       } catch (error) {
-        failedCount++
+        const errorMessage = error instanceof Error ? error.message : '送信失敗'
+        recipients.push({
+          userId: user.id,
+          email: user.email,
+          status: 'FAILED',
+          errorMessage,
+        })
         console.error(`メール送信失敗: ${user.email}`, error)
       }
     }
+
+    // メール送信履歴を記録
+    await createEmailCampaign(
+      {
+        subject,
+        body,
+        sourceType: 'USER_MANAGEMENT',
+        totalCount: users.length,
+        sentBy: authUser!.id,
+      },
+      recipients
+    )
+
+    const successCount = recipients.filter((r) => r.status === 'SENT').length
+    const failedCount = recipients.filter((r) => r.status !== 'SENT').length
 
     return NextResponse.json({
       success: successCount,

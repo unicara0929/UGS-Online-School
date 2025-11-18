@@ -12,7 +12,8 @@ import {
   Bell,
   FileText,
   MessageSquare,
-  FolderOpen
+  FolderOpen,
+  Mail
 } from 'lucide-react'
 
 export interface NavItem {
@@ -51,5 +52,6 @@ export const navigation: NavItem[] = [
   { name: 'チーム管理', href: '/dashboard/team', icon: Users, roles: ['manager', 'admin'] },
   { name: '分析', href: '/dashboard/analytics', icon: BarChart3, roles: ['admin'] },
   { name: 'ユーザー管理', href: '/dashboard/admin/users', icon: UserCheck, roles: ['admin'] },
+  { name: 'メール送信履歴', href: '/dashboard/admin/email-history', icon: Mail, roles: ['admin'] },
   { name: '設定', href: '/dashboard/settings', icon: Settings, roles: ['member', 'fp', 'manager', 'admin'] },
 ]

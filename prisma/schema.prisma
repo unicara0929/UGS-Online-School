@@ -59,6 +59,7 @@ model User {
   surveySubmissions       SurveySubmission[]
   cancelRequests          CancelRequest[]
   membershipStatusHistory MembershipStatusHistory[]
+  emailLogs               EmailLog[]
 
   @@map("users")
 }
@@ -158,6 +159,7 @@ model Event {
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
   registrations   EventRegistration[]
+  emailCampaigns  EmailCampaign[]
 
   @@map("events")
 }
@@ -599,4 +601,61 @@ model MembershipStatusHistory {
   createdAt     DateTime         @default(now())
 
   @@map("membership_status_history")
+}
+
+// メール送信履歴（バッチ単位）
+model EmailCampaign {
+  id           String          @id @default(cuid())
+  subject      String          // 件名
+  body         String          @db.Text // 本文
+  templateType String?         // テンプレート種別
+  sourceType   EmailSourceType // 送信元: USER_MANAGEMENT | EVENT_MANAGEMENT
+  eventId      String?         // イベントID（イベント経由の場合）
+  totalCount   Int             // 送信対象人数
+  successCount Int             @default(0) // 成功件数
+  failedCount  Int             @default(0) // 失敗件数
+  sentBy       String          // 送信者（管理者ID）
+  sentAt       DateTime        @default(now())
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  event Event?     @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  logs  EmailLog[] // 個別配信ログ
+
+  @@index([sentAt])
+  @@index([sourceType])
+  @@index([eventId])
+  @@map("email_campaigns")
+}
+
+// 個別配信ログ（ユーザー単位）
+model EmailLog {
+  id           String      @id @default(cuid())
+  campaignId   String      // キャンペーンID
+  userId       String      // 宛先ユーザーID
+  email        String      // 送信先メールアドレス
+  status       EmailStatus // 配信ステータス
+  errorMessage String?     // エラーメッセージ
+  sentAt       DateTime    @default(now())
+  createdAt    DateTime    @default(now())
+
+  campaign EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([campaignId])
+  @@index([status])
+  @@map("email_logs")
+}
+
+enum EmailSourceType {
+  USER_MANAGEMENT  // ユーザー管理画面から
+  EVENT_MANAGEMENT // イベント管理画面から
+}
+
+enum EmailStatus {
+  SENT    // 送信成功
+  FAILED  // 送信失敗
+  BOUNCED // バウンス
+  INVALID // 無効なアドレス
 }
