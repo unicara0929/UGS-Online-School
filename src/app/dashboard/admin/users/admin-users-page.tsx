@@ -665,7 +665,16 @@ export default function AdminUsersPage() {
                           {user.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <div className="font-medium text-slate-900">{user.name}</div>
+                          {user.type === 'registered' ? (
+                            <button
+                              onClick={() => window.location.href = `/dashboard/admin/users/${user.id}`}
+                              className="font-medium text-slate-900 hover:text-blue-600 hover:underline transition-colors text-left"
+                            >
+                              {user.name}
+                            </button>
+                          ) : (
+                            <div className="font-medium text-slate-900">{user.name}</div>
+                          )}
                           {user.type === 'pending' && (
                             <Badge variant="outline" className="text-orange-600 border-orange-300 bg-orange-50 mt-1">
                               <UserX className="h-3 w-3 mr-1" />
@@ -731,33 +740,23 @@ export default function AdminUsersPage() {
                     </TableCell>
                     <TableCell className="py-4 px-6">
                       {user.type === 'registered' && (
-                        <div className="space-y-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => window.location.href = `/dashboard/admin/users/${user.id}`}
-                            className="w-full text-xs"
-                          >
-                            詳細を見る
-                          </Button>
-                          <div className="flex flex-wrap gap-1">
-                            {['MEMBER', 'FP', 'MANAGER', 'ADMIN'].map((role) => (
-                              <Button
-                                key={role}
-                                variant={user.role === role ? 'default' : 'outline'}
-                                size="sm"
-                                onClick={() => updateUserRole(user.id, role)}
-                                disabled={user.role === role}
-                                className={`text-xs px-3 py-1 h-auto transition-all duration-200 ${
-                                  user.role === role
-                                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
-                                    : 'hover:bg-gradient-to-r hover:from-slate-50 hover:to-blue-50 border-slate-300'
-                                }`}
-                              >
-                                {getRoleLabel(role)}
-                              </Button>
-                            ))}
-                          </div>
+                        <div className="flex flex-wrap gap-1">
+                          {['MEMBER', 'FP', 'MANAGER', 'ADMIN'].map((role) => (
+                            <Button
+                              key={role}
+                              variant={user.role === role ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => updateUserRole(user.id, role)}
+                              disabled={user.role === role}
+                              className={`text-xs px-3 py-1 h-auto transition-all duration-200 ${
+                                user.role === role
+                                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+                                  : 'hover:bg-gradient-to-r hover:from-slate-50 hover:to-blue-50 border-slate-300'
+                              }`}
+                            >
+                              {getRoleLabel(role)}
+                            </Button>
+                          ))}
                         </div>
                       )}
                     </TableCell>

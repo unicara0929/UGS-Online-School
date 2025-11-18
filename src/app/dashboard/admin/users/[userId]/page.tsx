@@ -51,6 +51,17 @@ export default function UserDetailPage() {
   const [user, setUser] = useState<UserDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+
+  // 編集フォームの状態
+  const [editForm, setEditForm] = useState({
+    name: '',
+    email: '',
+    role: '',
+    membershipStatus: '',
+    membershipStatusReason: ''
+  })
 
   useEffect(() => {
     if (userId) {
@@ -69,11 +80,62 @@ export default function UserDetailPage() {
       }
       const data = await response.json()
       setUser(data.user)
+      // 編集フォームを初期化
+      setEditForm({
+        name: data.user.name,
+        email: data.user.email,
+        role: data.user.role,
+        membershipStatus: data.user.membershipStatus,
+        membershipStatusReason: data.user.membershipStatusReason || ''
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'エラーが発生しました')
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleSave = async () => {
+    if (!user) return
+
+    try {
+      setIsSaving(true)
+      const response = await fetch(`/api/admin/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(editForm)
+      })
+
+      if (!response.ok) {
+        throw new Error('ユーザー情報の更新に失敗しました')
+      }
+
+      const data = await response.json()
+      setUser(data.user)
+      setIsEditing(false)
+      alert('ユーザー情報を更新しました')
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '更新に失敗しました')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleCancelEdit = () => {
+    // 編集をキャンセルして元の値に戻す
+    if (user) {
+      setEditForm({
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        membershipStatus: user.membershipStatus,
+        membershipStatusReason: user.membershipStatusReason || ''
+      })
+    }
+    setIsEditing(false)
   }
 
   const getMembershipStatusBadge = (status: string) => {
@@ -131,6 +193,34 @@ export default function UserDetailPage() {
             </Button>
             <h1 className="text-3xl font-bold text-slate-900">ユーザー詳細</h1>
           </div>
+          <div className="flex items-center space-x-2">
+            {isEditing ? (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={handleCancelEdit}
+                  disabled={isSaving}
+                >
+                  キャンセル
+                </Button>
+                <Button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                >
+                  {isSaving ? '保存中...' : '保存'}
+                </Button>
+              </>
+            ) : (
+              <Button
+                onClick={() => setIsEditing(true)}
+                className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+              >
+                <Edit className="h-4 w-4" />
+                <span>編集</span>
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* 基本情報 */}
@@ -145,25 +235,73 @@ export default function UserDetailPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-slate-600">名前</label>
-                <p className="text-lg font-semibold text-slate-900">{user.name}</p>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editForm.name}
+                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                    className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                ) : (
+                  <p className="text-lg font-semibold text-slate-900">{user.name}</p>
+                )}
               </div>
               <div>
                 <label className="text-sm font-medium text-slate-600">メールアドレス</label>
-                <p className="text-lg text-slate-900">{user.email}</p>
+                {isEditing ? (
+                  <input
+                    type="email"
+                    value={editForm.email}
+                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                    className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                ) : (
+                  <p className="text-lg text-slate-900">{user.email}</p>
+                )}
               </div>
               <div>
                 <label className="text-sm font-medium text-slate-600">ロール</label>
-                <div className="mt-1">
-                  <Badge variant={getRoleBadgeVariant(user.role)}>
-                    {getRoleLabel(user.role)}
-                  </Badge>
-                </div>
+                {isEditing ? (
+                  <select
+                    value={editForm.role}
+                    onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
+                    className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="MEMBER">メンバー</option>
+                    <option value="FP">FPエイド</option>
+                    <option value="MANAGER">マネージャー</option>
+                    <option value="ADMIN">管理者</option>
+                  </select>
+                ) : (
+                  <div className="mt-1">
+                    <Badge variant={getRoleBadgeVariant(user.role)}>
+                      {getRoleLabel(user.role)}
+                    </Badge>
+                  </div>
+                )}
               </div>
               <div>
                 <label className="text-sm font-medium text-slate-600">会員ステータス</label>
-                <div className="mt-1">
-                  {getMembershipStatusBadge(user.membershipStatus)}
-                </div>
+                {isEditing ? (
+                  <select
+                    value={editForm.membershipStatus}
+                    onChange={(e) => setEditForm({ ...editForm, membershipStatus: e.target.value })}
+                    className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="PENDING">仮登録</option>
+                    <option value="ACTIVE">有効会員</option>
+                    <option value="SUSPENDED">休会中</option>
+                    <option value="PAST_DUE">支払い遅延</option>
+                    <option value="DELINQUENT">長期滞納</option>
+                    <option value="CANCELED">退会済み</option>
+                    <option value="TERMINATED">強制解約</option>
+                    <option value="EXPIRED">期限切れ</option>
+                  </select>
+                ) : (
+                  <div className="mt-1">
+                    {getMembershipStatusBadge(user.membershipStatus)}
+                  </div>
+                )}
               </div>
               <div>
                 <label className="text-sm font-medium text-slate-600">登録日</label>
@@ -177,12 +315,24 @@ export default function UserDetailPage() {
               )}
             </div>
 
-            {user.membershipStatusReason && (
+            {(isEditing || user.membershipStatusReason) && (
               <div className="border-t pt-4">
                 <label className="text-sm font-medium text-slate-600">ステータス変更理由</label>
-                <p className="text-slate-900 mt-1">{user.membershipStatusReason}</p>
-                {user.membershipStatusChangedBy && (
-                  <p className="text-sm text-slate-500 mt-1">変更者: {user.membershipStatusChangedBy}</p>
+                {isEditing ? (
+                  <textarea
+                    value={editForm.membershipStatusReason}
+                    onChange={(e) => setEditForm({ ...editForm, membershipStatusReason: e.target.value })}
+                    rows={3}
+                    className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    placeholder="変更理由を入力（任意）"
+                  />
+                ) : (
+                  <>
+                    <p className="text-slate-900 mt-1">{user.membershipStatusReason}</p>
+                    {user.membershipStatusChangedBy && (
+                      <p className="text-sm text-slate-500 mt-1">変更者: {user.membershipStatusChangedBy}</p>
+                    )}
+                  </>
                 )}
               </div>
             )}

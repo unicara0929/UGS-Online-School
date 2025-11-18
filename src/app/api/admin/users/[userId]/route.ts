@@ -158,7 +158,7 @@ export async function PUT(
 
     const { userId } = await params
     const body = await request.json()
-    const { membershipStatus, membershipStatusReason, role } = body
+    const { membershipStatus, membershipStatusReason, role, name, email } = body
 
     // ユーザー情報を更新
     const updateData: any = {}
@@ -172,6 +172,23 @@ export async function PUT(
 
     if (role) {
       updateData.role = role
+    }
+
+    if (name !== undefined) {
+      updateData.name = name
+    }
+
+    if (email !== undefined) {
+      updateData.email = email
+      // Supabaseの認証メールも更新
+      try {
+        await supabase.auth.admin.updateUserById(userId, {
+          email: email
+        })
+      } catch (error) {
+        console.error('Failed to update Supabase auth email:', error)
+        // エラーでも処理は継続（Prismaの更新は行う）
+      }
     }
 
     const updatedUser = await prisma.user.update({
