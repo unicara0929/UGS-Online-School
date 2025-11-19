@@ -30,7 +30,29 @@ export async function findOrCreateSupabaseUser(
   const existingUser = existingUsers?.users.find(u => u.email === email)
 
   if (existingUser) {
-    console.log('Using existing Supabase user:', { userId: existingUser.id, email })
+    console.log('Found existing Supabase user:', { userId: existingUser.id, email })
+
+    // 既存ユーザーが見つかった場合、プレーンパスワードであればパスワードを更新する
+    if (isPlainPassword) {
+      try {
+        await supabaseAdmin.auth.admin.updateUserById(existingUser.id, {
+          password: password,
+          user_metadata: {
+            ...existingUser.user_metadata,
+            name,
+            requiresPasswordReset: false
+          }
+        })
+        console.log('✅ Updated existing Supabase user password with plain password:', { userId: existingUser.id, email })
+      } catch (updateError: any) {
+        console.error('Failed to update existing user password:', updateError)
+        throw new Error(`既存ユーザーのパスワード更新に失敗しました: ${updateError.message}`)
+      }
+    } else {
+      console.warn('⚠️ Existing user found but hashed password provided - password not updated')
+      console.warn('⚠️ User may need to reset password. Email:', email)
+    }
+
     return { user: existingUser }
   }
 
