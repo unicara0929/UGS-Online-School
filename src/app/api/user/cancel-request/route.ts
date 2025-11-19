@@ -1,17 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { userId, name, email, reason, otherReason, continuationOption } = body
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
 
-    if (!userId || !name || !email || !reason || !continuationOption) {
+    const body = await request.json()
+    const { reason, otherReason, continuationOption } = body
+
+    if (!reason || !continuationOption) {
       return NextResponse.json(
         { error: '必須項目が不足しています' },
         { status: 400 }
       )
     }
+
+    // 認証されたユーザー自身の情報を使用
+    const userId = authUser!.id
+    const email = authUser!.email
+
+    // ユーザー名をPrismaから取得
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true }
+    })
+
+    const name = user?.name || email
 
     // 退会申請をデータベースに保存
     // まず、退会申請テーブルがあるか確認し、なければ作成
