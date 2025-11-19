@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/contexts/auth-context"
-import { Calendar, Clock, Video, CheckCircle, XCircle, Loader2, Plus, X } from "lucide-react"
+import { Calendar, Clock, Video, XCircle, Loader2, Plus, X } from "lucide-react"
 import { formatDateTime } from "@/lib/utils/format"
 import { authenticatedFetch } from "@/lib/utils/api-client"
 

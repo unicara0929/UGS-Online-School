@@ -22,8 +22,7 @@ export async function POST(request: NextRequest) {
     let finalReferralCode = referralCode
     try {
       const pendingUser = await prisma.pendingUser.findUnique({
-        where: { email },
-        select: { referralCode: true }
+        where: { email }
       })
 
       if (pendingUser?.referralCode) {
