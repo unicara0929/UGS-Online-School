@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { Roles } from '@/lib/auth/api-helpers'
+import { Roles, getAuthenticatedUser } from '@/lib/auth/api-helpers'
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = request.nextUrl.searchParams.get('userId')
-    
-    if (!userId) {
-      return NextResponse.json({ error: 'ユーザーIDが必要です' }, { status: 400 })
-    }
+    // 認証チェック
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
+
+    // 認証されたユーザー自身のIDを使用
+    const userId = authUser!.id
 
     // 環境未設定時はプレースホルダーを返してUIを維持
     if (!process.env.DATABASE_URL) {
