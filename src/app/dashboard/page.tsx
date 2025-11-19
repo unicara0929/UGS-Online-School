@@ -17,11 +17,13 @@ import { Notification, Event } from "@/lib/types"
 function Dashboard() {
   const { user } = useAuth()
   const [notifications, setNotifications] = useState<Notification[]>([])
+  const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (user?.id) {
       fetchFPPromotionStatus()
+      fetchUpcomingEvents()
     }
   }, [user?.id])
 
@@ -35,11 +37,11 @@ function Dashboard() {
         throw new Error('FP昇格申請状態の取得に失敗しました')
       }
       const data = await response.json()
-      
+
       // FP昇格申請済みで未完了項目がある場合のみアクションを生成
       if (data.hasApplication && data.pendingActions.length > 0) {
         const actionNotifications: Notification[] = []
-        
+
         if (data.pendingActions.includes('lpMeeting')) {
           actionNotifications.push({
             id: 'fp-promotion-lp-meeting',
@@ -50,7 +52,7 @@ function Dashboard() {
             createdAt: new Date()
           })
         }
-        
+
         if (data.pendingActions.includes('basicTest')) {
           actionNotifications.push({
             id: 'fp-promotion-basic-test',
@@ -61,7 +63,7 @@ function Dashboard() {
             createdAt: new Date()
           })
         }
-        
+
         if (data.pendingActions.includes('survey')) {
           actionNotifications.push({
             id: 'fp-promotion-survey',
@@ -72,7 +74,7 @@ function Dashboard() {
             createdAt: new Date()
           })
         }
-        
+
         setNotifications(actionNotifications)
       } else {
         setNotifications([])
@@ -85,24 +87,26 @@ function Dashboard() {
     }
   }
 
-  const upcomingEvents: Event[] = [
-    {
-      id: "1",
-      title: "月初MTG",
-      description: "",
-      date: "2024-01-08T19:00:00.000Z",
-      time: "19:00-21:00",
-      type: "required",
-      targetRoles: ["all"],
-      attendanceType: "required",
-      venueType: "online",
-      location: "オンライン（Zoom）",
-      maxParticipants: 50,
-      currentParticipants: 25,
-      isRegistered: false,
-      status: "upcoming"
+  const fetchUpcomingEvents = async () => {
+    try {
+      const response = await fetch(`/api/events?userId=${user?.id}`, {
+        credentials: 'include'
+      })
+      if (!response.ok) {
+        throw new Error('イベント情報の取得に失敗しました')
+      }
+      const data = await response.json()
+
+      if (data.success && data.events) {
+        // 今後のイベントのみをフィルタリング
+        const upcoming = data.events.filter((event: Event) => event.status === 'upcoming')
+        setUpcomingEvents(upcoming)
+      }
+    } catch (error) {
+      console.error('Error fetching upcoming events:', error)
+      setUpcomingEvents([])
     }
-  ]
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex">

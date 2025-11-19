@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { prisma } from '@/lib/prisma'
+import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
 
 /**
  * デバッグ用: SupabaseとPrismaのユーザー数を比較
  * GET /api/admin/debug/users-comparison
  */
 export async function GET(request: NextRequest) {
+  // 認証チェック
+  const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+  if (authError) return authError
+
+  // 管理者権限チェック
+  const { error: adminError } = checkAdmin(authUser!.role)
+  if (adminError) return adminError
+
   try {
     // Supabase Auth Usersを取得
     const { data: supabaseData, error: supabaseError } = await supabaseAdmin.auth.admin.listUsers()

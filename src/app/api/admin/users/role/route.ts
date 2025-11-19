@@ -2,8 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { prisma } from '@/lib/prisma'
 import { appRoleToPrismaRole, stringToAppRole } from '@/lib/utils/role-mapper'
+import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
 
 export async function PUT(request: NextRequest) {
+  // 認証チェック
+  const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+  if (authError) return authError
+
+  // 管理者権限チェック
+  const { error: adminError } = checkAdmin(authUser!.role)
+  if (adminError) return adminError
+
   try {
     const { userId, role } = await request.json()
 
