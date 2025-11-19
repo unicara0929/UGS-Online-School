@@ -103,29 +103,31 @@ export async function POST(request: NextRequest) {
     // 初回登録費用のPrice ID（環境変数から取得、なければ登録費用なし）
     const setupFeePriceId = process.env.STRIPE_SETUP_FEE_PRICE_ID
 
+    // line_itemsを構築（月額料金 + 初回登録費用）
+    const lineItems: Array<{ price: string; quantity: number }> = [
+      {
+        price: priceId,  // 月額5,500円 (recurring)
+        quantity: 1,
+      },
+    ]
+
+    // 初回登録費用がある場合は追加（one-time price）
+    if (setupFeePriceId) {
+      lineItems.push({
+        price: setupFeePriceId,  // 初回登録費用 33,000円 (one-time)
+        quantity: 1,
+      })
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
-      line_items: [
-        {
-          price: priceId,  // 月額5,500円
-          quantity: 1,
-        },
-      ],
+      line_items: lineItems,
       mode: 'subscription',
       customer_email: email,
       metadata: sessionMetadata,
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`,
       subscription_data: {
-        // 初回登録費用を初回invoiceにのみ追加（案B: add_invoice_items使用）
-        ...(setupFeePriceId ? {
-          add_invoice_items: [
-            {
-              price: setupFeePriceId,  // 初回登録費用 33,000円
-              quantity: 1,
-            }
-          ],
-        } : {}),
         metadata: sessionMetadata,
       },
     })
