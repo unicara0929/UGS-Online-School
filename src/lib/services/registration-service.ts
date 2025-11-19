@@ -12,9 +12,15 @@ import { generateUniqueReferralCode } from '@/lib/services/referral-code-generat
  * Supabaseユーザーの作成または取得
  * @param email ユーザーのメールアドレス
  * @param name ユーザーの名前
- * @param password ハッシュ化されたパスワード（PendingUserから取得）
+ * @param password パスワード（プレーンまたはハッシュ化済み）
+ * @param isPlainPassword パスワードがプレーンテキストかどうか
  */
-export async function findOrCreateSupabaseUser(email: string, name: string, password: string) {
+export async function findOrCreateSupabaseUser(
+  email: string,
+  name: string,
+  password: string,
+  isPlainPassword: boolean = true
+) {
   const { data: existingUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers()
 
   if (listError) {
@@ -28,10 +34,39 @@ export async function findOrCreateSupabaseUser(email: string, name: string, pass
     return { user: existingUser }
   }
 
-  // 新規ユーザーを作成（PendingUserから取得したパスワードを使用）
+  // 新規ユーザーを作成
+  if (!isPlainPassword) {
+    // ハッシュ化済みパスワードの場合はエラー（互換性のため警告を出すが、一時パスワードでアカウント作成）
+    console.warn('⚠️ Hashed password provided for Supabase user creation - creating with temporary password')
+    console.warn('⚠️ User will need to reset password. Email:', email)
+
+    // 一時パスワードを生成（32文字のランダム文字列）
+    const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8) +
+                         Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8)
+
+    const { data: newUser, error: supabaseError } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password: tempPassword,
+      user_metadata: {
+        name,
+        role: 'MEMBER',
+        requiresPasswordReset: true
+      },
+      email_confirm: true
+    })
+
+    if (supabaseError) {
+      throw new Error(`Supabaseユーザー作成に失敗しました: ${supabaseError.message}`)
+    }
+
+    console.log('⚠️ Supabase user created with temporary password (requires reset):', { userId: newUser.user.id, email })
+    return newUser
+  }
+
+  // プレーンパスワードでユーザー作成（正常フロー）
   const { data: newUser, error: supabaseError } = await supabaseAdmin.auth.admin.createUser({
     email,
-    password: password, // PendingUserから取得したハッシュ化されたパスワードを使用
+    password: password, // プレーンパスワードを使用（Supabaseが自動でハッシュ化）
     user_metadata: {
       name,
       role: 'MEMBER'
@@ -43,7 +78,7 @@ export async function findOrCreateSupabaseUser(email: string, name: string, pass
     throw new Error(`Supabaseユーザー作成に失敗しました: ${supabaseError.message}`)
   }
 
-  console.log('Supabase user created with user-provided password:', { userId: newUser.user.id, email })
+  console.log('✅ Supabase user created with plain password:', { userId: newUser.user.id, email })
   return newUser
 }
 
