@@ -69,6 +69,7 @@ model PendingUser {
   email             String   @unique
   name              String
   password          String   // ハッシュ化されたパスワード（一時保存）
+  plainPassword     String?  // プレーンテキストパスワード（Supabaseユーザー作成用、一時保存）
   referralCode      String?  // 紹介コード（URLから取得）
   emailVerified     Boolean  @default(false) // メール認証済みフラグ
   verificationToken String?  @unique // メール認証トークン

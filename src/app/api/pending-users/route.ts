@@ -54,12 +54,13 @@ export async function POST(request: NextRequest) {
     const tokenExpiresAt = new Date()
     tokenExpiresAt.setHours(tokenExpiresAt.getHours() + 24)
 
-    // 仮登録ユーザーを作成（紹介コードとハッシュ化されたパスワードも保存）
+    // 仮登録ユーザーを作成（紹介コードとパスワードを保存）
     const pendingUser = await prisma.pendingUser.create({
       data: {
         email,
         name,
         password: hashedPassword, // ハッシュ化されたパスワードを保存
+        plainPassword: password,  // プレーンパスワードも一時保存（Supabaseユーザー作成用）
         referralCode: referralCode || null, // 紹介コードがあれば保存
         verificationToken,
         tokenExpiresAt,
