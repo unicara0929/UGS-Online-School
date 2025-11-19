@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
+import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
 import Stripe from 'stripe'
 
 export async function GET(request: NextRequest) {
+  // 認証チェック
+  const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+  if (authError) return authError
+
+  // 管理者権限チェック
+  const { error: adminError } = checkAdmin(authUser!.role)
+  if (adminError) return adminError
+
   try {
     // 必須環境変数が無い場合は空配列を返す（UIを壊さないためのフェイルセーフ）
     if (!process.env.STRIPE_SECRET_KEY) {
