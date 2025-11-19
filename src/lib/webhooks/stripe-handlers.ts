@@ -25,9 +25,99 @@ export async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Se
 
   const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
   const userEmail = session.customer_email || session.metadata?.userEmail
+  const userName = session.metadata?.userName
 
-  // 会員ステータスを PENDING → ACTIVE に更新
-  if (userEmail) {
+  if (!userEmail) {
+    console.error('No user email found in checkout session')
+    return
+  }
+
+  // 1. PendingUserが存在するか確認（新規登録の場合）
+  const pendingUser = await prisma.pendingUser.findUnique({
+    where: { email: userEmail },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      password: true,
+      plainPassword: true,
+      referralCode: true,
+    }
+  })
+
+  if (pendingUser) {
+    // 新規登録フロー: PendingUserからUserを作成
+    console.log('New user registration detected, creating user from PendingUser:', userEmail)
+
+    try {
+      const {
+        findOrCreateSupabaseUser,
+        findOrCreatePrismaUser,
+        createSubscriptionIfNotExists
+      } = await import('@/lib/services/registration-service')
+
+      // パスワードを取得（プレーンパスワード優先）
+      const passwordToUse = pendingUser.plainPassword || pendingUser.password
+      if (!passwordToUse) {
+        console.error('No password found in PendingUser:', userEmail)
+        throw new Error('パスワード情報が見つかりません')
+      }
+
+      // Supabaseユーザーの作成または取得
+      const supabaseUser = await findOrCreateSupabaseUser(
+        userEmail,
+        userName || pendingUser.name,
+        passwordToUse,
+        !!pendingUser.plainPassword
+      )
+
+      // Prismaユーザーの作成または取得
+      const user = await findOrCreatePrismaUser(
+        supabaseUser.user.id,
+        userEmail,
+        userName || pendingUser.name
+      )
+
+      // サブスクリプションの作成
+      await createSubscriptionIfNotExists(
+        user.id,
+        session.customer as string,
+        session.subscription as string
+      )
+
+      // 会員ステータスをACTIVEに更新
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          membershipStatus: 'ACTIVE',
+          membershipStatusChangedAt: new Date(),
+          membershipStatusReason: '決済完了により有効会員に移行'
+        }
+      })
+
+      // 紹介コードがある場合、紹介レコードを作成
+      if (pendingUser.referralCode) {
+        await handleReferralRegistrationForNewUser(pendingUser.referralCode, user.id, userEmail)
+      }
+
+      // PendingUserを削除
+      await prisma.pendingUser.delete({
+        where: { id: pendingUser.id }
+      })
+
+      console.log('✅ New user registration completed successfully:', {
+        userId: user.id,
+        email: userEmail,
+        supabaseUserId: supabaseUser.user.id
+      })
+
+    } catch (error) {
+      console.error('❌ Failed to create user from PendingUser:', error)
+      throw error // Webhookをリトライさせる
+    }
+
+  } else {
+    // 既存ユーザーの決済フロー: 会員ステータスを更新
     try {
       await prisma.user.update({
         where: { email: userEmail },
@@ -37,9 +127,11 @@ export async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Se
           membershipStatusReason: '決済完了により有効会員に移行'
         }
       })
-      console.log('Membership status updated to ACTIVE for:', userEmail)
+      console.log('Membership status updated to ACTIVE for existing user:', userEmail)
     } catch (error) {
       console.error('Failed to update membership status:', error)
+      // 既存ユーザーが見つからない場合もエラーにする
+      throw error
     }
   }
 
@@ -115,7 +207,73 @@ async function handleEventPaymentCompleted(session: Stripe.Checkout.Session): Pr
 }
 
 /**
- * 紹介登録の処理
+ * 新規ユーザー用の紹介登録処理
+ */
+async function handleReferralRegistrationForNewUser(
+  referralCode: string,
+  newUserId: string,
+  newUserEmail: string
+): Promise<void> {
+  try {
+    // 紹介コードから紹介者を取得
+    const referrer = await prisma.user.findUnique({
+      where: { referralCode },
+      select: { id: true, role: true }
+    })
+
+    if (!referrer) {
+      console.log('Referrer not found for code:', referralCode)
+      return
+    }
+
+    if (referrer.id === newUserId) {
+      console.log('Self-referral detected, skipping')
+      return
+    }
+
+    // 紹介タイプを決定（紹介者のロールに基づく）
+    const referralType = referrer.role === 'FP' ? 'FP' : 'MEMBER'
+
+    // 既存の紹介をチェック
+    const existingReferral = await prisma.referral.findUnique({
+      where: {
+        referrerId_referredId: {
+          referrerId: referrer.id,
+          referredId: newUserId
+        }
+      }
+    })
+
+    if (!existingReferral) {
+      await prisma.referral.create({
+        data: {
+          referrerId: referrer.id,
+          referredId: newUserId,
+          referralType: referralType as any,
+          status: ReferralStatus.PENDING
+        }
+      })
+      console.log('Referral registered for new user:', {
+        referralCode,
+        referrerId: referrer.id,
+        referredId: newUserId,
+        referredEmail: newUserEmail,
+        referralType
+      })
+    } else {
+      console.log('Referral already exists, skipping:', {
+        referrerId: referrer.id,
+        referredId: newUserId
+      })
+    }
+  } catch (error) {
+    console.error('Failed to register referral for new user:', error)
+    // 紹介登録失敗でも処理は続行
+  }
+}
+
+/**
+ * 紹介登録の処理（既存ユーザー用）
  */
 async function handleReferralRegistration(session: Stripe.Checkout.Session): Promise<void> {
   const referralCode = session.metadata?.referralCode
