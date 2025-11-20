@@ -44,6 +44,7 @@ export const navigation: NavItem[] = [
   { name: 'LP面談予約', href: '/dashboard/lp-meeting/request', icon: MessageSquare, roles: ['member'] },
   { name: 'LP面談管理', href: '/dashboard/lp-meeting/manage', icon: MessageSquare, roles: ['fp'] },
   { name: 'イベント', href: '/dashboard/events', icon: Calendar, roles: ['member', 'fp', 'manager', 'admin'] },
+  { name: '教育コンテンツ管理', href: '/dashboard/admin/courses', icon: BookOpen, roles: ['admin'] },
   { name: 'イベント管理', href: '/dashboard/admin/events', icon: Calendar, roles: ['admin'] },
   { name: 'LP面談管理（管理者）', href: '/dashboard/admin/lp-meetings', icon: MessageSquare, roles: ['admin'] },
   { name: '昇格申請管理', href: '/dashboard/admin/promotions', icon: Award, roles: ['admin'] },
