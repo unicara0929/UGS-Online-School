@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, CreditCard, AlertCircle, UserCheck, FileText, Users } from 'lucide-react'
+import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, CreditCard, AlertCircle, UserCheck, FileText, Users, Building2 } from 'lucide-react'
 import { getRoleLabel, getRoleBadgeVariant, formatDate } from '@/lib/utils/user-helpers'
 
 interface UserDetail {
@@ -53,6 +53,21 @@ interface UserDetail {
   } | null
   referralInfo: any
   fpPromotionApplication: any
+  compensationBankAccount: {
+    id: string
+    bankName: string
+    branchName: string | null
+    branchNumber: string | null
+    accountType: string
+    accountNumber: string
+    accountHolderName: string
+    isYuchoBank: boolean
+    yuchoSymbol: string | null
+    yuchoNumber: string | null
+    lastModifiedBy: string | null
+    createdAt: string
+    updatedAt: string
+  } | null
 
   // Supabase認証情報
   supabaseAuth: {
@@ -392,26 +407,115 @@ export default function UserDetailPage() {
               </CardHeader>
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <InfoRow 
-                    icon={<FileText className="h-4 w-4" />} 
-                    label="Stripe カスタマーID" 
-                    value={user.subscription.stripeCustomerId || '未設定'} 
+                  <InfoRow
+                    icon={<FileText className="h-4 w-4" />}
+                    label="Stripe カスタマーID"
+                    value={user.subscription.stripeCustomerId || '未設定'}
                   />
-                  <InfoRow 
-                    icon={<FileText className="h-4 w-4" />} 
-                    label="Stripe サブスクリプションID" 
-                    value={user.subscription.stripeSubscriptionId || '未設定'} 
+                  <InfoRow
+                    icon={<FileText className="h-4 w-4" />}
+                    label="Stripe サブスクリプションID"
+                    value={user.subscription.stripeSubscriptionId || '未設定'}
                   />
-                  <InfoRow 
-                    icon={<AlertCircle className="h-4 w-4" />} 
-                    label="ステータス" 
-                    value={user.subscription.status} 
+                  <InfoRow
+                    icon={<AlertCircle className="h-4 w-4" />}
+                    label="ステータス"
+                    value={user.subscription.status}
                   />
-                  <InfoRow 
-                    icon={<Calendar className="h-4 w-4" />} 
-                    label="現在の期間終了日" 
-                    value={user.subscription.currentPeriodEnd ? formatDate(user.subscription.currentPeriodEnd) : '未設定'} 
+                  <InfoRow
+                    icon={<Calendar className="h-4 w-4" />}
+                    label="現在の期間終了日"
+                    value={user.subscription.currentPeriodEnd ? formatDate(user.subscription.currentPeriodEnd) : '未設定'}
                   />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* 報酬受け取り口座情報 (FP/Manager のみ) */}
+          {(user.role === 'FP' || user.role === 'MANAGER') && user.compensationBankAccount && (
+            <Card className="shadow-xl border-slate-200 lg:col-span-2">
+              <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200">
+                <CardTitle className="flex items-center text-slate-800">
+                  <Building2 className="h-5 w-5 mr-2 text-blue-600" />
+                  報酬受け取り口座情報
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <InfoRow
+                    icon={<Building2 className="h-4 w-4" />}
+                    label="金融機関名"
+                    value={user.compensationBankAccount.bankName}
+                  />
+                  {user.compensationBankAccount.isYuchoBank ? (
+                    <>
+                      <InfoRow
+                        icon={<FileText className="h-4 w-4" />}
+                        label="銀行種別"
+                        value="ゆうちょ銀行"
+                      />
+                      <InfoRow
+                        icon={<FileText className="h-4 w-4" />}
+                        label="記号"
+                        value={user.compensationBankAccount.yuchoSymbol || '未設定'}
+                      />
+                      <InfoRow
+                        icon={<FileText className="h-4 w-4" />}
+                        label="番号"
+                        value={user.compensationBankAccount.yuchoNumber || '未設定'}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <InfoRow
+                        icon={<Building2 className="h-4 w-4" />}
+                        label="支店名"
+                        value={user.compensationBankAccount.branchName || '未設定'}
+                      />
+                      <InfoRow
+                        icon={<FileText className="h-4 w-4" />}
+                        label="支店番号"
+                        value={user.compensationBankAccount.branchNumber || '未設定'}
+                      />
+                    </>
+                  )}
+                  <InfoRow
+                    icon={<CreditCard className="h-4 w-4" />}
+                    label="口座種別"
+                    value={
+                      user.compensationBankAccount.accountType === 'NORMAL' ? '普通預金' :
+                      user.compensationBankAccount.accountType === 'CHECKING' ? '当座預金' :
+                      user.compensationBankAccount.accountType === 'SAVINGS' ? '貯蓄預金' :
+                      user.compensationBankAccount.accountType
+                    }
+                  />
+                  <InfoRow
+                    icon={<FileText className="h-4 w-4" />}
+                    label="口座番号"
+                    value={user.compensationBankAccount.accountNumber}
+                  />
+                  <InfoRow
+                    icon={<User className="h-4 w-4" />}
+                    label="口座名義"
+                    value={user.compensationBankAccount.accountHolderName}
+                  />
+                  <InfoRow
+                    icon={<Calendar className="h-4 w-4" />}
+                    label="登録日"
+                    value={formatDate(user.compensationBankAccount.createdAt)}
+                  />
+                  <InfoRow
+                    icon={<Calendar className="h-4 w-4" />}
+                    label="最終更新日"
+                    value={formatDate(user.compensationBankAccount.updatedAt)}
+                  />
+                </div>
+                <div className="mt-4 pt-4 border-t border-slate-200 bg-yellow-50 p-4 rounded-lg">
+                  <p className="text-sm text-yellow-800">
+                    <AlertCircle className="h-4 w-4 inline mr-2" />
+                    <strong>セキュリティ情報:</strong> この口座情報は報酬支払いに使用されます。変更する場合は必ずユーザー本人に確認してください。
+                  </p>
                 </div>
               </CardContent>
             </Card>

@@ -10,7 +10,9 @@ import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Clock, MapPin, Users, Video, Loader2 } from "lucide-react"
+import { Calendar, Clock, MapPin, Users, Video, Loader2, CheckCircle2 } from "lucide-react"
+import { AttendanceCodeInput } from "@/components/events/attendance-code-input"
+import { VideoSurveyAttendance } from "@/components/events/video-survey-attendance"
 
 function EventsPageContent() {
   const { user } = useAuth()
@@ -148,6 +150,15 @@ function EventsPageContent() {
             isPaid: event.isPaid || false,
             price: event.price || null,
             paymentStatus: event.paymentStatus || null,
+            // 出席確認関連
+            hasAttendanceCode: event.hasAttendanceCode || false,
+            attendanceDeadline: event.attendanceDeadline || null,
+            vimeoUrl: event.vimeoUrl || null,
+            surveyUrl: event.surveyUrl || null,
+            attendanceMethod: event.attendanceMethod || null,
+            attendanceCompletedAt: event.attendanceCompletedAt || null,
+            videoWatched: event.videoWatched || false,
+            surveyCompleted: event.surveyCompleted || false,
           }))
 
           setEvents(formattedEvents)
@@ -516,6 +527,81 @@ function EventsPageContent() {
                         定員: {event.currentParticipants}/{event.maxParticipants}名
                       </div>
                     )}
+
+                    {/* 出席確認セクション */}
+                    {event.isRegistered && !event.attendanceCompletedAt && (
+                      <div className="mt-4 space-y-4">
+                        {/* 参加コード入力 */}
+                        {event.hasAttendanceCode && (
+                          <>
+                            {event.attendanceDeadline && new Date(event.attendanceDeadline) < new Date() ? (
+                              // 期限切れ
+                              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                                <p className="text-sm text-slate-600">出席確認の期限が過ぎました</p>
+                              </div>
+                            ) : (
+                              // 出席コード入力可能
+                              <AttendanceCodeInput
+                                eventId={event.id}
+                                eventTitle={event.title}
+                                onSuccess={() => {
+                                  // イベント一覧を再取得
+                                  window.location.reload()
+                                }}
+                              />
+                            )}
+                          </>
+                        )}
+
+                        {/* 録画視聴+アンケート */}
+                        {(event.vimeoUrl || event.surveyUrl) && (
+                          <>
+                            {event.attendanceDeadline && new Date(event.attendanceDeadline) < new Date() ? (
+                              // 期限切れ（コードがない場合のみ表示）
+                              !event.hasAttendanceCode && (
+                                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                                  <p className="text-sm text-slate-600">出席確認の期限が過ぎました</p>
+                                </div>
+                              )
+                            ) : (
+                              // 録画視聴+アンケート可能
+                              <VideoSurveyAttendance
+                                eventId={event.id}
+                                eventTitle={event.title}
+                                vimeoUrl={event.vimeoUrl}
+                                surveyUrl={event.surveyUrl}
+                                videoWatched={event.videoWatched}
+                                surveyCompleted={event.surveyCompleted}
+                                onSuccess={() => {
+                                  // イベント一覧を再取得
+                                  window.location.reload()
+                                }}
+                              />
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )}
+
+                    {/* 出席完了表示 */}
+                    {event.isRegistered && event.attendanceCompletedAt && (
+                      <div className="mt-4">
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                          <div className="flex items-center gap-2 text-green-800">
+                            <CheckCircle2 className="h-5 w-5" />
+                            <div>
+                              <p className="font-semibold">出席完了</p>
+                              <p className="text-sm">
+                                {event.attendanceMethod === 'CODE' ? '参加コードで確認済み' : '録画視聴+アンケート完了'}
+                              </p>
+                              <p className="text-xs mt-1">
+                                {formatDate(event.attendanceCompletedAt)}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
                 ))}
@@ -563,4 +649,13 @@ type EventItem = {
   isPaid: boolean
   price: number | null
   paymentStatus: string | null
+  // 出席確認関連
+  hasAttendanceCode: boolean
+  attendanceDeadline: string | null
+  vimeoUrl: string | null
+  surveyUrl: string | null
+  attendanceMethod: 'CODE' | 'VIDEO_SURVEY' | null
+  attendanceCompletedAt: string | null
+  videoWatched: boolean
+  surveyCompleted: boolean
 }
