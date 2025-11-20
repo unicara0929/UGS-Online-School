@@ -5,10 +5,13 @@ import { SubscriptionGuard } from "@/components/auth/subscription-guard"
 import { Sidebar } from "@/components/navigation/sidebar"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { User, Bell, Shield, UserX, ArrowRight, CreditCard } from "lucide-react"
+import { User, Bell, Shield, UserX, ArrowRight, CreditCard, Building2 } from "lucide-react"
 import Link from "next/link"
+import { useAuth } from "@/contexts/auth-context"
 
 function SettingsListPage() {
+  const { canAccessFPContent } = useAuth()
+
   const settingsItems = [
     {
       id: 'profile',
@@ -26,6 +29,15 @@ function SettingsListPage() {
       href: '/dashboard/settings/subscription',
       color: 'from-purple-500 to-indigo-500'
     },
+    // FP / Manager のみ表示
+    ...(canAccessFPContent() ? [{
+      id: 'bank-account',
+      title: '報酬受け取り口座',
+      description: '報酬の振込先口座を管理',
+      icon: Building2,
+      href: '/dashboard/settings/bank-account',
+      color: 'from-emerald-500 to-teal-500'
+    }] : []),
     {
       id: 'notifications',
       title: '通知設定',

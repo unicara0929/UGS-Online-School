@@ -156,6 +156,14 @@ export async function POST(request: NextRequest) {
       status = 'upcoming',
       isPaid = false,
       price,
+      // 出席確認関連
+      attendanceCode,
+      vimeoUrl,
+      surveyUrl,
+      attendanceDeadline,
+      // 定期開催関連
+      isRecurring = false,
+      recurrencePattern,
     } = body || {}
 
     if (!title || !date) {
@@ -194,6 +202,14 @@ export async function POST(request: NextRequest) {
         status: eventStatus,
         isPaid,
         price: isPaid ? Number(price) : null,
+        // 出席確認関連
+        attendanceCode: attendanceCode || null,
+        vimeoUrl: vimeoUrl || null,
+        surveyUrl: surveyUrl || null,
+        attendanceDeadline: attendanceDeadline ? new Date(attendanceDeadline) : null,
+        // 定期開催関連
+        isRecurring,
+        recurrencePattern: recurrencePattern || null,
       },
     })
 

@@ -50,7 +50,8 @@ export async function GET(
             appliedAt: 'desc'
           },
           take: 1
-        }
+        },
+        compensationBankAccount: true
       }
     })
 
@@ -114,6 +115,7 @@ export async function GET(
       referrer: user.referralsAsReferred[0]?.referrer || null,
       referralInfo: user.referralsAsReferred[0] || null,
       fpPromotionApplication: user.fpPromotionApplications[0] || null,
+      compensationBankAccount: user.compensationBankAccount || null,
 
       // Supabase認証情報
       supabaseAuth: supabaseUser ? {

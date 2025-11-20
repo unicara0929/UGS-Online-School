@@ -58,6 +58,10 @@ export async function GET(request: NextRequest) {
               id: true,
               paymentStatus: true,
               paidAt: true,
+              attendanceMethod: true,
+              attendanceCompletedAt: true,
+              videoWatched: true,
+              surveyCompleted: true,
             },
             take: 1, // 1件だけ取得すれば十分
           },
@@ -128,6 +132,15 @@ export async function GET(request: NextRequest) {
         isPaid: event.isPaid,
         price: event.price ?? null,
         paymentStatus: registration?.paymentStatus ?? null,
+        // 出席確認関連
+        hasAttendanceCode: !!event.attendanceCode, // コードの有無のみ（コード自体は返さない）
+        attendanceDeadline: event.attendanceDeadline?.toISOString() ?? null,
+        vimeoUrl: event.vimeoUrl ?? null,
+        surveyUrl: event.surveyUrl ?? null,
+        attendanceMethod: registration?.attendanceMethod ?? null,
+        attendanceCompletedAt: registration?.attendanceCompletedAt?.toISOString() ?? null,
+        videoWatched: registration?.videoWatched ?? false,
+        surveyCompleted: registration?.surveyCompleted ?? false,
       }
     })
 

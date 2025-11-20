@@ -85,6 +85,14 @@ export async function PUT(
       status,
       isPaid,
       price,
+      // 出席確認関連
+      attendanceCode,
+      vimeoUrl,
+      surveyUrl,
+      attendanceDeadline,
+      // 定期開催関連
+      isRecurring,
+      recurrencePattern,
     } = body || {}
 
     // 更新データを構築
@@ -113,6 +121,18 @@ export async function PUT(
     }
     if (isPaid !== undefined) updateData.isPaid = isPaid
     if (price !== undefined) updateData.price = isPaid ? Number(price) : null
+
+    // 出席確認関連
+    if (attendanceCode !== undefined) updateData.attendanceCode = attendanceCode || null
+    if (vimeoUrl !== undefined) updateData.vimeoUrl = vimeoUrl || null
+    if (surveyUrl !== undefined) updateData.surveyUrl = surveyUrl || null
+    if (attendanceDeadline !== undefined) {
+      updateData.attendanceDeadline = attendanceDeadline ? new Date(attendanceDeadline) : null
+    }
+
+    // 定期開催関連
+    if (isRecurring !== undefined) updateData.isRecurring = isRecurring
+    if (recurrencePattern !== undefined) updateData.recurrencePattern = recurrencePattern || null
 
     // 有料イベントの検証
     if (isPaid && (!price || price <= 0)) {
@@ -187,6 +207,14 @@ export async function PUT(
         status: updatedEvent.status,
         isPaid: updatedEvent.isPaid,
         price: updatedEvent.price ?? null,
+        // 出席確認関連
+        attendanceCode: updatedEvent.attendanceCode ?? null,
+        vimeoUrl: updatedEvent.vimeoUrl ?? null,
+        surveyUrl: updatedEvent.surveyUrl ?? null,
+        attendanceDeadline: updatedEvent.attendanceDeadline?.toISOString() ?? null,
+        // 定期開催関連
+        isRecurring: updatedEvent.isRecurring,
+        recurrencePattern: updatedEvent.recurrencePattern ?? null,
       },
     })
   } catch (error) {

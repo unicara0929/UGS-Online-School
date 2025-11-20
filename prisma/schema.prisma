@@ -60,6 +60,7 @@ model User {
   cancelRequests          CancelRequest[]
   membershipStatusHistory MembershipStatusHistory[]
   emailLogs               EmailLog[]
+  compensationBankAccount BankAccount? @relation("compensationBankAccount") // 報酬受け取り口座（FP/MGR向け）
 
   @@map("users")
 }
@@ -166,6 +167,14 @@ model Event {
   isPaid          Boolean             @default(false) // 有料イベントかどうか
   price           Int?                // 価格（円）- isPaid=trueの場合は必須
   stripePriceId   String?             // Stripe Price ID
+  // 全体MTG・出席確認関連
+  attendanceCode  String?             // 参加コード（アルファベット）- オフライン/ライブ参加者用
+  vimeoUrl        String?             // Vimeo録画URL - 後日視聴用
+  surveyUrl       String?             // アンケートURL - 録画視聴者用
+  attendanceDeadline DateTime?        // 出席完了期限（イベント終了後24時間など）
+  // 定期開催イベント関連
+  isRecurring     Boolean             @default(false) // 定期開催イベントかどうか
+  recurrencePattern String?           // 繰り返しパターン（例: "monthly-first-sunday"）
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
   registrations   EventRegistration[]
@@ -189,6 +198,11 @@ model EventRegistration {
   cancelReason           String?             // キャンセル理由
   refundStatus           EventRefundStatus   @default(NONE) // 返金ステータス
   refundedAt             DateTime?           // 返金完了日時
+  // 出席確認関連
+  attendanceMethod       AttendanceMethod?   // 出席方法: コード入力 or 録画視聴+アンケート
+  attendanceCompletedAt  DateTime?           // 出席完了日時
+  videoWatched           Boolean             @default(false) // 録画視聴済みかどうか
+  surveyCompleted        Boolean             @default(false) // アンケート回答済みかどうか
   createdAt              DateTime            @default(now())
   updatedAt              DateTime            @default(now()) @updatedAt
   event                  Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
@@ -249,6 +263,11 @@ enum EventStatus {
   UPCOMING
   COMPLETED
   CANCELLED
+}
+
+enum AttendanceMethod {
+  CODE          // 参加コード入力による出席
+  VIDEO_SURVEY  // 録画視聴+アンケート回答による出席
 }
 
 enum SubscriptionStatus {
@@ -677,4 +696,36 @@ enum EmailStatus {
   FAILED  // 送信失敗
   BOUNCED // バウンス
   INVALID // 無効なアドレス
+}
+
+// 報酬受け取り口座情報（FP/マネージャー向け）
+model BankAccount {
+  id              String         @id @default(cuid())
+  userId          String         @unique
+  // 通常の銀行情報
+  bankName        String         // 金融機関名
+  branchName      String?        // 支店名
+  branchNumber    String?        // 支店番号（ゆうちょ以外）
+  accountType     AccountType    // 口座種別（普通/当座/貯蓄）
+  accountNumber   String         // 口座番号
+  accountHolderName String       // 口座名義（カタカナ）
+  // ゆうちょ銀行専用フィールド
+  isYuchoBank     Boolean        @default(false) // ゆうちょ銀行フラグ
+  yuchoSymbol     String?        // 記号（5桁）
+  yuchoNumber     String?        // 番号（最大8桁）
+  // 監査・履歴用
+  lastModifiedBy  String?        // 最終更新者（管理者IDまたはnullで本人）
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  user            User           @relation("compensationBankAccount", fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@map("bank_accounts")
+}
+
+enum AccountType {
+  NORMAL   // 普通預金
+  CHECKING // 当座預金
+  SAVINGS  // 貯蓄預金
 }
