@@ -47,6 +47,7 @@ function LPMeetingRequestPageContent() {
   const [showRequestForm, setShowRequestForm] = useState(false)
   const [preferredDates, setPreferredDates] = useState<string[]>([])
   const [memberNotes, setMemberNotes] = useState('')
+  const [meetingLocation, setMeetingLocation] = useState<'OFFLINE' | 'UGS_OFFICE' | ''>('')
   const [validationError, setValidationError] = useState('')
 
   useEffect(() => {
@@ -171,9 +172,37 @@ function LPMeetingRequestPageContent() {
     return ''
   }
 
+  /**
+   * 時刻を30分単位に丸める
+   * @param dateString datetime-local形式の文字列
+   * @returns 30分単位に丸められた文字列
+   */
+  const roundToHalfHour = (dateString: string): string => {
+    if (!dateString) return ''
+
+    const date = new Date(dateString)
+    const minutes = date.getMinutes()
+
+    // 30分単位に丸める（0分または30分）
+    const roundedMinutes = minutes < 30 ? 0 : 30
+    date.setMinutes(roundedMinutes)
+    date.setSeconds(0)
+    date.setMilliseconds(0)
+
+    // datetime-local形式に戻す（YYYY-MM-DDTHH:mm）
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const hours = String(date.getHours()).padStart(2, '0')
+    const mins = String(date.getMinutes()).padStart(2, '0')
+
+    return `${year}-${month}-${day}T${hours}:${mins}`
+  }
+
   const updatePreferredDate = (index: number, value: string) => {
     const updated = [...preferredDates]
-    updated[index] = value
+    // 30分単位に丸める
+    updated[index] = roundToHalfHour(value)
     setPreferredDates(updated)
 
     // バリデーション実行
@@ -184,6 +213,12 @@ function LPMeetingRequestPageContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user?.id) return
+
+    // 面談場所のバリデーション
+    if (!meetingLocation) {
+      alert('面談場所を選択してください')
+      return
+    }
 
     if (preferredDates.length !== 5) {
       alert('希望日時を5つ選択してください')
@@ -221,6 +256,7 @@ function LPMeetingRequestPageContent() {
         body: JSON.stringify({
           memberId: user.id,
           preferredDates: preferredDates,
+          meetingLocation: meetingLocation,
           memberNotes: memberNotes || null
         })
       })
@@ -234,6 +270,7 @@ function LPMeetingRequestPageContent() {
       alert('面談予約申請を送信しました。運営側で確認後、面談が確定されます。')
       await fetchMeeting()
       setPreferredDates([])
+      setMeetingLocation('')
       setMemberNotes('')
     } catch (error: any) {
       alert(error.message || '面談予約申請に失敗しました')
@@ -412,6 +449,49 @@ function LPMeetingRequestPageContent() {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* 面談場所の選択 */}
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      面談場所 *
+                    </label>
+                    <div className="space-y-3">
+                      <label className="flex items-start p-4 border-2 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
+                        <input
+                          type="radio"
+                          name="meetingLocation"
+                          value="OFFLINE"
+                          checked={meetingLocation === 'OFFLINE'}
+                          onChange={(e) => setMeetingLocation(e.target.value as 'OFFLINE' | 'UGS_OFFICE')}
+                          className="mt-1 mr-3"
+                          required
+                        />
+                        <div>
+                          <div className="font-medium text-slate-900">オンライン（対面）</div>
+                          <div className="text-sm text-slate-600 mt-1">
+                            ZoomやGoogle Meetなどのオンラインツールを使用した面談
+                          </div>
+                        </div>
+                      </label>
+                      <label className="flex items-start p-4 border-2 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
+                        <input
+                          type="radio"
+                          name="meetingLocation"
+                          value="UGS_OFFICE"
+                          checked={meetingLocation === 'UGS_OFFICE'}
+                          onChange={(e) => setMeetingLocation(e.target.value as 'OFFLINE' | 'UGS_OFFICE')}
+                          className="mt-1 mr-3"
+                          required
+                        />
+                        <div>
+                          <div className="font-medium text-slate-900">UGS本社（対面）</div>
+                          <div className="text-sm text-slate-600 mt-1">
+                            愛知県名古屋市のUGS本社オフィスでの対面面談
+                          </div>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">
                       希望日時（5つ選択してください）*
@@ -453,6 +533,9 @@ function LPMeetingRequestPageContent() {
                         {preferredDates.length}/5 選択済み
                       </p>
                       <p className="text-xs text-slate-500">
+                        ※時間は30分刻み（10:00、10:30、11:00...）で選択されます
+                      </p>
+                      <p className="text-xs text-slate-500">
                         ※面談時間は1枠60分です。重複しない時間帯を選択してください。
                       </p>
                       {validationError && (
@@ -481,7 +564,7 @@ function LPMeetingRequestPageContent() {
 
                   <Button
                     type="submit"
-                    disabled={isSubmitting || preferredDates.length !== 5 || !!validationError}
+                    disabled={isSubmitting || !meetingLocation || preferredDates.length !== 5 || !!validationError}
                     className="w-full"
                   >
                     {isSubmitting ? (

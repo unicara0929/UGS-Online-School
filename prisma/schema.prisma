@@ -101,6 +101,8 @@ model Course {
   category    CourseCategory
   level       CourseLevel
   isLocked    Boolean          @default(false)
+  isPublished Boolean          @default(true) // 公開/非公開管理
+  order       Int              @default(0) // コース間の並び順
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   progress    CourseProgress[]
@@ -118,6 +120,7 @@ model Lesson {
   order       Int
   videoUrl    String?
   pdfUrl      String?
+  isPublished Boolean          @default(true) // 公開/非公開管理
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   progress    CourseProgress[]
@@ -446,6 +449,7 @@ model LPMeeting {
   fpId            String?
   status          LPMeetingStatus  @default(REQUESTED)
   preferredDates  Json // 希望日時（5つ、DateTime[]）
+  meetingLocation MeetingLocation? // 面談場所
   scheduledAt     DateTime?
   completedAt     DateTime?
   cancelledAt     DateTime?
@@ -481,6 +485,11 @@ enum MeetingPlatform {
   GOOGLE_MEET
   TEAMS
   OTHER
+}
+
+enum MeetingLocation {
+  OFFLINE    // オンライン（Zoom等）
+  UGS_OFFICE // UGS本社（愛知県名古屋市）
 }
 
 model BasicTest {
