@@ -10,15 +10,11 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
   CreditCard,
-  Calendar,
   AlertCircle,
   CheckCircle,
-  XCircle,
   Loader2,
   ExternalLink,
-  FileText,
-  PauseCircle,
-  PlayCircle
+  FileText
 } from "lucide-react"
 import { formatCurrency, formatDate } from "@/lib/utils/format"
 import { useAuth } from "@/contexts/auth-context"
@@ -65,14 +61,8 @@ function SubscriptionManagementPage() {
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null)
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isCancelling, setIsCancelling] = useState(false)
   const [isReactivating, setIsReactivating] = useState(false)
   const [isUpdatingPayment, setIsUpdatingPayment] = useState(false)
-  const [isSuspending, setIsSuspending] = useState(false)
-  const [isResumingSuspension, setIsResumingSuspension] = useState(false)
-  const [showSuspensionDialog, setShowSuspensionDialog] = useState(false)
-  const [suspensionEndDate, setSuspensionEndDate] = useState('')
-  const [suspensionReason, setSuspensionReason] = useState('')
 
   useEffect(() => {
     if (user?.id) {
@@ -113,44 +103,6 @@ function SubscriptionManagementPage() {
     }
   }
 
-  const handleCancel = async () => {
-    const reason = prompt('退会理由をお聞かせください（任意）')
-    if (reason === null) {
-      // ユーザーがキャンセルした場合
-      return
-    }
-
-    if (!confirm('サブスクリプションをキャンセルして退会しますか？現在の期間が終了するまでサービスをご利用いただけます。')) {
-      return
-    }
-
-    setIsCancelling(true)
-    try {
-      const response = await authenticatedFetch('/api/user/cancellation', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          reason: reason || undefined,
-          immediate: false,
-        }),
-        credentials: 'include',
-      })
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || '退会申請に失敗しました')
-      }
-      const data = await response.json()
-      alert(data.message || '退会申請を受け付けました')
-      window.location.reload()
-    } catch (error: any) {
-      alert(error.message || '退会申請に失敗しました')
-    } finally {
-      setIsCancelling(false)
-    }
-  }
-
   const handleReactivate = async () => {
     setIsReactivating(true)
     try {
@@ -187,69 +139,6 @@ function SubscriptionManagementPage() {
     } catch (error: any) {
       alert(error.message || 'カード情報更新ページの作成に失敗しました')
       setIsUpdatingPayment(false)
-    }
-  }
-
-  const handleSuspensionRequest = async () => {
-    if (!suspensionEndDate) {
-      alert('休会終了日を選択してください')
-      return
-    }
-
-    if (!confirm(`${suspensionEndDate}まで休会しますか？休会中は請求が停止され、サービスへのアクセスが制限されます。`)) {
-      return
-    }
-
-    setIsSuspending(true)
-    try {
-      const response = await authenticatedFetch('/api/user/suspension', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          suspensionEndDate,
-          reason: suspensionReason,
-        }),
-        credentials: 'include',
-      })
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || '休会申請に失敗しました')
-      }
-      alert('休会申請を受け付けました')
-      setShowSuspensionDialog(false)
-      setSuspensionEndDate('')
-      setSuspensionReason('')
-      window.location.reload()
-    } catch (error: any) {
-      alert(error.message || '休会申請に失敗しました')
-    } finally {
-      setIsSuspending(false)
-    }
-  }
-
-  const handleResumeSuspension = async () => {
-    if (!confirm('休会を解除して、サブスクリプションを再開しますか？')) {
-      return
-    }
-
-    setIsResumingSuspension(true)
-    try {
-      const response = await authenticatedFetch('/api/user/suspension', {
-        method: 'DELETE',
-        credentials: 'include',
-      })
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || '休会解除に失敗しました')
-      }
-      alert('休会を解除しました')
-      window.location.reload()
-    } catch (error: any) {
-      alert(error.message || '休会解除に失敗しました')
-    } finally {
-      setIsResumingSuspension(false)
     }
   }
 
@@ -335,139 +224,6 @@ function SubscriptionManagementPage() {
               </Card>
             ) : (
               <>
-                {/* 会員管理 */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Calendar className="h-5 w-5 mr-2" />
-                      会員管理
-                    </CardTitle>
-                    <CardDescription>休会・退会の申請を行えます</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {/* 休会セクション */}
-                    <div className="border border-slate-200 rounded-lg p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-slate-900 flex items-center">
-                            <PauseCircle className="h-5 w-5 mr-2 text-blue-600" />
-                            休会（最大3ヶ月）
-                          </h3>
-                          <p className="text-sm text-slate-600 mt-1">
-                            一定期間サブスクリプションを停止します。休会中は請求が停止され、期間終了後に自動的に再開されます。
-                          </p>
-                        </div>
-                      </div>
-
-                      {showSuspensionDialog ? (
-                        <div className="space-y-4 mt-4 bg-slate-50 p-4 rounded-lg">
-                          <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
-                              休会終了日
-                            </label>
-                            <input
-                              type="date"
-                              value={suspensionEndDate}
-                              onChange={(e) => setSuspensionEndDate(e.target.value)}
-                              min={new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
-                              max={new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
-                              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                            <p className="text-xs text-slate-500 mt-1">
-                              最大3ヶ月（90日）まで設定できます
-                            </p>
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
-                              休会理由（任意）
-                            </label>
-                            <textarea
-                              value={suspensionReason}
-                              onChange={(e) => setSuspensionReason(e.target.value)}
-                              rows={3}
-                              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              placeholder="休会の理由をお聞かせください"
-                            />
-                          </div>
-
-                          <div className="flex gap-2">
-                            <Button
-                              onClick={handleSuspensionRequest}
-                              disabled={isSuspending || !suspensionEndDate}
-                              className="flex-1"
-                            >
-                              {isSuspending ? (
-                                <>
-                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                  処理中...
-                                </>
-                              ) : (
-                                '休会申請'
-                              )}
-                            </Button>
-                            <Button
-                              onClick={() => {
-                                setShowSuspensionDialog(false)
-                                setSuspensionEndDate('')
-                                setSuspensionReason('')
-                              }}
-                              variant="outline"
-                            >
-                              キャンセル
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <Button
-                          onClick={() => setShowSuspensionDialog(true)}
-                          variant="outline"
-                          size="sm"
-                          className="w-full"
-                        >
-                          <PauseCircle className="h-4 w-4 mr-2" />
-                          休会を申請する
-                        </Button>
-                      )}
-                    </div>
-
-                    {/* 退会セクション */}
-                    <div className="border border-red-200 rounded-lg p-4 bg-red-50">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-red-900 flex items-center">
-                            <XCircle className="h-5 w-5 mr-2 text-red-600" />
-                            退会
-                          </h3>
-                          <p className="text-sm text-red-700 mt-1">
-                            サブスクリプションを完全にキャンセルします。現在の期間終了時に退会となります。
-                          </p>
-                        </div>
-                      </div>
-
-                      <Button
-                        onClick={handleCancel}
-                        disabled={isCancelling}
-                        variant="destructive"
-                        size="sm"
-                        className="w-full"
-                      >
-                        {isCancelling ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            処理中...
-                          </>
-                        ) : (
-                          <>
-                            <XCircle className="h-4 w-4 mr-2" />
-                            退会を申請する
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
                 {/* サブスクリプション情報 */}
                 <Card>
                   <CardHeader>
@@ -611,48 +367,6 @@ function SubscriptionManagementPage() {
                         <p className="text-sm text-slate-600 mt-2">カード情報が登録されていません</p>
                       </div>
                     )}
-
-                    {/* アクションボタン */}
-                    <div className="border-t pt-4 flex gap-2">
-                      {subscription.stripeDetails?.cancelAtPeriodEnd ? (
-                        <Button
-                          onClick={handleReactivate}
-                          disabled={isReactivating}
-                          className="flex-1"
-                        >
-                          {isReactivating ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              処理中...
-                            </>
-                          ) : (
-                            <>
-                              <CheckCircle className="h-4 w-4 mr-2" />
-                              サブスクリプションを再開
-                            </>
-                          )}
-                        </Button>
-                      ) : (
-                        <Button
-                          onClick={handleCancel}
-                          disabled={isCancelling}
-                          variant="outline"
-                          className="flex-1"
-                        >
-                          {isCancelling ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              処理中...
-                            </>
-                          ) : (
-                            <>
-                              <XCircle className="h-4 w-4 mr-2" />
-                              キャンセル
-                            </>
-                          )}
-                        </Button>
-                      )}
-                    </div>
                   </CardContent>
                 </Card>
 

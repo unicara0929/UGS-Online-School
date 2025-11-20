@@ -18,10 +18,26 @@ export async function POST(request: NextRequest) {
     const { allowed, error: roleError } = checkRole(authUser!.role, [Roles.MEMBER])
     if (!allowed) return roleError!
 
-    const { preferredDates, memberNotes } = await request.json()
+    const { preferredDates, meetingLocation, memberNotes } = await request.json()
 
     // リクエストボディのmemberIdを使わず、認証ユーザーのIDを使用
     const memberId = authUser!.id
+
+    // 面談場所のバリデーション
+    if (!meetingLocation) {
+      return NextResponse.json(
+        { error: '面談場所を選択してください' },
+        { status: 400 }
+      )
+    }
+
+    // 面談場所が正しい値かチェック
+    if (meetingLocation !== 'OFFLINE' && meetingLocation !== 'UGS_OFFICE') {
+      return NextResponse.json(
+        { error: '無効な面談場所が指定されました' },
+        { status: 400 }
+      )
+    }
 
     if (!preferredDates) {
       return NextResponse.json(
@@ -71,6 +87,7 @@ export async function POST(request: NextRequest) {
         memberId,
         status: LPMeetingStatus.REQUESTED,
         preferredDates: preferredDates,
+        meetingLocation: meetingLocation,
         memberNotes: memberNotes || null
       },
       include: {
@@ -108,6 +125,7 @@ export async function POST(request: NextRequest) {
         memberId: meeting.memberId,
         status: meeting.status,
         preferredDates: meeting.preferredDates,
+        meetingLocation: meeting.meetingLocation,
         memberNotes: meeting.memberNotes,
         createdAt: meeting.createdAt
       }
@@ -181,6 +199,7 @@ export async function GET(request: NextRequest) {
         fpId: meeting.fpId,
         status: meeting.status,
         preferredDates: meeting.preferredDates,
+        meetingLocation: meeting.meetingLocation,
         scheduledAt: meeting.scheduledAt,
         completedAt: meeting.completedAt,
         cancelledAt: meeting.cancelledAt,
