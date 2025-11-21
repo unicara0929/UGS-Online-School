@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma'
  * GET /api/cron/generate-monthly-events
  *
  * 毎月第1日曜日の翌日（月曜日）に自動実行されるCronジョブ
- * 6ヶ月先までのイベントがあるか確認し、不足分を生成する
+ * 来月分のイベントがあるか確認し、なければ生成する
  *
  * vercel.jsonで以下のように設定：
  * {
@@ -27,10 +27,10 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const monthsAhead = 2 // 常に2ヶ月先まで確保
+    const monthsAhead = 1 // 常に来月分まで確保
     const createdEvents = []
 
-    // 今月から2ヶ月先までの各月をチェック
+    // 今月と来月の各月をチェック
     for (let i = 0; i <= monthsAhead; i++) {
       const targetDate = getNextFirstSundayOfMonth(i)
 
