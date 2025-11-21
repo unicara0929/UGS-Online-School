@@ -6,7 +6,7 @@ import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
  * 定期イベントを一括生成するAPI（初回セットアップ用）
  * POST /api/admin/events/generate-recurring-bulk
  *
- * 指定月数先までの全体MTGイベントを一括生成します（デフォルト2ヶ月）。
+ * 指定月数先までの全体MTGイベントを一括生成します（デフォルト来月分まで）。
  * 既存のイベントがある月はスキップします。
  */
 export async function POST(request: NextRequest) {
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     if (adminError) return adminError
 
     const body = await request.json()
-    const { monthsAhead = 2 } = body || {} // デフォルト2ヶ月先まで
+    const { monthsAhead = 1 } = body || {} // デフォルト来月分まで
 
     const createdEvents = []
     const skippedEvents = []
