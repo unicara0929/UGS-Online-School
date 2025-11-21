@@ -27,10 +27,10 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const monthsAhead = 6 // 常に6ヶ月先まで確保
+    const monthsAhead = 2 // 常に2ヶ月先まで確保
     const createdEvents = []
 
-    // 今月から6ヶ月先までの各月をチェック
+    // 今月から2ヶ月先までの各月をチェック
     for (let i = 0; i <= monthsAhead; i++) {
       const targetDate = getNextFirstSundayOfMonth(i)
 

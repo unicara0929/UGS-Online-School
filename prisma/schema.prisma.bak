@@ -1,0 +1,731 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id                      String                   @id @default(cuid())
+  email                   String                   @unique
+  name                    String
+  role                    UserRole                 @default(MEMBER)
+  referralCode            String?                  @unique
+  bankAccount             Json?
+  // プロフィール拡張フィールド
+  phone                   String?
+  address                 String?
+  bio                     String?
+  attribute               String?
+  gender                  String?
+  birthDate               DateTime?
+  prefecture              String?
+  profileImageUrl         String?
+  notificationPreferences Json?
+  lastLoginAt             DateTime?
+  fpOnboardingCompleted   Boolean                  @default(true) // FPエイド向け動画ガイダンス完了フラグ（既存ユーザーはtrue）
+  fpOnboardingCompletedAt DateTime?                // FPエイド向け動画ガイダンス完了日時
+  // 会員管理フィールド
+  membershipStatus        MembershipStatus         @default(ACTIVE) // 会員ステータス
+  membershipStatusReason  String?                  // ステータス変更理由
+  membershipStatusChangedAt DateTime?              // ステータス変更日時
+  membershipStatusChangedBy String?                // ステータス変更者（管理者ID）
+  suspensionStartDate     DateTime?                // 休会開始日
+  suspensionEndDate       DateTime?                // 休会終了予定日
+  canceledAt              DateTime?                // 退会日時
+  cancellationReason      String?                  // 退会理由
+  delinquentSince         DateTime?                // 滞納開始日
+  reactivatedAt           DateTime?                // 再開日時
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  compensations           Compensation[]
+  courseProgress          CourseProgress[]
+  events                  EventRegistration[]
+  subscriptions           Subscription[]
+  fpPromotionApplications FPPromotionApplication[]
+  referralsAsReferrer     Referral[]               @relation("Referrer")
+  referralsAsReferred     Referral[]               @relation("Referred")
+  contracts               Contract[]
+  notifications           Notification[]
+  promotionApplications   PromotionApplication[]
+  reviewedPromotions      PromotionApplication[]   @relation("PromotionReviewer")
+  lpMeetingsAsMember      LPMeeting[]              @relation("LPMeetingMember")
+  lpMeetingsAsFP          LPMeeting[]              @relation("LPMeetingFP")
+  lpMeetingsAssigned      LPMeeting[]              @relation("LPMeetingAssigner")
+  basicTestResults        BasicTestResult[]
+  surveySubmissions       SurveySubmission[]
+  cancelRequests          CancelRequest[]
+  membershipStatusHistory MembershipStatusHistory[]
+  emailLogs               EmailLog[]
+  compensationBankAccount BankAccount? // 報酬受け取り口座（FP/MGR向け）
+
+  @@map("users")
+}
+
+model PendingUser {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  name              String
+  password          String   // ハッシュ化されたパスワード（一時保存）
+  plainPassword     String?  // プレーンテキストパスワード（Supabaseユーザー作成用、一時保存）
+  referralCode      String?  // 紹介コード（URLから取得）
+  emailVerified     Boolean  @default(false) // メール認証済みフラグ
+  verificationToken String?  @unique // メール認証トークン
+  tokenExpiresAt    DateTime? // トークン有効期限
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("pending_users")
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String
+  stripeCustomerId     String?            @unique
+  stripeSubscriptionId String?            @unique
+  status               SubscriptionStatus @default(ACTIVE)
+  currentPeriodEnd     DateTime?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model Course {
+  id          String           @id @default(cuid())
+  title       String
+  description String?
+  category    CourseCategory
+  level       CourseLevel
+  isLocked    Boolean          @default(false)
+  isPublished Boolean          @default(true) // 公開/非公開管理
+  order       Int              @default(0) // コース間の並び順
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  progress    CourseProgress[]
+  lessons     Lesson[]
+
+  @@map("courses")
+}
+
+model Lesson {
+  id          String           @id @default(cuid())
+  courseId    String
+  title       String
+  description String?
+  duration    Int
+  order       Int
+  videoUrl    String?
+  pdfUrl      String?
+  isPublished Boolean          @default(true) // 公開/非公開管理
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  progress    CourseProgress[]
+  course      Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@map("lessons")
+}
+
+model CourseProgress {
+  id             String    @id @default(cuid())
+  userId         String
+  courseId       String
+  lessonId       String?
+  isCompleted    Boolean   @default(false)
+  completedAt    DateTime?
+  currentTime    Int?      // 動画視聴位置（秒）
+  videoDuration  Int?      // 動画の長さ（秒）
+  lastWatchedAt  DateTime? // 最後に視聴した日時
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  course         Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lesson         Lesson?   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId, lessonId])
+  @@map("course_progress")
+}
+
+model Event {
+  id              String              @id @default(cuid())
+  title           String
+  description     String?
+  date            DateTime
+  time            String?
+  type            EventType           @default(OPTIONAL) // 後方互換性のため残す（非推奨）
+  targetRoles     EventTargetRole[]   // 対象ロール（複数選択可能）: UGS会員 / FPエイド / マネージャー / 全員
+  attendanceType  EventAttendanceType @default(OPTIONAL) // 参加設定: 必須 / 任意
+  venueType       EventVenueType      @default(ONLINE) // 開催形式: オンライン / オフライン / ハイブリッド
+  location        String?
+  maxParticipants Int?
+  status          EventStatus         @default(UPCOMING)
+  // 有料イベント関連
+  isPaid          Boolean             @default(false) // 有料イベントかどうか
+  price           Int?                // 価格（円）- isPaid=trueの場合は必須
+  stripePriceId   String?             // Stripe Price ID
+  // 全体MTG・出席確認関連
+  attendanceCode  String?             // 参加コード（アルファベット）- オフライン/ライブ参加者用
+  vimeoUrl        String?             // Vimeo録画URL - 後日視聴用
+  surveyUrl       String?             // アンケートURL - 録画視聴者用
+  attendanceDeadline DateTime?        // 出席完了期限（イベント終了後24時間など）
+  // 定期開催イベント関連
+  isRecurring     Boolean             @default(false) // 定期開催イベントかどうか
+  recurrencePattern String?           // 繰り返しパターン（例: "monthly-first-sunday"）
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  registrations   EventRegistration[]
+  emailCampaigns  EmailCampaign[]
+
+  @@map("events")
+}
+
+model EventRegistration {
+  id                     String              @id @default(cuid())
+  userId                 String
+  eventId                String
+  // 支払い関連
+  paymentStatus          EventPaymentStatus  @default(PENDING) // 支払いステータス
+  stripePaymentIntentId  String?             // Stripe PaymentIntent ID
+  stripeSessionId        String?             // Stripe Checkout Session ID
+  paidAmount             Int?                // 支払い金額（円）
+  paidAt                 DateTime?           // 支払い完了日時
+  // キャンセル・返金関連
+  canceledAt             DateTime?           // キャンセル日時
+  cancelReason           String?             // キャンセル理由
+  refundStatus           EventRefundStatus   @default(NONE) // 返金ステータス
+  refundedAt             DateTime?           // 返金完了日時
+  // 出席確認関連
+  attendanceMethod       AttendanceMethod?   // 出席方法: コード入力 or 録画視聴+アンケート
+  attendanceCompletedAt  DateTime?           // 出席完了日時
+  videoWatched           Boolean             @default(false) // 録画視聴済みかどうか
+  surveyCompleted        Boolean             @default(false) // アンケート回答済みかどうか
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @default(now()) @updatedAt
+  event                  Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user                   User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
+  @@map("event_registrations")
+}
+
+model Compensation {
+  id            String             @id @default(cuid())
+  userId        String
+  month         String
+  amount        Int
+  breakdown     Json
+  contractCount Int                @default(0) // その月の契約件数
+  status        CompensationStatus @default(PENDING)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, month])
+  @@map("compensations")
+}
+
+enum UserRole {
+  MEMBER
+  FP
+  MANAGER
+  ADMIN
+}
+
+enum EventType {
+  REQUIRED
+  OPTIONAL
+  MANAGER_ONLY
+}
+
+enum EventTargetRole {
+  MEMBER    // UGS会員
+  FP        // FPエイド
+  MANAGER   // マネージャー
+  ALL       // 全員
+}
+
+enum EventAttendanceType {
+  REQUIRED  // 必須
+  OPTIONAL  // 任意
+}
+
+enum EventVenueType {
+  ONLINE    // オンラインのみ
+  OFFLINE   // オフラインのみ
+  HYBRID    // ハイブリッド（オンライン＋オフライン両方）
+}
+
+enum EventStatus {
+  UPCOMING
+  COMPLETED
+  CANCELLED
+}
+
+enum AttendanceMethod {
+  CODE          // 参加コード入力による出席
+  VIDEO_SURVEY  // 録画視聴+アンケート回答による出席
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  UNPAID
+}
+
+enum MembershipStatus {
+  PENDING      // 仮登録（決済未完了）
+  ACTIVE       // 有効会員（通常の状態）
+  SUSPENDED    // 休会中（ユーザー申請による一時停止）
+  PAST_DUE     // 支払い遅延（決済失敗、猶予期間中）
+  DELINQUENT   // 長期滞納（猶予期間経過後も未払い）
+  CANCELED     // 退会済み（ユーザーによる退会申請）
+  TERMINATED   // 強制解約（運営による強制解約）
+  EXPIRED      // 期限切れ（仮登録の有効期限切れ）
+}
+
+enum CourseCategory {
+  BASIC
+  ADVANCED
+  PRACTICAL
+}
+
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum CompensationStatus {
+  PENDING
+  CONFIRMED
+  PAID
+}
+
+enum FPPromotionApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum ReferralType {
+  MEMBER
+  FP
+}
+
+enum ReferralStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REWARDED
+}
+
+enum ContractType {
+  INSURANCE
+  OTHER
+}
+
+enum ContractStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+}
+
+enum NotificationType {
+  PROMOTION_ELIGIBLE
+  PROMOTION_APPROVED
+  PROMOTION_REJECTED
+  COMPENSATION_READY
+  COMPENSATION_PAID
+  EVENT_REMINDER
+  EVENT_REQUIRED
+  REFERRAL_REWARDED
+  CONTRACT_ACHIEVED
+  ACTION_REQUIRED
+  LP_MEETING_REQUESTED
+  LP_MEETING_SCHEDULED
+  LP_MEETING_COMPLETED
+  LP_MEETING_REMINDER
+}
+
+enum NotificationPriority {
+  CRITICAL
+  INFO
+  SUCCESS
+}
+
+enum PromotionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model FPPromotionApplication {
+  id                    String                       @id @default(cuid())
+  userId                String
+  status                FPPromotionApplicationStatus @default(PENDING)
+  lpMeetingCompleted    Boolean                      @default(false)
+  basicTestCompleted    Boolean                      @default(false)
+  surveyCompleted       Boolean                      @default(false)
+  idDocumentUrl         String?
+  idDocumentUploadedAt  DateTime? // 身分証アップロード日時
+  contractAgreed        Boolean                      @default(false) // 業務委託契約書への同意
+  contractAgreedAt      DateTime? // 契約書同意日時
+  promotionEmailSent    Boolean                      @default(false) // 昇格通知メール送信済みフラグ
+  promotionEmailSentAt  DateTime? // 昇格通知メール送信日時
+  appliedAt             DateTime                     @default(now())
+  approvedAt            DateTime?
+  completedAt           DateTime?
+  createdAt             DateTime                     @default(now())
+  updatedAt             DateTime                     @updatedAt
+  user                  User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
+  @@map("fp_promotion_applications")
+}
+
+model Referral {
+  id           String         @id @default(cuid())
+  referrerId   String
+  referredId   String
+  referralType ReferralType
+  status       ReferralStatus @default(PENDING)
+  rewardAmount Int?
+  rewardPaidAt DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  referrer     User           @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referred     User           @relation("Referred", fields: [referredId], references: [id], onDelete: Cascade)
+
+  @@unique([referrerId, referredId])
+  @@map("referrals")
+}
+
+model Contract {
+  id             String         @id @default(cuid())
+  userId         String
+  contractNumber String         @unique
+  productName    String?        // 商品名
+  contractType   ContractType
+  status         ContractStatus @default(ACTIVE)
+  signedAt       DateTime
+  amount         Int?           // 保険料
+  rewardAmount   Int?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("contracts")
+}
+
+model Notification {
+  id        String               @id @default(cuid())
+  userId    String
+  type      NotificationType
+  priority  NotificationPriority @default(INFO)
+  title     String
+  message   String
+  actionUrl String?
+  isRead    Boolean              @default(false)
+  readAt    DateTime?
+  createdAt DateTime             @default(now())
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+model PromotionApplication {
+  id              String          @id @default(cuid())
+  userId          String
+  targetRole      UserRole
+  status          PromotionStatus @default(PENDING)
+  appliedAt       DateTime        @default(now())
+  approvedAt      DateTime?
+  rejectedAt      DateTime?
+  rejectionReason String?
+  reviewedAt      DateTime?
+  reviewedBy      String?
+  reviewNotes     String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewer        User?           @relation("PromotionReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
+
+  @@unique([userId, targetRole])
+  @@map("promotion_applications")
+}
+
+model LPMeeting {
+  id              String           @id @default(cuid())
+  memberId        String
+  fpId            String?
+  status          LPMeetingStatus  @default(REQUESTED)
+  preferredDates  Json // 希望日時（5つ、DateTime[]）
+  meetingLocation MeetingLocation? // 面談場所
+  scheduledAt     DateTime?
+  completedAt     DateTime?
+  cancelledAt     DateTime?
+  meetingUrl      String?
+  meetingPlatform MeetingPlatform?
+  notes           String?
+  memberNotes     String?
+  assignedBy      String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  member   User  @relation("LPMeetingMember", fields: [memberId], references: [id], onDelete: Cascade)
+  fp       User? @relation("LPMeetingFP", fields: [fpId], references: [id], onDelete: SetNull)
+  assigner User? @relation("LPMeetingAssigner", fields: [assignedBy], references: [id], onDelete: SetNull)
+
+  @@unique([memberId])
+  @@index([fpId, status])
+  @@index([memberId, status])
+  @@index([status])
+  @@map("lp_meetings")
+}
+
+enum LPMeetingStatus {
+  REQUESTED
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum MeetingPlatform {
+  ZOOM
+  GOOGLE_MEET
+  TEAMS
+  OTHER
+}
+
+enum MeetingLocation {
+  OFFLINE    // オンライン（Zoom等）
+  UGS_OFFICE // UGS本社（愛知県名古屋市）
+}
+
+model BasicTest {
+  id           String            @id @default(cuid())
+  title        String
+  questions    Json // 問題の配列
+  passingScore Int               @default(70) // 合格点（%）
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  results      BasicTestResult[]
+
+  @@map("basic_tests")
+}
+
+model BasicTestResult {
+  id          String    @id @default(cuid())
+  userId      String
+  testId      String
+  score       Int // 得点（%）
+  answers     Json // 回答の配列
+  isPassed    Boolean // 合格したかどうか
+  completedAt DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  test        BasicTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, testId])
+  @@map("basic_test_results")
+}
+
+model Survey {
+  id          String             @id @default(cuid())
+  title       String
+  questions   Json // 設問の配列
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  submissions SurveySubmission[]
+
+  @@map("surveys")
+}
+
+model SurveySubmission {
+  id          String   @id @default(cuid())
+  userId      String
+  surveyId    String
+  answers     Json // 回答の配列
+  submittedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  survey      Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, surveyId])
+  @@map("survey_submissions")
+}
+
+model CancelRequest {
+  id                 String              @id @default(cuid())
+  userId             String
+  name               String
+  email              String
+  reason             String
+  otherReason        String?
+  continuationOption String
+  status             CancelRequestStatus @default(PENDING)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("cancel_requests")
+}
+
+enum CancelRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum EventPaymentStatus {
+  PENDING   // 支払い待ち
+  FREE      // 無料イベント
+  PAID      // 支払い完了
+  FAILED    // 支払い失敗
+  REFUNDED  // 返金済み
+}
+
+enum EventRefundStatus {
+  NONE        // 返金なし
+  REQUESTED   // 返金リクエスト
+  PROCESSING  // 返金処理中
+  COMPLETED   // 返金完了
+  FAILED      // 返金失敗
+}
+
+model Material {
+  id             String                 @id @default(cuid())
+  title          String
+  description    String?
+  fileUrl        String? // ファイルURL（Supabase Storageなど）
+  fileName       String?
+  fileSize       String? // 例: "2.5MB"
+  fileType       String? // 例: "PDF", "DOCX"
+  category       String? // 例: "マニュアル", "テンプレート"
+  viewableRoles  MaterialViewableRole[] // 閲覧可能ロール（複数選択）
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+
+  @@map("materials")
+}
+
+enum MaterialViewableRole {
+  ADMIN   // 管理者
+  MANAGER // マネージャー
+  FP      // FPエイド
+  MEMBER  // UGS会員
+}
+
+// 会員ステータス変更履歴
+model MembershipStatusHistory {
+  id            String           @id @default(cuid())
+  userId        String
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fromStatus    MembershipStatus // 変更前のステータス
+  toStatus      MembershipStatus // 変更後のステータス
+  reason        String?          // 変更理由
+  changedBy     String?          // 変更者（管理者の場合はそのID、システムの場合は"SYSTEM"）
+  changedByName String?          // 変更者名（表示用）
+  createdAt     DateTime         @default(now())
+
+  @@map("membership_status_history")
+}
+
+// メール送信履歴（バッチ単位）
+model EmailCampaign {
+  id           String          @id @default(cuid())
+  subject      String          // 件名
+  body         String          @db.Text // 本文
+  templateType String?         // テンプレート種別
+  sourceType   EmailSourceType // 送信元: USER_MANAGEMENT | EVENT_MANAGEMENT
+  eventId      String?         // イベントID（イベント経由の場合）
+  totalCount   Int             // 送信対象人数
+  successCount Int             @default(0) // 成功件数
+  failedCount  Int             @default(0) // 失敗件数
+  sentBy       String          // 送信者（管理者ID）
+  sentAt       DateTime        @default(now())
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  event Event?     @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  logs  EmailLog[] // 個別配信ログ
+
+  @@index([sentAt])
+  @@index([sourceType])
+  @@index([eventId])
+  @@map("email_campaigns")
+}
+
+// 個別配信ログ（ユーザー単位）
+model EmailLog {
+  id           String      @id @default(cuid())
+  campaignId   String      // キャンペーンID
+  userId       String      // 宛先ユーザーID
+  email        String      // 送信先メールアドレス
+  status       EmailStatus // 配信ステータス
+  errorMessage String?     // エラーメッセージ
+  sentAt       DateTime    @default(now())
+  createdAt    DateTime    @default(now())
+
+  campaign EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([campaignId])
+  @@index([status])
+  @@map("email_logs")
+}
+
+enum EmailSourceType {
+  USER_MANAGEMENT  // ユーザー管理画面から
+  EVENT_MANAGEMENT // イベント管理画面から
+}
+
+enum EmailStatus {
+  SENT    // 送信成功
+  FAILED  // 送信失敗
+  BOUNCED // バウンス
+  INVALID // 無効なアドレス
+}
+
+// 報酬受け取り口座情報（FP/マネージャー向け）
+model BankAccount {
+  id              String         @id @default(cuid())
+  userId          String         @unique
+  // 通常の銀行情報
+  bankName        String         // 金融機関名
+  branchName      String?        // 支店名
+  branchNumber    String?        // 支店番号（ゆうちょ以外）
+  accountType     AccountType    // 口座種別（普通/当座/貯蓄）
+  accountNumber   String         // 口座番号
+  accountHolderName String       // 口座名義（カタカナ）
+  // ゆうちょ銀行専用フィールド
+  isYuchoBank     Boolean        @default(false) // ゆうちょ銀行フラグ
+  yuchoSymbol     String?        // 記号（5桁）
+  yuchoNumber     String?        // 番号（最大8桁）
+  // 監査・履歴用
+  lastModifiedBy  String?        // 最終更新者（管理者IDまたはnullで本人）
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@map("bank_accounts")
+}
+
+enum AccountType {
+  NORMAL   // 普通預金
+  CHECKING // 当座預金
+  SAVINGS  // 貯蓄預金
+}
