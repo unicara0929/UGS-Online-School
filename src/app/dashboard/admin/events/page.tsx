@@ -17,6 +17,8 @@ function AdminEventsPageContent() {
   const { user } = useAuth()
   const router = useRouter()
   const [showCreateForm, setShowCreateForm] = useState(false)
+  const [showEditForm, setShowEditForm] = useState(false)
+  const [editingEventId, setEditingEventId] = useState<string | null>(null)
   const [events, setEvents] = useState<AdminEventItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -42,6 +44,26 @@ function AdminEventsPageContent() {
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
   const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false)
+
+  const [editEvent, setEditEvent] = useState<CreateEventForm>({
+    title: "",
+    description: "",
+    date: "",
+    time: "",
+    type: "optional",
+    targetRoles: [],
+    attendanceType: "optional",
+    venueType: "online",
+    location: "",
+    maxParticipants: 50,
+    status: "upcoming",
+    thumbnailUrl: null,
+    isPaid: false,
+    price: null,
+  })
+
+  const [editThumbnailFile, setEditThumbnailFile] = useState<File | null>(null)
+  const [editThumbnailPreview, setEditThumbnailPreview] = useState<string | null>(null)
 
   const fetchEvents = async () => {
     setIsLoading(true)
@@ -211,6 +233,125 @@ function AdminEventsPageContent() {
       alert(err instanceof Error ? err.message : "イベントの作成に失敗しました")
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleEditEvent = (event: AdminEventItem) => {
+    setEditingEventId(event.id)
+    setEditEvent({
+      title: event.title,
+      description: event.description,
+      date: event.date.split('T')[0], // YYYY-MM-DD形式に変換
+      time: event.time,
+      type: event.type,
+      targetRoles: event.targetRoles,
+      attendanceType: event.attendanceType,
+      venueType: event.venueType,
+      location: event.location,
+      maxParticipants: event.maxParticipants,
+      status: event.status,
+      thumbnailUrl: event.thumbnailUrl,
+      isPaid: false,
+      price: null,
+    })
+    setEditThumbnailPreview(event.thumbnailUrl)
+    setEditThumbnailFile(null)
+    setShowEditForm(true)
+  }
+
+  const handleEditThumbnailSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // ファイルサイズチェック（5MB）
+    if (file.size > 5 * 1024 * 1024) {
+      alert('ファイルサイズは5MB以下にしてください')
+      return
+    }
+
+    // ファイル形式チェック
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      alert('画像ファイル（JPEG、PNG、WebP）のみアップロード可能です')
+      return
+    }
+
+    setEditThumbnailFile(file)
+
+    // プレビュー表示
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setEditThumbnailPreview(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleRemoveEditThumbnail = () => {
+    setEditThumbnailFile(null)
+    setEditThumbnailPreview(null)
+    setEditEvent({ ...editEvent, thumbnailUrl: null })
+  }
+
+  const handleUpdateEvent = async () => {
+    if (!editEvent.title || !editEvent.date || !editingEventId) {
+      alert("イベント名と日付は必須です")
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      // サムネイルがある場合は先にアップロード
+      let thumbnailUrl = editEvent.thumbnailUrl
+      if (editThumbnailFile) {
+        setIsUploadingThumbnail(true)
+        const formData = new FormData()
+        formData.append('file', editThumbnailFile)
+
+        const uploadResponse = await fetch('/api/admin/events/upload-thumbnail', {
+          method: 'POST',
+          credentials: 'include',
+          body: formData,
+        })
+
+        const uploadData = await uploadResponse.json()
+
+        if (!uploadResponse.ok || !uploadData.success) {
+          throw new Error(uploadData.error || 'サムネイルのアップロードに失敗しました')
+        }
+
+        thumbnailUrl = uploadData.imageUrl
+        setIsUploadingThumbnail(false)
+      }
+
+      const response = await fetch(`/api/admin/events/${editingEventId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: 'include',
+        body: JSON.stringify({
+          ...editEvent,
+          thumbnailUrl,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "イベントの更新に失敗しました")
+      }
+
+      // イベント一覧を再取得
+      await fetchEvents()
+
+      setShowEditForm(false)
+      setEditingEventId(null)
+      setEditThumbnailFile(null)
+      setEditThumbnailPreview(null)
+    } catch (err) {
+      console.error("Failed to update event:", err)
+      alert(err instanceof Error ? err.message : "イベントの更新に失敗しました")
+    } finally {
+      setIsSubmitting(false)
+      setIsUploadingThumbnail(false)
     }
   }
 
@@ -616,6 +757,239 @@ function AdminEventsPageContent() {
               </Card>
             )}
 
+            {/* イベント編集フォーム */}
+            {showEditForm && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>イベント編集</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* サムネイル画像 */}
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        サムネイル画像
+                      </label>
+                      <p className="text-xs text-slate-500 mb-2">
+                        推奨サイズ: 16:9（例: 1280x720px）｜ 最大5MB ｜ JPEG、PNG、WebP
+                      </p>
+                      {editThumbnailPreview ? (
+                        <div className="relative inline-block">
+                          <img
+                            src={editThumbnailPreview}
+                            alt="サムネイルプレビュー"
+                            className="w-full max-w-md h-auto rounded-lg border border-slate-300"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleRemoveEditThumbnail}
+                            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center w-full max-w-md h-48 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:bg-slate-50">
+                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <ImageIcon className="h-10 w-10 text-slate-400 mb-3" />
+                            <p className="mb-2 text-sm text-slate-500">
+                              <span className="font-semibold">クリックしてアップロード</span>
+                            </p>
+                            <p className="text-xs text-slate-500">JPEG、PNG、WebP（最大5MB）</p>
+                          </div>
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept="image/jpeg,image/png,image/jpg,image/webp"
+                            onChange={handleEditThumbnailSelect}
+                          />
+                        </label>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        イベント名
+                      </label>
+                      <input
+                        type="text"
+                        value={editEvent.title}
+                        onChange={(e) => setEditEvent({...editEvent, title: e.target.value})}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                        placeholder="イベント名を入力"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        日付
+                      </label>
+                      <input
+                        type="date"
+                        value={editEvent.date}
+                        onChange={(e) => setEditEvent({...editEvent, date: e.target.value})}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        時間
+                      </label>
+                      <input
+                        type="text"
+                        value={editEvent.time}
+                        onChange={(e) => setEditEvent({...editEvent, time: e.target.value})}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                        placeholder="例: 19:00-21:00"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        対象ロール（複数選択可）
+                      </label>
+                      <div className="space-y-2">
+                        {[
+                          { value: 'member' as const, label: 'UGS会員' },
+                          { value: 'fp' as const, label: 'FPエイド' },
+                          { value: 'manager' as const, label: 'マネージャー' },
+                          { value: 'all' as const, label: '全員' }
+                        ].map(role => (
+                          <label key={role.value} className="flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={editEvent.targetRoles.includes(role.value)}
+                              onChange={(e) => {
+                                const roles = e.target.checked
+                                  ? [...editEvent.targetRoles, role.value]
+                                  : editEvent.targetRoles.filter(r => r !== role.value)
+                                setEditEvent({...editEvent, targetRoles: roles})
+                              }}
+                              className="w-4 h-4 text-slate-600 bg-slate-100 border-slate-300 rounded focus:ring-slate-500 focus:ring-2"
+                            />
+                            <span className="ml-2 text-sm text-slate-700">{role.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        参加設定
+                      </label>
+                      <select
+                        value={editEvent.attendanceType}
+                        onChange={(e) => setEditEvent({...editEvent, attendanceType: e.target.value as CreateEventForm['attendanceType']})}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                      >
+                        <option value="optional">任意</option>
+                        <option value="required">必須</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        最大参加者数
+                      </label>
+                      <input
+                        type="number"
+                        value={editEvent.maxParticipants ?? ""}
+                        onChange={(e) => {
+                          const value = e.target.value
+                          setEditEvent({
+                            ...editEvent,
+                            maxParticipants: value === "" ? null : parseInt(value),
+                          })
+                        }}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        開催形式
+                      </label>
+                      <div className="space-y-2">
+                        {[
+                          { value: 'online' as const, label: 'オンライン' },
+                          { value: 'offline' as const, label: 'オフライン' },
+                          { value: 'hybrid' as const, label: 'ハイブリッド（オンライン＋オフライン）' }
+                        ].map(venue => (
+                          <label key={venue.value} className="flex items-center cursor-pointer">
+                            <input
+                              type="radio"
+                              name="editVenueType"
+                              checked={editEvent.venueType === venue.value}
+                              onChange={() => setEditEvent({...editEvent, venueType: venue.value})}
+                              className="w-4 h-4 text-slate-600 bg-slate-100 border-slate-300 focus:ring-slate-500 focus:ring-2"
+                            />
+                            <span className="ml-2 text-sm text-slate-700">{venue.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        説明
+                      </label>
+                      <textarea
+                        value={editEvent.description}
+                        onChange={(e) => setEditEvent({...editEvent, description: e.target.value})}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                        rows={3}
+                        placeholder="イベントの説明を入力"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        場所
+                      </label>
+                      <input
+                        type="text"
+                        value={editEvent.location}
+                        onChange={(e) => setEditEvent({...editEvent, location: e.target.value})}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                        placeholder="オンライン（Zoom）または会場名"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        ステータス
+                      </label>
+                      <select
+                        value={editEvent.status}
+                        onChange={(e) => setEditEvent({...editEvent, status: e.target.value as CreateEventForm['status']})}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                      >
+                        <option value="upcoming">予定</option>
+                        <option value="completed">完了</option>
+                        <option value="cancelled">中止</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <Button onClick={handleUpdateEvent} disabled={isSubmitting || isUploadingThumbnail}>
+                      {isSubmitting || isUploadingThumbnail ? (
+                        <span className="flex items-center">
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          {isUploadingThumbnail ? 'アップロード中...' : '更新中...'}
+                        </span>
+                      ) : (
+                        "イベント更新"
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowEditForm(false)
+                        setEditingEventId(null)
+                        setEditThumbnailFile(null)
+                        setEditThumbnailPreview(null)
+                      }}
+                      disabled={isSubmitting || isUploadingThumbnail}
+                    >
+                      キャンセル
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* イベント一覧 */}
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
@@ -651,7 +1025,12 @@ function AdminEventsPageContent() {
                           </Badge>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <Button size="sm" variant="outline">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditEvent(event)}
+                            disabled={isSubmitting}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button
