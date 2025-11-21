@@ -19,7 +19,6 @@ interface Analytics {
   overview: {
     totalUsers: number
     activeUsers: number
-    suspendedUsers: number
     pastDueUsers: number
     delinquentUsers: number
     activeRate: string
@@ -83,7 +82,6 @@ export default function AnalyticsPage() {
     const statusMap: Record<string, string> = {
       PENDING: '仮登録',
       ACTIVE: '有効会員',
-      SUSPENDED: '休会中',
       PAST_DUE: '支払い遅延',
       DELINQUENT: '長期滞納',
       CANCELED: '退会済み',
@@ -193,7 +191,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* アラートカード */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card className="border-orange-200 bg-orange-50">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-orange-800 flex items-center">
@@ -217,19 +215,6 @@ export default function AnalyticsPage() {
             <CardContent>
               <div className="text-2xl font-bold text-red-600">{analytics.overview.delinquentUsers}</div>
               <p className="text-xs text-red-700 mt-1">緊急対応必要</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-blue-200 bg-blue-50">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-blue-800 flex items-center">
-                <PauseCircle className="h-4 w-4 mr-2" />
-                休会中
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{analytics.overview.suspendedUsers}</div>
-              <p className="text-xs text-blue-700 mt-1">一時停止中</p>
             </CardContent>
           </Card>
         </div>

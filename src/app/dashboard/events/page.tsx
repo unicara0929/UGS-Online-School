@@ -147,6 +147,7 @@ function EventsPageContent() {
             currentParticipants: event.currentParticipants,
             isRegistered: event.isRegistered,
             status: event.status,
+            thumbnailUrl: event.thumbnailUrl || null,
             isPaid: event.isPaid || false,
             price: event.price || null,
             paymentStatus: event.paymentStatus || null,
@@ -407,6 +408,16 @@ function EventsPageContent() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {visibleEvents.map(event => (
                 <Card key={event.id} className="hover:shadow-xl transition-all duration-300">
+                  {/* サムネイル画像 */}
+                  {event.thumbnailUrl && (
+                    <div className="w-full h-48 overflow-hidden rounded-t-lg">
+                      <img
+                        src={event.thumbnailUrl}
+                        alt={event.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
                   <CardHeader>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
@@ -646,6 +657,7 @@ type EventItem = {
   currentParticipants: number
   isRegistered: boolean
   status: 'upcoming' | 'completed' | 'cancelled'
+  thumbnailUrl: string | null
   isPaid: boolean
   price: number | null
   paymentStatus: string | null

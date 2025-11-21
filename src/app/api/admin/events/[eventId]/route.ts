@@ -83,6 +83,7 @@ export async function PUT(
       location,
       maxParticipants,
       status,
+      thumbnailUrl,
       isPaid,
       price,
       // 出席確認関連
@@ -119,6 +120,7 @@ export async function PUT(
     if (status !== undefined) {
       updateData.status = EVENT_STATUS_INPUT_MAP[status] ?? 'UPCOMING'
     }
+    if (thumbnailUrl !== undefined) updateData.thumbnailUrl = thumbnailUrl || null
     if (isPaid !== undefined) updateData.isPaid = isPaid
     if (price !== undefined) updateData.price = isPaid ? Number(price) : null
 
@@ -205,6 +207,7 @@ export async function PUT(
         location: updatedEvent.location ?? '',
         maxParticipants: updatedEvent.maxParticipants ?? null,
         status: updatedEvent.status,
+        thumbnailUrl: updatedEvent.thumbnailUrl ?? null,
         isPaid: updatedEvent.isPaid,
         price: updatedEvent.price ?? null,
         // 出席確認関連

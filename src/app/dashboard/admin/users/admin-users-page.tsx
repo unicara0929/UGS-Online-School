@@ -21,7 +21,6 @@ const USER_ROLES = ['MEMBER', 'FP', 'MANAGER', 'ADMIN'] as const
 const MEMBERSHIP_STATUS_OPTIONS = [
   { value: 'PENDING', label: '仮登録' },
   { value: 'ACTIVE', label: '有効会員' },
-  { value: 'SUSPENDED', label: '休会中' },
   { value: 'PAST_DUE', label: '支払い遅延' },
   { value: 'DELINQUENT', label: '長期滞納' },
   { value: 'CANCELED', label: '退会済み' },
@@ -85,7 +84,7 @@ export default function AdminUsersPage() {
   // フィルター機能
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'active' | 'canceled' | 'past_due' | 'unpaid'>('all')
-  const [membershipStatusFilter, setMembershipStatusFilter] = useState<'all' | 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'PAST_DUE' | 'DELINQUENT' | 'CANCELED' | 'TERMINATED' | 'EXPIRED'>('all')
+  const [membershipStatusFilter, setMembershipStatusFilter] = useState<'all' | 'PENDING' | 'ACTIVE' | 'PAST_DUE' | 'DELINQUENT' | 'CANCELED' | 'TERMINATED' | 'EXPIRED'>('all')
   const [roleFilter, setRoleFilter] = useState<'all' | 'MEMBER' | 'FP' | 'MANAGER' | 'ADMIN'>('all')
   const [sortField, setSortField] = useState<'name' | 'email' | 'createdAt' | 'lastSignIn'>('createdAt')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')

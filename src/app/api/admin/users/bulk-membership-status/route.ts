@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const validStatuses = ['PENDING', 'ACTIVE', 'SUSPENDED', 'PAST_DUE', 'DELINQUENT', 'CANCELED', 'TERMINATED', 'EXPIRED']
+    const validStatuses = ['PENDING', 'ACTIVE', 'PAST_DUE', 'DELINQUENT', 'CANCELED', 'TERMINATED', 'EXPIRED']
     if (!validStatuses.includes(membershipStatus)) {
       return NextResponse.json(
         { error: '無効なステータスです' },
@@ -73,8 +73,6 @@ export async function POST(request: NextRequest) {
               }),
               ...(membershipStatus === 'ACTIVE' && {
                 reactivatedAt: new Date(),
-                suspensionStartDate: null,
-                suspensionEndDate: null,
                 delinquentSince: null,
               }),
             }

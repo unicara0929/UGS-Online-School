@@ -43,7 +43,7 @@ export function filterUsersByStatus<T extends { type?: 'pending' | 'registered';
  */
 export function filterUsersByMembershipStatus<T extends { membershipStatus?: string }>(
   users: T[],
-  membershipStatusFilter: 'all' | 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'PAST_DUE' | 'DELINQUENT' | 'CANCELED' | 'TERMINATED' | 'EXPIRED'
+  membershipStatusFilter: 'all' | 'PENDING' | 'ACTIVE' | 'PAST_DUE' | 'DELINQUENT' | 'CANCELED' | 'TERMINATED' | 'EXPIRED'
 ): T[] {
   if (membershipStatusFilter === 'all') return users
   return users.filter(user => user.membershipStatus === membershipStatusFilter)
