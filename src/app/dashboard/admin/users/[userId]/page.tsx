@@ -30,8 +30,6 @@ interface UserDetail {
   membershipStatusReason: string | null
   membershipStatusChangedAt: string | null
   membershipStatusChangedBy: string | null
-  suspensionStartDate: string | null
-  suspensionEndDate: string | null
   canceledAt: string | null
   cancellationReason: string | null
   delinquentSince: string | null
@@ -82,7 +80,6 @@ const getMembershipStatusLabel = (status: string) => {
   const labels: Record<string, string> = {
     PENDING: '仮登録',
     ACTIVE: '有効会員',
-    SUSPENDED: '休会中',
     PAST_DUE: '支払い遅延',
     DELINQUENT: '長期滞納',
     CANCELED: '退会済み',
@@ -96,7 +93,6 @@ const getMembershipStatusVariant = (status: string) => {
   const variants: Record<string, any> = {
     ACTIVE: 'default',
     PENDING: 'secondary',
-    SUSPENDED: 'secondary',
     PAST_DUE: 'destructive',
     DELINQUENT: 'destructive',
     CANCELED: 'outline',
@@ -281,24 +277,10 @@ export default function UserDetailPage() {
                 />
               )}
               {user.membershipStatusChangedBy && (
-                <InfoRow 
-                  icon={<User className="h-4 w-4" />} 
-                  label="変更者" 
-                  value={user.membershipStatusChangedBy} 
-                />
-              )}
-              {user.suspensionStartDate && (
-                <InfoRow 
-                  icon={<Calendar className="h-4 w-4" />} 
-                  label="休会開始日" 
-                  value={formatDate(user.suspensionStartDate)} 
-                />
-              )}
-              {user.suspensionEndDate && (
-                <InfoRow 
-                  icon={<Calendar className="h-4 w-4" />} 
-                  label="休会終了予定日" 
-                  value={formatDate(user.suspensionEndDate)} 
+                <InfoRow
+                  icon={<User className="h-4 w-4" />}
+                  label="変更者"
+                  value={user.membershipStatusChangedBy}
                 />
               )}
               {user.canceledAt && (

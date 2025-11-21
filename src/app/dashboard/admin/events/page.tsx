@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Calendar, Clock, MapPin, Users, Video, Edit, Trash2, Loader2 } from "lucide-react"
+import { Plus, Calendar, Clock, MapPin, Users, Video, Edit, Trash2, Loader2, Image as ImageIcon, X } from "lucide-react"
 
 function AdminEventsPageContent() {
   const { user } = useAuth()
@@ -34,9 +34,14 @@ function AdminEventsPageContent() {
     location: "",
     maxParticipants: 50,
     status: "upcoming",
+    thumbnailUrl: null,
     isPaid: false,
     price: null,
   })
+
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
+  const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false)
 
   const fetchEvents = async () => {
     setIsLoading(true)
@@ -65,6 +70,7 @@ function AdminEventsPageContent() {
         location: event.location,
         maxParticipants: event.maxParticipants,
         status: event.status,
+        thumbnailUrl: event.thumbnailUrl || null,
         currentParticipants: event.currentParticipants,
         registrations: event.registrations,
       }))
@@ -82,6 +88,69 @@ function AdminEventsPageContent() {
     fetchEvents()
   }, [])
 
+  const handleThumbnailSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // ファイルサイズチェック（5MB）
+    if (file.size > 5 * 1024 * 1024) {
+      alert('ファイルサイズは5MB以下にしてください')
+      return
+    }
+
+    // ファイル形式チェック
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      alert('画像ファイル（JPEG、PNG、WebP）のみアップロード可能です')
+      return
+    }
+
+    setThumbnailFile(file)
+
+    // プレビュー表示
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setThumbnailPreview(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleThumbnailUpload = async (): Promise<string | null> => {
+    if (!thumbnailFile) return null
+
+    setIsUploadingThumbnail(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', thumbnailFile)
+
+      const response = await fetch('/api/admin/events/upload-thumbnail', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'サムネイルのアップロードに失敗しました')
+      }
+
+      return data.imageUrl
+    } catch (err) {
+      console.error('Failed to upload thumbnail:', err)
+      alert(err instanceof Error ? err.message : 'サムネイルのアップロードに失敗しました')
+      return null
+    } finally {
+      setIsUploadingThumbnail(false)
+    }
+  }
+
+  const handleRemoveThumbnail = () => {
+    setThumbnailFile(null)
+    setThumbnailPreview(null)
+    setNewEvent({ ...newEvent, thumbnailUrl: null })
+  }
+
   const handleCreateEvent = async () => {
     if (!newEvent.title || !newEvent.date) {
       alert("イベント名と日付は必須です")
@@ -90,11 +159,25 @@ function AdminEventsPageContent() {
 
     setIsSubmitting(true)
     try {
+      // サムネイルがある場合は先にアップロード
+      let thumbnailUrl = newEvent.thumbnailUrl
+      if (thumbnailFile) {
+        thumbnailUrl = await handleThumbnailUpload()
+        if (!thumbnailUrl) {
+          // アップロード失敗
+          setIsSubmitting(false)
+          return
+        }
+      }
+
       const response = await fetch("/api/admin/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: 'include',
-        body: JSON.stringify(newEvent),
+        body: JSON.stringify({
+          ...newEvent,
+          thumbnailUrl,
+        }),
       })
 
       const data = await response.json()
@@ -116,9 +199,12 @@ function AdminEventsPageContent() {
         location: "",
         maxParticipants: 50,
         status: "upcoming",
+        thumbnailUrl: null,
         isPaid: false,
         price: null,
       })
+      setThumbnailFile(null)
+      setThumbnailPreview(null)
       setShowCreateForm(false)
     } catch (err) {
       console.error("Failed to create event:", err)
@@ -243,6 +329,48 @@ function AdminEventsPageContent() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* サムネイル画像 */}
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        サムネイル画像
+                      </label>
+                      <p className="text-xs text-slate-500 mb-2">
+                        推奨サイズ: 16:9（例: 1280x720px）｜ 最大5MB ｜ JPEG、PNG、WebP
+                      </p>
+                      {thumbnailPreview ? (
+                        <div className="relative inline-block">
+                          <img
+                            src={thumbnailPreview}
+                            alt="サムネイルプレビュー"
+                            className="w-full max-w-md h-auto rounded-lg border border-slate-300"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleRemoveThumbnail}
+                            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center w-full max-w-md h-48 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:bg-slate-50">
+                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <ImageIcon className="h-10 w-10 text-slate-400 mb-3" />
+                            <p className="mb-2 text-sm text-slate-500">
+                              <span className="font-semibold">クリックしてアップロード</span>
+                            </p>
+                            <p className="text-xs text-slate-500">JPEG、PNG、WebP（最大5MB）</p>
+                          </div>
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept="image/jpeg,image/png,image/jpg,image/webp"
+                            onChange={handleThumbnailSelect}
+                          />
+                        </label>
+                      )}
+                    </div>
+
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
                         イベント名
@@ -473,9 +601,12 @@ function AdminEventsPageContent() {
                           location: "",
                           maxParticipants: 50,
                           status: "upcoming",
+                          thumbnailUrl: null,
                           isPaid: false,
                           price: null,
                         })
+                        setThumbnailFile(null)
+                        setThumbnailPreview(null)
                       }}
                     >
                       キャンセル
@@ -497,6 +628,16 @@ function AdminEventsPageContent() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {events.map(event => (
                   <Card key={event.id} className="hover:shadow-xl transition-all duration-300">
+                    {/* サムネイル画像 */}
+                    {event.thumbnailUrl && (
+                      <div className="w-full h-48 overflow-hidden rounded-t-lg">
+                        <img
+                          src={event.thumbnailUrl}
+                          alt={event.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
                     <CardHeader>
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -621,6 +762,7 @@ type AdminEventItem = {
   location: string
   maxParticipants: number | null
   status: 'upcoming' | 'completed' | 'cancelled'
+  thumbnailUrl: string | null
   currentParticipants: number
   registrations: Array<{
     id: string
@@ -643,6 +785,7 @@ type CreateEventForm = {
   location: string
   maxParticipants: number | null
   status: 'upcoming' | 'completed' | 'cancelled'
+  thumbnailUrl: string | null // サムネイル画像URL
   isPaid: boolean // 有料イベントかどうか
   price: number | null // 価格（円）
 }

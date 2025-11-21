@@ -33,8 +33,6 @@ model User {
   membershipStatusReason  String?                  // ステータス変更理由
   membershipStatusChangedAt DateTime?              // ステータス変更日時
   membershipStatusChangedBy String?                // ステータス変更者（管理者ID）
-  suspensionStartDate     DateTime?                // 休会開始日
-  suspensionEndDate       DateTime?                // 休会終了予定日
   canceledAt              DateTime?                // 退会日時
   cancellationReason      String?                  // 退会理由
   delinquentSince         DateTime?                // 滞納開始日
@@ -163,6 +161,8 @@ model Event {
   location        String?
   maxParticipants Int?
   status          EventStatus         @default(UPCOMING)
+  // サムネイル画像
+  thumbnailUrl    String?             // サムネイル画像URL（Supabase Storage）
   // 有料イベント関連
   isPaid          Boolean             @default(false) // 有料イベントかどうか
   price           Int?                // 価格（円）- isPaid=trueの場合は必須
@@ -280,7 +280,6 @@ enum SubscriptionStatus {
 enum MembershipStatus {
   PENDING      // 仮登録（決済未完了）
   ACTIVE       // 有効会員（通常の状態）
-  SUSPENDED    // 休会中（ユーザー申請による一時停止）
   PAST_DUE     // 支払い遅延（決済失敗、猶予期間中）
   DELINQUENT   // 長期滞納（猶予期間経過後も未払い）
   CANCELED     // 退会済み（ユーザーによる退会申請）

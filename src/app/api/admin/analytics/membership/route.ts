@@ -58,13 +58,6 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // 現在休会中のユーザー数
-    const suspendedUsers = await prisma.user.count({
-      where: {
-        membershipStatus: 'SUSPENDED'
-      }
-    })
-
     // 長期滞納ユーザー数
     const delinquentUsers = await prisma.user.count({
       where: {
@@ -142,7 +135,6 @@ export async function GET(request: NextRequest) {
       overview: {
         totalUsers,
         activeUsers,
-        suspendedUsers,
         pastDueUsers,
         delinquentUsers,
         activeRate: totalUsers > 0 ? (activeUsers / totalUsers * 100).toFixed(2) : '0',

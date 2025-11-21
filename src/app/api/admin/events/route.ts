@@ -110,6 +110,7 @@ export async function GET(request: NextRequest) {
         location: event.location ?? '',
         maxParticipants: event.maxParticipants ?? null,
         status: EVENT_STATUS_MAP[statusKey] ?? 'upcoming',
+        thumbnailUrl: event.thumbnailUrl ?? null,
         currentParticipants: event._count.registrations,
         registrations: event.registrations.map((registration) => ({
           id: registration.id,
@@ -154,6 +155,7 @@ export async function POST(request: NextRequest) {
       location,
       maxParticipants,
       status = 'upcoming',
+      thumbnailUrl,
       isPaid = false,
       price,
       // 出席確認関連
@@ -200,6 +202,7 @@ export async function POST(request: NextRequest) {
         location,
         maxParticipants: maxParticipants !== undefined ? Number(maxParticipants) : null,
         status: eventStatus,
+        thumbnailUrl: thumbnailUrl || null,
         isPaid,
         price: isPaid ? Number(price) : null,
         // 出席確認関連
@@ -250,6 +253,7 @@ export async function POST(request: NextRequest) {
         location: createdEvent.location ?? '',
         maxParticipants: createdEvent.maxParticipants ?? null,
         status,
+        thumbnailUrl: createdEvent.thumbnailUrl ?? null,
         currentParticipants: 0,
         registrations: [],
       },

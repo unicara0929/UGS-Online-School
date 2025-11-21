@@ -127,6 +127,7 @@ export async function GET(request: NextRequest) {
         maxParticipants: event.maxParticipants ?? null,
         currentParticipants,
         status: EVENT_STATUS_MAP[statusKey] ?? 'upcoming',
+        thumbnailUrl: event.thumbnailUrl ?? null,
         isRegistered,
         // 有料イベント関連
         isPaid: event.isPaid,

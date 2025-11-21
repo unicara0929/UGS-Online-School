@@ -97,8 +97,6 @@ export async function GET(
       membershipStatusReason: user.membershipStatusReason,
       membershipStatusChangedAt: user.membershipStatusChangedAt,
       membershipStatusChangedBy: user.membershipStatusChangedBy,
-      suspensionStartDate: user.suspensionStartDate,
-      suspensionEndDate: user.suspensionEndDate,
       canceledAt: user.canceledAt,
       cancellationReason: user.cancellationReason,
       delinquentSince: user.delinquentSince,
