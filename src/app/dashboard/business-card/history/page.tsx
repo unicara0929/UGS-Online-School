@@ -16,11 +16,8 @@ interface Order {
   id: string
   displayName: string
   displayNameKana: string
-  roleTitle: string | null
-  company: string | null
   phoneNumber: string
   email: string
-  websiteUrl: string | null
   postalCode: string
   prefecture: string
   city: string
@@ -166,12 +163,6 @@ function BusinessCardHistoryContent() {
                                 <span className="text-slate-400">注文日: </span>
                                 {format(new Date(order.createdAt), 'yyyy/MM/dd', { locale: ja })}
                               </div>
-                              {order.roleTitle && (
-                                <div>
-                                  <span className="text-slate-400">ロール: </span>
-                                  {order.roleTitle}
-                                </div>
-                              )}
                             </div>
                           </div>
                           <Button
@@ -191,11 +182,8 @@ function BusinessCardHistoryContent() {
                                 <dl className="space-y-1 text-slate-600">
                                   <div><dt className="inline text-slate-400">表示名: </dt><dd className="inline">{order.displayName}</dd></div>
                                   <div><dt className="inline text-slate-400">フリガナ: </dt><dd className="inline">{order.displayNameKana}</dd></div>
-                                  {order.roleTitle && <div><dt className="inline text-slate-400">ロール表記: </dt><dd className="inline">{order.roleTitle}</dd></div>}
-                                  {order.company && <div><dt className="inline text-slate-400">所属: </dt><dd className="inline">{order.company}</dd></div>}
                                   <div><dt className="inline text-slate-400">電話番号: </dt><dd className="inline">{order.phoneNumber}</dd></div>
                                   <div><dt className="inline text-slate-400">メール: </dt><dd className="inline">{order.email}</dd></div>
-                                  {order.websiteUrl && <div><dt className="inline text-slate-400">URL: </dt><dd className="inline">{order.websiteUrl}</dd></div>}
                                 </dl>
                               </div>
                               <div>

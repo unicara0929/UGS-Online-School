@@ -877,11 +877,8 @@ model BusinessCardOrder {
   // 名刺に印字する情報
   displayName       String                  // 表示名（名刺に印字する氏名）
   displayNameKana   String                  // 氏名フリガナ
-  roleTitle         String?                 // ロール表記（例：FPエイド／マネージャー／ファイナンシャルプランナー）
-  company           String?                 // 所属（会社名・屋号など）
   phoneNumber       String                  // 電話番号
   email             String                  // メールアドレス
-  websiteUrl        String?                 // ウェブサイトURL（任意）
   // 郵送先住所
   postalCode        String                  // 郵便番号
   prefecture        String                  // 都道府県

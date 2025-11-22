@@ -15,11 +15,8 @@ interface Order {
   id: string
   displayName: string
   displayNameKana: string
-  roleTitle: string | null
-  company: string | null
   phoneNumber: string
   email: string
-  websiteUrl: string | null
   postalCode: string
   prefecture: string
   city: string
@@ -288,8 +285,6 @@ function AdminBusinessCardContent() {
                             <div className="flex flex-wrap gap-4 mt-2 text-sm text-slate-600">
                               <span>デザイン: {order.design.name}</span>
                               <span>部数: {order.quantity}枚</span>
-                              {order.roleTitle && <span>ロール: {order.roleTitle}</span>}
-                              {order.company && <span>所属: {order.company}</span>}
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
@@ -323,11 +318,8 @@ function AdminBusinessCardContent() {
                                 <dl className="space-y-1 text-slate-600">
                                   <div><dt className="inline text-slate-400">表示名: </dt><dd className="inline">{order.displayName}</dd></div>
                                   <div><dt className="inline text-slate-400">フリガナ: </dt><dd className="inline">{order.displayNameKana}</dd></div>
-                                  {order.roleTitle && <div><dt className="inline text-slate-400">ロール表記: </dt><dd className="inline">{order.roleTitle}</dd></div>}
-                                  {order.company && <div><dt className="inline text-slate-400">所属: </dt><dd className="inline">{order.company}</dd></div>}
                                   <div><dt className="inline text-slate-400">電話番号: </dt><dd className="inline">{order.phoneNumber}</dd></div>
                                   <div><dt className="inline text-slate-400">メール: </dt><dd className="inline">{order.email}</dd></div>
-                                  {order.websiteUrl && <div><dt className="inline text-slate-400">URL: </dt><dd className="inline break-all">{order.websiteUrl}</dd></div>}
                                 </dl>
                               </div>
 
