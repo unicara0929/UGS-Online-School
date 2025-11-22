@@ -22,6 +22,20 @@ const ACCOUNT_TYPES = [
   { value: 'SAVINGS', label: '貯蓄預金' }
 ]
 
+// よく使われる銀行一覧
+const COMMON_BANKS = [
+  { value: 'GMOあおぞらネット銀行', label: 'GMOあおぞらネット銀行' },
+  { value: '三菱UFJ銀行', label: '三菱UFJ銀行' },
+  { value: 'みずほ銀行', label: 'みずほ銀行' },
+  { value: '三井住友銀行', label: '三井住友銀行' },
+  { value: 'ゆうちょ銀行', label: 'ゆうちょ銀行' },
+  { value: 'りそな銀行', label: 'りそな銀行' },
+  { value: '埼玉りそな銀行', label: '埼玉りそな銀行' },
+  { value: '楽天銀行', label: '楽天銀行' },
+  { value: '住信SBIネット銀行', label: '住信SBIネット銀行' },
+  { value: 'PayPay銀行', label: 'PayPay銀行' },
+]
+
 interface BankAccountData {
   id?: string
   bankName: string
@@ -55,6 +69,8 @@ function BankAccountSettingsPage() {
     yuchoSymbol: '',
     yuchoNumber: ''
   })
+  const [isOtherBank, setIsOtherBank] = useState(false)
+  const [otherBankName, setOtherBankName] = useState('')
 
   // 役割チェック - FP または Manager のみアクセス可能
   useEffect(() => {
@@ -79,9 +95,12 @@ function BankAccountSettingsPage() {
         if (response.ok) {
           const data = await response.json()
           if (data.success && data.bankAccount) {
+            const loadedBankName = data.bankAccount.bankName || ''
+            const isCommonBank = COMMON_BANKS.some(bank => bank.value === loadedBankName)
+
             setFormData({
               id: data.bankAccount.id,
-              bankName: data.bankAccount.bankName || '',
+              bankName: loadedBankName,
               branchName: data.bankAccount.branchName || '',
               branchNumber: data.bankAccount.branchNumber || '',
               accountType: data.bankAccount.accountType || 'NORMAL',
@@ -91,6 +110,12 @@ function BankAccountSettingsPage() {
               yuchoSymbol: data.bankAccount.yuchoSymbol || '',
               yuchoNumber: data.bankAccount.yuchoNumber || ''
             })
+
+            // 既存の銀行名がリストにない場合は「その他」を選択
+            if (loadedBankName && !isCommonBank) {
+              setIsOtherBank(true)
+              setOtherBankName(loadedBankName)
+            }
           }
         }
       } catch (error) {
@@ -285,44 +310,101 @@ function BankAccountSettingsPage() {
                 <CardContent className="space-y-5">
                   {/* 金融機関名 */}
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    <label className="block text-sm font-semibold text-slate-700 mb-3">
                       金融機関名 *
                     </label>
-                    <input
-                      type="text"
-                      value={formData.bankName}
-                      onChange={(e) => setFormData({...formData, bankName: e.target.value})}
-                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md"
-                      placeholder="例: 三菱UFJ銀行、ゆうちょ銀行"
-                      required
-                    />
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {COMMON_BANKS.map((bank) => (
+                        <label
+                          key={bank.value}
+                          className={`flex items-center p-3 border-2 rounded-xl cursor-pointer transition-all ${
+                            !isOtherBank && formData.bankName === bank.value
+                              ? 'border-blue-500 bg-blue-50'
+                              : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="bankName"
+                            value={bank.value}
+                            checked={!isOtherBank && formData.bankName === bank.value}
+                            onChange={(e) => {
+                              const selectedBank = e.target.value
+                              const isYucho = selectedBank === 'ゆうちょ銀行'
+                              setFormData({
+                                ...formData,
+                                bankName: selectedBank,
+                                isYuchoBank: isYucho,
+                                // ゆうちょ銀行切り替え時にフィールドをクリア
+                                branchName: isYucho ? '' : formData.branchName,
+                                branchNumber: isYucho ? '' : formData.branchNumber,
+                                yuchoSymbol: isYucho ? formData.yuchoSymbol : '',
+                                yuchoNumber: isYucho ? formData.yuchoNumber : ''
+                              })
+                              setIsOtherBank(false)
+                              setOtherBankName('')
+                            }}
+                            className="mr-2"
+                          />
+                          <span className="text-sm font-medium text-slate-700">{bank.label}</span>
+                        </label>
+                      ))}
+                      {/* その他の銀行 */}
+                      <label
+                        className={`flex items-center p-3 border-2 rounded-xl cursor-pointer transition-all ${
+                          isOtherBank
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="bankName"
+                          value="other"
+                          checked={isOtherBank}
+                          onChange={() => {
+                            setIsOtherBank(true)
+                            setFormData({
+                              ...formData,
+                              bankName: otherBankName,
+                              isYuchoBank: false,
+                              yuchoSymbol: '',
+                              yuchoNumber: ''
+                            })
+                          }}
+                          className="mr-2"
+                        />
+                        <span className="text-sm font-medium text-slate-700">その他</span>
+                      </label>
+                    </div>
+
+                    {/* その他の銀行名入力 */}
+                    {isOtherBank && (
+                      <div className="mt-3">
+                        <input
+                          type="text"
+                          value={otherBankName}
+                          onChange={(e) => {
+                            setOtherBankName(e.target.value)
+                            setFormData({...formData, bankName: e.target.value})
+                          }}
+                          className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md"
+                          placeholder="銀行名を入力してください"
+                          required
+                        />
+                      </div>
+                    )}
                   </div>
 
-                  {/* ゆうちょ銀行チェックボックス */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <label className="flex items-start cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.isYuchoBank}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          isYuchoBank: e.target.checked,
-                          // チェックを切り替えた時にフィールドをクリア
-                          branchName: e.target.checked ? '' : formData.branchName,
-                          branchNumber: e.target.checked ? '' : formData.branchNumber,
-                          yuchoSymbol: e.target.checked ? formData.yuchoSymbol : '',
-                          yuchoNumber: e.target.checked ? formData.yuchoNumber : ''
-                        })}
-                        className="mt-1 mr-3"
-                      />
-                      <div>
-                        <div className="font-medium text-slate-900">ゆうちょ銀行</div>
-                        <div className="text-sm text-slate-600 mt-1">
-                          ゆうちょ銀行の場合は「記号」と「番号」で入力してください
-                        </div>
+                  {/* ゆうちょ銀行の説明 */}
+                  {formData.isYuchoBank && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="font-medium text-slate-900">ゆうちょ銀行</div>
+                      <div className="text-sm text-slate-600 mt-1">
+                        ゆうちょ銀行は「記号」と「番号」で入力してください。振込用の支店番号・口座番号に自動変換されます。
                       </div>
-                    </label>
-                  </div>
+                    </div>
+                  )}
 
                   {/* ゆうちょ銀行の場合 */}
                   {formData.isYuchoBank ? (
@@ -332,18 +414,22 @@ function BankAccountSettingsPage() {
                         <div>
                           <label className="block text-sm font-semibold text-slate-700 mb-2">
                             記号（5桁）*
+                            <span className="text-xs font-normal text-slate-500 ml-2">※半角数字</span>
                           </label>
                           <input
                             type="text"
+                            inputMode="numeric"
                             value={formData.yuchoSymbol}
                             onChange={(e) => {
-                              // 数字のみ入力可能
-                              const value = e.target.value.replace(/[^0-9]/g, '')
+                              // 全角数字を半角に変換し、数字のみ入力可能
+                              const value = e.target.value
+                                .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+                                .replace(/[^0-9]/g, '')
                               if (value.length <= 5) {
                                 setFormData({...formData, yuchoSymbol: value})
                               }
                             }}
-                            className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md"
+                            className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md font-mono"
                             placeholder="12345"
                             maxLength={5}
                             required
@@ -354,18 +440,22 @@ function BankAccountSettingsPage() {
                         <div>
                           <label className="block text-sm font-semibold text-slate-700 mb-2">
                             番号（最大8桁）*
+                            <span className="text-xs font-normal text-slate-500 ml-2">※半角数字</span>
                           </label>
                           <input
                             type="text"
+                            inputMode="numeric"
                             value={formData.yuchoNumber}
                             onChange={(e) => {
-                              // 数字のみ入力可能
-                              const value = e.target.value.replace(/[^0-9]/g, '')
+                              // 全角数字を半角に変換し、数字のみ入力可能
+                              const value = e.target.value
+                                .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+                                .replace(/[^0-9]/g, '')
                               if (value.length <= 8) {
                                 setFormData({...formData, yuchoNumber: value})
                               }
                             }}
-                            className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md"
+                            className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md font-mono"
                             placeholder="12345678"
                             maxLength={8}
                             required
@@ -419,18 +509,22 @@ function BankAccountSettingsPage() {
                         <div>
                           <label className="block text-sm font-semibold text-slate-700 mb-2">
                             支店番号（3桁）*
+                            <span className="text-xs font-normal text-slate-500 ml-2">※半角数字</span>
                           </label>
                           <input
                             type="text"
+                            inputMode="numeric"
                             value={formData.branchNumber}
                             onChange={(e) => {
-                              // 数字のみ入力可能
-                              const value = e.target.value.replace(/[^0-9]/g, '')
+                              // 全角数字を半角に変換し、数字のみ入力可能
+                              const value = e.target.value
+                                .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+                                .replace(/[^0-9]/g, '')
                               if (value.length <= 3) {
                                 setFormData({...formData, branchNumber: value})
                               }
                             }}
-                            className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md"
+                            className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md font-mono"
                             placeholder="001"
                             maxLength={3}
                             required
@@ -442,14 +536,18 @@ function BankAccountSettingsPage() {
                       <div>
                         <label className="block text-sm font-semibold text-slate-700 mb-2">
                           口座番号（7桁）*
+                          <span className="text-xs font-normal text-slate-500 ml-2">※半角数字</span>
                         </label>
                         <div className="relative">
                           <input
                             type={showAccountNumber ? "text" : "password"}
+                            inputMode="numeric"
                             value={formData.accountNumber}
                             onChange={(e) => {
-                              // 数字のみ入力可能
-                              const value = e.target.value.replace(/[^0-9]/g, '')
+                              // 全角数字を半角に変換し、数字のみ入力可能
+                              const value = e.target.value
+                                .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+                                .replace(/[^0-9]/g, '')
                               if (value.length <= 7) {
                                 setFormData({...formData, accountNumber: value})
                               }
