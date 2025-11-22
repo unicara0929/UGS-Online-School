@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import { Sidebar } from '@/components/navigation/sidebar'
 import { PageHeader } from '@/components/dashboard/page-header'
@@ -30,6 +30,7 @@ import {
   Image as ImageIcon,
   Save,
   X,
+  Upload,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
@@ -138,6 +139,8 @@ function DesignManagement() {
   const [formPreviewUrl, setFormPreviewUrl] = useState('')
   const [formIsActive, setFormIsActive] = useState(true)
   const [formOrder, setFormOrder] = useState(0)
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const fetchDesigns = useCallback(async () => {
     setIsLoading(true)
@@ -275,6 +278,58 @@ function DesignManagement() {
     }
   }
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // ファイルサイズチェック（5MB以下）
+    if (file.size > 5 * 1024 * 1024) {
+      alert('ファイルサイズは5MB以下にしてください')
+      return
+    }
+
+    // ファイルタイプチェック
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      alert('画像ファイル（JPEG、PNG、WebP）のみアップロード可能です')
+      return
+    }
+
+    setIsUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/admin/business-card/designs/upload-preview', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      })
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || '画像のアップロードに失敗しました')
+      }
+
+      setFormPreviewUrl(data.imageUrl)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '画像のアップロードに失敗しました')
+    } finally {
+      setIsUploading(false)
+      // ファイル入力をリセット
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
+  const handleRemoveImage = () => {
+    setFormPreviewUrl('')
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -348,15 +403,17 @@ function DesignManagement() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="design-preview">プレビュー画像URL</Label>
-              <Input
-                id="design-preview"
-                value={formPreviewUrl}
-                onChange={(e) => setFormPreviewUrl(e.target.value)}
-                placeholder="https://example.com/preview.jpg"
+              <Label>プレビュー画像</Label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleFileUpload}
+                className="hidden"
+                id="design-preview-upload"
               />
-              {formPreviewUrl && (
-                <div className="mt-2">
+              {formPreviewUrl ? (
+                <div className="space-y-3">
                   <img
                     src={formPreviewUrl}
                     alt="プレビュー"
@@ -365,6 +422,52 @@ function DesignManagement() {
                       e.currentTarget.style.display = 'none'
                     }}
                   />
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
+                    >
+                      {isUploading ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : (
+                        <Upload className="h-4 w-4 mr-2" />
+                      )}
+                      画像を変更
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRemoveImage}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      削除
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  onClick={() => !isUploading && fileInputRef.current?.click()}
+                  className={`border-2 border-dashed border-slate-300 rounded-lg p-8 text-center cursor-pointer hover:border-slate-400 transition-colors ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="h-8 w-8 text-slate-400 mx-auto mb-2 animate-spin" />
+                      <p className="text-sm text-slate-500">アップロード中...</p>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-8 w-8 text-slate-400 mx-auto mb-2" />
+                      <p className="text-sm text-slate-500">
+                        クリックして画像を選択<br />
+                        <span className="text-xs text-slate-400">JPEG, PNG, WebP（5MB以下）</span>
+                      </p>
+                    </>
+                  )}
                 </div>
               )}
             </div>
