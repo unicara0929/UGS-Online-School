@@ -59,6 +59,7 @@ model User {
   membershipStatusHistory MembershipStatusHistory[]
   emailLogs               EmailLog[]
   compensationBankAccount BankAccount? @relation("compensationBankAccount") // 報酬受け取り口座（FP/MGR向け）
+  roleChangeHistory       RoleChangeHistory[]
 
   @@map("users")
 }
@@ -638,6 +639,24 @@ model MembershipStatusHistory {
   createdAt     DateTime         @default(now())
 
   @@map("membership_status_history")
+}
+
+// ロール変更履歴（UGS会員→FPエイドなどの昇格記録）
+model RoleChangeHistory {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fromRole      UserRole // 変更前のロール
+  toRole        UserRole // 変更後のロール
+  reason        String?  // 変更理由（昇格申請承認、管理者による変更など）
+  changedBy     String?  // 変更者（管理者ID、システムの場合は"SYSTEM"）
+  changedByName String?  // 変更者名（表示用）
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+  @@index([fromRole, toRole])
+  @@index([createdAt])
+  @@map("role_change_history")
 }
 
 // メール送信履歴（バッチ単位）

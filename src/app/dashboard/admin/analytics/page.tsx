@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Users,
   TrendingUp,
@@ -11,8 +12,11 @@ import {
   UserCheck,
   UserX,
   AlertCircle,
-  PauseCircle,
-  BarChart3
+  BarChart3,
+  ArrowRight,
+  Award,
+  ChevronRight,
+  Star
 } from 'lucide-react'
 
 interface Analytics {
@@ -51,26 +55,52 @@ interface Analytics {
   }>
 }
 
+interface RoleStats {
+  overview: {
+    memberCount: number
+    fpCount: number
+    managerCount: number
+    totalPromotions: number
+    thisMonthPromotions: number
+    lastMonthPromotions: number
+  }
+  monthlyPromotions: Array<{
+    month: string
+    year: number
+    monthNumber: number
+    promotions: number
+  }>
+}
+
 export default function AnalyticsPage() {
   const [analytics, setAnalytics] = useState<Analytics | null>(null)
+  const [roleStats, setRoleStats] = useState<RoleStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchAnalytics()
+    fetchData()
   }, [])
 
-  const fetchAnalytics = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/admin/analytics/membership', {
-        credentials: 'include'
-      })
-      if (!response.ok) {
+      const [analyticsRes, roleStatsRes] = await Promise.all([
+        fetch('/api/admin/analytics/membership', { credentials: 'include' }),
+        fetch('/api/admin/analytics/role-stats', { credentials: 'include' })
+      ])
+
+      if (!analyticsRes.ok || !roleStatsRes.ok) {
         throw new Error('分析データの取得に失敗しました')
       }
-      const data = await response.json()
-      setAnalytics(data)
+
+      const [analyticsData, roleStatsData] = await Promise.all([
+        analyticsRes.json(),
+        roleStatsRes.json()
+      ])
+
+      setAnalytics(analyticsData)
+      setRoleStats(roleStatsData)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'エラーが発生しました')
     } finally {
@@ -93,7 +123,7 @@ export default function AnalyticsPage() {
 
   const getRoleLabel = (role: string) => {
     const roleMap: Record<string, string> = {
-      MEMBER: 'メンバー',
+      MEMBER: 'UGS会員',
       FP: 'FPエイド',
       MANAGER: 'マネージャー',
       ADMIN: '管理者',
@@ -101,6 +131,11 @@ export default function AnalyticsPage() {
     }
     return roleMap[role] || role
   }
+
+  // 月別昇格グラフの最大値を計算
+  const maxPromotions = roleStats?.monthlyPromotions
+    ? Math.max(...roleStats.monthlyPromotions.map(m => m.promotions), 1)
+    : 1
 
   if (loading) {
     return (
@@ -113,7 +148,7 @@ export default function AnalyticsPage() {
     )
   }
 
-  if (error || !analytics) {
+  if (error || !analytics || !roleStats) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center">
@@ -130,12 +165,203 @@ export default function AnalyticsPage() {
         <div>
           <h1 className="text-3xl font-bold text-slate-900 flex items-center">
             <BarChart3 className="h-8 w-8 mr-3 text-blue-600" />
-            会員管理分析ダッシュボード
+            会員管理ダッシュボード
           </h1>
-          <p className="text-slate-600 mt-2">会員ステータスと統計情報の概要</p>
+          <p className="text-slate-600 mt-2">UGS会員・FPエイドの統計情報</p>
         </div>
 
-        {/* 概要カード */}
+        {/* メイン統計カード（UGS会員・FPエイド・昇格人数） */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* UGS会員数 */}
+          <Card className="relative overflow-hidden border-2 border-blue-100 bg-gradient-to-br from-blue-50 to-white">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100 rounded-full -mr-16 -mt-16 opacity-50"></div>
+            <CardHeader className="pb-2 relative">
+              <CardTitle className="text-lg font-semibold text-blue-800 flex items-center">
+                <div className="p-2 bg-blue-100 rounded-lg mr-3">
+                  <Users className="h-6 w-6 text-blue-600" />
+                </div>
+                UGS会員
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="relative">
+              <div className="text-5xl font-bold text-blue-600 mb-2">
+                {roleStats.overview.memberCount}
+                <span className="text-2xl font-normal text-blue-400 ml-1">人</span>
+              </div>
+              <p className="text-sm text-blue-600/70">有効な会員数</p>
+            </CardContent>
+          </Card>
+
+          {/* FPエイド数 */}
+          <Card className="relative overflow-hidden border-2 border-emerald-100 bg-gradient-to-br from-emerald-50 to-white">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-100 rounded-full -mr-16 -mt-16 opacity-50"></div>
+            <CardHeader className="pb-2 relative">
+              <CardTitle className="text-lg font-semibold text-emerald-800 flex items-center">
+                <div className="p-2 bg-emerald-100 rounded-lg mr-3">
+                  <Star className="h-6 w-6 text-emerald-600" />
+                </div>
+                FPエイド
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="relative">
+              <div className="text-5xl font-bold text-emerald-600 mb-2">
+                {roleStats.overview.fpCount}
+                <span className="text-2xl font-normal text-emerald-400 ml-1">人</span>
+              </div>
+              <p className="text-sm text-emerald-600/70">有効なFPエイド数</p>
+            </CardContent>
+          </Card>
+
+          {/* 昇格人数 */}
+          <Card className="relative overflow-hidden border-2 border-amber-100 bg-gradient-to-br from-amber-50 to-white">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-100 rounded-full -mr-16 -mt-16 opacity-50"></div>
+            <CardHeader className="pb-2 relative">
+              <CardTitle className="text-lg font-semibold text-amber-800 flex items-center">
+                <div className="p-2 bg-amber-100 rounded-lg mr-3">
+                  <Award className="h-6 w-6 text-amber-600" />
+                </div>
+                FPエイド昇格
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="relative">
+              <div className="text-5xl font-bold text-amber-600 mb-2">
+                {roleStats.overview.totalPromotions}
+                <span className="text-2xl font-normal text-amber-400 ml-1">人</span>
+              </div>
+              <div className="flex items-center gap-4 text-sm">
+                <span className="text-amber-600/70">累計</span>
+                {roleStats.overview.thisMonthPromotions > 0 && (
+                  <Badge variant="secondary" className="bg-amber-100 text-amber-700">
+                    今月 +{roleStats.overview.thisMonthPromotions}
+                  </Badge>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* 昇格フロー図 */}
+        <Card className="border-2 border-indigo-100">
+          <CardHeader>
+            <CardTitle className="flex items-center text-indigo-900">
+              <TrendingUp className="h-5 w-5 mr-2 text-indigo-600" />
+              キャリアパス・昇格フロー
+            </CardTitle>
+            <CardDescription>UGS会員からFPエイド、マネージャーへのキャリアステップ</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col md:flex-row items-center justify-center gap-4 py-6">
+              {/* UGS会員 */}
+              <div className="flex flex-col items-center">
+                <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex flex-col items-center justify-center text-white shadow-lg shadow-blue-200">
+                  <Users className="h-10 w-10 mb-2" />
+                  <span className="font-bold text-lg">UGS会員</span>
+                  <span className="text-2xl font-bold">{roleStats.overview.memberCount}</span>
+                </div>
+                <p className="mt-2 text-sm text-slate-500">スタート地点</p>
+              </div>
+
+              {/* 矢印 */}
+              <div className="flex flex-col items-center px-4">
+                <div className="hidden md:flex items-center">
+                  <div className="w-16 h-1 bg-gradient-to-r from-blue-400 to-emerald-400"></div>
+                  <ChevronRight className="h-8 w-8 text-emerald-500 -ml-2" />
+                </div>
+                <div className="md:hidden h-8 w-1 bg-gradient-to-b from-blue-400 to-emerald-400"></div>
+                <div className="bg-amber-100 px-3 py-1 rounded-full text-amber-700 text-sm font-medium mt-2">
+                  {roleStats.overview.totalPromotions}人が昇格
+                </div>
+              </div>
+
+              {/* FPエイド */}
+              <div className="flex flex-col items-center">
+                <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex flex-col items-center justify-center text-white shadow-lg shadow-emerald-200">
+                  <Star className="h-10 w-10 mb-2" />
+                  <span className="font-bold text-lg">FPエイド</span>
+                  <span className="text-2xl font-bold">{roleStats.overview.fpCount}</span>
+                </div>
+                <p className="mt-2 text-sm text-slate-500">活躍中</p>
+              </div>
+
+              {/* 矢印 */}
+              <div className="flex flex-col items-center px-4">
+                <div className="hidden md:flex items-center">
+                  <div className="w-16 h-1 bg-gradient-to-r from-emerald-400 to-purple-400"></div>
+                  <ChevronRight className="h-8 w-8 text-purple-500 -ml-2" />
+                </div>
+                <div className="md:hidden h-8 w-1 bg-gradient-to-b from-emerald-400 to-purple-400"></div>
+              </div>
+
+              {/* マネージャー */}
+              <div className="flex flex-col items-center">
+                <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex flex-col items-center justify-center text-white shadow-lg shadow-purple-200">
+                  <Award className="h-10 w-10 mb-2" />
+                  <span className="font-bold text-lg">マネージャー</span>
+                  <span className="text-2xl font-bold">{roleStats.overview.managerCount}</span>
+                </div>
+                <p className="mt-2 text-sm text-slate-500">リーダー</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 月別昇格推移グラフ */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <BarChart3 className="h-5 w-5 mr-2 text-amber-600" />
+              FPエイド昇格推移（過去12ヶ月）
+            </CardTitle>
+            <CardDescription>月別のUGS会員→FPエイド昇格人数</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-end justify-between gap-2 h-48 pt-4">
+              {roleStats.monthlyPromotions.map((item, index) => {
+                const height = item.promotions > 0
+                  ? Math.max((item.promotions / maxPromotions) * 100, 10)
+                  : 5
+                const isCurrentMonth = index === roleStats.monthlyPromotions.length - 1
+
+                return (
+                  <div key={item.month} className="flex flex-col items-center flex-1">
+                    <div
+                      className={`w-full max-w-12 rounded-t-lg transition-all duration-300 ${
+                        isCurrentMonth
+                          ? 'bg-gradient-to-t from-amber-500 to-amber-400'
+                          : item.promotions > 0
+                            ? 'bg-gradient-to-t from-amber-300 to-amber-200'
+                            : 'bg-slate-200'
+                      }`}
+                      style={{ height: `${height}%` }}
+                    >
+                      {item.promotions > 0 && (
+                        <div className="text-center text-xs font-bold text-white pt-1">
+                          {item.promotions}
+                        </div>
+                      )}
+                    </div>
+                    <div className={`text-xs mt-2 ${isCurrentMonth ? 'font-bold text-amber-600' : 'text-slate-500'}`}>
+                      {item.monthNumber}月
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            <div className="flex justify-between mt-4 pt-4 border-t border-slate-200">
+              <div className="text-sm text-slate-600">
+                <span className="font-medium">今月:</span> {roleStats.overview.thisMonthPromotions}人
+              </div>
+              <div className="text-sm text-slate-600">
+                <span className="font-medium">前月:</span> {roleStats.overview.lastMonthPromotions}人
+              </div>
+              <div className="text-sm text-slate-600">
+                <span className="font-medium">累計:</span> {roleStats.overview.totalPromotions}人
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 概要カード（既存） */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="pb-2">
