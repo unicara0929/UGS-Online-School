@@ -8,7 +8,7 @@ import { PageHeader } from '@/components/dashboard/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, CreditCard, Plus, Clock, CheckCircle, Package, Truck, XCircle } from 'lucide-react'
+import { Loader2, CreditCard, Plus, Clock, CheckCircle, Package, Truck, XCircle, MapPin, Banknote } from 'lucide-react'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 
@@ -18,14 +18,17 @@ interface Order {
   displayNameKana: string
   phoneNumber: string
   email: string
-  postalCode: string
-  prefecture: string
-  city: string
-  addressLine1: string
+  deliveryMethod: 'PICKUP' | 'SHIPPING'
+  postalCode: string | null
+  prefecture: string | null
+  city: string | null
+  addressLine1: string | null
   addressLine2: string | null
   quantity: number
   notes: string | null
   status: string
+  paymentStatus: string
+  paidAmount: number | null
   createdAt: string
   design: {
     id: string
@@ -34,11 +37,17 @@ interface Order {
   }
 }
 
+const DELIVERY_LABELS: Record<string, string> = {
+  PICKUP: 'UGS本社で手渡し',
+  SHIPPING: 'レターパック郵送',
+}
+
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
-  PENDING: { label: '受付中', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
+  PENDING: { label: '決済待ち', color: 'bg-amber-100 text-amber-800', icon: Banknote },
+  PAID: { label: '決済完了', color: 'bg-green-100 text-green-800', icon: CheckCircle },
   ORDERED: { label: '発注済み', color: 'bg-blue-100 text-blue-800', icon: Package },
   SHIPPED: { label: '発送済み', color: 'bg-purple-100 text-purple-800', icon: Truck },
-  COMPLETED: { label: '完了', color: 'bg-green-100 text-green-800', icon: CheckCircle },
+  COMPLETED: { label: '完了', color: 'bg-emerald-100 text-emerald-800', icon: CheckCircle },
   CANCELLED: { label: 'キャンセル', color: 'bg-slate-100 text-slate-800', icon: XCircle },
 }
 
@@ -156,8 +165,12 @@ function BusinessCardHistoryContent() {
                                 {order.design.name}
                               </div>
                               <div>
-                                <span className="text-slate-400">部数: </span>
-                                {order.quantity}枚
+                                <span className="text-slate-400">受取: </span>
+                                {DELIVERY_LABELS[order.deliveryMethod]}
+                              </div>
+                              <div>
+                                <span className="text-slate-400">金額: </span>
+                                ¥{order.paidAmount?.toLocaleString() || '-'}
                               </div>
                               <div>
                                 <span className="text-slate-400">注文日: </span>
@@ -187,12 +200,30 @@ function BusinessCardHistoryContent() {
                                 </dl>
                               </div>
                               <div>
-                                <h4 className="font-medium text-slate-700 mb-2">郵送先住所</h4>
-                                <p className="text-slate-600">
-                                  〒{order.postalCode}<br />
-                                  {order.prefecture}{order.city}{order.addressLine1}
-                                  {order.addressLine2 && <><br />{order.addressLine2}</>}
+                                <h4 className="font-medium text-slate-700 mb-2">受取方法</h4>
+                                <p className="text-slate-600 mb-2">
+                                  {order.deliveryMethod === 'PICKUP' ? (
+                                    <span className="flex items-center gap-1">
+                                      <MapPin className="h-4 w-4" />
+                                      UGS本社（愛知県名古屋市）で手渡し
+                                    </span>
+                                  ) : (
+                                    <span className="flex items-center gap-1">
+                                      <Truck className="h-4 w-4" />
+                                      レターパック郵送
+                                    </span>
+                                  )}
                                 </p>
+                                {order.deliveryMethod === 'SHIPPING' && order.postalCode && (
+                                  <div className="mt-2">
+                                    <p className="text-sm text-slate-500 mb-1">郵送先:</p>
+                                    <p className="text-slate-600">
+                                      〒{order.postalCode}<br />
+                                      {order.prefecture}{order.city}{order.addressLine1}
+                                      {order.addressLine2 && <><br />{order.addressLine2}</>}
+                                    </p>
+                                  </div>
+                                )}
                                 {order.notes && (
                                   <div className="mt-4">
                                     <h4 className="font-medium text-slate-700 mb-1">備考</h4>

@@ -1,13 +1,13 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import { Sidebar } from '@/components/navigation/sidebar'
 import { PageHeader } from '@/components/dashboard/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2, CreditCard, ChevronRight, ChevronLeft, Check, AlertCircle } from 'lucide-react'
+import { Loader2, CreditCard, ChevronRight, ChevronLeft, Check, AlertCircle, MapPin, Truck } from 'lucide-react'
 
 interface Design {
   id: string
@@ -16,12 +16,15 @@ interface Design {
   previewUrl: string | null
 }
 
+type DeliveryMethod = 'PICKUP' | 'SHIPPING'
+
 interface FormData {
   designId: string
   displayName: string
   displayNameKana: string
   phoneNumber: string
   email: string
+  deliveryMethod: DeliveryMethod
   postalCode: string
   prefecture: string
   city: string
@@ -29,6 +32,17 @@ interface FormData {
   addressLine2: string
   quantity: number
   notes: string
+}
+
+// 受取方法ごとの料金設定
+const DELIVERY_PRICES: Record<DeliveryMethod, number> = {
+  PICKUP: 2400,   // UGS本社での手渡し受け取り
+  SHIPPING: 2950, // レターパック郵送
+}
+
+const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
+  PICKUP: 'UGS本社（愛知県名古屋市）で手渡し受け取り',
+  SHIPPING: 'レターパック郵送',
 }
 
 const PREFECTURES = [
@@ -41,10 +55,9 @@ const PREFECTURES = [
   '熊本県', '大分県', '宮崎県', '鹿児島県', '沖縄県'
 ]
 
-const QUANTITY_OPTIONS = [50, 100, 200, 300, 500]
-
 function BusinessCardOrderContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [designs, setDesigns] = useState<Design[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -58,6 +71,7 @@ function BusinessCardOrderContent() {
     displayNameKana: '',
     phoneNumber: '',
     email: '',
+    deliveryMethod: 'SHIPPING', // デフォルトは郵送
     postalCode: '',
     prefecture: '',
     city: '',
@@ -68,6 +82,44 @@ function BusinessCardOrderContent() {
   })
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
+
+  // 決済完了後の処理
+  useEffect(() => {
+    const sessionId = searchParams.get('session_id')
+    const paymentStatus = searchParams.get('payment')
+
+    if (sessionId) {
+      // 決済完了の確認
+      verifyPayment(sessionId)
+    } else if (paymentStatus === 'canceled') {
+      // 決済キャンセル
+      setError('決済がキャンセルされました。再度お試しください。')
+    }
+  }, [searchParams])
+
+  const verifyPayment = async (sessionId: string) => {
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/business-card/verify-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ sessionId }),
+      })
+      const data = await response.json()
+
+      if (data.success) {
+        setOrderId(data.orderId)
+        setStep('complete')
+      } else {
+        setError(data.error || '決済の確認に失敗しました')
+      }
+    } catch (err) {
+      setError('決済の確認中にエラーが発生しました')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   // ユーザープロフィール情報を取得して初期値をセット
   useEffect(() => {
@@ -112,8 +164,11 @@ function BusinessCardOrderContent() {
   }, [formData.designId])
 
   useEffect(() => {
-    fetchDesigns()
-  }, [fetchDesigns])
+    // 決済後のリダイレクトでない場合のみデザインを取得
+    if (!searchParams.get('session_id')) {
+      fetchDesigns()
+    }
+  }, [fetchDesigns, searchParams])
 
   const handleInputChange = (field: keyof FormData, value: string | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -147,14 +202,18 @@ function BusinessCardOrderContent() {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errors.email = 'メールアドレスの形式が正しくありません'
     }
-    if (!formData.postalCode.trim()) {
-      errors.postalCode = '郵便番号を入力してください'
-    } else if (!/^\d{3}-?\d{4}$/.test(formData.postalCode)) {
-      errors.postalCode = '郵便番号の形式が正しくありません（例: 123-4567）'
+
+    // 郵送の場合のみ住所を必須チェック
+    if (formData.deliveryMethod === 'SHIPPING') {
+      if (!formData.postalCode.trim()) {
+        errors.postalCode = '郵便番号を入力してください'
+      } else if (!/^\d{3}-?\d{4}$/.test(formData.postalCode)) {
+        errors.postalCode = '郵便番号の形式が正しくありません（例: 123-4567）'
+      }
+      if (!formData.prefecture) errors.prefecture = '都道府県を選択してください'
+      if (!formData.city.trim()) errors.city = '市区町村を入力してください'
+      if (!formData.addressLine1.trim()) errors.addressLine1 = '番地を入力してください'
     }
-    if (!formData.prefecture) errors.prefecture = '都道府県を選択してください'
-    if (!formData.city.trim()) errors.city = '市区町村を入力してください'
-    if (!formData.addressLine1.trim()) errors.addressLine1 = '番地を入力してください'
 
     setValidationErrors(errors)
     return Object.keys(errors).length === 0
@@ -170,29 +229,49 @@ function BusinessCardOrderContent() {
   const handleSubmit = async () => {
     setIsSubmitting(true)
     try {
-      const response = await fetch('/api/business-card/orders', {
+      // 注文を作成してStripe Checkoutにリダイレクト
+      const response = await fetch('/api/business-card/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify(formData),
       })
       const data = await response.json()
+
       if (!response.ok || !data.success) {
-        throw new Error(data.error || '注文の送信に失敗しました')
+        throw new Error(data.error || '決済処理の開始に失敗しました')
       }
-      setOrderId(data.orderId)
-      setStep('complete')
-      window.scrollTo(0, 0)
+
+      // Stripe Checkoutページにリダイレクト
+      window.location.href = data.checkoutUrl
     } catch (err) {
-      alert(err instanceof Error ? err.message : '注文の送信に失敗しました')
-    } finally {
+      alert(err instanceof Error ? err.message : '決済処理の開始に失敗しました')
       setIsSubmitting(false)
     }
   }
 
   const selectedDesign = designs.find((d) => d.id === formData.designId)
+  const currentPrice = DELIVERY_PRICES[formData.deliveryMethod]
 
-  if (isLoading) {
+  // 決済後のリダイレクトでロード中
+  if (searchParams.get('session_id') && isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex">
+        <Sidebar />
+        <div className="flex-1 md:ml-64">
+          <PageHeader title="名刺注文" />
+          <main className="px-4 sm:px-6 lg:px-8 py-8">
+            <div className="flex flex-col items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-slate-400 mb-4" />
+              <p className="text-slate-600">決済を確認中...</p>
+            </div>
+          </main>
+        </div>
+      </div>
+    )
+  }
+
+  if (isLoading && !searchParams.get('session_id')) {
     return (
       <div className="min-h-screen bg-slate-50 flex">
         <Sidebar />
@@ -208,7 +287,7 @@ function BusinessCardOrderContent() {
     )
   }
 
-  if (error) {
+  if (error && step !== 'complete') {
     return (
       <div className="min-h-screen bg-slate-50 flex">
         <Sidebar />
@@ -218,6 +297,16 @@ function BusinessCardOrderContent() {
             <Card className="border-red-200 bg-red-50">
               <CardContent className="py-4">
                 <p className="text-sm text-red-600">{error}</p>
+                <Button
+                  variant="outline"
+                  className="mt-4"
+                  onClick={() => {
+                    setError(null)
+                    router.push('/dashboard/business-card/order')
+                  }}
+                >
+                  もう一度試す
+                </Button>
               </CardContent>
             </Card>
           </main>
@@ -251,7 +340,7 @@ function BusinessCardOrderContent() {
                   }`}>
                     {step === 'complete' ? <Check className="h-4 w-4" /> : '2'}
                   </div>
-                  <span className="text-sm font-medium">確認</span>
+                  <span className="text-sm font-medium">確認・決済</span>
                 </div>
                 <ChevronRight className="h-4 w-4 text-slate-300" />
                 <div className={`flex items-center gap-2 ${step === 'complete' ? 'text-slate-900' : 'text-slate-400'}`}>
@@ -311,6 +400,83 @@ function BusinessCardOrderContent() {
                         {validationErrors.designId}
                       </p>
                     )}
+                  </CardContent>
+                </Card>
+
+                {/* 受取方法選択 */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Truck className="h-5 w-5" />
+                      受取方法
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <label
+                        className={`flex items-start gap-4 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                          formData.deliveryMethod === 'PICKUP'
+                            ? 'border-slate-900 bg-slate-50'
+                            : 'border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="deliveryMethod"
+                          value="PICKUP"
+                          checked={formData.deliveryMethod === 'PICKUP'}
+                          onChange={(e) => handleInputChange('deliveryMethod', e.target.value as DeliveryMethod)}
+                          className="mt-1"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <MapPin className="h-4 w-4 text-slate-600" />
+                            <span className="font-medium">{DELIVERY_LABELS.PICKUP}</span>
+                          </div>
+                          <p className="text-sm text-slate-500 mt-1">
+                            UGS本社にて直接お受け取りいただけます。郵送先の入力は不要です。
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-lg font-bold text-slate-900">
+                            ¥{DELIVERY_PRICES.PICKUP.toLocaleString()}
+                          </span>
+                          <p className="text-xs text-slate-500">税込</p>
+                        </div>
+                      </label>
+
+                      <label
+                        className={`flex items-start gap-4 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                          formData.deliveryMethod === 'SHIPPING'
+                            ? 'border-slate-900 bg-slate-50'
+                            : 'border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="deliveryMethod"
+                          value="SHIPPING"
+                          checked={formData.deliveryMethod === 'SHIPPING'}
+                          onChange={(e) => handleInputChange('deliveryMethod', e.target.value as DeliveryMethod)}
+                          className="mt-1"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <Truck className="h-4 w-4 text-slate-600" />
+                            <span className="font-medium">{DELIVERY_LABELS.SHIPPING}</span>
+                          </div>
+                          <p className="text-sm text-slate-500 mt-1">
+                            ご指定の住所にレターパックでお届けします。
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-lg font-bold text-slate-900">
+                            ¥{DELIVERY_PRICES.SHIPPING.toLocaleString()}
+                          </span>
+                          <p className="text-xs text-slate-500">税込</p>
+                        </div>
+                      </label>
+                    </div>
                   </CardContent>
                 </Card>
 
@@ -394,14 +560,29 @@ function BusinessCardOrderContent() {
                   </CardContent>
                 </Card>
 
+                {/* 郵送先住所（郵送の場合のみ必須） */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>郵送先住所</CardTitle>
+                    <CardTitle>
+                      郵送先住所
+                      {formData.deliveryMethod === 'SHIPPING' ? (
+                        <span className="text-red-500 text-sm ml-2">（必須）</span>
+                      ) : (
+                        <span className="text-slate-400 text-sm ml-2">（任意）</span>
+                      )}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    {formData.deliveryMethod === 'PICKUP' && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                        <p className="text-sm text-blue-800">
+                          UGS本社での手渡し受け取りを選択されています。郵送先住所の入力は任意です。
+                        </p>
+                      </div>
+                    )}
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
-                        郵便番号 <span className="text-red-500">*</span>
+                        郵便番号 {formData.deliveryMethod === 'SHIPPING' && <span className="text-red-500">*</span>}
                       </label>
                       <input
                         type="text"
@@ -419,7 +600,7 @@ function BusinessCardOrderContent() {
 
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
-                        都道府県 <span className="text-red-500">*</span>
+                        都道府県 {formData.deliveryMethod === 'SHIPPING' && <span className="text-red-500">*</span>}
                       </label>
                       <select
                         value={formData.prefecture}
@@ -440,7 +621,7 @@ function BusinessCardOrderContent() {
 
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
-                        市区町村 <span className="text-red-500">*</span>
+                        市区町村 {formData.deliveryMethod === 'SHIPPING' && <span className="text-red-500">*</span>}
                       </label>
                       <input
                         type="text"
@@ -458,7 +639,7 @@ function BusinessCardOrderContent() {
 
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
-                        番地 <span className="text-red-500">*</span>
+                        番地 {formData.deliveryMethod === 'SHIPPING' && <span className="text-red-500">*</span>}
                       </label>
                       <input
                         type="text"
@@ -489,6 +670,21 @@ function BusinessCardOrderContent() {
                   </CardContent>
                 </Card>
 
+                {/* 料金表示 */}
+                <Card className="bg-slate-900 text-white">
+                  <CardContent className="py-6">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="text-slate-300 text-sm">お支払い金額（税込）</p>
+                        <p className="text-sm text-slate-400 mt-1">
+                          {DELIVERY_LABELS[formData.deliveryMethod]}
+                        </p>
+                      </div>
+                      <p className="text-3xl font-bold">¥{currentPrice.toLocaleString()}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
                 <div className="flex justify-end">
                   <Button onClick={handleConfirm} className="flex items-center gap-2">
                     確認画面へ
@@ -509,6 +705,11 @@ function BusinessCardOrderContent() {
                     <div>
                       <h3 className="text-sm font-medium text-slate-500 mb-2">名刺デザイン</h3>
                       <p className="font-medium">{selectedDesign?.name}</p>
+                    </div>
+
+                    <div className="border-t pt-4">
+                      <h3 className="text-sm font-medium text-slate-500 mb-2">受取方法</h3>
+                      <p className="font-medium">{DELIVERY_LABELS[formData.deliveryMethod]}</p>
                     </div>
 
                     <div className="border-t pt-4">
@@ -533,16 +734,41 @@ function BusinessCardOrderContent() {
                       </dl>
                     </div>
 
+                    {formData.deliveryMethod === 'SHIPPING' && formData.postalCode && (
+                      <div className="border-t pt-4">
+                        <h3 className="text-sm font-medium text-slate-500 mb-2">郵送先住所</h3>
+                        <p className="font-medium">
+                          〒{formData.postalCode}<br />
+                          {formData.prefecture}{formData.city}{formData.addressLine1}
+                          {formData.addressLine2 && <><br />{formData.addressLine2}</>}
+                        </p>
+                      </div>
+                    )}
+
+                    {formData.deliveryMethod === 'PICKUP' && (
+                      <div className="border-t pt-4">
+                        <h3 className="text-sm font-medium text-slate-500 mb-2">受取場所</h3>
+                        <p className="font-medium">UGS本社（愛知県名古屋市）</p>
+                        <p className="text-sm text-slate-500 mt-1">
+                          ※ 名刺の準備が完了次第、受取可能日時をご連絡いたします。
+                        </p>
+                      </div>
+                    )}
+
                     <div className="border-t pt-4">
-                      <h3 className="text-sm font-medium text-slate-500 mb-2">郵送先住所</h3>
-                      <p className="font-medium">
-                        〒{formData.postalCode}<br />
-                        {formData.prefecture}{formData.city}{formData.addressLine1}
-                        {formData.addressLine2 && <><br />{formData.addressLine2}</>}
-                      </p>
+                      <h3 className="text-sm font-medium text-slate-500 mb-2">お支払い金額</h3>
+                      <p className="text-2xl font-bold text-slate-900">¥{currentPrice.toLocaleString()}</p>
+                      <p className="text-sm text-slate-500">（税込）</p>
                     </div>
                   </CardContent>
                 </Card>
+
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <p className="text-sm text-amber-800">
+                    「決済に進む」ボタンをクリックすると、Stripeの決済画面に移動します。
+                    決済完了後、自動的にこのページに戻ります。
+                  </p>
+                </div>
 
                 <div className="flex justify-between">
                   <Button variant="outline" onClick={() => setStep('form')} className="flex items-center gap-2">
@@ -553,9 +779,9 @@ function BusinessCardOrderContent() {
                     {isSubmitting ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      <Check className="h-4 w-4" />
+                      <CreditCard className="h-4 w-4" />
                     )}
-                    注文を確定する
+                    決済に進む（¥{currentPrice.toLocaleString()}）
                   </Button>
                 </div>
               </div>
@@ -568,9 +794,9 @@ function BusinessCardOrderContent() {
                   <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                     <Check className="h-8 w-8 text-green-600" />
                   </div>
-                  <h2 className="text-2xl font-bold text-slate-900 mb-2">注文を受け付けました</h2>
+                  <h2 className="text-2xl font-bold text-slate-900 mb-2">注文が完了しました</h2>
                   <p className="text-slate-600 mb-6">
-                    名刺注文の申請が完了しました。<br />
+                    名刺注文の決済が完了しました。<br />
                     確認メールをお送りしましたのでご確認ください。
                   </p>
                   {orderId && (
