@@ -95,8 +95,9 @@ export async function checkManagerPromotionEligibility(userId: string): Promise<
     }
   }
 
-  // 報酬実績（直近3ヶ月平均70,000円以上）
-  const compensationAverage = await calculateAverageCompensation(userId, 3)
+  // 報酬実績（直近6ヶ月平均70,000円以上）
+  // 基準月（現在月の1ヶ月前）を含む過去6ヶ月間が対象
+  const compensationAverage = await calculateAverageCompensation(userId, 6)
   const compensationTarget = 70000
   const compensationMet = compensationAverage >= compensationTarget
 

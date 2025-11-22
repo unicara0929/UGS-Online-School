@@ -52,8 +52,22 @@ export async function GET(request: NextRequest) {
     const total = compensations
       .reduce((sum, c) => sum + c.amount, 0)
 
-    // 直近3ヶ月の平均
-    const recentCompensations = compensations.slice(0, 3)
+    // 直近6ヶ月の平均（基準月=現在月-1を含む過去6ヶ月）
+    // 基準月を計算（現在月の1ヶ月前）
+    const now = new Date()
+    const baseMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    const startMonth = new Date(baseMonth.getFullYear(), baseMonth.getMonth() - 5, 1)
+
+    // 対象期間の月リストを生成（YYYY-MM形式）
+    const targetMonths: string[] = []
+    for (let i = 0; i < 6; i++) {
+      const targetDate = new Date(startMonth.getFullYear(), startMonth.getMonth() + i, 1)
+      const monthStr = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}`
+      targetMonths.push(monthStr)
+    }
+
+    // 対象期間の報酬をフィルタリング
+    const recentCompensations = compensations.filter(c => targetMonths.includes(c.month))
     const recentAverage =
       recentCompensations.length > 0
         ? Math.round(

@@ -81,25 +81,44 @@ export function calculateTotalCompensation(breakdown: CompensationBreakdown): nu
 
 /**
  * 直近Nヶ月の平均報酬を計算
+ * 基準月（現在月の1ヶ月前）を含む過去N月分を対象とする
+ * 例: 現在が11月の場合、基準月は10月。6ヶ月指定なら5月〜10月が対象
  * @param userId ユーザーID
- * @param months 月数（デフォルト: 3）
+ * @param months 月数（デフォルト: 6）
  * @returns 平均報酬額
  */
 export async function calculateAverageCompensation(
   userId: string,
-  months: number = 3
+  months: number = 6
 ): Promise<number> {
+  // 基準月を計算（現在月の1ヶ月前）
+  const now = new Date()
+  const baseMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+
+  // 対象期間の開始月を計算（基準月を含む過去N月分）
+  const startMonth = new Date(baseMonth.getFullYear(), baseMonth.getMonth() - (months - 1), 1)
+
+  // 対象期間の月リストを生成（YYYY-MM形式）
+  const targetMonths: string[] = []
+  for (let i = 0; i < months; i++) {
+    const targetDate = new Date(startMonth.getFullYear(), startMonth.getMonth() + i, 1)
+    const monthStr = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}`
+    targetMonths.push(monthStr)
+  }
+
   const compensations = await prisma.compensation.findMany({
     where: {
       userId,
       status: {
         in: ['CONFIRMED', 'PAID']
+      },
+      month: {
+        in: targetMonths
       }
     },
     orderBy: {
       month: 'desc'
-    },
-    take: months
+    }
   })
 
   if (compensations.length === 0) {
@@ -112,6 +131,8 @@ export async function calculateAverageCompensation(
 
 /**
  * 紹介実績を取得
+ * 基準月（現在月の1ヶ月前）を含む過去N月分を対象とする
+ * 例: 現在が11月の場合、基準月は10月。6ヶ月指定なら5月〜10月が対象
  * @param userId ユーザーID
  * @param months 対象期間（月数、デフォルト: 6）
  * @returns 紹介実績
@@ -123,8 +144,15 @@ export async function getReferralStats(
   memberReferrals: number
   fpReferrals: number
 }> {
-  const startDate = new Date()
-  startDate.setMonth(startDate.getMonth() - months)
+  // 基準月を計算（現在月の1ヶ月前）
+  const now = new Date()
+  const baseMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+
+  // 対象期間の開始日を計算（基準月を含む過去N月分の最初の日）
+  const startDate = new Date(baseMonth.getFullYear(), baseMonth.getMonth() - (months - 1), 1)
+
+  // 対象期間の終了日を計算（基準月の最終日）
+  const endDate = new Date(baseMonth.getFullYear(), baseMonth.getMonth() + 1, 0, 23, 59, 59, 999)
 
   const [memberReferrals, fpReferrals] = await Promise.all([
     prisma.referral.count({
@@ -133,7 +161,8 @@ export async function getReferralStats(
         referralType: 'MEMBER',
         status: ReferralStatus.APPROVED,
         createdAt: {
-          gte: startDate
+          gte: startDate,
+          lte: endDate
         }
       }
     }),
@@ -143,7 +172,8 @@ export async function getReferralStats(
         referralType: 'FP',
         status: ReferralStatus.APPROVED,
         createdAt: {
-          gte: startDate
+          gte: startDate,
+          lte: endDate
         }
       }
     })
