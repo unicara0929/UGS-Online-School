@@ -366,7 +366,14 @@ function BusinessCardOrderContent() {
                   </CardHeader>
                   <CardContent>
                     {designs.length === 0 ? (
-                      <p className="text-sm text-slate-500">利用可能なデザインがありません</p>
+                      <div className="text-center py-8">
+                        <CreditCard className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                        <p className="text-slate-600 font-medium mb-2">利用可能なデザインがありません</p>
+                        <p className="text-sm text-slate-500">
+                          現在、選択可能な名刺デザインが登録されていません。<br />
+                          管理者にお問い合わせください。
+                        </p>
+                      </div>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {designs.map((design) => (
@@ -686,7 +693,11 @@ function BusinessCardOrderContent() {
                 </Card>
 
                 <div className="flex justify-end">
-                  <Button onClick={handleConfirm} className="flex items-center gap-2">
+                  <Button
+                    onClick={handleConfirm}
+                    disabled={designs.length === 0}
+                    className="flex items-center gap-2"
+                  >
                     確認画面へ
                     <ChevronRight className="h-4 w-4" />
                   </Button>
