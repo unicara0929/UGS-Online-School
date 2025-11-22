@@ -20,11 +20,8 @@ interface FormData {
   designId: string
   displayName: string
   displayNameKana: string
-  roleTitle: string
-  company: string
   phoneNumber: string
   email: string
-  websiteUrl: string
   postalCode: string
   prefecture: string
   city: string
@@ -59,11 +56,8 @@ function BusinessCardOrderContent() {
     designId: '',
     displayName: '',
     displayNameKana: '',
-    roleTitle: '',
-    company: '',
     phoneNumber: '',
     email: '',
-    websiteUrl: '',
     postalCode: '',
     prefecture: '',
     city: '',
@@ -75,12 +69,6 @@ function BusinessCardOrderContent() {
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
-  const ROLE_TITLE_OPTIONS: Record<string, string> = {
-    FP: 'FPエイド',
-    MANAGER: 'マネージャー',
-    ADMIN: '管理者',
-  }
-
   // ユーザープロフィール情報を取得して初期値をセット
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -88,15 +76,12 @@ function BusinessCardOrderContent() {
         const response = await fetch('/api/user/profile', { credentials: 'include' })
         const data = await response.json()
         if (data.success && data.user) {
-          const userRole = data.user.role?.toUpperCase() || ''
           setFormData((prev) => ({
             ...prev,
             displayName: data.user.name || '',
             email: data.user.email || '',
             phoneNumber: data.user.phone || '',
             prefecture: data.user.prefecture || '',
-            roleTitle: ROLE_TITLE_OPTIONS[userRole] || '',
-            company: data.user.attribute || '', // 属性フィールドを所属として使用
           }))
         }
       } catch (err) {
@@ -161,9 +146,6 @@ function BusinessCardOrderContent() {
       errors.email = 'メールアドレスを入力してください'
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errors.email = 'メールアドレスの形式が正しくありません'
-    }
-    if (formData.websiteUrl.trim() && !/^https?:\/\/.+/.test(formData.websiteUrl)) {
-      errors.websiteUrl = 'URLの形式が正しくありません（例: https://example.com）'
     }
     if (!formData.postalCode.trim()) {
       errors.postalCode = '郵便番号を入力してください'
@@ -375,33 +357,6 @@ function BusinessCardOrderContent() {
 
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
-                        ロール表記
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.roleTitle}
-                        onChange={(e) => handleInputChange('roleTitle', e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
-                        placeholder="例: FPエイド、ファイナンシャルプランナー"
-                      />
-                      <p className="text-xs text-slate-500 mt-1">名刺に表示する肩書きを自由に設定できます</p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
-                        所属（会社名・屋号など）
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.company}
-                        onChange={(e) => handleInputChange('company', e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
-                        placeholder="例: 株式会社〇〇"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
                         電話番号 <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -436,23 +391,6 @@ function BusinessCardOrderContent() {
                       )}
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
-                        ウェブサイトURL
-                      </label>
-                      <input
-                        type="url"
-                        value={formData.websiteUrl}
-                        onChange={(e) => handleInputChange('websiteUrl', e.target.value)}
-                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 ${
-                          validationErrors.websiteUrl ? 'border-red-300' : 'border-slate-300'
-                        }`}
-                        placeholder="https://example.com"
-                      />
-                      {validationErrors.websiteUrl && (
-                        <p className="text-sm text-red-600 mt-1">{validationErrors.websiteUrl}</p>
-                      )}
-                    </div>
                   </CardContent>
                 </Card>
 
@@ -551,41 +489,6 @@ function BusinessCardOrderContent() {
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>注文オプション</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
-                        部数 <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        value={formData.quantity}
-                        onChange={(e) => handleInputChange('quantity', Number(e.target.value))}
-                        className="w-full max-w-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
-                      >
-                        {QUANTITY_OPTIONS.map((qty) => (
-                          <option key={qty} value={qty}>{qty}枚</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
-                        備考
-                      </label>
-                      <textarea
-                        value={formData.notes}
-                        onChange={(e) => handleInputChange('notes', e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
-                        rows={3}
-                        placeholder="その他ご要望があればご記入ください"
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-
                 <div className="flex justify-end">
                   <Button onClick={handleConfirm} className="flex items-center gap-2">
                     確認画面へ
@@ -619,18 +522,6 @@ function BusinessCardOrderContent() {
                           <dt className="text-sm text-slate-500">フリガナ</dt>
                           <dd className="font-medium">{formData.displayNameKana}</dd>
                         </div>
-                        {formData.roleTitle && (
-                          <div>
-                            <dt className="text-sm text-slate-500">ロール表記</dt>
-                            <dd className="font-medium">{formData.roleTitle}</dd>
-                          </div>
-                        )}
-                        {formData.company && (
-                          <div>
-                            <dt className="text-sm text-slate-500">所属</dt>
-                            <dd className="font-medium">{formData.company}</dd>
-                          </div>
-                        )}
                         <div>
                           <dt className="text-sm text-slate-500">電話番号</dt>
                           <dd className="font-medium">{formData.phoneNumber}</dd>
@@ -639,12 +530,6 @@ function BusinessCardOrderContent() {
                           <dt className="text-sm text-slate-500">メールアドレス</dt>
                           <dd className="font-medium">{formData.email}</dd>
                         </div>
-                        {formData.websiteUrl && (
-                          <div className="md:col-span-2">
-                            <dt className="text-sm text-slate-500">ウェブサイトURL</dt>
-                            <dd className="font-medium">{formData.websiteUrl}</dd>
-                          </div>
-                        )}
                       </dl>
                     </div>
 
@@ -655,22 +540,6 @@ function BusinessCardOrderContent() {
                         {formData.prefecture}{formData.city}{formData.addressLine1}
                         {formData.addressLine2 && <><br />{formData.addressLine2}</>}
                       </p>
-                    </div>
-
-                    <div className="border-t pt-4">
-                      <h3 className="text-sm font-medium text-slate-500 mb-2">注文オプション</h3>
-                      <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <dt className="text-sm text-slate-500">部数</dt>
-                          <dd className="font-medium">{formData.quantity}枚</dd>
-                        </div>
-                        {formData.notes && (
-                          <div className="md:col-span-2">
-                            <dt className="text-sm text-slate-500">備考</dt>
-                            <dd className="font-medium whitespace-pre-wrap">{formData.notes}</dd>
-                          </div>
-                        )}
-                      </dl>
                     </div>
                   </CardContent>
                 </Card>

@@ -517,11 +517,8 @@ export interface BusinessCardOrderConfirmationEmailData {
   orderId: string
   displayName: string
   displayNameKana: string
-  roleTitle?: string | null
-  company?: string | null
   phoneNumber: string
   email: string
-  websiteUrl?: string | null
   postalCode: string
   prefecture: string
   city: string
@@ -537,8 +534,6 @@ export interface BusinessCardOrderNotificationToAdminData {
   userRole: string
   orderId: string
   displayName: string
-  roleTitle?: string | null
-  company?: string | null
   designName: string
   quantity: number
 }
@@ -595,18 +590,6 @@ export async function sendBusinessCardOrderConfirmationEmail(data: BusinessCardO
                 <div class="detail-label">フリガナ</div>
                 <div class="detail-value">${data.displayNameKana}</div>
               </div>
-              ${data.roleTitle ? `
-              <div class="detail-row">
-                <div class="detail-label">ロール表記</div>
-                <div class="detail-value">${data.roleTitle}</div>
-              </div>
-              ` : ''}
-              ${data.company ? `
-              <div class="detail-row">
-                <div class="detail-label">所属</div>
-                <div class="detail-value">${data.company}</div>
-              </div>
-              ` : ''}
               <div class="detail-row">
                 <div class="detail-label">電話番号</div>
                 <div class="detail-value">${data.phoneNumber}</div>
@@ -615,12 +598,6 @@ export async function sendBusinessCardOrderConfirmationEmail(data: BusinessCardO
                 <div class="detail-label">メールアドレス</div>
                 <div class="detail-value">${data.email}</div>
               </div>
-              ${data.websiteUrl ? `
-              <div class="detail-row">
-                <div class="detail-label">ウェブサイトURL</div>
-                <div class="detail-value">${data.websiteUrl}</div>
-              </div>
-              ` : ''}
             </div>
 
             <div style="background: white; padding: 15px; border-radius: 6px; margin: 20px 0;">
@@ -720,8 +697,6 @@ export async function sendBusinessCardOrderNotificationToAdmin(data: BusinessCar
               <h3>注文内容</h3>
               <p><strong>注文番号:</strong> ${data.orderId}</p>
               <p><strong>表示名:</strong> ${data.displayName}</p>
-              ${data.roleTitle ? `<p><strong>ロール表記:</strong> ${data.roleTitle}</p>` : ''}
-              ${data.company ? `<p><strong>所属:</strong> ${data.company}</p>` : ''}
               <p><strong>デザイン:</strong> ${data.designName}</p>
               <p><strong>部数:</strong> ${data.quantity}枚</p>
               <p><strong>受付日時:</strong> ${new Date().toLocaleString('ja-JP')}</p>
