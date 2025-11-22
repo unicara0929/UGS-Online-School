@@ -1,19 +1,20 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Bell, 
-  CheckCircle, 
-  AlertCircle, 
+import {
+  Bell,
+  CheckCircle,
+  AlertCircle,
   Info,
   Loader2,
   CheckCheck
 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { formatDateTime } from "@/lib/utils/format"
+import { useNewBadge } from "@/hooks/use-new-badge"
 
 interface Notification {
   id: string
@@ -34,6 +35,16 @@ export function NotificationList() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [isMarkingAllRead, setIsMarkingAllRead] = useState(false)
+  const { markCategoryViewed, fetchBadgeStatus } = useNewBadge()
+  const hasMarkedViewed = useRef(false)
+
+  // ページを開いたときにカテゴリを閲覧済みとしてマーク
+  useEffect(() => {
+    if (!hasMarkedViewed.current) {
+      markCategoryViewed('NOTIFICATIONS')
+      hasMarkedViewed.current = true
+    }
+  }, [markCategoryViewed])
 
   useEffect(() => {
     if (user?.id) {
@@ -76,6 +87,8 @@ export function NotificationList() {
           )
         )
         setUnreadCount(prev => Math.max(0, prev - 1))
+        // サイドバーのバッジを更新
+        fetchBadgeStatus()
       }
     } catch (error) {
       console.error('Error marking notification as read:', error)
@@ -97,6 +110,8 @@ export function NotificationList() {
           prev.map(n => ({ ...n, isRead: true, readAt: new Date().toISOString() }))
         )
         setUnreadCount(0)
+        // サイドバーのバッジを更新
+        fetchBadgeStatus()
       }
     } catch (error) {
       console.error('Error marking all as read:', error)

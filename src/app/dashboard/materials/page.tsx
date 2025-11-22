@@ -1,13 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { Sidebar } from "@/components/navigation/sidebar"
 import { PageHeader } from "@/components/dashboard/page-header"
 import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { FileText, Download, Plus, Edit, Trash2, Loader2, Upload } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { FileText, Download, Plus, Edit, Trash2, Loader2, Upload, Sparkles } from "lucide-react"
+import { useNewBadge } from "@/hooks/use-new-badge"
 
 type Material = {
   id: string
@@ -20,6 +22,7 @@ type Material = {
   viewableRoles: ('admin' | 'manager' | 'fp' | 'member')[]
   createdAt: string
   updatedAt: string
+  isNew?: boolean
 }
 
 function MaterialsPageContent() {
@@ -30,6 +33,16 @@ function MaterialsPageContent() {
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [editingMaterial, setEditingMaterial] = useState<Material | null>(null)
+  const { markCategoryViewed } = useNewBadge()
+  const hasMarkedViewed = useRef(false)
+
+  // ページを開いたときにカテゴリを閲覧済みとしてマーク
+  useEffect(() => {
+    if (!hasMarkedViewed.current) {
+      markCategoryViewed('MATERIALS')
+      hasMarkedViewed.current = true
+    }
+  }, [markCategoryViewed])
 
   const [materialForm, setMaterialForm] = useState({
     title: '',
@@ -466,6 +479,12 @@ function MaterialsPageContent() {
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div className="flex items-center space-x-2 flex-1">
+                          {material.isNew && (
+                            <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 animate-pulse">
+                              <Sparkles className="h-3 w-3 mr-1" />
+                              NEW
+                            </Badge>
+                          )}
                           <FileText className="h-5 w-5 text-slate-600" />
                           <CardTitle className="text-lg">{material.title}</CardTitle>
                         </div>

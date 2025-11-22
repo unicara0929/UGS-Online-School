@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
 
+// NEW判定の日数
+const NEW_BADGE_DAYS = 7
+
 const CATEGORY_MAP = {
   BASIC: 'income',
   PRACTICAL: 'lifestyle',
@@ -54,6 +57,19 @@ export async function GET(request: NextRequest) {
     // FPエイド以上のみアクセス可能なコンテンツの制御
     const canAccessFPContent = ['FP', 'MANAGER', 'ADMIN'].includes(userRole)
 
+    // ユーザーのコース閲覧履歴を取得
+    const viewedCourseIds = (await prisma.userContentView.findMany({
+      where: {
+        userId,
+        contentType: 'COURSE',
+      },
+      select: { contentId: true },
+    })).map((v) => v.contentId)
+
+    // NEW判定の基準日時
+    const newBadgeThreshold = new Date()
+    newBadgeThreshold.setDate(newBadgeThreshold.getDate() - NEW_BADGE_DAYS)
+
     // レスポンス用にフォーマット
     const formattedCourses = courses.map((course) => {
       const completedLessonIds = new Set(
@@ -73,6 +89,9 @@ export async function GET(request: NextRequest) {
       const completedLessons = lessons.filter((l) => l.isCompleted).length
       const progress = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0
 
+      // NEW判定: 7日以内に更新され、かつユーザーがまだ閲覧していない
+      const isNew = course.updatedAt >= newBadgeThreshold && !viewedCourseIds.includes(course.id)
+
       return {
         id: course.id,
         title: course.title,
@@ -82,6 +101,8 @@ export async function GET(request: NextRequest) {
         lessons,
         isLocked: course.isLocked && !canAccessFPContent,
         progress,
+        isNew,
+        updatedAt: course.updatedAt.toISOString(),
       }
     })
 
