@@ -519,13 +519,16 @@ export interface BusinessCardOrderConfirmationEmailData {
   displayNameKana: string
   phoneNumber: string
   email: string
-  postalCode: string
-  prefecture: string
-  city: string
-  addressLine1: string
+  deliveryMethod: string
+  deliveryMethodLabel: string
+  postalCode?: string | null
+  prefecture?: string | null
+  city?: string | null
+  addressLine1?: string | null
   addressLine2?: string | null
   designName: string
   quantity: number
+  paidAmount: number
 }
 
 export interface BusinessCardOrderNotificationToAdminData {
@@ -534,8 +537,11 @@ export interface BusinessCardOrderNotificationToAdminData {
   userRole: string
   orderId: string
   displayName: string
+  deliveryMethod: string
+  deliveryMethodLabel: string
   designName: string
   quantity: number
+  paidAmount: number
 }
 
 // ユーザーへの名刺注文確認メール
@@ -573,11 +579,12 @@ export async function sendBusinessCardOrderConfirmationEmail(data: BusinessCardO
           <div class="content">
             <h2>${data.userName} 様</h2>
             <p>名刺のご注文をいただき、ありがとうございます。</p>
-            <p>以下の内容で注文を受け付けました。発注処理が完了次第、ご連絡いたします。</p>
+            <p>決済が完了し、以下の内容で注文を受け付けました。発注処理が完了次第、ご連絡いたします。</p>
 
             <div class="info-box">
               <p><strong>注文番号:</strong> ${data.orderId}</p>
               <p><strong>受付日時:</strong> ${new Date().toLocaleString('ja-JP')}</p>
+              <p><strong>お支払い金額:</strong> ¥${data.paidAmount.toLocaleString()}</p>
             </div>
 
             <div style="background: white; padding: 15px; border-radius: 6px; margin: 20px 0;">
@@ -601,12 +608,19 @@ export async function sendBusinessCardOrderConfirmationEmail(data: BusinessCardO
             </div>
 
             <div style="background: white; padding: 15px; border-radius: 6px; margin: 20px 0;">
-              <h3>郵送先住所</h3>
-              <p>
+              <h3>受取方法</h3>
+              <p><strong>${data.deliveryMethodLabel}</strong></p>
+              ${data.deliveryMethod === 'SHIPPING' && data.postalCode ? `
+              <p style="margin-top: 10px;">
                 〒${data.postalCode}<br />
                 ${data.prefecture}${data.city}${data.addressLine1}
                 ${data.addressLine2 ? `<br />${data.addressLine2}` : ''}
               </p>
+              ` : data.deliveryMethod === 'PICKUP' ? `
+              <p style="margin-top: 10px; color: #64748b;">
+                ※ 名刺の準備が完了次第、受取可能日時をご連絡いたします。
+              </p>
+              ` : ''}
             </div>
 
             <div style="background: white; padding: 15px; border-radius: 6px; margin: 20px 0;">
@@ -699,6 +713,8 @@ export async function sendBusinessCardOrderNotificationToAdmin(data: BusinessCar
               <p><strong>表示名:</strong> ${data.displayName}</p>
               <p><strong>デザイン:</strong> ${data.designName}</p>
               <p><strong>部数:</strong> ${data.quantity}枚</p>
+              <p><strong>受取方法:</strong> ${data.deliveryMethodLabel}</p>
+              <p><strong>決済金額:</strong> ¥${data.paidAmount.toLocaleString()}</p>
               <p><strong>受付日時:</strong> ${new Date().toLocaleString('ja-JP')}</p>
             </div>
 

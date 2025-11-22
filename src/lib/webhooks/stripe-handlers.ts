@@ -4,7 +4,13 @@
  */
 
 import { stripe } from '@/lib/stripe'
-import { sendPaymentConfirmationEmail, sendPaymentFailedEmail, sendSubscriptionCancelledEmail } from '@/lib/email'
+import {
+  sendPaymentConfirmationEmail,
+  sendPaymentFailedEmail,
+  sendSubscriptionCancelledEmail,
+  sendBusinessCardOrderConfirmationEmail,
+  sendBusinessCardOrderNotificationToAdmin,
+} from '@/lib/email'
 import { sendEventConfirmationEmail } from '@/lib/services/email-service'
 import { prisma } from '@/lib/prisma'
 import { ReferralStatus } from '@prisma/client'
@@ -17,6 +23,12 @@ export async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Se
   // イベント支払いの場合
   if (session.metadata?.type === 'event') {
     await handleEventPaymentCompleted(session)
+    return
+  }
+
+  // 名刺注文支払いの場合
+  if (session.metadata?.type === 'business-card') {
+    await handleBusinessCardPaymentCompleted(session)
     return
   }
 
@@ -203,6 +215,116 @@ async function handleEventPaymentCompleted(session: Stripe.Checkout.Session): Pr
     }
   } catch (error) {
     console.error('Failed to update event registration payment status:', error)
+  }
+}
+
+const ROLE_LABELS: Record<string, string> = {
+  MEMBER: 'UGS会員',
+  FP: 'FPエイド',
+  MANAGER: 'マネージャー',
+  ADMIN: '管理者',
+}
+
+const DELIVERY_LABELS: Record<string, string> = {
+  PICKUP: 'UGS本社で手渡し受け取り',
+  SHIPPING: 'レターパック郵送',
+}
+
+/**
+ * 名刺注文支払い完了の処理
+ */
+async function handleBusinessCardPaymentCompleted(session: Stripe.Checkout.Session): Promise<void> {
+  const { orderId, userId } = session.metadata || {}
+
+  if (!orderId) {
+    console.error('Missing orderId in business card payment session metadata')
+    return
+  }
+
+  try {
+    // 注文を取得
+    const order = await prisma.businessCardOrder.findUnique({
+      where: { id: orderId },
+      include: {
+        design: { select: { name: true } },
+        user: { select: { id: true, name: true, email: true, role: true } },
+      },
+    })
+
+    if (!order) {
+      console.error('Business card order not found:', orderId)
+      return
+    }
+
+    // 既に支払い完了している場合はスキップ（冪等性）
+    if (order.paymentStatus === 'PAID') {
+      console.log('Business card order already paid, skipping:', orderId)
+      return
+    }
+
+    // 注文ステータスを更新
+    const updatedOrder = await prisma.businessCardOrder.update({
+      where: { id: orderId },
+      data: {
+        paymentStatus: 'PAID',
+        status: 'PAID',
+        stripePaymentIntentId: session.payment_intent as string,
+        stripeSessionId: session.id,
+        paidAmount: session.amount_total || 0,
+        paidAt: new Date(),
+      },
+      include: {
+        design: { select: { name: true } },
+        user: { select: { id: true, name: true, email: true, role: true } },
+      },
+    })
+
+    console.log(`Business card payment completed: orderId=${orderId}, userId=${userId}`)
+
+    // メール通知を送信
+    try {
+      // ユーザーへの確認メール
+      await sendBusinessCardOrderConfirmationEmail({
+        to: updatedOrder.user.email,
+        userName: updatedOrder.user.name,
+        orderId: updatedOrder.id,
+        displayName: updatedOrder.displayName,
+        displayNameKana: updatedOrder.displayNameKana,
+        phoneNumber: updatedOrder.phoneNumber,
+        email: updatedOrder.email,
+        deliveryMethod: updatedOrder.deliveryMethod,
+        deliveryMethodLabel: DELIVERY_LABELS[updatedOrder.deliveryMethod] || updatedOrder.deliveryMethod,
+        postalCode: updatedOrder.postalCode,
+        prefecture: updatedOrder.prefecture,
+        city: updatedOrder.city,
+        addressLine1: updatedOrder.addressLine1,
+        addressLine2: updatedOrder.addressLine2,
+        designName: updatedOrder.design.name,
+        quantity: updatedOrder.quantity,
+        paidAmount: updatedOrder.paidAmount || 0,
+      })
+
+      // 管理者への通知
+      await sendBusinessCardOrderNotificationToAdmin({
+        userName: updatedOrder.user.name,
+        userEmail: updatedOrder.user.email,
+        userRole: ROLE_LABELS[updatedOrder.user.role] || updatedOrder.user.role,
+        orderId: updatedOrder.id,
+        displayName: updatedOrder.displayName,
+        deliveryMethod: updatedOrder.deliveryMethod,
+        deliveryMethodLabel: DELIVERY_LABELS[updatedOrder.deliveryMethod] || updatedOrder.deliveryMethod,
+        designName: updatedOrder.design.name,
+        quantity: updatedOrder.quantity,
+        paidAmount: updatedOrder.paidAmount || 0,
+      })
+
+      console.log('Business card order emails sent to:', updatedOrder.user.email)
+    } catch (emailError) {
+      console.error('Failed to send business card order emails:', emailError)
+      // メール送信失敗でも処理は続行
+    }
+  } catch (error) {
+    console.error('Failed to update business card order payment status:', error)
   }
 }
 

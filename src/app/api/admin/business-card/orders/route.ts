@@ -42,6 +42,7 @@ export async function GET(request: NextRequest) {
     const statusCounts = {
       total: orders.length,
       pending: 0,
+      paid: 0,
       ordered: 0,
       shipped: 0,
       completed: 0,
@@ -52,6 +53,9 @@ export async function GET(request: NextRequest) {
       switch (c.status) {
         case 'PENDING':
           statusCounts.pending = c._count.id
+          break
+        case 'PAID':
+          statusCounts.paid = c._count.id
           break
         case 'ORDERED':
           statusCounts.ordered = c._count.id
@@ -68,7 +72,7 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    statusCounts.total = statusCounts.pending + statusCounts.ordered + statusCounts.shipped + statusCounts.completed + statusCounts.cancelled
+    statusCounts.total = statusCounts.pending + statusCounts.paid + statusCounts.ordered + statusCounts.shipped + statusCounts.completed + statusCounts.cancelled
 
     return NextResponse.json({ success: true, orders, counts: statusCounts })
   } catch (error) {

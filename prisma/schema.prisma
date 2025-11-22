@@ -846,11 +846,26 @@ model ContactSubmission {
 
 // 名刺注文ステータス
 enum BusinessCardOrderStatus {
-  PENDING     // 受付中
+  PENDING     // 支払い待ち
+  PAID        // 支払い完了・受付中
   ORDERED     // 発注済み
   SHIPPED     // 発送済み
   COMPLETED   // 完了
   CANCELLED   // キャンセル
+}
+
+// 名刺受取方法
+enum BusinessCardDeliveryMethod {
+  PICKUP    // UGS本社での手渡し受け取り
+  SHIPPING  // レターパック郵送
+}
+
+// 名刺注文決済ステータス
+enum BusinessCardPaymentStatus {
+  PENDING   // 支払い待ち
+  PAID      // 支払い完了
+  FAILED    // 支払い失敗
+  REFUNDED  // 返金済み
 }
 
 // 名刺デザインテンプレート
@@ -871,38 +886,47 @@ model BusinessCardDesign {
 
 // 名刺注文
 model BusinessCardOrder {
-  id                String                  @id @default(cuid())
+  id                String                      @id @default(cuid())
   userId            String
   designId          String
   // 名刺に印字する情報
-  displayName       String                  // 表示名（名刺に印字する氏名）
-  displayNameKana   String                  // 氏名フリガナ
-  phoneNumber       String                  // 電話番号
-  email             String                  // メールアドレス
-  // 郵送先住所
-  postalCode        String                  // 郵便番号
-  prefecture        String                  // 都道府県
-  city              String                  // 市区町村
-  addressLine1      String                  // 番地・建物名
-  addressLine2      String?                 // 建物名・部屋番号（任意）
+  displayName       String                      // 表示名（名刺に印字する氏名）
+  displayNameKana   String                      // 氏名フリガナ
+  phoneNumber       String                      // 電話番号
+  email             String                      // メールアドレス
+  // 受取方法
+  deliveryMethod    BusinessCardDeliveryMethod  // 受取方法（PICKUP: 本社手渡し / SHIPPING: 郵送）
+  // 郵送先住所（郵送の場合必須、手渡しの場合は任意）
+  postalCode        String?                     // 郵便番号
+  prefecture        String?                     // 都道府県
+  city              String?                     // 市区町村
+  addressLine1      String?                     // 番地・建物名
+  addressLine2      String?                     // 建物名・部屋番号（任意）
   // 注文詳細
-  quantity          Int                     @default(100) // 部数
-  notes             String?                 @db.Text // 備考（ユーザーからのメモ）
+  quantity          Int                         @default(100) // 部数
+  notes             String?                     @db.Text // 備考（ユーザーからのメモ）
+  // 決済関連
+  paymentStatus     BusinessCardPaymentStatus   @default(PENDING) // 決済ステータス
+  stripeSessionId   String?                     // Stripe Checkout Session ID
+  stripePaymentIntentId String?                 // Stripe PaymentIntent ID
+  paidAmount        Int?                        // 支払い金額（円）
+  paidAt            DateTime?                   // 支払い完了日時
   // ステータス管理
-  status            BusinessCardOrderStatus @default(PENDING)
-  adminNotes        String?                 @db.Text // 管理者用メモ
-  processedBy       String?                 // 処理担当者（管理者ID）
-  processedAt       DateTime?               // 処理日時
-  shippedAt         DateTime?               // 発送日時
-  completedAt       DateTime?               // 完了日時
-  createdAt         DateTime                @default(now())
-  updatedAt         DateTime                @updatedAt
+  status            BusinessCardOrderStatus     @default(PENDING)
+  adminNotes        String?                     @db.Text // 管理者用メモ
+  processedBy       String?                     // 処理担当者（管理者ID）
+  processedAt       DateTime?                   // 処理日時
+  shippedAt         DateTime?                   // 発送日時
+  completedAt       DateTime?                   // 完了日時
+  createdAt         DateTime                    @default(now())
+  updatedAt         DateTime                    @updatedAt
 
   user    User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   design  BusinessCardDesign  @relation(fields: [designId], references: [id], onDelete: Restrict)
 
   @@index([userId])
   @@index([status])
+  @@index([paymentStatus])
   @@index([createdAt])
   @@map("business_card_orders")
 }

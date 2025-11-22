@@ -7,7 +7,7 @@ import { PageHeader } from '@/components/dashboard/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, CreditCard, Clock, CheckCircle, Package, Truck, XCircle, ChevronDown, ChevronUp, Filter } from 'lucide-react'
+import { Loader2, CreditCard, Clock, CheckCircle, Package, Truck, XCircle, ChevronDown, ChevronUp, Filter, MapPin, Banknote } from 'lucide-react'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 
@@ -17,14 +17,17 @@ interface Order {
   displayNameKana: string
   phoneNumber: string
   email: string
-  postalCode: string
-  prefecture: string
-  city: string
-  addressLine1: string
+  deliveryMethod: 'PICKUP' | 'SHIPPING'
+  postalCode: string | null
+  prefecture: string | null
+  city: string | null
+  addressLine1: string | null
   addressLine2: string | null
   quantity: number
   notes: string | null
   status: string
+  paymentStatus: string
+  paidAmount: number | null
   adminNotes: string | null
   createdAt: string
   processedAt: string | null
@@ -46,17 +49,24 @@ interface Order {
 interface StatusCounts {
   total: number
   pending: number
+  paid: number
   ordered: number
   shipped: number
   completed: number
   cancelled: number
 }
 
+const DELIVERY_LABELS: Record<string, string> = {
+  PICKUP: 'UGS本社で手渡し',
+  SHIPPING: 'レターパック郵送',
+}
+
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
-  PENDING: { label: '受付中', color: 'bg-yellow-100 text-yellow-800 border-yellow-300', icon: Clock },
+  PENDING: { label: '決済待ち', color: 'bg-amber-100 text-amber-800 border-amber-300', icon: Banknote },
+  PAID: { label: '決済完了', color: 'bg-green-100 text-green-800 border-green-300', icon: CheckCircle },
   ORDERED: { label: '発注済み', color: 'bg-blue-100 text-blue-800 border-blue-300', icon: Package },
   SHIPPED: { label: '発送済み', color: 'bg-purple-100 text-purple-800 border-purple-300', icon: Truck },
-  COMPLETED: { label: '完了', color: 'bg-green-100 text-green-800 border-green-300', icon: CheckCircle },
+  COMPLETED: { label: '完了', color: 'bg-emerald-100 text-emerald-800 border-emerald-300', icon: CheckCircle },
   CANCELLED: { label: 'キャンセル', color: 'bg-slate-100 text-slate-800 border-slate-300', icon: XCircle },
 }
 
@@ -68,7 +78,8 @@ const ROLE_LABELS: Record<string, string> = {
 }
 
 const STATUS_OPTIONS = [
-  { value: 'PENDING', label: '受付中' },
+  { value: 'PENDING', label: '決済待ち' },
+  { value: 'PAID', label: '決済完了' },
   { value: 'ORDERED', label: '発注済み' },
   { value: 'SHIPPED', label: '発送済み' },
   { value: 'COMPLETED', label: '完了' },
@@ -77,7 +88,7 @@ const STATUS_OPTIONS = [
 
 function AdminBusinessCardContent() {
   const [orders, setOrders] = useState<Order[]>([])
-  const [counts, setCounts] = useState<StatusCounts>({ total: 0, pending: 0, ordered: 0, shipped: 0, completed: 0, cancelled: 0 })
+  const [counts, setCounts] = useState<StatusCounts>({ total: 0, pending: 0, paid: 0, ordered: 0, shipped: 0, completed: 0, cancelled: 0 })
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set())
@@ -187,7 +198,7 @@ function AdminBusinessCardContent() {
         <main className="px-4 sm:px-6 lg:px-8 py-8">
           <div className="max-w-6xl mx-auto">
             {/* ステータス別カウント */}
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-7 gap-4 mb-6">
               <Card
                 className={`cursor-pointer transition-all ${filterStatus === null ? 'ring-2 ring-slate-900' : ''}`}
                 onClick={() => setFilterStatus(null)}
@@ -198,12 +209,21 @@ function AdminBusinessCardContent() {
                 </CardContent>
               </Card>
               <Card
-                className={`cursor-pointer transition-all ${filterStatus === 'PENDING' ? 'ring-2 ring-yellow-500' : ''}`}
+                className={`cursor-pointer transition-all ${filterStatus === 'PENDING' ? 'ring-2 ring-amber-500' : ''}`}
                 onClick={() => setFilterStatus('PENDING')}
               >
                 <CardContent className="p-4 text-center">
-                  <p className="text-2xl font-bold text-yellow-600">{counts.pending}</p>
-                  <p className="text-sm text-slate-500">受付中</p>
+                  <p className="text-2xl font-bold text-amber-600">{counts.pending}</p>
+                  <p className="text-sm text-slate-500">決済待ち</p>
+                </CardContent>
+              </Card>
+              <Card
+                className={`cursor-pointer transition-all ${filterStatus === 'PAID' ? 'ring-2 ring-green-500' : ''}`}
+                onClick={() => setFilterStatus('PAID')}
+              >
+                <CardContent className="p-4 text-center">
+                  <p className="text-2xl font-bold text-green-600">{counts.paid}</p>
+                  <p className="text-sm text-slate-500">決済完了</p>
                 </CardContent>
               </Card>
               <Card
@@ -225,11 +245,11 @@ function AdminBusinessCardContent() {
                 </CardContent>
               </Card>
               <Card
-                className={`cursor-pointer transition-all ${filterStatus === 'COMPLETED' ? 'ring-2 ring-green-500' : ''}`}
+                className={`cursor-pointer transition-all ${filterStatus === 'COMPLETED' ? 'ring-2 ring-emerald-500' : ''}`}
                 onClick={() => setFilterStatus('COMPLETED')}
               >
                 <CardContent className="p-4 text-center">
-                  <p className="text-2xl font-bold text-green-600">{counts.completed}</p>
+                  <p className="text-2xl font-bold text-emerald-600">{counts.completed}</p>
                   <p className="text-sm text-slate-500">完了</p>
                 </CardContent>
               </Card>
@@ -284,7 +304,11 @@ function AdminBusinessCardContent() {
                             </div>
                             <div className="flex flex-wrap gap-4 mt-2 text-sm text-slate-600">
                               <span>デザイン: {order.design.name}</span>
-                              <span>部数: {order.quantity}枚</span>
+                              <span className="flex items-center gap-1">
+                                {order.deliveryMethod === 'PICKUP' ? <MapPin className="h-3 w-3" /> : <Truck className="h-3 w-3" />}
+                                {DELIVERY_LABELS[order.deliveryMethod]}
+                              </span>
+                              <span>金額: ¥{order.paidAmount?.toLocaleString() || '-'}</span>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
@@ -323,13 +347,35 @@ function AdminBusinessCardContent() {
                                 </dl>
                               </div>
 
-                              {/* 郵送先住所 */}
+                              {/* 受取方法 */}
                               <div>
-                                <h4 className="font-medium text-slate-700 mb-2">郵送先住所</h4>
-                                <p className="text-slate-600">
-                                  〒{order.postalCode}<br />
-                                  {order.prefecture}{order.city}{order.addressLine1}
-                                  {order.addressLine2 && <><br />{order.addressLine2}</>}
+                                <h4 className="font-medium text-slate-700 mb-2">受取方法</h4>
+                                <p className="text-slate-600 mb-2">
+                                  {order.deliveryMethod === 'PICKUP' ? (
+                                    <span className="flex items-center gap-1">
+                                      <MapPin className="h-4 w-4" />
+                                      UGS本社（愛知県名古屋市）で手渡し
+                                    </span>
+                                  ) : (
+                                    <span className="flex items-center gap-1">
+                                      <Truck className="h-4 w-4" />
+                                      レターパック郵送
+                                    </span>
+                                  )}
+                                </p>
+                                {order.deliveryMethod === 'SHIPPING' && order.postalCode && (
+                                  <div className="mt-2">
+                                    <p className="text-sm text-slate-500 mb-1">郵送先:</p>
+                                    <p className="text-slate-600">
+                                      〒{order.postalCode}<br />
+                                      {order.prefecture}{order.city}{order.addressLine1}
+                                      {order.addressLine2 && <><br />{order.addressLine2}</>}
+                                    </p>
+                                  </div>
+                                )}
+                                <p className="mt-2 text-sm">
+                                  <span className="text-slate-400">決済金額: </span>
+                                  <span className="font-medium">¥{order.paidAmount?.toLocaleString() || '-'}</span>
                                 </p>
                               </div>
 
