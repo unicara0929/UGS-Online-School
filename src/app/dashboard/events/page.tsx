@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useRef } from "react"
 import { format } from "date-fns"
 import { ja } from "date-fns/locale"
 import { ProtectedRoute } from "@/components/auth/protected-route"
@@ -10,9 +10,10 @@ import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Clock, MapPin, Users, Video, Loader2, CheckCircle2 } from "lucide-react"
+import { Calendar, Clock, MapPin, Users, Video, Loader2, CheckCircle2, Sparkles } from "lucide-react"
 import { AttendanceCodeInput } from "@/components/events/attendance-code-input"
 import { VideoSurveyAttendance } from "@/components/events/video-survey-attendance"
+import { useNewBadge } from "@/hooks/use-new-badge"
 
 function EventsPageContent() {
   const { user } = useAuth()
@@ -21,6 +22,16 @@ function EventsPageContent() {
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [paymentMessage, setPaymentMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  const { markCategoryViewed, recordContentView } = useNewBadge()
+  const hasMarkedViewed = useRef(false)
+
+  // ページを開いたときにカテゴリを閲覧済みとしてマーク
+  useEffect(() => {
+    if (!hasMarkedViewed.current) {
+      markCategoryViewed('EVENTS')
+      hasMarkedViewed.current = true
+    }
+  }, [markCategoryViewed])
 
   // 決済確認処理（Stripeからのリダイレクト後）
   useEffect(() => {
@@ -151,6 +162,9 @@ function EventsPageContent() {
             isPaid: event.isPaid || false,
             price: event.price || null,
             paymentStatus: event.paymentStatus || null,
+            // 新着表示関連
+            isNew: event.isNew || false,
+            updatedAt: event.updatedAt || '',
             // 出席確認関連
             hasAttendanceCode: event.hasAttendanceCode || false,
             attendanceDeadline: event.attendanceDeadline || null,
@@ -421,6 +435,12 @@ function EventsPageContent() {
                   <CardHeader>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
+                        {event.isNew && (
+                          <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 animate-pulse">
+                            <Sparkles className="h-3 w-3 mr-1" />
+                            NEW
+                          </Badge>
+                        )}
                         <Badge variant={getEventTypeColor(event.type)}>
                           {getEventTypeLabel(event.type)}
                         </Badge>
@@ -661,6 +681,9 @@ type EventItem = {
   isPaid: boolean
   price: number | null
   paymentStatus: string | null
+  // 新着表示関連
+  isNew: boolean
+  updatedAt: string
   // 出席確認関連
   hasAttendanceCode: boolean
   attendanceDeadline: string | null

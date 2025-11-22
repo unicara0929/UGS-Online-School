@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -14,9 +14,11 @@ import {
   Clock,
   FileText,
   Video,
-  Loader2
+  Loader2,
+  Sparkles
 } from "lucide-react"
 import Link from "next/link"
+import { useNewBadge } from "@/hooks/use-new-badge"
 
 interface Course {
   id: string
@@ -27,6 +29,8 @@ interface Course {
   lessons: Lesson[]
   isLocked: boolean
   progress: number
+  isNew?: boolean
+  updatedAt?: string
 }
 
 interface Lesson {
@@ -43,6 +47,16 @@ export function CourseList() {
   const [courses, setCourses] = useState<Course[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { markCategoryViewed, recordContentView } = useNewBadge()
+  const hasMarkedViewed = useRef(false)
+
+  // ページを開いたときにカテゴリを閲覧済みとしてマーク
+  useEffect(() => {
+    if (!hasMarkedViewed.current) {
+      markCategoryViewed('COURSES')
+      hasMarkedViewed.current = true
+    }
+  }, [markCategoryViewed])
 
   useEffect(() => {
     fetchCourses()
@@ -125,9 +139,17 @@ export function CourseList() {
           <Card key={course.id} className="hover:shadow-xl transition-all duration-300">
             <CardHeader>
               <div className="flex items-center justify-between mb-2">
-                <Badge className={getCategoryColor(course.category)}>
-                  {getCategoryLabel(course.category)}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  {course.isNew && (
+                    <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 animate-pulse">
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      NEW
+                    </Badge>
+                  )}
+                  <Badge className={getCategoryColor(course.category)}>
+                    {getCategoryLabel(course.category)}
+                  </Badge>
+                </div>
                 <Badge variant="outline">
                   {getLevelLabel(course.level)}
                 </Badge>

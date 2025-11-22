@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
 
+// NEW判定の日数
+const NEW_BADGE_DAYS = 7
+
 const EVENT_TYPE_MAP = {
   REQUIRED: 'required',
   OPTIONAL: 'optional',
@@ -93,6 +96,21 @@ export async function GET(request: NextRequest) {
 
     const events = await Promise.race([eventsPromise, timeoutPromise]) as Awaited<typeof eventsPromise>
 
+    // ユーザーのイベント閲覧履歴を取得
+    const viewedEventIds = userId
+      ? (await prisma.userContentView.findMany({
+          where: {
+            userId,
+            contentType: 'EVENT',
+          },
+          select: { contentId: true },
+        })).map((v) => v.contentId)
+      : []
+
+    // NEW判定の基準日時
+    const newBadgeThreshold = new Date()
+    newBadgeThreshold.setDate(newBadgeThreshold.getDate() - NEW_BADGE_DAYS)
+
     const formattedEvents = events.map((event) => {
       const typeKey = event.type as keyof typeof EVENT_TYPE_MAP
       const attendanceTypeKey = event.attendanceType as keyof typeof EVENT_ATTENDANCE_TYPE_MAP
@@ -113,6 +131,9 @@ export async function GET(request: NextRequest) {
           ? event.registrations[0]
           : null
 
+      // NEW判定: 7日以内に更新され、かつユーザーがまだ閲覧していない
+      const isNew = event.updatedAt >= newBadgeThreshold && !viewedEventIds.includes(event.id)
+
       return {
         id: event.id,
         title: event.title,
@@ -129,6 +150,8 @@ export async function GET(request: NextRequest) {
         status: EVENT_STATUS_MAP[statusKey] ?? 'upcoming',
         thumbnailUrl: event.thumbnailUrl ?? null,
         isRegistered,
+        isNew, // 新着判定
+        updatedAt: event.updatedAt.toISOString(),
         // 有料イベント関連
         isPaid: event.isPaid,
         price: event.price ?? null,

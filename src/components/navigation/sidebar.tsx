@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { Menu, X, ChevronDown, ChevronRight } from 'lucide-react'
 import { navigation } from '@/lib/navigation'
 import Image from 'next/image'
+import { useNewBadge } from '@/hooks/use-new-badge'
 
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -17,6 +18,22 @@ export function Sidebar() {
   const [logoError, setLogoError] = useState(false)
   const [profileImage, setProfileImage] = useState<string | null>(null)
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
+  const { badges } = useNewBadge()
+
+  // パスからカテゴリへのマッピング
+  const pathToBadgeKey: Record<string, keyof typeof badges> = {
+    '/dashboard/events': 'events',
+    '/dashboard/courses': 'courses',
+    '/dashboard/materials': 'materials',
+    '/dashboard/notifications': 'notifications',
+  }
+
+  // メニュー項目に対応するバッジ数を取得
+  const getBadgeCount = (href: string | undefined): number => {
+    if (!href) return 0
+    const badgeKey = pathToBadgeKey[href]
+    return badgeKey ? badges[badgeKey] : 0
+  }
 
   useEffect(() => {
     // プロフィール画像を読み込む
@@ -227,8 +244,8 @@ export function Sidebar() {
                               href={subItem.href || '#'}
                               className={`
                                 flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200
-                                ${isSubActive 
-                                  ? 'bg-gradient-to-r from-slate-700 to-slate-800 text-white shadow-md' 
+                                ${isSubActive
+                                  ? 'bg-gradient-to-r from-slate-700 to-slate-800 text-white shadow-md'
                                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                                 }
                               `}
@@ -236,10 +253,10 @@ export function Sidebar() {
                             >
                               <subItem.icon className={`h-4 w-4 mr-3 ${isSubActive ? 'text-white' : 'text-slate-500'}`} />
                               <span className="flex-1">{subItem.name}</span>
-                              {subItem.badge && (
-                                <Badge variant="destructive" className="text-xs">
-                                  {subItem.badge}
-                                </Badge>
+                              {getBadgeCount(subItem.href) > 0 && (
+                                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                                  {getBadgeCount(subItem.href) > 99 ? '99+' : getBadgeCount(subItem.href)}
+                                </span>
                               )}
                             </Link>
                           )
@@ -251,14 +268,15 @@ export function Sidebar() {
               }
 
               // 通常の項目（子項目なし）
+              const itemBadgeCount = getBadgeCount(item.href)
               return (
                 <Link
                   key={item.name}
                   href={item.href || '#'}
                   className={`
                     flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200
-                    ${isActive 
-                      ? 'bg-gradient-to-r from-slate-700 to-slate-800 text-white shadow-md' 
+                    ${isActive
+                      ? 'bg-gradient-to-r from-slate-700 to-slate-800 text-white shadow-md'
                       : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                     }
                   `}
@@ -266,10 +284,10 @@ export function Sidebar() {
                 >
                   <item.icon className={`h-5 w-5 mr-3 ${isActive ? 'text-white' : 'text-slate-500'}`} />
                   <span className="flex-1">{item.name}</span>
-                  {item.badge && (
-                    <Badge variant="destructive" className="text-xs">
-                      {item.badge}
-                    </Badge>
+                  {itemBadgeCount > 0 && (
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                      {itemBadgeCount > 99 ? '99+' : itemBadgeCount}
+                    </span>
                   )}
                 </Link>
               )
