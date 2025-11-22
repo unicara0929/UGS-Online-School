@@ -321,7 +321,7 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">報酬実績（直近3ヶ月平均）</span>
+                  <span className="text-sm font-medium">報酬実績（直近6ヶ月平均）</span>
                   <span className="text-sm">{formatCurrency(promotionConditions.compensationAverage.current)} / {formatCurrency(promotionConditions.compensationAverage.target)}</span>
                 </div>
                 <Progress value={promotionConditions.compensationAverage.progress} className="h-2" />

@@ -139,7 +139,7 @@ export function ManagerPromotion() {
             {conditions.compensationAverage && (
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">報酬実績（直近3ヶ月平均）</span>
+                  <span className="text-sm font-medium">報酬実績（直近6ヶ月平均）</span>
                   <span className="text-sm">
                     {formatCurrency(conditions.compensationAverage.current)} / {formatCurrency(conditions.compensationAverage.target)}
                   </span>
