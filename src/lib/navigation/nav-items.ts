@@ -13,7 +13,10 @@ import {
   FileText,
   MessageSquare,
   FolderOpen,
-  Mail
+  Mail,
+  HelpCircle,
+  Send,
+  Inbox
 } from 'lucide-react'
 
 export interface NavItem {
@@ -44,6 +47,15 @@ export const navigation: NavItem[] = [
   { name: 'LP面談予約', href: '/dashboard/lp-meeting/request', icon: MessageSquare, roles: ['member'] },
   { name: 'LP面談管理', href: '/dashboard/lp-meeting/manage', icon: MessageSquare, roles: ['fp'] },
   { name: 'イベント', href: '/dashboard/events', icon: Calendar, roles: ['member', 'fp', 'manager', 'admin'] },
+  {
+    name: 'サポート',
+    icon: HelpCircle,
+    roles: ['member', 'fp', 'manager', 'admin'],
+    subItems: [
+      { name: 'よくある質問', href: '/dashboard/support/faq', icon: HelpCircle, roles: ['member', 'fp', 'manager', 'admin'] },
+      { name: 'お問い合わせ', href: '/dashboard/support/contact', icon: Send, roles: ['member', 'fp', 'manager', 'admin'] },
+    ]
+  },
   { name: '教育コンテンツ管理', href: '/dashboard/admin/courses', icon: BookOpen, roles: ['admin'] },
   { name: 'イベント管理', href: '/dashboard/admin/events', icon: Calendar, roles: ['admin'] },
   { name: 'LP面談管理（管理者）', href: '/dashboard/admin/lp-meetings', icon: MessageSquare, roles: ['admin'] },
@@ -54,5 +66,7 @@ export const navigation: NavItem[] = [
   { name: '分析', href: '/dashboard/analytics', icon: BarChart3, roles: ['admin'] },
   { name: 'ユーザー管理', href: '/dashboard/admin/users', icon: UserCheck, roles: ['admin'] },
   { name: 'メール送信履歴', href: '/dashboard/admin/email-history', icon: Mail, roles: ['admin'] },
+  { name: 'FAQ管理', href: '/dashboard/admin/faq', icon: HelpCircle, roles: ['admin'] },
+  { name: 'お問い合わせ管理', href: '/dashboard/admin/contacts', icon: Inbox, roles: ['admin'] },
   { name: '設定', href: '/dashboard/settings', icon: Settings, roles: ['member', 'fp', 'manager', 'admin'] },
 ]

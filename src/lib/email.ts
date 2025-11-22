@@ -312,3 +312,197 @@ export async function sendSubscriptionCancelledEmail(data: SubscriptionCancelled
     throw error
   }
 }
+
+// お問い合わせ関連のメール
+
+export interface ContactConfirmationEmailData {
+  to: string
+  userName: string
+  type: string
+  subject: string | null
+  message: string
+  submissionId: string
+}
+
+export interface ContactNotificationToAdminData {
+  userName: string
+  userEmail: string
+  userRole: string
+  type: string
+  subject: string | null
+  message: string
+  submissionId: string
+}
+
+const CONTACT_TYPE_LABELS: Record<string, string> = {
+  ACCOUNT: 'アカウントについて',
+  PAYMENT: '支払い・請求について',
+  CONTENT: 'コンテンツについて',
+  TECHNICAL: '技術的な問題',
+  OTHER: 'その他',
+}
+
+// ユーザーへの自動返信メール
+export async function sendContactConfirmationEmail(data: ContactConfirmationEmailData) {
+  const mailOptions = {
+    from: `"UGSオンラインスクール" <${process.env.SMTP_USER}>`,
+    to: data.to,
+    subject: 'UGSオンラインスクール - お問い合わせ受付完了',
+    encoding: 'utf-8',
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>お問い合わせ受付完了</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #1e293b; color: white; padding: 20px; text-align: center; }
+          .content { padding: 20px; background: #f8fafc; }
+          .info-box { background: white; padding: 15px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #1e293b; }
+          .footer { padding: 20px; text-align: center; color: #64748b; font-size: 14px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>UGSオンラインスクール</h1>
+            <p>お問い合わせ受付完了</p>
+          </div>
+
+          <div class="content">
+            <h2>${data.userName} 様</h2>
+            <p>お問い合わせいただき、ありがとうございます。</p>
+            <p>以下の内容でお問い合わせを受け付けました。担当者より2営業日以内にご連絡いたします。</p>
+
+            <div class="info-box">
+              <p><strong>お問い合わせID:</strong> ${data.submissionId}</p>
+              <p><strong>種別:</strong> ${CONTACT_TYPE_LABELS[data.type] || data.type}</p>
+              ${data.subject ? `<p><strong>件名:</strong> ${data.subject}</p>` : ''}
+              <p><strong>受付日時:</strong> ${new Date().toLocaleString('ja-JP')}</p>
+            </div>
+
+            <div style="background: white; padding: 15px; border-radius: 6px; margin: 20px 0;">
+              <p><strong>お問い合わせ内容:</strong></p>
+              <p style="white-space: pre-wrap;">${data.message}</p>
+            </div>
+
+            <p>ご不明な点がございましたら、このメールに返信いただくか、サポートページよりお問い合わせください。</p>
+          </div>
+
+          <div class="footer">
+            <p>UGSオンラインスクール</p>
+            <p>※ このメールは自動送信されています。</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  }
+
+  try {
+    if (process.env.NODE_ENV === 'development' && !process.env.SMTP_PASS) {
+      console.log('📧 [DEV MODE] Contact confirmation email would be sent to:', data.to)
+      return
+    }
+
+    await transporter.sendMail(mailOptions)
+    console.log('✅ Contact confirmation email sent successfully to:', data.to)
+  } catch (error: any) {
+    console.error('❌ Error sending contact confirmation email:', error)
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('⚠️ Email sending failed, but continuing in development mode')
+      return
+    }
+    throw error
+  }
+}
+
+// 管理者への通知メール
+export async function sendContactNotificationToAdmin(data: ContactNotificationToAdminData) {
+  const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER
+
+  const mailOptions = {
+    from: `"UGSオンラインスクール" <${process.env.SMTP_USER}>`,
+    to: adminEmail,
+    subject: `【お問い合わせ】${CONTACT_TYPE_LABELS[data.type] || data.type} - ${data.userName}様`,
+    encoding: 'utf-8',
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>新規お問い合わせ通知</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #dc2626; color: white; padding: 20px; text-align: center; }
+          .content { padding: 20px; background: #f8fafc; }
+          .info-box { background: white; padding: 15px; border-radius: 6px; margin: 20px 0; }
+          .button { display: inline-block; background: #1e293b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+          .footer { padding: 20px; text-align: center; color: #64748b; font-size: 14px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>新規お問い合わせ</h1>
+          </div>
+
+          <div class="content">
+            <p>会員からお問い合わせがありました。</p>
+
+            <div class="info-box">
+              <h3>送信者情報</h3>
+              <p><strong>お名前:</strong> ${data.userName}</p>
+              <p><strong>メールアドレス:</strong> ${data.userEmail}</p>
+              <p><strong>ロール:</strong> ${data.userRole}</p>
+            </div>
+
+            <div class="info-box">
+              <h3>お問い合わせ内容</h3>
+              <p><strong>お問い合わせID:</strong> ${data.submissionId}</p>
+              <p><strong>種別:</strong> ${CONTACT_TYPE_LABELS[data.type] || data.type}</p>
+              ${data.subject ? `<p><strong>件名:</strong> ${data.subject}</p>` : ''}
+              <p><strong>受付日時:</strong> ${new Date().toLocaleString('ja-JP')}</p>
+            </div>
+
+            <div class="info-box">
+              <h3>本文</h3>
+              <p style="white-space: pre-wrap;">${data.message}</p>
+            </div>
+
+            <div style="text-align: center;">
+              <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://your-domain.com'}/dashboard/admin/contacts/${data.submissionId}" class="button">
+                管理画面で確認する
+              </a>
+            </div>
+          </div>
+
+          <div class="footer">
+            <p>UGSオンラインスクール 管理者通知</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  }
+
+  try {
+    if (process.env.NODE_ENV === 'development' && !process.env.SMTP_PASS) {
+      console.log('📧 [DEV MODE] Contact notification email would be sent to admin:', adminEmail)
+      return
+    }
+
+    await transporter.sendMail(mailOptions)
+    console.log('✅ Contact notification email sent successfully to admin:', adminEmail)
+  } catch (error: any) {
+    console.error('❌ Error sending contact notification email to admin:', error)
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('⚠️ Email sending failed, but continuing in development mode')
+      return
+    }
+    throw error
+  }
+}

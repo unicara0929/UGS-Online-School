@@ -60,6 +60,10 @@ model User {
   emailLogs               EmailLog[]
   compensationBankAccount BankAccount? @relation("compensationBankAccount") // 報酬受け取り口座（FP/MGR向け）
   roleChangeHistory       RoleChangeHistory[]
+  contactSubmissions      ContactSubmission[] // お問い合わせ
+  // 新着通知機能
+  categoryViews           UserCategoryView[]
+  contentViews            UserContentView[]
 
   @@map("users")
 }
@@ -746,4 +750,131 @@ enum AccountType {
   NORMAL   // 普通預金
   CHECKING // 当座預金
   SAVINGS  // 貯蓄預金
+}
+
+// =====================
+// FAQ・お問い合わせ機能
+// =====================
+
+// FAQカテゴリ
+model FAQCategory {
+  id          String    @id @default(cuid())
+  name        String    // カテゴリ名（例: アカウントについて、料金・支払いについて）
+  description String?   // カテゴリの説明
+  order       Int       @default(0) // 表示順
+  isActive    Boolean   @default(true) // 有効/無効
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  faqs        FAQ[]
+
+  @@index([order])
+  @@index([isActive])
+  @@map("faq_categories")
+}
+
+// FAQ（よくある質問）
+model FAQ {
+  id          String      @id @default(cuid())
+  categoryId  String
+  question    String      // 質問タイトル
+  answer      String      @db.Text // 回答本文
+  order       Int         @default(0) // 表示順（カテゴリ内）
+  isPublished Boolean     @default(true) // 公開/非公開
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  category    FAQCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([categoryId, order])
+  @@index([isPublished])
+  @@map("faqs")
+}
+
+// お問い合わせ種別
+enum ContactType {
+  ACCOUNT     // アカウントについて
+  PAYMENT     // 支払い・請求について
+  CONTENT     // コンテンツについて
+  TECHNICAL   // 技術的な問題
+  OTHER       // その他
+}
+
+// お問い合わせステータス
+enum ContactStatus {
+  PENDING     // 未対応
+  IN_PROGRESS // 対応中
+  RESOLVED    // 対応済み
+  CLOSED      // クローズ
+}
+
+// お問い合わせ
+model ContactSubmission {
+  id            String        @id @default(cuid())
+  userId        String
+  name          String        // 送信者名
+  email         String        // 送信者メールアドレス
+  type          ContactType   // 問い合わせ種別
+  subject       String?       // 件名（任意）
+  message       String        @db.Text // 問い合わせ内容
+  attachmentUrl String?       // 添付ファイルURL（任意）
+  status        ContactStatus @default(PENDING) // ステータス
+  adminNotes    String?       @db.Text // 管理者用メモ
+  respondedBy   String?       // 対応者（管理者ID）
+  respondedAt   DateTime?     // 対応完了日時
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+  @@map("contact_submissions")
+}
+
+// =====================
+// 新着通知機能
+// =====================
+
+// カテゴリ別の最終閲覧日時（メニューバッジ用）
+enum ViewCategory {
+  EVENTS        // イベント
+  COURSES       // 教育コンテンツ
+  MATERIALS     // 資料コンテンツ
+  NOTIFICATIONS // 通知
+}
+
+model UserCategoryView {
+  id           String       @id @default(cuid())
+  userId       String
+  category     ViewCategory
+  lastViewedAt DateTime     @default(now())
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, category])
+  @@index([userId])
+  @@map("user_category_views")
+}
+
+// コンテンツ別の閲覧履歴（NEW表示用）
+enum ContentType {
+  EVENT    // イベント
+  COURSE   // コース（教育コンテンツ）
+  LESSON   // レッスン
+  MATERIAL // 資料コンテンツ
+}
+
+model UserContentView {
+  id            String      @id @default(cuid())
+  userId        String
+  contentType   ContentType
+  contentId     String
+  firstViewedAt DateTime    @default(now())
+  createdAt     DateTime    @default(now())
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentType, contentId])
+  @@index([userId, contentType])
+  @@map("user_content_views")
 }
