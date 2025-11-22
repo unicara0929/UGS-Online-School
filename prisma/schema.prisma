@@ -61,6 +61,7 @@ model User {
   compensationBankAccount BankAccount? @relation("compensationBankAccount") // 報酬受け取り口座（FP/MGR向け）
   roleChangeHistory       RoleChangeHistory[]
   contactSubmissions      ContactSubmission[] // お問い合わせ
+  businessCardOrders      BusinessCardOrder[] // 名刺注文
   // 新着通知機能
   categoryViews           UserCategoryView[]
   contentViews            UserContentView[]
@@ -180,6 +181,14 @@ model Event {
   // 定期開催イベント関連
   isRecurring     Boolean             @default(false) // 定期開催イベントかどうか
   recurrencePattern String?           // 繰り返しパターン（例: "monthly-first-sunday"）
+  // 過去イベント記録用フィールド
+  summary           String?           @db.Text // 実施内容の概要
+  photos            String[]          // 当日の写真URL（複数）
+  materialsUrl      String?           // セミナー資料リンク（PDF等）
+  actualParticipants Int?             // 実参加人数
+  actualLocation    String?           // 最終的な会場情報
+  adminNotes        String?           @db.Text // 管理者用メモ（参加者の反応、改善点など）
+  isArchiveOnly     Boolean           @default(false) // 記録専用イベントかどうか（募集なし）
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
   registrations   EventRegistration[]
@@ -829,6 +838,76 @@ model ContactSubmission {
   @@index([type])
   @@index([createdAt])
   @@map("contact_submissions")
+}
+
+// =====================
+// 名刺注文機能
+// =====================
+
+// 名刺注文ステータス
+enum BusinessCardOrderStatus {
+  PENDING     // 受付中
+  ORDERED     // 発注済み
+  SHIPPED     // 発送済み
+  COMPLETED   // 完了
+  CANCELLED   // キャンセル
+}
+
+// 名刺デザインテンプレート
+model BusinessCardDesign {
+  id           String    @id @default(cuid())
+  name         String    // デザイン名（例: シンプル、写真あり、ロゴ強調）
+  description  String?   // デザインの説明
+  previewUrl   String?   // プレビュー画像URL
+  isActive     Boolean   @default(true) // 有効/無効
+  order        Int       @default(0) // 表示順
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  orders       BusinessCardOrder[]
+
+  @@index([isActive, order])
+  @@map("business_card_designs")
+}
+
+// 名刺注文
+model BusinessCardOrder {
+  id                String                  @id @default(cuid())
+  userId            String
+  designId          String
+  // 名刺に印字する情報
+  displayName       String                  // 表示名（名刺に印字する氏名）
+  displayNameKana   String                  // 氏名フリガナ
+  roleTitle         String?                 // ロール表記（例：FPエイド／マネージャー／ファイナンシャルプランナー）
+  company           String?                 // 所属（会社名・屋号など）
+  phoneNumber       String                  // 電話番号
+  email             String                  // メールアドレス
+  websiteUrl        String?                 // ウェブサイトURL（任意）
+  // 郵送先住所
+  postalCode        String                  // 郵便番号
+  prefecture        String                  // 都道府県
+  city              String                  // 市区町村
+  addressLine1      String                  // 番地・建物名
+  addressLine2      String?                 // 建物名・部屋番号（任意）
+  // 注文詳細
+  quantity          Int                     @default(100) // 部数
+  notes             String?                 @db.Text // 備考（ユーザーからのメモ）
+  // ステータス管理
+  status            BusinessCardOrderStatus @default(PENDING)
+  adminNotes        String?                 @db.Text // 管理者用メモ
+  processedBy       String?                 // 処理担当者（管理者ID）
+  processedAt       DateTime?               // 処理日時
+  shippedAt         DateTime?               // 発送日時
+  completedAt       DateTime?               // 完了日時
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+
+  user    User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  design  BusinessCardDesign  @relation(fields: [designId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("business_card_orders")
 }
 
 // =====================

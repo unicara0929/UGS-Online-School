@@ -506,3 +506,257 @@ export async function sendContactNotificationToAdmin(data: ContactNotificationTo
     throw error
   }
 }
+
+// =====================
+// 名刺注文関連のメール
+// =====================
+
+export interface BusinessCardOrderConfirmationEmailData {
+  to: string
+  userName: string
+  orderId: string
+  displayName: string
+  displayNameKana: string
+  roleTitle?: string | null
+  company?: string | null
+  phoneNumber: string
+  email: string
+  websiteUrl?: string | null
+  postalCode: string
+  prefecture: string
+  city: string
+  addressLine1: string
+  addressLine2?: string | null
+  designName: string
+  quantity: number
+}
+
+export interface BusinessCardOrderNotificationToAdminData {
+  userName: string
+  userEmail: string
+  userRole: string
+  orderId: string
+  displayName: string
+  roleTitle?: string | null
+  company?: string | null
+  designName: string
+  quantity: number
+}
+
+// ユーザーへの名刺注文確認メール
+export async function sendBusinessCardOrderConfirmationEmail(data: BusinessCardOrderConfirmationEmailData) {
+  const mailOptions = {
+    from: `"UGSオンラインスクール" <${process.env.SMTP_USER}>`,
+    to: data.to,
+    subject: 'UGSオンラインスクール - 名刺注文受付完了',
+    encoding: 'utf-8',
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>名刺注文受付完了</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #1e293b; color: white; padding: 20px; text-align: center; }
+          .content { padding: 20px; background: #f8fafc; }
+          .info-box { background: white; padding: 15px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #1e293b; }
+          .footer { padding: 20px; text-align: center; color: #64748b; font-size: 14px; }
+          .detail-row { padding: 8px 0; border-bottom: 1px solid #e2e8f0; }
+          .detail-label { color: #64748b; font-size: 14px; }
+          .detail-value { font-weight: 500; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>UGSオンラインスクール</h1>
+            <p>名刺注文受付完了</p>
+          </div>
+
+          <div class="content">
+            <h2>${data.userName} 様</h2>
+            <p>名刺のご注文をいただき、ありがとうございます。</p>
+            <p>以下の内容で注文を受け付けました。発注処理が完了次第、ご連絡いたします。</p>
+
+            <div class="info-box">
+              <p><strong>注文番号:</strong> ${data.orderId}</p>
+              <p><strong>受付日時:</strong> ${new Date().toLocaleString('ja-JP')}</p>
+            </div>
+
+            <div style="background: white; padding: 15px; border-radius: 6px; margin: 20px 0;">
+              <h3>名刺に印字する情報</h3>
+              <div class="detail-row">
+                <div class="detail-label">表示名</div>
+                <div class="detail-value">${data.displayName}</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">フリガナ</div>
+                <div class="detail-value">${data.displayNameKana}</div>
+              </div>
+              ${data.roleTitle ? `
+              <div class="detail-row">
+                <div class="detail-label">ロール表記</div>
+                <div class="detail-value">${data.roleTitle}</div>
+              </div>
+              ` : ''}
+              ${data.company ? `
+              <div class="detail-row">
+                <div class="detail-label">所属</div>
+                <div class="detail-value">${data.company}</div>
+              </div>
+              ` : ''}
+              <div class="detail-row">
+                <div class="detail-label">電話番号</div>
+                <div class="detail-value">${data.phoneNumber}</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">メールアドレス</div>
+                <div class="detail-value">${data.email}</div>
+              </div>
+              ${data.websiteUrl ? `
+              <div class="detail-row">
+                <div class="detail-label">ウェブサイトURL</div>
+                <div class="detail-value">${data.websiteUrl}</div>
+              </div>
+              ` : ''}
+            </div>
+
+            <div style="background: white; padding: 15px; border-radius: 6px; margin: 20px 0;">
+              <h3>郵送先住所</h3>
+              <p>
+                〒${data.postalCode}<br />
+                ${data.prefecture}${data.city}${data.addressLine1}
+                ${data.addressLine2 ? `<br />${data.addressLine2}` : ''}
+              </p>
+            </div>
+
+            <div style="background: white; padding: 15px; border-radius: 6px; margin: 20px 0;">
+              <h3>注文詳細</h3>
+              <div class="detail-row">
+                <div class="detail-label">名刺デザイン</div>
+                <div class="detail-value">${data.designName}</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">部数</div>
+                <div class="detail-value">${data.quantity}枚</div>
+              </div>
+            </div>
+
+            <p>ご不明な点がございましたら、お気軽にお問い合わせください。</p>
+          </div>
+
+          <div class="footer">
+            <p>UGSオンラインスクール</p>
+            <p>※ このメールは自動送信されています。</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  }
+
+  try {
+    if (process.env.NODE_ENV === 'development' && !process.env.SMTP_PASS) {
+      console.log('📧 [DEV MODE] Business card order confirmation email would be sent to:', data.to)
+      return
+    }
+
+    await transporter.sendMail(mailOptions)
+    console.log('✅ Business card order confirmation email sent successfully to:', data.to)
+  } catch (error: any) {
+    console.error('❌ Error sending business card order confirmation email:', error)
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('⚠️ Email sending failed, but continuing in development mode')
+      return
+    }
+    throw error
+  }
+}
+
+// 管理者への名刺注文通知メール
+export async function sendBusinessCardOrderNotificationToAdmin(data: BusinessCardOrderNotificationToAdminData) {
+  const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER
+
+  const mailOptions = {
+    from: `"UGSオンラインスクール" <${process.env.SMTP_USER}>`,
+    to: adminEmail,
+    subject: `【名刺注文】${data.userName}様から注文がありました`,
+    encoding: 'utf-8',
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>新規名刺注文通知</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #059669; color: white; padding: 20px; text-align: center; }
+          .content { padding: 20px; background: #f8fafc; }
+          .info-box { background: white; padding: 15px; border-radius: 6px; margin: 20px 0; }
+          .button { display: inline-block; background: #1e293b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+          .footer { padding: 20px; text-align: center; color: #64748b; font-size: 14px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>新規名刺注文</h1>
+          </div>
+
+          <div class="content">
+            <p>会員から名刺注文がありました。</p>
+
+            <div class="info-box">
+              <h3>注文者情報</h3>
+              <p><strong>お名前:</strong> ${data.userName}</p>
+              <p><strong>メールアドレス:</strong> ${data.userEmail}</p>
+              <p><strong>ロール:</strong> ${data.userRole}</p>
+            </div>
+
+            <div class="info-box">
+              <h3>注文内容</h3>
+              <p><strong>注文番号:</strong> ${data.orderId}</p>
+              <p><strong>表示名:</strong> ${data.displayName}</p>
+              ${data.roleTitle ? `<p><strong>ロール表記:</strong> ${data.roleTitle}</p>` : ''}
+              ${data.company ? `<p><strong>所属:</strong> ${data.company}</p>` : ''}
+              <p><strong>デザイン:</strong> ${data.designName}</p>
+              <p><strong>部数:</strong> ${data.quantity}枚</p>
+              <p><strong>受付日時:</strong> ${new Date().toLocaleString('ja-JP')}</p>
+            </div>
+
+            <div style="text-align: center;">
+              <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://your-domain.com'}/dashboard/admin/business-card" class="button">
+                管理画面で確認する
+              </a>
+            </div>
+          </div>
+
+          <div class="footer">
+            <p>UGSオンラインスクール 管理者通知</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  }
+
+  try {
+    if (process.env.NODE_ENV === 'development' && !process.env.SMTP_PASS) {
+      console.log('📧 [DEV MODE] Business card order notification email would be sent to admin:', adminEmail)
+      return
+    }
+
+    await transporter.sendMail(mailOptions)
+    console.log('✅ Business card order notification email sent successfully to admin:', adminEmail)
+  } catch (error: any) {
+    console.error('❌ Error sending business card order notification email to admin:', error)
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('⚠️ Email sending failed, but continuing in development mode')
+      return
+    }
+    throw error
+  }
+}

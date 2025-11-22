@@ -16,7 +16,8 @@ import {
   Mail,
   HelpCircle,
   Send,
-  Inbox
+  Inbox,
+  CreditCard
 } from 'lucide-react'
 
 export interface NavItem {
@@ -48,6 +49,15 @@ export const navigation: NavItem[] = [
   { name: 'LP面談管理', href: '/dashboard/lp-meeting/manage', icon: MessageSquare, roles: ['fp'] },
   { name: 'イベント', href: '/dashboard/events', icon: Calendar, roles: ['member', 'fp', 'manager', 'admin'] },
   {
+    name: '名刺注文',
+    icon: CreditCard,
+    roles: ['fp', 'manager', 'admin'],
+    subItems: [
+      { name: '名刺を注文する', href: '/dashboard/business-card/order', icon: CreditCard, roles: ['fp', 'manager', 'admin'] },
+      { name: '注文履歴', href: '/dashboard/business-card/history', icon: FileText, roles: ['fp', 'manager', 'admin'] },
+    ]
+  },
+  {
     name: 'サポート',
     icon: HelpCircle,
     roles: ['member', 'fp', 'manager', 'admin'],
@@ -68,5 +78,6 @@ export const navigation: NavItem[] = [
   { name: 'メール送信履歴', href: '/dashboard/admin/email-history', icon: Mail, roles: ['admin'] },
   { name: 'FAQ管理', href: '/dashboard/admin/faq', icon: HelpCircle, roles: ['admin'] },
   { name: 'お問い合わせ管理', href: '/dashboard/admin/contacts', icon: Inbox, roles: ['admin'] },
+  { name: '名刺注文管理', href: '/dashboard/admin/business-card', icon: CreditCard, roles: ['admin'] },
   { name: '設定', href: '/dashboard/settings', icon: Settings, roles: ['member', 'fp', 'manager', 'admin'] },
 ]
