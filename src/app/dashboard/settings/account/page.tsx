@@ -20,6 +20,8 @@ function AccountSettingsPage() {
   const [userDetails, setUserDetails] = useState<{
     createdAt?: string
     lastLoginAt?: string
+    cancellationAllowedDate?: string
+    canRequestCancellation?: boolean
   } | null>(null)
   const [cancelForm, setCancelForm] = useState({
     reason: '',
@@ -34,7 +36,7 @@ function AccountSettingsPage() {
     // ユーザー詳細情報を取得
     const fetchUserDetails = async () => {
       if (!user?.id) return
-      
+
       try {
         const response = await fetch(`/api/auth/profile/${user.id}`, {
           credentials: 'include'
@@ -42,9 +44,17 @@ function AccountSettingsPage() {
         if (response.ok) {
           const data = await response.json()
           if (data.success && data.user) {
+            // 退会可能日を計算（登録日から6ヶ月後）
+            const createdAt = new Date(data.user.createdAt)
+            const cancellationAllowedDate = new Date(createdAt)
+            cancellationAllowedDate.setMonth(cancellationAllowedDate.getMonth() + 6)
+            const canRequestCancellation = new Date() >= cancellationAllowedDate
+
             setUserDetails({
               createdAt: data.user.createdAt,
-              lastLoginAt: data.user.lastLoginAt
+              lastLoginAt: data.user.lastLoginAt,
+              cancellationAllowedDate: cancellationAllowedDate.toISOString(),
+              canRequestCancellation
             })
           }
         }
@@ -205,25 +215,47 @@ function AccountSettingsPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">最終ログイン</span>
                   <span className="text-sm text-slate-600">
-                    {userDetails?.lastLoginAt 
-                      ? formatDateTime(userDetails.lastLoginAt) 
-                      : userDetails?.lastLoginAt === null 
-                        ? '未ログイン' 
+                    {userDetails?.lastLoginAt
+                      ? formatDateTime(userDetails.lastLoginAt)
+                      : userDetails?.lastLoginAt === null
+                        ? '未ログイン'
+                        : '取得中...'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">退会可能日</span>
+                  <span className="text-sm text-slate-600">
+                    {userDetails?.canRequestCancellation
+                      ? '退会手続き可能です'
+                      : userDetails?.cancellationAllowedDate
+                        ? `${formatDate(userDetails.cancellationAllowedDate)}以降`
                         : '取得中...'}
                   </span>
                 </div>
                 <div className="pt-4 border-t">
-                  <Button 
-                    variant="destructive" 
-                    className="w-full" 
+                  <Button
+                    variant="destructive"
+                    className="w-full"
                     onClick={() => setShowCancelDialog(true)}
+                    disabled={!userDetails?.canRequestCancellation}
                   >
                     <UserX className="h-4 w-4 mr-2" />
                     退会申請
                   </Button>
-                  <p className="text-xs text-slate-500 mt-2 text-center">
-                    退会申請後、運営による確認を経てアカウントが削除されます
-                  </p>
+                  {userDetails?.canRequestCancellation === false && userDetails?.cancellationAllowedDate ? (
+                    <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <p className="text-sm text-amber-800">
+                        ご登録から6ヶ月間は退会いただけません。
+                      </p>
+                      <p className="text-sm text-amber-800 font-medium mt-1">
+                        {formatDate(userDetails.cancellationAllowedDate)}以降に退会手続きが可能になります。
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-500 mt-2 text-center">
+                      退会申請後、運営による確認を経てアカウントが削除されます
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
