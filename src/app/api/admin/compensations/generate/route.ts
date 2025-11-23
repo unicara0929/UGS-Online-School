@@ -97,13 +97,14 @@ export async function POST(request: NextRequest) {
           continue
         }
 
-        // 報酬を作成
+        // 報酬を作成（発生時点のロールを記録）
         const compensation = await prisma.compensation.create({
           data: {
             userId: user.id,
             month,
             amount: totalAmount,
             breakdown: breakdown as any,
+            earnedAsRole: user.role as 'FP' | 'MANAGER', // 報酬発生時のロールを記録
             status: 'PENDING'
           }
         })
