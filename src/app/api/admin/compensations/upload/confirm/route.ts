@@ -35,11 +35,22 @@ export async function POST(request: NextRequest) {
     let updatedCount = 0
     const errors: string[] = []
 
+    // 対象ユーザーのロール情報を取得
+    const allUserIds = [...new Set([...toAdd.map(d => d.userId), ...toUpdate.map(d => d.userId)])]
+    const users = await prisma.user.findMany({
+      where: { id: { in: allUserIds } },
+      select: { id: true, role: true }
+    })
+    const userRoleMap = new Map(users.map(u => [u.id, u.role]))
+
     // トランザクションで実行
     await prisma.$transaction(async (tx) => {
       // 新規追加
       for (const data of toAdd) {
         try {
+          // ユーザーの現在のロールを取得（見つからない場合はFPをデフォルト）
+          const userRole = userRoleMap.get(data.userId) || 'FP'
+
           await tx.compensation.create({
             data: {
               userId: data.userId,
@@ -53,6 +64,7 @@ export async function POST(request: NextRequest) {
                 bonus: data.bonusAmount,
                 deduction: 0,
               },
+              earnedAsRole: userRole as 'FP' | 'MANAGER', // 報酬発生時のロールを記録
               status: 'PAID',
             },
           })

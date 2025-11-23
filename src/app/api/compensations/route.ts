@@ -52,6 +52,16 @@ export async function GET(request: NextRequest) {
     const total = compensations
       .reduce((sum, c) => sum + c.amount, 0)
 
+    // ロール別合計を計算
+    const totalByRole = {
+      FP: compensations
+        .filter((c) => c.earnedAsRole === 'FP')
+        .reduce((sum, c) => sum + c.amount, 0),
+      MANAGER: compensations
+        .filter((c) => c.earnedAsRole === 'MANAGER')
+        .reduce((sum, c) => sum + c.amount, 0),
+    }
+
     // 直近6ヶ月の平均（基準月=現在月-1を含む過去6ヶ月）
     // 基準月を計算（現在月の1ヶ月前）
     const now = new Date()
@@ -95,6 +105,7 @@ export async function GET(request: NextRequest) {
         currentMonth: currentMonthCompensation || null,
         lastMonth: lastMonthCompensation || null,
         total,
+        totalByRole,
         recentAverage,
         trend,
       },

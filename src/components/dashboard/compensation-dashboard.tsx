@@ -35,6 +35,7 @@ interface Compensation {
     bonus: number
     deduction: number
   }
+  earnedAsRole: 'FP' | 'MANAGER'
   status: 'PENDING' | 'CONFIRMED' | 'PAID'
   createdAt: string
 }
@@ -43,9 +44,15 @@ interface CompensationStats {
   currentMonth: Compensation | null
   lastMonth: Compensation | null
   total: number
+  totalByRole: {
+    FP: number
+    MANAGER: number
+  }
   recentAverage: number
   trend: number
 }
+
+type RoleFilter = 'ALL' | 'FP' | 'MANAGER'
 
 export function CompensationDashboard({ userRole }: CompensationDashboardProps) {
   const [compensations, setCompensations] = useState<Compensation[]>([])
@@ -53,6 +60,13 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [monthFilter, setMonthFilter] = useState<string>('')
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>('ALL')
+
+  // フィルタリングされた報酬一覧
+  const filteredCompensations = compensations.filter((c) => {
+    if (roleFilter === 'ALL') return true
+    return c.earnedAsRole === roleFilter
+  })
 
   useEffect(() => {
     if (userRole !== 'member') {
@@ -198,10 +212,36 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(stats?.total || 0)}</div>
-            <p className="text-xs text-slate-600">全期間合計（支払済み）</p>
+            <p className="text-xs text-slate-600">生涯報酬合計</p>
           </CardContent>
         </Card>
       </div>
+
+      {/* ロール別合計 */}
+      {stats?.totalByRole && (stats.totalByRole.FP > 0 || stats.totalByRole.MANAGER > 0) && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">ロール別累計報酬</CardTitle>
+            <CardDescription>FPエイド時代とマネージャー時代の報酬内訳</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-600 font-medium">FPエイド時代</p>
+                <p className="text-xl font-bold text-blue-900">{formatCurrency(stats.totalByRole.FP)}</p>
+              </div>
+              <div className="p-4 bg-purple-50 rounded-lg">
+                <p className="text-sm text-purple-600 font-medium">マネージャー時代</p>
+                <p className="text-xl font-bold text-purple-900">{formatCurrency(stats.totalByRole.MANAGER)}</p>
+              </div>
+              <div className="p-4 bg-slate-100 rounded-lg">
+                <p className="text-sm text-slate-600 font-medium">生涯報酬合計</p>
+                <p className="text-xl font-bold text-slate-900">{formatCurrency(stats.total)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* フィルタ */}
       <Card>
@@ -212,28 +252,61 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <label className="text-sm font-medium mb-2 block">対象月</label>
-              <input
-                type="month"
-                value={monthFilter}
-                onChange={(e) => setMonthFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-500"
-              />
-            </div>
-            {monthFilter && (
-              <div className="flex items-end">
+          <div className="flex flex-col gap-4">
+            {/* ロール別フィルター */}
+            <div>
+              <label className="text-sm font-medium mb-2 block">ロール別</label>
+              <div className="flex gap-2 flex-wrap">
                 <Button
-                  variant="outline"
-                  onClick={() => {
-                    setMonthFilter('')
-                  }}
+                  variant={roleFilter === 'ALL' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setRoleFilter('ALL')}
                 >
-                  クリア
+                  すべて
+                </Button>
+                <Button
+                  variant={roleFilter === 'FP' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setRoleFilter('FP')}
+                  className={roleFilter === 'FP' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                >
+                  FPエイド時代
+                </Button>
+                <Button
+                  variant={roleFilter === 'MANAGER' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setRoleFilter('MANAGER')}
+                  className={roleFilter === 'MANAGER' ? 'bg-purple-600 hover:bg-purple-700' : ''}
+                >
+                  マネージャー時代
                 </Button>
               </div>
-            )}
+            </div>
+            {/* 月別フィルター */}
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <label className="text-sm font-medium mb-2 block">対象月</label>
+                <input
+                  type="month"
+                  value={monthFilter}
+                  onChange={(e) => setMonthFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-500"
+                />
+              </div>
+              {(monthFilter || roleFilter !== 'ALL') && (
+                <div className="flex items-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setMonthFilter('')
+                      setRoleFilter('ALL')
+                    }}
+                  >
+                    フィルタをクリア
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -243,51 +316,75 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
         <Card>
           <CardHeader>
             <CardTitle>報酬履歴</CardTitle>
-            <CardDescription>月別の報酬サマリー</CardDescription>
+            <CardDescription>
+              月別の報酬サマリー
+              {roleFilter !== 'ALL' && (
+                <span className="ml-2 text-slate-500">
+                  （{roleFilter === 'FP' ? 'FPエイド' : 'マネージャー'}時代のみ表示中）
+                </span>
+              )}
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {compensations.map((compensation) => (
-                <div
-                  key={compensation.id}
-                  className="p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <Calendar className="h-5 w-5 text-slate-600" />
-                      <div>
-                        <p className="font-semibold text-slate-900">{compensation.month}</p>
-                        <p className="text-sm text-slate-600">契約件数: {compensation.contractCount}件</p>
+            {filteredCompensations.length > 0 ? (
+              <div className="space-y-4">
+                {filteredCompensations.map((compensation) => (
+                  <div
+                    key={compensation.id}
+                    className="p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <Calendar className="h-5 w-5 text-slate-600" />
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-slate-900">{compensation.month}</p>
+                            <Badge
+                              className={
+                                compensation.earnedAsRole === 'FP'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-purple-100 text-purple-800'
+                              }
+                            >
+                              {compensation.earnedAsRole === 'FP' ? 'FPエイド' : 'マネージャー'}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-slate-600">契約件数: {compensation.contractCount}件</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xl font-bold text-slate-900">{formatCurrency(compensation.amount)}</p>
+                        <Badge className="bg-green-100 text-green-800">
+                          支払済み
+                        </Badge>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-xl font-bold text-slate-900">{formatCurrency(compensation.amount)}</p>
-                      <Badge className="bg-green-100 text-green-800">
-                        支払済み
-                      </Badge>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                      <div>
+                        <p className="text-slate-600">会員紹介</p>
+                        <p className="font-medium">{formatCurrency(compensation.breakdown.memberReferral)}</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-600">FP紹介</p>
+                        <p className="font-medium">{formatCurrency(compensation.breakdown.fpReferral)}</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-600">契約報酬</p>
+                        <p className="font-medium">{formatCurrency(compensation.breakdown.contract)}</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-600">ボーナス</p>
+                        <p className="font-medium">{formatCurrency(compensation.breakdown.bonus)}</p>
+                      </div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                    <div>
-                      <p className="text-slate-600">会員紹介</p>
-                      <p className="font-medium">{formatCurrency(compensation.breakdown.memberReferral)}</p>
-                    </div>
-                    <div>
-                      <p className="text-slate-600">FP紹介</p>
-                      <p className="font-medium">{formatCurrency(compensation.breakdown.fpReferral)}</p>
-                    </div>
-                    <div>
-                      <p className="text-slate-600">契約報酬</p>
-                      <p className="font-medium">{formatCurrency(compensation.breakdown.contract)}</p>
-                    </div>
-                    <div>
-                      <p className="text-slate-600">ボーナス</p>
-                      <p className="font-medium">{formatCurrency(compensation.breakdown.bonus)}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-slate-600">該当する報酬データがありません</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
