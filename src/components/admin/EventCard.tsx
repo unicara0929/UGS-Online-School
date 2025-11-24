@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
-import { Calendar, Clock, MapPin, Users, Video, Edit, Trash2 } from 'lucide-react'
+import { Calendar, Clock, MapPin, Users, Video, Edit, Trash2, Image, FileText, Link2, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -15,9 +15,10 @@ interface EventCardProps {
   onEdit: (event: AdminEventItem) => void
   onDelete: (id: string) => void
   isSubmitting: boolean
+  showArchiveInfo?: boolean
 }
 
-export function EventCard({ event, onEdit, onDelete, isSubmitting }: EventCardProps) {
+export function EventCard({ event, onEdit, onDelete, isSubmitting, showArchiveInfo = false }: EventCardProps) {
   const router = useRouter()
 
   const formatDate = (dateString: string) => {
@@ -129,8 +130,54 @@ export function EventCard({ event, onEdit, onDelete, isSubmitting }: EventCardPr
           </div>
         </div>
 
+        {/* 過去イベント記録情報 */}
+        {showArchiveInfo && (
+          <div className="mt-4 pt-4 border-t border-slate-200">
+            <p className="text-sm font-semibold text-slate-700 mb-2">開催記録</p>
+            <div className="space-y-2">
+              {/* 記録のステータス表示 */}
+              <div className="flex flex-wrap gap-2">
+                {event.summary && (
+                  <div className="flex items-center text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                    概要あり
+                  </div>
+                )}
+                {event.photos && event.photos.length > 0 && (
+                  <div className="flex items-center text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                    <Image className="h-3 w-3 mr-1" />
+                    写真 {event.photos.length}枚
+                  </div>
+                )}
+                {event.materialsUrl && (
+                  <div className="flex items-center text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded">
+                    <FileText className="h-3 w-3 mr-1" />
+                    資料あり
+                  </div>
+                )}
+                {event.vimeoUrl && (
+                  <div className="flex items-center text-xs text-red-600 bg-red-50 px-2 py-1 rounded">
+                    <Link2 className="h-3 w-3 mr-1" />
+                    録画あり
+                  </div>
+                )}
+                {event.actualParticipants && (
+                  <div className="flex items-center text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
+                    <Users className="h-3 w-3 mr-1" />
+                    実参加 {event.actualParticipants}名
+                  </div>
+                )}
+              </div>
+              {/* 記録がない場合 */}
+              {!event.summary && (!event.photos || event.photos.length === 0) && !event.materialsUrl && !event.vimeoUrl && (
+                <p className="text-xs text-slate-400">記録が登録されていません</p>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* 参加者一覧 */}
-        {event.registrations.length > 0 ? (
+        {!showArchiveInfo && event.registrations.length > 0 && (
           <div className="mt-4">
             <p className="text-sm font-semibold text-slate-700 mb-1">参加者一覧</p>
             <ul className="space-y-1 max-h-32 overflow-y-auto">
@@ -142,21 +189,34 @@ export function EventCard({ event, onEdit, onDelete, isSubmitting }: EventCardPr
               ))}
             </ul>
           </div>
-        ) : (
+        )}
+        {!showArchiveInfo && event.registrations.length === 0 && (
           <p className="text-xs text-slate-500 mt-4">参加者はまだいません</p>
         )}
 
-        {/* 参加者管理ボタン */}
-        <div className="mt-4">
-          <Button
-            size="sm"
-            variant="outline"
-            className="w-full"
-            onClick={() => router.push(`/dashboard/admin/events/${event.id}`)}
-          >
-            <Users className="h-4 w-4 mr-2" />
-            参加者を管理
-          </Button>
+        {/* ボタン */}
+        <div className="mt-4 space-y-2">
+          {showArchiveInfo ? (
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full"
+              onClick={() => router.push(`/dashboard/admin/events/${event.id}/archive`)}
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              記録を編集
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full"
+              onClick={() => router.push(`/dashboard/admin/events/${event.id}`)}
+            >
+              <Users className="h-4 w-4 mr-2" />
+              参加者を管理
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

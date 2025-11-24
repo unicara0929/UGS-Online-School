@@ -112,6 +112,16 @@ export async function GET(request: NextRequest) {
         status: EVENT_STATUS_MAP[statusKey] ?? 'upcoming',
         thumbnailUrl: event.thumbnailUrl ?? null,
         currentParticipants: event._count.registrations,
+        // 過去イベント記録用フィールド
+        summary: event.summary ?? null,
+        photos: event.photos ?? [],
+        materialsUrl: event.materialsUrl ?? null,
+        actualParticipants: event.actualParticipants ?? null,
+        actualLocation: event.actualLocation ?? null,
+        adminNotes: event.adminNotes ?? null,
+        isArchiveOnly: event.isArchiveOnly ?? false,
+        // 出席確認関連
+        vimeoUrl: event.vimeoUrl ?? null,
         registrations: event.registrations.map((registration) => ({
           id: registration.id,
           userId: registration.userId,
@@ -166,6 +176,14 @@ export async function POST(request: NextRequest) {
       // 定期開催関連
       isRecurring = false,
       recurrencePattern,
+      // 過去イベント記録用
+      summary,
+      photos = [],
+      materialsUrl,
+      actualParticipants,
+      actualLocation,
+      adminNotes,
+      isArchiveOnly = false,
     } = body || {}
 
     if (!title || !date) {
@@ -213,6 +231,14 @@ export async function POST(request: NextRequest) {
         // 定期開催関連
         isRecurring,
         recurrencePattern: recurrencePattern || null,
+        // 過去イベント記録用
+        summary: summary || null,
+        photos: photos || [],
+        materialsUrl: materialsUrl || null,
+        actualParticipants: actualParticipants !== undefined ? Number(actualParticipants) : null,
+        actualLocation: actualLocation || null,
+        adminNotes: adminNotes || null,
+        isArchiveOnly,
       },
     })
 

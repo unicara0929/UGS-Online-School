@@ -84,9 +84,18 @@ export async function GET(request: NextRequest) {
 
     const eventsPromise = prisma.event.findMany({
       where: {
-        OR: [
-          { targetRoles: { has: 'ALL' } }, // 全員対象のイベント
-          { targetRoles: { has: userTargetRole } }, // ユーザーのロールに一致するイベント
+        AND: [
+          // 開催予定のイベントのみ（終了・キャンセルを除外）
+          { status: 'UPCOMING' },
+          // 記録専用イベントを除外
+          { isArchiveOnly: false },
+          // ロールによるフィルタリング
+          {
+            OR: [
+              { targetRoles: { has: 'ALL' } }, // 全員対象のイベント
+              { targetRoles: { has: userTargetRole } }, // ユーザーのロールに一致するイベント
+            ],
+          },
         ],
       },
       orderBy: { date: 'asc' },
