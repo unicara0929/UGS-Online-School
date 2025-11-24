@@ -108,6 +108,15 @@ export function useEventForm(): UseEventFormReturn {
       thumbnailUrl: event.thumbnailUrl,
       isPaid: false,
       price: null,
+      // 過去イベント記録用
+      summary: event.summary,
+      photos: event.photos || [],
+      materialsUrl: event.materialsUrl,
+      vimeoUrl: event.vimeoUrl,
+      actualParticipants: event.actualParticipants,
+      actualLocation: event.actualLocation,
+      adminNotes: event.adminNotes,
+      isArchiveOnly: event.isArchiveOnly,
     })
     setThumbnailPreview(event.thumbnailUrl)
     setThumbnailFile(null)

@@ -94,6 +94,14 @@ export async function PUT(
       // 定期開催関連
       isRecurring,
       recurrencePattern,
+      // 過去イベント記録用
+      summary,
+      photos,
+      materialsUrl,
+      actualParticipants,
+      actualLocation,
+      adminNotes,
+      isArchiveOnly,
     } = body || {}
 
     // 更新データを構築
@@ -135,6 +143,17 @@ export async function PUT(
     // 定期開催関連
     if (isRecurring !== undefined) updateData.isRecurring = isRecurring
     if (recurrencePattern !== undefined) updateData.recurrencePattern = recurrencePattern || null
+
+    // 過去イベント記録用
+    if (summary !== undefined) updateData.summary = summary || null
+    if (photos !== undefined) updateData.photos = photos || []
+    if (materialsUrl !== undefined) updateData.materialsUrl = materialsUrl || null
+    if (actualParticipants !== undefined) {
+      updateData.actualParticipants = actualParticipants !== null ? Number(actualParticipants) : null
+    }
+    if (actualLocation !== undefined) updateData.actualLocation = actualLocation || null
+    if (adminNotes !== undefined) updateData.adminNotes = adminNotes || null
+    if (isArchiveOnly !== undefined) updateData.isArchiveOnly = isArchiveOnly
 
     // 有料イベントの検証
     if (isPaid && (!price || price <= 0)) {
@@ -218,6 +237,14 @@ export async function PUT(
         // 定期開催関連
         isRecurring: updatedEvent.isRecurring,
         recurrencePattern: updatedEvent.recurrencePattern ?? null,
+        // 過去イベント記録用
+        summary: updatedEvent.summary ?? null,
+        photos: updatedEvent.photos ?? [],
+        materialsUrl: updatedEvent.materialsUrl ?? null,
+        actualParticipants: updatedEvent.actualParticipants ?? null,
+        actualLocation: updatedEvent.actualLocation ?? null,
+        adminNotes: updatedEvent.adminNotes ?? null,
+        isArchiveOnly: updatedEvent.isArchiveOnly ?? false,
       },
     })
   } catch (error) {

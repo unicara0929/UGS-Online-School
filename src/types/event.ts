@@ -30,6 +30,15 @@ export interface AdminEventItem {
   thumbnailUrl: string | null
   currentParticipants: number
   registrations: EventRegistration[]
+  // 過去イベント記録用
+  summary: string | null
+  photos: string[]
+  materialsUrl: string | null
+  vimeoUrl: string | null
+  actualParticipants: number | null
+  actualLocation: string | null
+  adminNotes: string | null
+  isArchiveOnly: boolean
 }
 
 export interface EventFormData {
@@ -47,6 +56,15 @@ export interface EventFormData {
   thumbnailUrl: string | null
   isPaid: boolean
   price: number | null
+  // 過去イベント記録用
+  summary: string | null
+  photos: string[]
+  materialsUrl: string | null
+  vimeoUrl: string | null
+  actualParticipants: number | null
+  actualLocation: string | null
+  adminNotes: string | null
+  isArchiveOnly: boolean
 }
 
 export const DEFAULT_EVENT_FORM: EventFormData = {
@@ -64,4 +82,13 @@ export const DEFAULT_EVENT_FORM: EventFormData = {
   thumbnailUrl: null,
   isPaid: false,
   price: null,
+  // 過去イベント記録用
+  summary: null,
+  photos: [],
+  materialsUrl: null,
+  vimeoUrl: null,
+  actualParticipants: null,
+  actualLocation: null,
+  adminNotes: null,
+  isArchiveOnly: false,
 }
