@@ -177,7 +177,7 @@ export function EventCard({ event, onEdit, onDelete, isSubmitting, showArchiveIn
         )}
 
         {/* 参加者一覧 */}
-        {!showArchiveInfo && event.registrations.length > 0 && (
+        {event.registrations.length > 0 && (
           <div className="mt-4">
             <p className="text-sm font-semibold text-slate-700 mb-1">参加者一覧</p>
             <ul className="space-y-1 max-h-32 overflow-y-auto">
@@ -190,7 +190,7 @@ export function EventCard({ event, onEdit, onDelete, isSubmitting, showArchiveIn
             </ul>
           </div>
         )}
-        {!showArchiveInfo && event.registrations.length === 0 && (
+        {event.registrations.length === 0 && !showArchiveInfo && (
           <p className="text-xs text-slate-500 mt-4">参加者はまだいません</p>
         )}
 
