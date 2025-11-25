@@ -705,7 +705,7 @@ export default function AdminUsersPage() {
                       <ArrowUpDown className="h-4 w-4 text-slate-500" />
                     </div>
                   </TableHead>
-                  <TableHead 
+                  <TableHead
                     className="cursor-pointer hover:bg-slate-100 transition-colors py-4 px-6 font-semibold text-slate-700"
                     onClick={() => handleSort('email')}
                   >
@@ -714,6 +714,7 @@ export default function AdminUsersPage() {
                       <ArrowUpDown className="h-4 w-4 text-slate-500" />
                     </div>
                   </TableHead>
+                  <TableHead className="py-4 px-6 font-semibold text-slate-700">会員番号</TableHead>
                   <TableHead className="py-4 px-6 font-semibold text-slate-700">ステータス</TableHead>
                   <TableHead className="py-4 px-6 font-semibold text-slate-700">決済ステータス</TableHead>
                   <TableHead 
@@ -789,7 +790,16 @@ export default function AdminUsersPage() {
                       <div className="text-slate-700">{user.email}</div>
                     </TableCell>
                     <TableCell className="py-4 px-6">
-                      <Badge 
+                      {user.type === 'registered' && (user as any).memberId ? (
+                        <div className="font-mono text-sm text-slate-600 bg-slate-50 px-3 py-1 rounded border border-slate-200 inline-block">
+                          {(user as any).memberId}
+                        </div>
+                      ) : (
+                        <span className="text-slate-400 text-xs">未付与</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="py-4 px-6">
+                      <Badge
                         variant={getRoleBadgeVariant(user.role)}
                         className="shadow-sm font-medium"
                       >

@@ -5,17 +5,19 @@
 
 /**
  * ユーザーを検索テキストでフィルター
+ * 名前、メールアドレス、会員番号で検索可能
  */
-export function filterUsersBySearch<T extends { name: string; email: string }>(
+export function filterUsersBySearch<T extends { name: string; email: string; memberId?: string }>(
   users: T[],
   searchTerm: string
 ): T[] {
   if (!searchTerm) return users
-  
+
   const lowerSearchTerm = searchTerm.toLowerCase()
   return users.filter(user =>
     user.name.toLowerCase().includes(lowerSearchTerm) ||
-    user.email.toLowerCase().includes(lowerSearchTerm)
+    user.email.toLowerCase().includes(lowerSearchTerm) ||
+    (user.memberId && user.memberId.toLowerCase().includes(lowerSearchTerm))
   )
 }
 
