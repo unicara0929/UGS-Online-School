@@ -261,6 +261,40 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // 記録専用イベントでない場合のみ新着通知を作成
+    if (!isArchiveOnly) {
+      try {
+        // EventTargetRole を UserRole に変換
+        const notificationTargetRoles = eventTargetRoles
+          .filter((role: string) => role !== 'ALL') // 'ALL' は除外
+          .map((role: string) => {
+            if (role === 'MEMBER') return 'MEMBER'
+            if (role === 'FP') return 'FP'
+            if (role === 'MANAGER') return 'MANAGER'
+            return 'MEMBER'
+          })
+
+        // 'ALL' が含まれている場合は全ロールを対象にする
+        const finalTargetRoles = eventTargetRoles.includes('ALL')
+          ? [] // 空配列 = 全員向け
+          : notificationTargetRoles
+
+        await prisma.systemNotification.create({
+          data: {
+            type: 'EVENT_ADDED',
+            title: `新しいイベント「${title}」が追加されました`,
+            contentType: 'EVENT',
+            contentId: createdEvent.id,
+            targetUrl: `/dashboard/events/${createdEvent.id}`,
+            targetRoles: finalTargetRoles,
+          }
+        })
+      } catch (notificationError) {
+        console.error('[EVENT_NOTIFICATION_ERROR]', notificationError)
+        // 通知作成失敗はイベント作成の失敗とはしない（ログのみ）
+      }
+    }
+
     const attendanceTypeKey = createdEvent.attendanceType as keyof typeof EVENT_ATTENDANCE_TYPE_MAP
     const venueTypeKey = createdEvent.venueType as keyof typeof EVENT_VENUE_TYPE_MAP
 
