@@ -483,6 +483,8 @@ model LPMeeting {
   id              String           @id @default(cuid())
   memberId        String
   fpId            String?
+  counselorName   String? // 固定メンバーの名前
+  counselorEmail  String? // 固定メンバーのメールアドレス
   status          LPMeetingStatus  @default(REQUESTED)
   preferredDates  Json // 希望日時（5つ、DateTime[]）
   meetingLocation MeetingLocation? // 面談場所
