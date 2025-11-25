@@ -285,7 +285,7 @@ export async function POST(request: NextRequest) {
             title: `新しいイベント「${title}」が追加されました`,
             contentType: 'EVENT',
             contentId: createdEvent.id,
-            targetUrl: `/dashboard/events/${createdEvent.id}`,
+            targetUrl: `/dashboard/events`,
             targetRoles: finalTargetRoles,
           }
         })
