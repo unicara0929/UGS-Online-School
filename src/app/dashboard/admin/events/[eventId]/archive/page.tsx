@@ -27,34 +27,16 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { getEventStatusLabel } from '@/constants/event'
-
-interface EventArchive {
-  id: string
-  title: string
-  description: string
-  date: string
-  time: string
-  location: string
-  status: string
-  thumbnailUrl: string | null
-  currentParticipants: number
-  // 過去イベント記録用
-  summary: string | null
-  photos: string[]
-  materialsUrl: string | null
-  vimeoUrl: string | null
-  actualParticipants: number | null
-  actualLocation: string | null
-  adminNotes: string | null
-  isArchiveOnly: boolean
-}
+import { FORM_INPUT_CLASS, FORM_LABEL_CLASS } from '@/lib/constants/form-styles'
+import { validateImageFile } from '@/lib/utils/file-validation'
+import type { AdminEventItem } from '@/types/event'
 
 function EventArchivePageContent() {
   const params = useParams()
   const router = useRouter()
   const eventId = params.eventId as string
 
-  const [event, setEvent] = useState<EventArchive | null>(null)
+  const [event, setEvent] = useState<AdminEventItem | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
@@ -67,7 +49,7 @@ function EventArchivePageContent() {
     photos: [] as string[],
     materialsUrl: '',
     vimeoUrl: '',
-    actualParticipants: '' as string | number,
+    actualParticipants: null as number | null,
     actualLocation: '',
     adminNotes: '',
   })
@@ -87,7 +69,7 @@ function EventArchivePageContent() {
         throw new Error(data.error || 'イベント情報の取得に失敗しました')
       }
 
-      const foundEvent = data.events.find((e: EventArchive) => e.id === eventId)
+      const foundEvent = data.events.find((e: AdminEventItem) => e.id === eventId)
       if (!foundEvent) {
         throw new Error('イベントが見つかりません')
       }
@@ -98,7 +80,7 @@ function EventArchivePageContent() {
         photos: foundEvent.photos || [],
         materialsUrl: foundEvent.materialsUrl || '',
         vimeoUrl: foundEvent.vimeoUrl || '',
-        actualParticipants: foundEvent.actualParticipants ?? '',
+        actualParticipants: foundEvent.actualParticipants ?? null,
         actualLocation: foundEvent.actualLocation || '',
         adminNotes: foundEvent.adminNotes || '',
       })
@@ -119,16 +101,10 @@ function EventArchivePageContent() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // ファイルサイズチェック（10MB）
-    if (file.size > 10 * 1024 * 1024) {
-      alert('ファイルサイズは10MB以下にしてください')
-      return
-    }
-
-    // ファイル形式チェック
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/gif']
-    if (!allowedTypes.includes(file.type)) {
-      alert('画像ファイル（JPEG、PNG、WebP、GIF）のみアップロード可能です')
+    // ファイルバリデーション
+    const validation = validateImageFile(file)
+    if (!validation.valid) {
+      alert(validation.error)
       return
     }
 
@@ -188,7 +164,7 @@ function EventArchivePageContent() {
           photos: formData.photos,
           materialsUrl: formData.materialsUrl || null,
           vimeoUrl: formData.vimeoUrl || null,
-          actualParticipants: formData.actualParticipants === '' ? null : Number(formData.actualParticipants),
+          actualParticipants: formData.actualParticipants,
           actualLocation: formData.actualLocation || null,
           adminNotes: formData.adminNotes || null,
         }),
@@ -218,7 +194,12 @@ function EventArchivePageContent() {
     }
   }
 
-  const inputClassName = 'w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500'
+  const handleParticipantsChange = (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      actualParticipants: value === '' ? null : Number(value)
+    }))
+  }
 
   if (isLoading) {
     return (
@@ -345,13 +326,13 @@ function EventArchivePageContent() {
                 <div className="space-y-6">
                   {/* 実施内容の概要 */}
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className={FORM_LABEL_CLASS}>
                       実施内容の概要
                     </label>
                     <textarea
                       value={formData.summary}
                       onChange={(e) => setFormData(prev => ({ ...prev, summary: e.target.value }))}
-                      className={inputClassName}
+                      className={FORM_INPUT_CLASS}
                       rows={4}
                       placeholder="どんな内容を話したか、どんなワークをしたかなど"
                     />
@@ -360,15 +341,15 @@ function EventArchivePageContent() {
                   {/* 実参加人数 */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                      <label className={FORM_LABEL_CLASS}>
                         <Users className="h-4 w-4 inline mr-1" />
                         実参加人数
                       </label>
                       <input
                         type="number"
-                        value={formData.actualParticipants}
-                        onChange={(e) => setFormData(prev => ({ ...prev, actualParticipants: e.target.value }))}
-                        className={inputClassName}
+                        value={formData.actualParticipants ?? ''}
+                        onChange={(e) => handleParticipantsChange(e.target.value)}
+                        className={FORM_INPUT_CLASS}
                         placeholder="例: 25"
                         min="0"
                       />
@@ -376,7 +357,7 @@ function EventArchivePageContent() {
 
                     {/* 最終的な会場情報 */}
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                      <label className={FORM_LABEL_CLASS}>
                         <MapPin className="h-4 w-4 inline mr-1" />
                         最終的な開催場所
                       </label>
@@ -384,7 +365,7 @@ function EventArchivePageContent() {
                         type="text"
                         value={formData.actualLocation}
                         onChange={(e) => setFormData(prev => ({ ...prev, actualLocation: e.target.value }))}
-                        className={inputClassName}
+                        className={FORM_INPUT_CLASS}
                         placeholder="例: Zoom / 名古屋会議室A"
                       />
                     </div>
@@ -392,7 +373,7 @@ function EventArchivePageContent() {
 
                   {/* Vimeo URL */}
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className={FORM_LABEL_CLASS}>
                       <Video className="h-4 w-4 inline mr-1" />
                       録画動画URL（Vimeo等）
                     </label>
@@ -400,14 +381,14 @@ function EventArchivePageContent() {
                       type="url"
                       value={formData.vimeoUrl}
                       onChange={(e) => setFormData(prev => ({ ...prev, vimeoUrl: e.target.value }))}
-                      className={inputClassName}
+                      className={FORM_INPUT_CLASS}
                       placeholder="https://vimeo.com/..."
                     />
                   </div>
 
                   {/* 資料リンク */}
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className={FORM_LABEL_CLASS}>
                       <Link2 className="h-4 w-4 inline mr-1" />
                       セミナー資料リンク（PDF等）
                     </label>
@@ -415,7 +396,7 @@ function EventArchivePageContent() {
                       type="url"
                       value={formData.materialsUrl}
                       onChange={(e) => setFormData(prev => ({ ...prev, materialsUrl: e.target.value }))}
-                      className={inputClassName}
+                      className={FORM_INPUT_CLASS}
                       placeholder="https://drive.google.com/..."
                     />
                   </div>
@@ -481,14 +462,14 @@ function EventArchivePageContent() {
 
                   {/* 管理者メモ */}
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className={FORM_LABEL_CLASS}>
                       <MessageSquare className="h-4 w-4 inline mr-1" />
                       管理者用メモ
                     </label>
                     <textarea
                       value={formData.adminNotes}
                       onChange={(e) => setFormData(prev => ({ ...prev, adminNotes: e.target.value }))}
-                      className={inputClassName}
+                      className={FORM_INPUT_CLASS}
                       rows={3}
                       placeholder="参加者の反応、次回への改善点など（管理者のみ閲覧可能）"
                     />
