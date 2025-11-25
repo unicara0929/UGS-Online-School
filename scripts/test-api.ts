@@ -1,6 +1,7 @@
 // API動作確認用のテストスクリプト（拡張版）
 import { prisma } from '../src/lib/prisma'
 import { appRoleToPrismaRole } from '../src/lib/utils/role-mapper'
+import { generateMemberId } from '../src/lib/services/member-id-generator'
 
 async function runTests() {
   console.log('🧪 API動作確認テスト開始\n')
@@ -84,12 +85,14 @@ async function createTestUsers() {
       users.push(existing)
       console.log(`  ✅ 既存ユーザー: ${userData.email}`)
     } else {
+      const memberId = await generateMemberId()
       const user = await prisma.user.create({
         data: {
           id: `test-${userData.email.split('@')[0]}`,
           email: userData.email,
           name: userData.name,
           role: appRoleToPrismaRole(userData.role.toLowerCase() as any),
+          memberId,
           referralCode: `TEST${userData.email.split('@')[0].toUpperCase()}`
         }
       })

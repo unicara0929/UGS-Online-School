@@ -13,7 +13,7 @@ model User {
   email                   String                   @unique
   name                    String
   role                    UserRole                 @default(MEMBER)
-  memberId                String?                  @unique // 会員番号（例: UGS0000001）※一括付与後に必須化予定
+  memberId                String                   @unique // 会員番号（例: UGS0000001）
   referralCode            String?                  @unique
   bankAccount             Json?
   // プロフィール拡張フィールド
