@@ -279,6 +279,14 @@ export async function POST(request: NextRequest) {
           ? [] // 空配列 = 全員向け
           : notificationTargetRoles
 
+        console.log('[EVENT_NOTIFICATION_DEBUG]', {
+          eventTitle: title,
+          eventTargetRoles,
+          notificationTargetRoles,
+          finalTargetRoles,
+          hasAll: eventTargetRoles.includes('ALL')
+        })
+
         await prisma.systemNotification.create({
           data: {
             type: 'EVENT_ADDED',
