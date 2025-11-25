@@ -10,11 +10,14 @@ import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/contexts/auth-context"
 import { Calendar, Clock, Video, CheckCircle, XCircle, Loader2, Users, AlertCircle } from "lucide-react"
 import { formatDateTime } from "@/lib/utils/format"
+import { LP_MEETING_COUNSELORS } from '@/lib/constants/lp-meeting-counselors'
 
 interface LPMeeting {
   id: string
   memberId: string
   fpId?: string | null
+  counselorName?: string | null
+  counselorEmail?: string | null
   status: 'REQUESTED' | 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW'
   preferredDates: string[]
   scheduledAt?: string | null
@@ -38,12 +41,6 @@ interface LPMeeting {
   }
 }
 
-interface FPUser {
-  id: string
-  name: string
-  email: string
-}
-
 function AdminLPMeetingsPageContent() {
   const { user } = useAuth()
   const [meetings, setMeetings] = useState<LPMeeting[]>([])
@@ -58,11 +55,10 @@ function AdminLPMeetingsPageContent() {
   const [selectedMeeting, setSelectedMeeting] = useState<LPMeeting | null>(null)
   const [showScheduleForm, setShowScheduleForm] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [fps, setFps] = useState<FPUser[]>([])
 
   const [scheduleForm, setScheduleForm] = useState({
     scheduledAt: '',
-    fpId: '',
+    counselorEmail: '',
     meetingUrl: '',
     meetingPlatform: 'ZOOM' as 'ZOOM' | 'GOOGLE_MEET' | 'TEAMS' | 'OTHER'
   })
@@ -70,7 +66,6 @@ function AdminLPMeetingsPageContent() {
   useEffect(() => {
     if (user?.role === 'admin') {
       fetchMeetings()
-      fetchFPs()
     }
   }, [user?.role])
 
@@ -92,36 +87,27 @@ function AdminLPMeetingsPageContent() {
     }
   }
 
-  const fetchFPs = async () => {
-    try {
-      // PrismaからFPエイド以上のユーザーを取得
-      const response = await fetch('/api/admin/fp-users', {
-        credentials: 'include'
-      })
-      if (!response.ok) {
-        throw new Error('FPエイド一覧の取得に失敗しました')
-      }
-      const data = await response.json()
-      // FPエイド、マネージャー、管理者を含む
-      const fpUsers = data.users?.map((u: any) => ({
-        id: u.id,
-        name: u.name || u.email?.split('@')[0] || '名前不明',
-        email: u.email
-      })) || []
-      setFps(fpUsers)
-    } catch (error) {
-      console.error('Error fetching FPs:', error)
-    }
-  }
-
   const handleSchedule = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedMeeting || !user?.id) return
 
-    if (!scheduleForm.scheduledAt || !scheduleForm.fpId || !scheduleForm.meetingUrl) {
+    if (!scheduleForm.scheduledAt || !scheduleForm.counselorEmail || !scheduleForm.meetingUrl) {
       alert('すべての項目を入力してください')
       return
     }
+
+    // 面談者情報を取得
+    const counselor = LP_MEETING_COUNSELORS.find(c => c.email === scheduleForm.counselorEmail)
+    if (!counselor) {
+      alert('面談者が選択されていません')
+      return
+    }
+
+    // 確認ダイアログ
+    const confirmed = window.confirm(
+      '面談者のスケジュールを事前におさえていますか？\nこの内容で面談を確定し、選択した面談者にメール通知を送信します。よろしいですか？'
+    )
+    if (!confirmed) return
 
     setIsSubmitting(true)
     try {
@@ -131,7 +117,8 @@ function AdminLPMeetingsPageContent() {
         credentials: 'include',
         body: JSON.stringify({
           scheduledAt: scheduleForm.scheduledAt,
-          fpId: scheduleForm.fpId,
+          counselorName: counselor.name,
+          counselorEmail: counselor.email,
           meetingUrl: scheduleForm.meetingUrl,
           meetingPlatform: scheduleForm.meetingPlatform,
           assignedBy: user.id
@@ -144,12 +131,12 @@ function AdminLPMeetingsPageContent() {
         throw new Error(data.error || '面談の確定に失敗しました')
       }
 
-      alert('面談を確定しました')
+      alert('面談を確定し、面談者にメール通知を送信しました')
       setShowScheduleForm(false)
       setSelectedMeeting(null)
       setScheduleForm({
         scheduledAt: '',
-        fpId: '',
+        counselorEmail: '',
         meetingUrl: '',
         meetingPlatform: 'ZOOM'
       })
@@ -259,7 +246,7 @@ function AdminLPMeetingsPageContent() {
                     <AlertCircle className="h-5 w-5 mr-2 text-yellow-600" />
                     申請中の面談 ({requestedMeetings.length}件)
                   </CardTitle>
-                  <CardDescription>希望日時とFPエイドを選択して面談を確定してください</CardDescription>
+                  <CardDescription>希望日時と面談者を選択して面談を確定してください</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -337,18 +324,18 @@ function AdminLPMeetingsPageContent() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
-                        FPエイド *
+                        面談者 *
                       </label>
                       <select
-                        value={scheduleForm.fpId}
-                        onChange={(e) => setScheduleForm({ ...scheduleForm, fpId: e.target.value })}
+                        value={scheduleForm.counselorEmail}
+                        onChange={(e) => setScheduleForm({ ...scheduleForm, counselorEmail: e.target.value })}
                         className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
                         required
                       >
-                        <option value="">FPエイドを選択</option>
-                        {fps.map((fp) => (
-                          <option key={fp.id} value={fp.id}>
-                            {fp.name} ({fp.email})
+                        <option value="">面談者を選択</option>
+                        {LP_MEETING_COUNSELORS.map((counselor) => (
+                          <option key={counselor.email} value={counselor.email}>
+                            {counselor.name} ({counselor.email})
                           </option>
                         ))}
                       </select>
@@ -438,9 +425,9 @@ function AdminLPMeetingsPageContent() {
                                 確定日時: {formatDateTime(new Date(meeting.scheduledAt))}
                               </p>
                             )}
-                            {meeting.fp && (
+                            {(meeting.counselorName || meeting.fp) && (
                               <p className="text-sm text-slate-600 mb-1">
-                                FPエイド: {meeting.fp.name}
+                                面談者: {meeting.counselorName || meeting.fp?.name}
                               </p>
                             )}
                             {meeting.meetingUrl && (

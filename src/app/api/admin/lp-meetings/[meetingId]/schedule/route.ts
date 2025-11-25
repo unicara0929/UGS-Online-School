@@ -3,7 +3,10 @@ import { prisma } from '@/lib/prisma'
 import { LPMeetingStatus, MeetingPlatform, NotificationType, NotificationPriority } from '@prisma/client'
 import { createNotification } from '@/lib/services/notification-service'
 import { formatDateTime } from '@/lib/utils/format'
-import { getAuthenticatedUser, checkAdmin, Roles } from '@/lib/auth/api-helpers'
+import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
+import { Resend } from 'resend'
+
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 /**
  * 面談を確定（管理者）
@@ -22,11 +25,11 @@ export async function POST(
     const { isAdmin, error: adminError } = checkAdmin(authUser!.role)
     if (!isAdmin) return adminError!
     const { meetingId } = await context.params
-    const { scheduledAt, fpId, meetingUrl, meetingPlatform, assignedBy } = await request.json()
+    const { scheduledAt, counselorName, counselorEmail, meetingUrl, meetingPlatform, assignedBy } = await request.json()
 
-    if (!scheduledAt || !fpId || !meetingUrl || !meetingPlatform || !assignedBy) {
+    if (!scheduledAt || !counselorName || !counselorEmail || !meetingUrl || !meetingPlatform || !assignedBy) {
       return NextResponse.json(
-        { error: '確定日時、FPエイドID、面談URL、プラットフォーム、管理者IDが必要です' },
+        { error: '確定日時、面談者名、面談者メールアドレス、面談URL、プラットフォーム、管理者IDが必要です' },
         { status: 400 }
       )
     }
@@ -70,26 +73,14 @@ export async function POST(
       )
     }
 
-    // FPエイドが存在するか確認
-    const fp = await prisma.user.findUnique({
-      where: { id: fpId },
-      select: { id: true, role: true }
-    })
-
-    if (!fp || fp.role !== Roles.FP) {
-      return NextResponse.json(
-        { error: 'FPエイドが見つかりません' },
-        { status: 404 }
-      )
-    }
-
     // 面談を確定
     const updatedMeeting = await prisma.lPMeeting.update({
       where: { id: meetingId },
       data: {
         status: LPMeetingStatus.SCHEDULED,
         scheduledAt: new Date(scheduledAt),
-        fpId,
+        counselorName,
+        counselorEmail,
         meetingUrl,
         meetingPlatform: meetingPlatform as MeetingPlatform,
         assignedBy
@@ -106,20 +97,46 @@ export async function POST(
       NotificationType.LP_MEETING_SCHEDULED,
       NotificationPriority.INFO,
       'LP面談が確定しました',
-      `${formatDateTime(new Date(scheduledAt))}に${updatedMeeting.fp?.name}さんとのLP面談が確定しました。オンライン面談のURL: ${meetingUrl}`,
+      `${formatDateTime(new Date(scheduledAt))}に${counselorName}さんとのLP面談が確定しました。オンライン面談のURL: ${meetingUrl}`,
       '/dashboard/lp-meeting/request'
     )
 
-    // FPエイドに通知を送信
-    if (updatedMeeting.fpId) {
-      await createNotification(
-        updatedMeeting.fpId,
-        NotificationType.LP_MEETING_SCHEDULED,
-        NotificationPriority.INFO,
-        'LP面談が確定しました',
-        `${formatDateTime(new Date(scheduledAt))}に${updatedMeeting.member.name}さんとのLP面談が確定しました。オンライン面談のURL: ${meetingUrl}`,
-        '/dashboard/lp-meeting/manage'
-      )
+    // 面談者にメール通知を送信
+    try {
+      const formattedDate = formatDateTime(new Date(scheduledAt))
+      const platformName = meetingPlatform === 'ZOOM' ? 'Zoom' :
+                          meetingPlatform === 'GOOGLE_MEET' ? 'Google Meet' :
+                          meetingPlatform === 'TEAMS' ? 'Microsoft Teams' : 'その他'
+
+      await resend.emails.send({
+        from: 'UGSオンラインスクール <noreply@unicara.jp>',
+        to: counselorEmail,
+        subject: `【LP面談依頼】${updatedMeeting.member.name}様の面談が確定しました`,
+        html: `
+          <p>${counselorName} さん</p>
+          <br>
+          <p>以下の内容でLP面談が確定しました。</p>
+          <br>
+          <p>─────────────────</p>
+          <p><strong>■ 申込者名</strong><br>${updatedMeeting.member.name}</p>
+          <br>
+          <p><strong>■ 申込者メールアドレス</strong><br>${updatedMeeting.member.email}</p>
+          <br>
+          <p><strong>■ 面談日時</strong><br>${formattedDate}</p>
+          <br>
+          <p><strong>■ 面談場所</strong><br>${platformName}: ${meetingUrl}</p>
+          <br>
+          ${meeting.memberNotes ? `<p><strong>■ 申込者からの備考</strong><br>${meeting.memberNotes}</p><br>` : ''}
+          <p>─────────────────</p>
+          <br>
+          <p>詳細は管理画面よりご確認ください。</p>
+          <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/admin/lp-meetings">管理画面を開く</a></p>
+        `
+      })
+      console.log('面談者へのメール送信成功:', counselorEmail)
+    } catch (emailError) {
+      console.error('面談者へのメール送信失敗:', emailError)
+      // メール送信失敗してもエラーにしない（面談確定は成功）
     }
 
     return NextResponse.json({
@@ -128,6 +145,8 @@ export async function POST(
         id: updatedMeeting.id,
         memberId: updatedMeeting.memberId,
         fpId: updatedMeeting.fpId,
+        counselorName: updatedMeeting.counselorName,
+        counselorEmail: updatedMeeting.counselorEmail,
         status: updatedMeeting.status,
         scheduledAt: updatedMeeting.scheduledAt,
         meetingUrl: updatedMeeting.meetingUrl,
