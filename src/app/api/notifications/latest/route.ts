@@ -25,6 +25,12 @@ export async function GET(request: NextRequest) {
 
     const readNotificationIds = readNotifications.map(r => r.notificationId)
 
+    console.log('[NOTIFICATION_FETCH_DEBUG]', {
+      userId: authUser!.id,
+      userRole,
+      readNotificationCount: readNotificationIds.length
+    })
+
     // 未読の通知を取得（最新1件）
     // 対象ロールが指定されている場合は、ユーザーのロールが含まれているものだけ
     // 対象ロールが空の場合は全員向け
@@ -43,6 +49,15 @@ export async function GET(request: NextRequest) {
         createdAt: 'desc'
       }
     })
+
+    if (latestNotification) {
+      console.log('[NOTIFICATION_FOUND_DEBUG]', {
+        notificationId: latestNotification.id,
+        title: latestNotification.title,
+        targetRoles: latestNotification.targetRoles,
+        userRole
+      })
+    }
 
     if (!latestNotification) {
       return NextResponse.json({
