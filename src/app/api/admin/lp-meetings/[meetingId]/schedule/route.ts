@@ -106,13 +106,22 @@ export async function POST(
 
     // 面談者にメール通知を送信
     try {
+      console.log('[メール送信] 開始:', { counselorEmail, counselorName })
+
       const resend = getResend()
       const formattedDate = formatDateTime(new Date(scheduledAt))
       const platformName = meetingPlatform === 'ZOOM' ? 'Zoom' :
                           meetingPlatform === 'GOOGLE_MEET' ? 'Google Meet' :
                           meetingPlatform === 'TEAMS' ? 'Microsoft Teams' : 'その他'
 
-      await resend.emails.send({
+      console.log('[メール送信] パラメータ:', {
+        from: 'UGSオンラインスクール <noreply@unicara.jp>',
+        to: counselorEmail,
+        subject: `【LP面談依頼】${updatedMeeting.member.name}様の面談が確定しました`,
+        hasApiKey: !!process.env.RESEND_API_KEY
+      })
+
+      const result = await resend.emails.send({
         from: 'UGSオンラインスクール <noreply@unicara.jp>',
         to: counselorEmail,
         subject: `【LP面談依頼】${updatedMeeting.member.name}様の面談が確定しました`,
@@ -137,9 +146,14 @@ export async function POST(
           <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/admin/lp-meetings">管理画面を開く</a></p>
         `
       })
-      console.log('面談者へのメール送信成功:', counselorEmail)
-    } catch (emailError) {
-      console.error('面談者へのメール送信失敗:', emailError)
+      console.log('[メール送信] 成功:', { counselorEmail, result })
+    } catch (emailError: any) {
+      console.error('[メール送信] 失敗:', {
+        counselorEmail,
+        error: emailError.message,
+        stack: emailError.stack,
+        details: emailError
+      })
       // メール送信失敗してもエラーにしない（面談確定は成功）
     }
 
