@@ -55,6 +55,7 @@ function ProfileSettingsPage() {
   const [profile, setProfile] = useState({
     name: "",
     email: "",
+    memberId: "", // 会員番号
     phone: "",
     address: "",
     bio: "",
@@ -83,6 +84,7 @@ function ProfileSettingsPage() {
             setProfile({
               name: data.user.name || "",
               email: data.user.email || "",
+              memberId: data.user.memberId || "", // 会員番号
               phone: data.user.phone || "",
               address: data.user.address || "",
               bio: data.user.bio || "",
@@ -403,6 +405,18 @@ function ProfileSettingsPage() {
                     className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 text-slate-500 cursor-not-allowed"
                   />
                   <p className="text-xs text-slate-500 mt-1">メールアドレスは変更できません</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    会員番号
+                  </label>
+                  <input
+                    type="text"
+                    value={profile.memberId}
+                    disabled
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 text-slate-500 cursor-not-allowed font-mono text-lg tracking-wider"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">問い合わせ時にこの番号をお伝えください</p>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">

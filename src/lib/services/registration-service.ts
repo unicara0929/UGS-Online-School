@@ -7,6 +7,7 @@ import { prisma } from '@/lib/prisma'
 import { supabaseAdmin } from '@/lib/supabase'
 import { UserRole } from '@prisma/client'
 import { generateUniqueReferralCode } from '@/lib/services/referral-code-generator'
+import { generateMemberId } from '@/lib/services/member-id-generator'
 
 /**
  * Supabaseユーザーの作成または取得
@@ -124,6 +125,9 @@ export async function findOrCreatePrismaUser(
   // ユニークな紹介コードを生成
   const referralCode = await generateUniqueReferralCode()
 
+  // ユニークな会員番号を生成
+  const memberId = await generateMemberId()
+
   // 新規ユーザーを作成
   const user = await prisma.user.create({
     data: {
@@ -131,11 +135,12 @@ export async function findOrCreatePrismaUser(
       email,
       name,
       role: UserRole.MEMBER,
+      memberId,
       referralCode
     }
   })
-  
-  console.log('Prisma user created:', { userId: user.id, email, role: user.role, referralCode })
+
+  console.log('Prisma user created:', { userId: user.id, email, role: user.role, memberId, referralCode })
   return user
 }
 
