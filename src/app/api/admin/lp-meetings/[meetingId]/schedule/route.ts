@@ -6,7 +6,10 @@ import { formatDateTime } from '@/lib/utils/format'
 import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// 遅延初期化（ビルド時のエラーを回避）
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY)
+}
 
 /**
  * 面談を確定（管理者）
@@ -103,6 +106,7 @@ export async function POST(
 
     // 面談者にメール通知を送信
     try {
+      const resend = getResend()
       const formattedDate = formatDateTime(new Date(scheduledAt))
       const platformName = meetingPlatform === 'ZOOM' ? 'Zoom' :
                           meetingPlatform === 'GOOGLE_MEET' ? 'Google Meet' :
