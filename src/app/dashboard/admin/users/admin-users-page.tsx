@@ -81,6 +81,13 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // ユーザー統計情報
+  const [stats, setStats] = useState<{
+    fpCount: number
+    memberCount: number
+    memberToFpPromotions: number
+  } | null>(null)
+
   // フィルター機能
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'active' | 'canceled' | 'past_due' | 'unpaid'>('all')
@@ -108,7 +115,25 @@ export default function AdminUsersPage() {
     fetchUsers()
     fetchPendingUsers()
     fetchSubscriptions()
+    fetchStats()
   }, [])
+
+  const fetchStats = async () => {
+    try {
+      const response = await fetch('/api/admin/users/stats', {
+        credentials: 'include'
+      })
+      if (!response.ok) {
+        throw new Error('統計情報の取得に失敗しました')
+      }
+      const data = await response.json()
+      if (data.success) {
+        setStats(data.stats)
+      }
+    } catch (err) {
+      console.error('Stats fetch error:', err)
+    }
+  }
 
   const fetchPendingUsers = async () => {
     try {
@@ -459,6 +484,62 @@ export default function AdminUsersPage() {
           </div>
         </div>
 
+        {/* ユーザー統計サマリー */}
+        {stats && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* FPエイド数 */}
+            <Card className="border-blue-200 shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader className="bg-gradient-to-br from-blue-50 to-indigo-50">
+                <CardTitle className="flex items-center justify-between">
+                  <span className="text-blue-900">FPエイド</span>
+                  <UserCheck className="h-6 w-6 text-blue-600" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="text-4xl font-bold text-blue-600 mb-2">
+                  {stats.fpCount}
+                  <span className="text-lg text-slate-500 ml-2">名</span>
+                </div>
+                <p className="text-sm text-slate-500">現在のFPエイド数</p>
+              </CardContent>
+            </Card>
+
+            {/* UGS会員数 */}
+            <Card className="border-green-200 shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader className="bg-gradient-to-br from-green-50 to-emerald-50">
+                <CardTitle className="flex items-center justify-between">
+                  <span className="text-green-900">UGS会員</span>
+                  <Users className="h-6 w-6 text-green-600" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="text-4xl font-bold text-green-600 mb-2">
+                  {stats.memberCount}
+                  <span className="text-lg text-slate-500 ml-2">名</span>
+                </div>
+                <p className="text-sm text-slate-500">現在のUGS会員数</p>
+              </CardContent>
+            </Card>
+
+            {/* UGS会員→FPエイド昇格数 */}
+            <Card className="border-purple-200 shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader className="bg-gradient-to-br from-purple-50 to-pink-50">
+                <CardTitle className="flex items-center justify-between">
+                  <span className="text-purple-900">昇格実績</span>
+                  <UserCheck className="h-6 w-6 text-purple-600" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="text-4xl font-bold text-purple-600 mb-2">
+                  {stats.memberToFpPromotions}
+                  <span className="text-lg text-slate-500 ml-2">名</span>
+                </div>
+                <p className="text-sm text-slate-500">UGS会員→FPエイド累計</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {error && (
           <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 shadow-lg">
             <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 to-pink-500/5"></div>
@@ -472,14 +553,15 @@ export default function AdminUsersPage() {
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-red-800 mb-2">エラーが発生しました</h3>
                   <p className="text-red-700 mb-4">{error}</p>
-                  <Button 
+                  <Button
                     onClick={() => {
                       fetchUsers()
                       fetchPendingUsers()
                       fetchSubscriptions()
-                    }} 
-                    variant="outline" 
-                    size="sm" 
+                      fetchStats()
+                    }}
+                    variant="outline"
+                    size="sm"
                     className="bg-white hover:bg-red-50 border-red-300 text-red-700 hover:text-red-800"
                   >
                     再試行
