@@ -121,6 +121,25 @@ export async function POST(request: NextRequest) {
       by: authUser!.id
     })
 
+    // 公開されている場合のみ新着通知を作成
+    if (course.isPublished) {
+      try {
+        await prisma.systemNotification.create({
+          data: {
+            type: 'CONTENT_ADDED',
+            title: `新しい教育コンテンツ「${title}」が追加されました`,
+            contentType: 'COURSE',
+            contentId: course.id,
+            targetUrl: `/dashboard/courses/${course.id}`,
+            targetRoles: [], // 空配列 = 全員向け
+          }
+        })
+      } catch (notificationError) {
+        console.error('[COURSE_NOTIFICATION_ERROR]', notificationError)
+        // 通知作成失敗はコース作成の失敗とはしない（ログのみ）
+      }
+    }
+
     return NextResponse.json({
       success: true,
       course

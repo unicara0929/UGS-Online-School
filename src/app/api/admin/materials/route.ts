@@ -113,6 +113,31 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    // 新着通知を作成
+    try {
+      // viewableRoles を UserRole に変換
+      const notificationTargetRoles = dbViewableRoles.map((role: 'ADMIN' | 'MANAGER' | 'FP' | 'MEMBER') => {
+        if (role === 'ADMIN') return 'ADMIN'
+        if (role === 'MANAGER') return 'MANAGER'
+        if (role === 'FP') return 'FP'
+        return 'MEMBER'
+      })
+
+      await prisma.systemNotification.create({
+        data: {
+          type: 'MATERIAL_ADDED',
+          title: `新しい資料「${title}」が追加されました`,
+          contentType: 'MATERIAL',
+          contentId: createdMaterial.id,
+          targetUrl: `/dashboard/materials/${createdMaterial.id}`,
+          targetRoles: notificationTargetRoles,
+        }
+      })
+    } catch (notificationError) {
+      console.error('[MATERIAL_NOTIFICATION_ERROR]', notificationError)
+      // 通知作成失敗は資料作成の失敗とはしない（ログのみ）
+    }
+
     return NextResponse.json({
       success: true,
       material: {

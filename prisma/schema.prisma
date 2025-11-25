@@ -65,6 +65,7 @@ model User {
   // 新着通知機能
   categoryViews           UserCategoryView[]
   contentViews            UserContentView[]
+  notificationReads       UserNotificationRead[] // システム通知の既読管理
 
   @@map("users")
 }
@@ -979,4 +980,49 @@ model UserContentView {
   @@unique([userId, contentType, contentId])
   @@index([userId, contentType])
   @@map("user_content_views")
+}
+
+// =====================
+// ダッシュボード新着通知機能
+// =====================
+
+// システム通知タイプ
+enum SystemNotificationType {
+  MATERIAL_ADDED  // 資料追加
+  CONTENT_ADDED   // 教育コンテンツ追加
+  EVENT_ADDED     // イベント追加
+  ANNOUNCEMENT    // お知らせ
+}
+
+// システム全体の通知（資料追加、コンテンツ追加、イベント追加など）
+model SystemNotification {
+  id          String                  @id @default(cuid())
+  type        SystemNotificationType  // 通知タイプ
+  title       String                  // 通知タイトル（例: "新しい教育コンテンツ『〇〇〇〇』が追加されました"）
+  contentType ContentType?            // コンテンツタイプ（EVENT, COURSE, LESSON, MATERIAL）
+  contentId   String?                 // 対象コンテンツのID
+  targetUrl   String?                 // 遷移先URL
+  targetRoles UserRole[]              // 対象ロール（複数選択可能）
+  isActive    Boolean                 @default(true) // 有効/無効
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+  readBy      UserNotificationRead[]  // 既読ユーザーリスト
+
+  @@index([isActive, createdAt])
+  @@map("system_notifications")
+}
+
+// ユーザーごとの通知既読管理
+model UserNotificationRead {
+  id             String             @id @default(cuid())
+  userId         String
+  notificationId String
+  readAt         DateTime           @default(now())
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notification   SystemNotification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, notificationId])
+  @@index([userId])
+  @@index([notificationId])
+  @@map("user_notification_reads")
 }
