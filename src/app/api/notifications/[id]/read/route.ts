@@ -7,6 +7,7 @@ import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
  * POST /api/notifications/[id]/read
  *
  * 指定した通知を既読にする
+ * - Notification テーブル（個別通知）と SystemNotification テーブル（システム通知）の両方に対応
  */
 export async function POST(
   request: NextRequest,
@@ -19,19 +20,52 @@ export async function POST(
 
     const { id: notificationId } = await params
 
-    // 通知が存在するか確認
-    const notification = await prisma.systemNotification.findUnique({
+    // まず個別通知（Notification）テーブルを確認
+    const personalNotification = await prisma.notification.findUnique({
       where: { id: notificationId }
     })
 
-    if (!notification) {
+    if (personalNotification) {
+      // 所有権チェック: 自分の通知のみ既読にできる
+      if (personalNotification.userId !== authUser!.id) {
+        return NextResponse.json(
+          { error: 'アクセス権限がありません。自分の通知のみ既読にできます。' },
+          { status: 403 }
+        )
+      }
+
+      // 個別通知を既読にする
+      const updatedNotification = await prisma.notification.update({
+        where: { id: notificationId },
+        data: {
+          isRead: true,
+          readAt: new Date()
+        }
+      })
+
+      return NextResponse.json({
+        success: true,
+        notification: {
+          id: updatedNotification.id,
+          isRead: updatedNotification.isRead,
+          readAt: updatedNotification.readAt
+        }
+      })
+    }
+
+    // 個別通知が見つからない場合は、システム通知を確認
+    const systemNotification = await prisma.systemNotification.findUnique({
+      where: { id: notificationId }
+    })
+
+    if (!systemNotification) {
       return NextResponse.json(
         { success: false, error: '通知が見つかりません' },
         { status: 404 }
       )
     }
 
-    // 既読レコードを作成（既に存在する場合はスキップ）
+    // システム通知の既読レコードを作成（既に存在する場合はスキップ）
     await prisma.userNotificationRead.upsert({
       where: {
         userId_notificationId: {
@@ -50,8 +84,16 @@ export async function POST(
       success: true,
       message: '通知を既読にしました'
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error marking notification as read:', error)
+
+    if (error.code === 'P2025') {
+      return NextResponse.json(
+        { error: '通知が見つかりません' },
+        { status: 404 }
+      )
+    }
+
     return NextResponse.json(
       { success: false, error: '既読処理に失敗しました' },
       { status: 500 }
