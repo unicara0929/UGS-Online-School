@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { supabaseAdmin } from '@/lib/supabase'
+import { generateMemberId } from '@/lib/services/member-id-generator'
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,6 +45,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 会員番号を生成
+    const memberId = await generateMemberId()
+
     // PrismaのUserテーブルにユーザーを作成
     const user = await prisma.user.create({
       data: {
@@ -51,6 +55,7 @@ export async function POST(request: NextRequest) {
         email,
         name,
         role: role.toUpperCase() as any,
+        memberId,
       }
     })
 

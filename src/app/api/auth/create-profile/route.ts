@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { supabaseAdmin } from '@/lib/supabase'
 import { appRoleToPrismaRole, prismaRoleToAppRole, stringToAppRole } from '@/lib/utils/role-mapper'
+import { generateMemberId } from '@/lib/services/member-id-generator'
 
 export async function POST(request: NextRequest) {
   // リクエストボディを最初に読み込む（エラー時でも使用可能にするため）
@@ -71,6 +72,10 @@ export async function POST(request: NextRequest) {
 
     console.log('Role mapping:', { inputRole: role, appRole, prismaRole })
 
+    // 会員番号を生成
+    const memberId = await generateMemberId()
+    console.log('Generated member ID:', memberId)
+
     // Prismaでユーザープロファイルを作成（リトライ付き）
     // 根本的な解決: リトライではなく、接続プール設定を最適化することで問題を解決
     const user = await prisma.user.create({
@@ -79,6 +84,7 @@ export async function POST(request: NextRequest) {
         email,
         name,
         role: prismaRole,
+        memberId,
       }
     })
 
