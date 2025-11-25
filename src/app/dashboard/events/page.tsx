@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import { ja } from "date-fns/locale"
 import { ProtectedRoute } from "@/components/auth/protected-route"
@@ -10,13 +11,14 @@ import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Clock, MapPin, Users, Video, Loader2, CheckCircle2, Sparkles } from "lucide-react"
+import { Calendar, Clock, MapPin, Users, Video, Loader2, CheckCircle2, Sparkles, ArrowRight } from "lucide-react"
 import { AttendanceCodeInput } from "@/components/events/attendance-code-input"
 import { VideoSurveyAttendance } from "@/components/events/video-survey-attendance"
 import { useNewBadge } from "@/hooks/use-new-badge"
 
 function EventsPageContent() {
   const { user } = useAuth()
+  const router = useRouter()
   const [events, setEvents] = useState<EventItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -493,7 +495,20 @@ function EventsPageContent() {
                       </div>
                     </div>
 
-                    <div className="mt-4 flex gap-2">
+                    {/* 詳細を見るボタン */}
+                    <div className="mt-4">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => router.push(`/dashboard/events/${event.id}`)}
+                      >
+                        詳細を見る
+                        <ArrowRight className="h-4 w-4 ml-2" />
+                      </Button>
+                    </div>
+
+                    <div className="mt-2 flex gap-2">
                       {/* PENDING状態：支払い完了ボタン＋キャンセルボタン */}
                       {event.isPaid && event.paymentStatus === 'PENDING' ? (
                         <>
