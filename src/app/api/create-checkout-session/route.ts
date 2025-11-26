@@ -4,8 +4,8 @@ import { prisma } from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, name, referralCode } = await request.json()
-    console.log('Creating checkout session for:', { email, name, referralCode })
+    const { email, name, referralCode, promoCodeId } = await request.json()
+    console.log('Creating checkout session for:', { email, name, referralCode, promoCodeId })
     console.log('Environment variables:', {
       hasStripeSecretKey: !!process.env.STRIPE_SECRET_KEY,
       appUrl: process.env.NEXT_PUBLIC_APP_URL
@@ -99,8 +99,12 @@ export async function POST(request: NextRequest) {
       console.log('Referral code added to session metadata:', finalReferralCode)
     }
 
+    // プロモコードが適用される場合は初期費用をスキップ
+    const hasPromoCode = !!promoCodeId
+
     // 初回登録費用のPrice ID（環境変数から取得、なければ登録費用なし）
-    const setupFeePriceId = process.env.STRIPE_SETUP_FEE_PRICE_ID
+    // プロモコードがある場合は初期費用をスキップ
+    const setupFeePriceId = hasPromoCode ? null : process.env.STRIPE_SETUP_FEE_PRICE_ID
 
     // line_itemsを構築（月額料金 + 初回登録費用）
     const lineItems: Array<{ price: string; quantity: number }> = [
@@ -111,6 +115,7 @@ export async function POST(request: NextRequest) {
     ]
 
     // 初回登録費用がある場合は追加（one-time price）
+    // プロモコード適用時はスキップ
     if (setupFeePriceId) {
       lineItems.push({
         price: setupFeePriceId,  // 初回登録費用 33,000円 (one-time)
@@ -118,7 +123,8 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    const session = await stripe.checkout.sessions.create({
+    // Checkout Session作成パラメータ
+    const sessionParams: any = {
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'subscription',
@@ -129,9 +135,21 @@ export async function POST(request: NextRequest) {
       subscription_data: {
         metadata: sessionMetadata,
       },
-    })
+    }
 
-    if (setupFeePriceId) {
+    // プロモコードが指定されている場合、discountsに追加
+    if (promoCodeId) {
+      sessionParams.discounts = [{ promotion_code: promoCodeId }]
+      sessionMetadata.promoCodeId = promoCodeId
+      console.log('🎟️ Promo code applied:', promoCodeId)
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams)
+
+    if (hasPromoCode) {
+      console.log('🎉 Promo code checkout - Setup fee skipped!')
+      console.log('💰 First payment will be discounted monthly rate only')
+    } else if (setupFeePriceId) {
       console.log('✅ Setup fee added:', setupFeePriceId)
       console.log('💰 Total first payment: ¥38,500 (¥33,000 + ¥5,500)')
     } else {

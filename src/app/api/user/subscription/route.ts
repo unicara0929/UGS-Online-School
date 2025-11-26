@@ -57,6 +57,50 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      // デバッグ: Stripeサブスクリプションの割引情報を確認
+      console.log('Stripe subscription discount info:', {
+        discount: stripeSubscription.discount,
+        discounts: stripeSubscription.discounts,
+        hasDiscount: !!stripeSubscription.discount,
+        hasDiscounts: !!(stripeSubscription.discounts && stripeSubscription.discounts.length > 0),
+      })
+
+      // 元の金額を取得
+      const originalAmount = stripeSubscription.items.data[0]?.price?.unit_amount || 0
+
+      // 割引情報を取得（discount または discounts から）
+      let discountPercentOff = 0
+      let discountAmountOff = 0
+      let discountName = null
+
+      // 単一のdiscountの場合
+      if (stripeSubscription.discount?.coupon) {
+        const coupon = stripeSubscription.discount.coupon
+        discountPercentOff = coupon.percent_off || 0
+        discountAmountOff = coupon.amount_off || 0
+        discountName = coupon.name || null
+      }
+
+      // 複数のdiscountsの場合（配列）
+      if (stripeSubscription.discounts && Array.isArray(stripeSubscription.discounts) && stripeSubscription.discounts.length > 0) {
+        // 最初の割引を適用（通常は1つのみ）
+        const firstDiscount = stripeSubscription.discounts[0]
+        if (firstDiscount?.coupon) {
+          const coupon = firstDiscount.coupon
+          discountPercentOff = coupon.percent_off || 0
+          discountAmountOff = coupon.amount_off || 0
+          discountName = coupon.name || null
+        }
+      }
+
+      // 割引後の金額を計算
+      let actualAmount = originalAmount
+      if (discountPercentOff > 0) {
+        actualAmount = Math.round(originalAmount * (1 - discountPercentOff / 100))
+      } else if (discountAmountOff > 0) {
+        actualAmount = Math.max(0, originalAmount - discountAmountOff)
+      }
+
       return NextResponse.json({
         success: true,
         subscription: {
@@ -71,8 +115,14 @@ export async function GET(request: NextRequest) {
             currentPeriodStart: new Date((stripeSubscription.current_period_start || 0) * 1000),
             cancelAtPeriodEnd: !!stripeSubscription.cancel_at_period_end,
             canceledAt: stripeSubscription.canceled_at ? new Date(stripeSubscription.canceled_at * 1000) : null,
-            amount: stripeSubscription.items.data[0]?.price?.unit_amount || 0,
+            amount: actualAmount,  // 割引適用後の金額
+            originalAmount: originalAmount,  // 元の金額
             currency: stripeSubscription.items.data[0]?.price?.currency || 'jpy',
+            discount: discountPercentOff > 0 || discountAmountOff > 0 ? {
+              percentOff: discountPercentOff,
+              amountOff: discountAmountOff,
+              name: discountName,
+            } : null,
           },
           paymentMethod
         }

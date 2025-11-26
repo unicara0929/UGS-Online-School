@@ -63,6 +63,8 @@ model User {
   roleChangeHistory       RoleChangeHistory[]
   contactSubmissions      ContactSubmission[] // お問い合わせ
   businessCardOrders      BusinessCardOrder[] // 名刺注文
+  consultations           Consultation[] // 個別相談
+  handledConsultations    Consultation[] @relation("ConsultationHandler") // 対応した個別相談
   // 新着通知機能
   categoryViews           UserCategoryView[]
   contentViews            UserContentView[]
@@ -368,6 +370,8 @@ enum NotificationType {
   LP_MEETING_SCHEDULED
   LP_MEETING_COMPLETED
   LP_MEETING_REMINDER
+  CONSULTATION_SUBMITTED
+  CONSULTATION_COMPLETED
 }
 
 enum NotificationPriority {
@@ -1028,4 +1032,63 @@ model UserNotificationRead {
   @@index([userId])
   @@index([notificationId])
   @@map("user_notification_reads")
+}
+
+// =====================
+// 個別相談機能
+// =====================
+
+// 相談ジャンル
+enum ConsultationType {
+  LIFE_PLAN  // ライフプラン
+  HOUSING    // 住宅
+  CAREER     // 転職
+  RENTAL     // 賃貸
+  OTHER      // その他
+}
+
+// 相談ステータス
+enum ConsultationStatus {
+  PENDING      // 未対応
+  IN_PROGRESS  // 対応中
+  COMPLETED    // 完了
+}
+
+// 希望連絡方法
+enum ContactMethod {
+  EMAIL  // メール
+  PHONE  // 電話
+  LINE   // LINE
+}
+
+// 個別相談
+model Consultation {
+  id                String              @id @default(cuid())
+  userId            String
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // フォーム情報
+  type              ConsultationType    // 相談ジャンル
+  phoneNumber       String              // 電話番号（編集可）
+  content           String              @db.Text // 相談内容
+  preferredContact  ContactMethod       // 希望連絡方法
+  preferredDates    DateTime[]          // 希望日時（複数）
+  attachmentUrl     String?             // 添付ファイルURL
+  attachmentName    String?             // 添付ファイル名
+
+  // ステータス管理
+  status            ConsultationStatus  @default(PENDING)
+  adminNotes        String?             @db.Text // 管理者メモ
+  handledBy         String?             // 対応者ID
+  handler           User?               @relation("ConsultationHandler", fields: [handledBy], references: [id], onDelete: SetNull)
+  completedAt       DateTime?           // 完了日時
+
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+  @@map("consultations")
 }
