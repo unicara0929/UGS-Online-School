@@ -53,6 +53,7 @@ export function createTemporaryUserFromSession(
     email: supabaseUser.email || fallbackEmail || '',
     name: userName,
     role: userRole,
+    memberId: '', // 一時的なユーザー情報では会員番号は取得できない
     referralCode: null,
     createdAt: new Date(supabaseUser.created_at),
     updatedAt: new Date(supabaseUser.updated_at || supabaseUser.created_at),

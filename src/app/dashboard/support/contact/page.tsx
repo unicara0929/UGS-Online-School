@@ -180,7 +180,18 @@ function ContactPageContent() {
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {/* ユーザー情報（読み取り専用） */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        会員番号
+                      </label>
+                      <input
+                        type="text"
+                        value={user?.memberId || ''}
+                        disabled
+                        className={`${inputClassName} bg-slate-100 text-slate-600`}
+                      />
+                    </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
                         お名前

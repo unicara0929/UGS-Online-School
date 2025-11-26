@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { ReferralStatus } from '@prisma/client'
+import { ReferralStatus, ReferralType } from '@prisma/client'
 import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
 
 /**
@@ -60,13 +60,40 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // 統計情報を取得
+    // 統計情報を取得（ステータス別）
+    const [total, pending, approved, rejected, rewarded] = await Promise.all([
+      prisma.referral.count(),
+      prisma.referral.count({ where: { status: ReferralStatus.PENDING } }),
+      prisma.referral.count({ where: { status: ReferralStatus.APPROVED } }),
+      prisma.referral.count({ where: { status: ReferralStatus.REJECTED } }),
+      prisma.referral.count({ where: { status: ReferralStatus.REWARDED } })
+    ])
+
+    // 紹介タイプ別の統計情報を取得
+    const [memberTotal, fpTotal, memberApproved, fpApproved] = await Promise.all([
+      prisma.referral.count({ where: { referralType: ReferralType.MEMBER } }),
+      prisma.referral.count({ where: { referralType: ReferralType.FP } }),
+      prisma.referral.count({ where: { referralType: ReferralType.MEMBER, status: { in: [ReferralStatus.APPROVED, ReferralStatus.REWARDED] } } }),
+      prisma.referral.count({ where: { referralType: ReferralType.FP, status: { in: [ReferralStatus.APPROVED, ReferralStatus.REWARDED] } } })
+    ])
+
     const stats = {
-      total: await prisma.referral.count(),
-      pending: await prisma.referral.count({ where: { status: ReferralStatus.PENDING } }),
-      approved: await prisma.referral.count({ where: { status: ReferralStatus.APPROVED } }),
-      rejected: await prisma.referral.count({ where: { status: ReferralStatus.REJECTED } }),
-      rewarded: await prisma.referral.count({ where: { status: ReferralStatus.REWARDED } })
+      total,
+      pending,
+      approved,
+      rejected,
+      rewarded,
+      // 紹介タイプ別の統計
+      byType: {
+        member: {
+          total: memberTotal,
+          approved: memberApproved
+        },
+        fp: {
+          total: fpTotal,
+          approved: fpApproved
+        }
+      }
     }
 
     return NextResponse.json({

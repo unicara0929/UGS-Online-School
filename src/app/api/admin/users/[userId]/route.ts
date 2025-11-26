@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { supabaseAdmin } from '@/lib/supabase'
 import { getAuthenticatedUser, checkRole, RoleGroups } from '@/lib/auth/api-helpers'
+import { ReferralType, ReferralStatus } from '@prisma/client'
 
 /**
  * ユーザー詳細取得 API
@@ -74,6 +75,43 @@ export async function GET(
       // Supabaseエラーは無視して続行
     }
 
+    // 紹介者として行った紹介のタイプ別統計を取得
+    const [memberReferralsTotal, fpReferralsTotal, memberReferralsApproved, fpReferralsApproved] = await Promise.all([
+      prisma.referral.count({
+        where: { referrerId: userId, referralType: ReferralType.MEMBER }
+      }),
+      prisma.referral.count({
+        where: { referrerId: userId, referralType: ReferralType.FP }
+      }),
+      prisma.referral.count({
+        where: {
+          referrerId: userId,
+          referralType: ReferralType.MEMBER,
+          status: { in: [ReferralStatus.APPROVED, ReferralStatus.REWARDED] }
+        }
+      }),
+      prisma.referral.count({
+        where: {
+          referrerId: userId,
+          referralType: ReferralType.FP,
+          status: { in: [ReferralStatus.APPROVED, ReferralStatus.REWARDED] }
+        }
+      })
+    ])
+
+    const referralStats = {
+      total: memberReferralsTotal + fpReferralsTotal,
+      totalApproved: memberReferralsApproved + fpReferralsApproved,
+      member: {
+        total: memberReferralsTotal,
+        approved: memberReferralsApproved
+      },
+      fp: {
+        total: fpReferralsTotal,
+        approved: fpReferralsApproved
+      }
+    }
+
     // レスポンス用にデータを整形
     const userDetail = {
       // 基本情報
@@ -114,6 +152,9 @@ export async function GET(
       referralInfo: user.referralsAsReferred[0] || null,
       fpPromotionApplication: user.fpPromotionApplications[0] || null,
       compensationBankAccount: user.compensationBankAccount || null,
+
+      // 紹介統計（このユーザーが紹介した人数）
+      referralStats,
 
       // Supabase認証情報
       supabaseAuth: supabaseUser ? {
