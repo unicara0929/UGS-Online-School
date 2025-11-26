@@ -49,6 +49,7 @@ export const navigation: NavItem[] = [
   { name: 'LP面談予約', href: '/dashboard/lp-meeting/request', icon: MessageSquare, roles: ['member'] },
   { name: 'LP面談管理', href: '/dashboard/lp-meeting/manage', icon: MessageSquare, roles: ['fp'] },
   { name: 'イベント', href: '/dashboard/events', icon: Calendar, roles: ['member', 'fp', 'manager', 'admin'] },
+  { name: '個別相談', href: '/dashboard/consultation', icon: UserRound, roles: ['member', 'fp', 'manager', 'admin'] },
   {
     name: '名刺注文',
     icon: CreditCard,
@@ -65,7 +66,6 @@ export const navigation: NavItem[] = [
     subItems: [
       { name: 'よくある質問', href: '/dashboard/support/faq', icon: HelpCircle, roles: ['member', 'fp', 'manager', 'admin'] },
       { name: 'お問い合わせ', href: '/dashboard/support/contact', icon: Send, roles: ['member', 'fp', 'manager', 'admin'] },
-      { name: '個別相談', href: '/dashboard/consultation', icon: UserRound, roles: ['member', 'fp', 'manager', 'admin'] },
     ]
   },
   { name: '教育コンテンツ管理', href: '/dashboard/admin/courses', icon: BookOpen, roles: ['admin'] },
