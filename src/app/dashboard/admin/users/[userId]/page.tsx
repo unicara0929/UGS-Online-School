@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, CreditCard, AlertCircle, UserCheck, FileText, Users, Building2 } from 'lucide-react'
+import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, CreditCard, AlertCircle, UserCheck, FileText, Users, Building2, UserPlus, TrendingUp } from 'lucide-react'
 import { getRoleLabel, getRoleBadgeVariant, formatDate } from '@/lib/utils/user-helpers'
 
 interface UserDetail {
@@ -51,6 +51,20 @@ interface UserDetail {
   } | null
   referralInfo: any
   fpPromotionApplication: any
+
+  // 紹介統計（このユーザーが紹介した人数）
+  referralStats: {
+    total: number
+    totalApproved: number
+    member: {
+      total: number
+      approved: number
+    }
+    fp: {
+      total: number
+      approved: number
+    }
+  }
   compensationBankAccount: {
     id: string
     bankName: string
@@ -356,15 +370,47 @@ export default function UserDetailPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
-              <InfoRow 
-                icon={<FileText className="h-4 w-4" />} 
-                label="紹介コード" 
-                value={user.referralCode || '未設定'} 
+              <InfoRow
+                icon={<FileText className="h-4 w-4" />}
+                label="紹介コード"
+                value={user.referralCode || '未設定'}
               />
+
+              {/* 紹介した人数（タイプ別） */}
+              <div className="pt-4 border-t border-slate-200">
+                <p className="text-sm font-semibold text-slate-600 mb-3">紹介した人数</p>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="bg-slate-50 rounded-lg p-3 text-center">
+                    <div className="flex items-center justify-center mb-1">
+                      <TrendingUp className="h-4 w-4 text-slate-500 mr-1" />
+                    </div>
+                    <p className="text-2xl font-bold text-slate-700">{user.referralStats?.total ?? 0}</p>
+                    <p className="text-xs text-slate-500">紹介合計</p>
+                    <p className="text-xs text-slate-400">承認: {user.referralStats?.totalApproved ?? 0}件</p>
+                  </div>
+                  <div className="bg-blue-50 rounded-lg p-3 text-center">
+                    <div className="flex items-center justify-center mb-1">
+                      <UserPlus className="h-4 w-4 text-blue-500 mr-1" />
+                    </div>
+                    <p className="text-2xl font-bold text-blue-700">{user.referralStats?.fp.total ?? 0}</p>
+                    <p className="text-xs text-blue-600">FPエイド</p>
+                    <p className="text-xs text-blue-400">承認: {user.referralStats?.fp.approved ?? 0}件</p>
+                  </div>
+                  <div className="bg-emerald-50 rounded-lg p-3 text-center">
+                    <div className="flex items-center justify-center mb-1">
+                      <UserPlus className="h-4 w-4 text-emerald-500 mr-1" />
+                    </div>
+                    <p className="text-2xl font-bold text-emerald-700">{user.referralStats?.member.total ?? 0}</p>
+                    <p className="text-xs text-emerald-600">UGS会員</p>
+                    <p className="text-xs text-emerald-400">承認: {user.referralStats?.member.approved ?? 0}件</p>
+                  </div>
+                </div>
+              </div>
+
               {user.referrer ? (
                 <>
                   <div className="pt-4 border-t border-slate-200">
-                    <p className="text-sm font-semibold text-slate-600 mb-3">紹介者情報</p>
+                    <p className="text-sm font-semibold text-slate-600 mb-3">紹介者情報（このユーザーを紹介した人）</p>
                     <div className="bg-slate-50 rounded-lg p-4 space-y-2">
                       <InfoRow icon={<User className="h-4 w-4" />} label="名前" value={user.referrer.name} />
                       <InfoRow icon={<Mail className="h-4 w-4" />} label="メール" value={user.referrer.email} />
@@ -373,7 +419,9 @@ export default function UserDetailPage() {
                   </div>
                 </>
               ) : (
-                <p className="text-slate-500 text-sm">紹介者なし（直接登録）</p>
+                <div className="pt-4 border-t border-slate-200">
+                  <p className="text-slate-500 text-sm">紹介者なし（直接登録）</p>
+                </div>
               )}
             </CardContent>
           </Card>

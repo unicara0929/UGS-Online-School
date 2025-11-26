@@ -55,6 +55,16 @@ interface ReferralStats {
   approved: number
   rejected: number
   rewarded: number
+  byType?: {
+    member: {
+      total: number
+      approved: number
+    }
+    fp: {
+      total: number
+      approved: number
+    }
+  }
 }
 
 function AdminReferralsPageContent() {
@@ -185,18 +195,47 @@ function AdminReferralsPageContent() {
           />
           <p className="mt-2 text-sm text-slate-600">全ユーザーの紹介を管理します</p>
 
-          {/* 統計カード */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-            <Card>
+          {/* 紹介タイプ別統計カード */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <Card className="bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200">
               <CardHeader className="pb-2">
-                <CardDescription>総紹介数</CardDescription>
-                <CardTitle className="text-2xl">{stats.total}</CardTitle>
+                <CardDescription className="text-slate-600 font-medium">紹介合計</CardDescription>
+                <CardTitle className="text-3xl">{stats.total}件</CardTitle>
               </CardHeader>
               <CardContent>
-                <TrendingUp className="h-4 w-4 text-slate-500" />
+                <div className="text-sm text-slate-500">
+                  承認済み: {stats.approved + stats.rewarded}件
+                </div>
               </CardContent>
             </Card>
 
+            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+              <CardHeader className="pb-2">
+                <CardDescription className="text-blue-600 font-medium">FPエイド紹介</CardDescription>
+                <CardTitle className="text-3xl text-blue-700">{stats.byType?.fp.total ?? 0}件</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-sm text-blue-600">
+                  承認済み: {stats.byType?.fp.approved ?? 0}件
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200">
+              <CardHeader className="pb-2">
+                <CardDescription className="text-emerald-600 font-medium">UGS会員紹介</CardDescription>
+                <CardTitle className="text-3xl text-emerald-700">{stats.byType?.member.total ?? 0}件</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-sm text-emerald-600">
+                  承認済み: {stats.byType?.member.approved ?? 0}件
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* ステータス別統計カード */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <Card>
               <CardHeader className="pb-2">
                 <CardDescription>審査中</CardDescription>

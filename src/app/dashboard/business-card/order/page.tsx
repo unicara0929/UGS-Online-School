@@ -7,7 +7,8 @@ import { Sidebar } from '@/components/navigation/sidebar'
 import { PageHeader } from '@/components/dashboard/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2, CreditCard, ChevronRight, ChevronLeft, Check, AlertCircle, MapPin, Truck } from 'lucide-react'
+import { Loader2, CreditCard, ChevronRight, ChevronLeft, Check, AlertCircle, MapPin, Truck, User } from 'lucide-react'
+import { useAuth } from '@/contexts/auth-context'
 
 interface Design {
   id: string
@@ -58,6 +59,7 @@ const PREFECTURES = [
 function BusinessCardOrderContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { user } = useAuth()
   const [designs, setDesigns] = useState<Design[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -483,6 +485,53 @@ function BusinessCardOrderContent() {
                           <p className="text-xs text-slate-500">税込</p>
                         </div>
                       </label>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* 注文者情報（読み取り専用） */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <User className="h-5 w-5" />
+                      注文者情報
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          会員番号
+                        </label>
+                        <input
+                          type="text"
+                          value={user?.memberId || ''}
+                          disabled
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-100 text-slate-600"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          お名前
+                        </label>
+                        <input
+                          type="text"
+                          value={user?.name || ''}
+                          disabled
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-100 text-slate-600"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          メールアドレス
+                        </label>
+                        <input
+                          type="text"
+                          value={user?.email || ''}
+                          disabled
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-100 text-slate-600"
+                        />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

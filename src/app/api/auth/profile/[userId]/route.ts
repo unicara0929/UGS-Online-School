@@ -47,6 +47,7 @@ export async function GET(
         email: user.email,
         name: user.name,
         role: role,
+        memberId: user.memberId,
         referralCode: user.referralCode,
         phone: user.phone,
         address: user.address,
