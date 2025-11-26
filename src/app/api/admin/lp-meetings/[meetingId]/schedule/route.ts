@@ -115,14 +115,14 @@ export async function POST(
                           meetingPlatform === 'TEAMS' ? 'Microsoft Teams' : 'その他'
 
       console.log('[メール送信] パラメータ:', {
-        from: 'UGSオンラインスクール <noreply@unicara.jp>',
+        from: 'UGSオンラインスクール <inc@unicara.jp>',
         to: counselorEmail,
         subject: `【LP面談依頼】${updatedMeeting.member.name}様の面談が確定しました`,
         hasApiKey: !!process.env.RESEND_API_KEY
       })
 
       const result = await resend.emails.send({
-        from: 'UGSオンラインスクール <noreply@unicara.jp>',
+        from: 'UGSオンラインスクール <inc@unicara.jp>',
         to: counselorEmail,
         subject: `【LP面談依頼】${updatedMeeting.member.name}様の面談が確定しました`,
         html: `
