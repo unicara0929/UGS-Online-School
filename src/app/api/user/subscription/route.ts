@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
-import Stripe from 'stripe'
 
 /**
  * ユーザーのサブスクリプション情報を取得
@@ -105,16 +104,6 @@ export async function GET(request: NextRequest) {
       // 元の金額を取得
       const originalAmount = stripeSubscription.items.data[0]?.price?.unit_amount || 0
 
-      // デバッグ: Stripeサブスクリプションの生データ
-      console.log('=== STRIPE SUBSCRIPTION DEBUG ===')
-      console.log('Subscription ID:', subscription.stripeSubscriptionId)
-      console.log('discounts (raw):', JSON.stringify(stripeSubscription.discounts))
-      console.log('discount (raw):', JSON.stringify(stripeSubscription.discount))
-      console.log('discounts type:', typeof stripeSubscription.discounts)
-      console.log('discounts is array:', Array.isArray(stripeSubscription.discounts))
-      console.log('discounts length:', stripeSubscription.discounts?.length)
-      console.log('=================================')
-
       // 割引情報を取得
       let discountPercentOff = 0
       let discountAmountOff = 0
@@ -123,16 +112,12 @@ export async function GET(request: NextRequest) {
       // discountsが配列の場合（新しいStripe API）
       if (stripeSubscription.discounts && Array.isArray(stripeSubscription.discounts) && stripeSubscription.discounts.length > 0) {
         const firstDiscountItem = stripeSubscription.discounts[0]
-        console.log('firstDiscountItem:', JSON.stringify(firstDiscountItem, null, 2))
 
         // source.coupon からクーポンIDを取得して、クーポン詳細を取得
         if (firstDiscountItem?.source?.coupon) {
           const couponId = firstDiscountItem.source.coupon
-          console.log('Coupon ID from source:', couponId)
-
           try {
             const coupon = await stripe.coupons.retrieve(couponId)
-            console.log('Retrieved coupon:', JSON.stringify(coupon, null, 2))
             discountPercentOff = coupon.percent_off || 0
             discountAmountOff = coupon.amount_off || 0
             discountName = coupon.name || null
@@ -155,8 +140,6 @@ export async function GET(request: NextRequest) {
         discountAmountOff = coupon.amount_off || 0
         discountName = coupon.name || null
       }
-
-      console.log('Final discount values:', { discountPercentOff, discountAmountOff, discountName })
 
       // 割引後の金額を計算
       let actualAmount = originalAmount
