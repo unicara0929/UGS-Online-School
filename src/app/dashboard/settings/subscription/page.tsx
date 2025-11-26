@@ -33,7 +33,13 @@ interface SubscriptionData {
     cancelAtPeriodEnd: boolean
     canceledAt: string | null
     amount: number
+    originalAmount?: number
     currency: string
+    discount?: {
+      percentOff: number
+      amountOff: number
+      name: string | null
+    } | null
   } | null
   paymentMethod: {
     brand: string
@@ -275,11 +281,41 @@ function SubscriptionManagementPage() {
 
                     {/* 月額料金 */}
                     {subscription.stripeDetails && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-slate-700">月額料金</span>
-                        <span className="text-lg font-bold text-slate-900">
-                          {formatCurrency(subscription.stripeDetails.amount)}
-                        </span>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-slate-700">月額料金</span>
+                          <div className="text-right">
+                            {subscription.stripeDetails.discount && subscription.stripeDetails.originalAmount ? (
+                              <>
+                                <span className="text-sm text-slate-400 line-through mr-2">
+                                  {formatCurrency(subscription.stripeDetails.originalAmount)}
+                                </span>
+                                <span className="text-lg font-bold text-green-600">
+                                  {formatCurrency(subscription.stripeDetails.amount)}
+                                </span>
+                              </>
+                            ) : (
+                              <span className="text-lg font-bold text-slate-900">
+                                {formatCurrency(subscription.stripeDetails.amount)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        {subscription.stripeDetails.discount && (
+                          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                            <div className="flex items-center">
+                              <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
+                              <span className="text-sm font-medium text-green-800">
+                                {subscription.stripeDetails.discount.name || '割引適用中'}
+                              </span>
+                            </div>
+                            <p className="text-xs text-green-600 mt-1 ml-6">
+                              {subscription.stripeDetails.discount.percentOff > 0
+                                ? `${subscription.stripeDetails.discount.percentOff}%オフが永続適用されています`
+                                : `${formatCurrency(subscription.stripeDetails.discount.amountOff)}オフが適用されています`}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     )}
 

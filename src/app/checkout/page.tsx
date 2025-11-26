@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle, CreditCard, Shield, ArrowLeft, Users } from "lucide-react"
+import { CheckCircle, CreditCard, Shield, ArrowLeft, Users, Tag, Loader2 } from "lucide-react"
+import { Input } from "@/components/ui/input"
 import Link from "next/link"
 
 export const dynamic = 'force-dynamic'
@@ -16,6 +17,14 @@ interface ReferrerInfo {
   role: string
 }
 
+interface PromoCodeInfo {
+  promoCodeId: string
+  code: string
+  discountDescription: string
+  durationDescription: string
+  estimatedMonthlyPrice: number
+}
+
 function CheckoutContent() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -23,6 +32,10 @@ function CheckoutContent() {
   const [referrerInfo, setReferrerInfo] = useState<ReferrerInfo | null>(null)
   const [emailVerified, setEmailVerified] = useState(false)
   const [checkingEmail, setCheckingEmail] = useState(true)
+  const [promoCodeInput, setPromoCodeInput] = useState('')
+  const [promoCodeInfo, setPromoCodeInfo] = useState<PromoCodeInfo | null>(null)
+  const [promoCodeError, setPromoCodeError] = useState('')
+  const [isValidatingPromo, setIsValidatingPromo] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
   const email = searchParams.get('email')
@@ -92,6 +105,57 @@ function CheckoutContent() {
     fetchReferralInfo()
   }, [email])
 
+  // プロモコード検証
+  const handleValidatePromoCode = async () => {
+    if (!promoCodeInput.trim()) {
+      setPromoCodeError('プロモーションコードを入力してください')
+      return
+    }
+
+    setIsValidatingPromo(true)
+    setPromoCodeError('')
+
+    try {
+      const response = await fetch('/api/promo-code/validate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code: promoCodeInput.trim() }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setPromoCodeError(data.error || '無効なプロモーションコードです')
+        setPromoCodeInfo(null)
+        return
+      }
+
+      setPromoCodeInfo({
+        promoCodeId: data.promoCodeId,
+        code: data.code,
+        discountDescription: data.discountDescription,
+        durationDescription: data.durationDescription,
+        estimatedMonthlyPrice: data.estimatedMonthlyPrice,
+      })
+      setPromoCodeError('')
+    } catch (err) {
+      console.error('Promo code validation error:', err)
+      setPromoCodeError('プロモーションコードの検証に失敗しました')
+      setPromoCodeInfo(null)
+    } finally {
+      setIsValidatingPromo(false)
+    }
+  }
+
+  // プロモコードをクリア
+  const handleClearPromoCode = () => {
+    setPromoCodeInput('')
+    setPromoCodeInfo(null)
+    setPromoCodeError('')
+  }
+
   const handleCheckout = async () => {
     setIsLoading(true)
     setError('')
@@ -108,6 +172,7 @@ function CheckoutContent() {
           email: email,
           name: name,
           referralCode: referralCode, // 紹介コードを追加
+          promoCodeId: promoCodeInfo?.promoCodeId, // プロモーションコードID
         }),
       })
 
@@ -269,6 +334,71 @@ function CheckoutContent() {
                     </div>
                   </div>
                 )}
+
+                {/* プロモーションコード入力 */}
+                <div className="border-t pt-4">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    <Tag className="h-4 w-4 inline mr-1" />
+                    プロモーションコード（お持ちの方）
+                  </label>
+                  {promoCodeInfo ? (
+                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center">
+                          <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
+                          <span className="font-semibold text-green-900">コード適用済み</span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleClearPromoCode}
+                          className="text-slate-500 hover:text-slate-700"
+                        >
+                          取り消す
+                        </Button>
+                      </div>
+                      <div className="text-sm text-green-800 space-y-1">
+                        <p className="font-mono text-xs bg-green-100 inline-block px-2 py-1 rounded">
+                          {promoCodeInfo.code}
+                        </p>
+                        <p className="font-semibold text-lg text-green-700">
+                          {promoCodeInfo.discountDescription}（{promoCodeInfo.durationDescription}）
+                        </p>
+                        <p className="text-green-600">
+                          月額料金: <span className="font-bold">¥{promoCodeInfo.estimatedMonthlyPrice.toLocaleString()}</span>/月
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <Input
+                          type="text"
+                          placeholder="コードを入力"
+                          value={promoCodeInput}
+                          onChange={(e) => setPromoCodeInput(e.target.value.toUpperCase())}
+                          className="uppercase"
+                          disabled={isValidatingPromo}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleValidatePromoCode}
+                          disabled={isValidatingPromo || !promoCodeInput.trim()}
+                        >
+                          {isValidatingPromo ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            '適用'
+                          )}
+                        </Button>
+                      </div>
+                      {promoCodeError && (
+                        <p className="text-sm text-red-600">{promoCodeError}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
@@ -300,11 +430,40 @@ function CheckoutContent() {
 
           {/* 料金プラン */}
           <div className="space-y-6">
-            <Card className="border-2 border-slate-700">
+            <Card className={`border-2 ${promoCodeInfo ? 'border-green-500' : 'border-slate-700'}`}>
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl">UGSオンラインスクール</CardTitle>
                 <CardDescription>全機能利用可能</CardDescription>
-                {process.env.NEXT_PUBLIC_STRIPE_SETUP_FEE_ENABLED === 'true' ? (
+                {promoCodeInfo ? (
+                  <div className="mt-4 space-y-2">
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-2">
+                      <div className="flex items-center justify-center mb-1">
+                        <Tag className="h-4 w-4 text-green-600 mr-1" />
+                        <span className="text-green-700 font-semibold text-sm">プロモーション適用中</span>
+                      </div>
+                      <p className="text-green-600 text-xs">{promoCodeInfo.code}: {promoCodeInfo.discountDescription}（{promoCodeInfo.durationDescription}）</p>
+                    </div>
+                    <div className="text-sm text-slate-600">
+                      <div className="flex justify-between px-4">
+                        <span>初回登録費用</span>
+                        <span className="line-through text-slate-400">¥33,000</span>
+                        <span className="text-green-600 font-semibold">¥0（無料）</span>
+                      </div>
+                      <div className="flex justify-between px-4">
+                        <span>月額利用料</span>
+                        <span className="line-through text-slate-400">¥5,500</span>
+                        <span className="text-green-600 font-semibold">¥{promoCodeInfo.estimatedMonthlyPrice.toLocaleString()}</span>
+                      </div>
+                    </div>
+                    <div className="border-t pt-2">
+                      <div className="text-sm text-slate-500 mb-1">今日のお支払い</div>
+                      <span className="text-4xl font-bold text-green-600">¥{promoCodeInfo.estimatedMonthlyPrice.toLocaleString()}</span>
+                    </div>
+                    <div className="text-sm text-green-600 pt-2">
+                      <span className="font-semibold">毎月：</span> ¥{promoCodeInfo.estimatedMonthlyPrice.toLocaleString()}/月
+                    </div>
+                  </div>
+                ) : process.env.NEXT_PUBLIC_STRIPE_SETUP_FEE_ENABLED === 'true' ? (
                   <div className="mt-4 space-y-2">
                     <div className="text-sm text-slate-600">
                       <div className="flex justify-between px-4">
@@ -364,19 +523,23 @@ function CheckoutContent() {
                 <Button
                   onClick={handleCheckout}
                   disabled={isLoading}
-                  className="w-full"
+                  className={`w-full ${promoCodeInfo ? 'bg-green-600 hover:bg-green-700' : ''}`}
                   size="lg"
                 >
                   {isLoading ? '処理中...' :
-                   process.env.NEXT_PUBLIC_STRIPE_SETUP_FEE_ENABLED === 'true'
-                     ? '¥38,500で決済する'
-                     : '¥5,500で決済する'}
+                   promoCodeInfo
+                     ? `¥${promoCodeInfo.estimatedMonthlyPrice.toLocaleString()}で決済する`
+                     : process.env.NEXT_PUBLIC_STRIPE_SETUP_FEE_ENABLED === 'true'
+                       ? '¥38,500で決済する'
+                       : '¥5,500で決済する'}
                 </Button>
 
                 <p className="text-xs text-slate-500 text-center">
-                  {process.env.NEXT_PUBLIC_STRIPE_SETUP_FEE_ENABLED === 'true'
-                    ? '初回のみ登録費用が含まれます。2ヶ月目以降は月額¥5,500'
-                    : '月額¥5,500でいつでもキャンセル可能'}
+                  {promoCodeInfo
+                    ? `プロモーション適用: 登録費用無料、月額¥${promoCodeInfo.estimatedMonthlyPrice.toLocaleString()}（${promoCodeInfo.durationDescription}）`
+                    : process.env.NEXT_PUBLIC_STRIPE_SETUP_FEE_ENABLED === 'true'
+                      ? '初回のみ登録費用が含まれます。2ヶ月目以降は月額¥5,500'
+                      : '月額¥5,500でいつでもキャンセル可能'}
                 </p>
               </CardContent>
             </Card>
