@@ -28,16 +28,39 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Stripeから詳細情報を取得
+    // Stripeから詳細情報を取得（discountを展開）
     try {
       const stripeSubscription: any = await stripe.subscriptions.retrieve(
-        subscription.stripeSubscriptionId
+        subscription.stripeSubscriptionId,
+        {
+          expand: ['discount', 'discount.coupon']
+        }
       ) as any
 
       // カード情報を取得
       const customerId = subscription.stripeCustomerId || stripeSubscription.customer
       let paymentMethod = null
-      if (customerId && typeof customerId === 'string') {
+
+      // 1. まずサブスクリプションの default_payment_method を確認
+      if (stripeSubscription.default_payment_method) {
+        try {
+          const pmId = typeof stripeSubscription.default_payment_method === 'string'
+            ? stripeSubscription.default_payment_method
+            : stripeSubscription.default_payment_method.id
+          const pm: any = await stripe.paymentMethods.retrieve(pmId) as any
+          paymentMethod = {
+            brand: pm.card?.brand || 'unknown',
+            last4: pm.card?.last4 || '****',
+            expMonth: pm.card?.exp_month || null,
+            expYear: pm.card?.exp_year || null
+          }
+        } catch (pmError) {
+          console.error('Failed to retrieve subscription payment method:', pmError)
+        }
+      }
+
+      // 2. なければ customer.invoice_settings.default_payment_method を確認
+      if (!paymentMethod && customerId && typeof customerId === 'string') {
         try {
           const customer: any = await stripe.customers.retrieve(customerId) as any
           if (customer.invoice_settings?.default_payment_method) {
@@ -53,7 +76,29 @@ export async function GET(request: NextRequest) {
             }
           }
         } catch (pmError) {
-          console.error('Failed to retrieve payment method:', pmError)
+          console.error('Failed to retrieve customer payment method:', pmError)
+        }
+      }
+
+      // 3. それでもなければ、顧客に紐付いた最新のカードを取得
+      if (!paymentMethod && customerId && typeof customerId === 'string') {
+        try {
+          const paymentMethods = await stripe.paymentMethods.list({
+            customer: customerId,
+            type: 'card',
+            limit: 1
+          })
+          if (paymentMethods.data.length > 0) {
+            const pm = paymentMethods.data[0]
+            paymentMethod = {
+              brand: pm.card?.brand || 'unknown',
+              last4: pm.card?.last4 || '****',
+              expMonth: pm.card?.exp_month || null,
+              expYear: pm.card?.exp_year || null
+            }
+          }
+        } catch (pmError) {
+          console.error('Failed to list payment methods:', pmError)
         }
       }
 

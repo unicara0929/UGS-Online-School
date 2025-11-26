@@ -27,10 +27,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Stripe Customer Portalセッションを作成
+    // Stripe Customer Portalセッションを作成（支払い方法更新のみに制限）
     const session = await stripe.billingPortal.sessions.create({
       customer: subscription.stripeCustomerId,
       return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings/subscription`,
+      flow_data: {
+        type: 'payment_method_update',
+      },
     })
 
     return NextResponse.json({
