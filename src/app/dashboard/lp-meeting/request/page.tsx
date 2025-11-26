@@ -173,6 +173,32 @@ function LPMeetingRequestPageContent() {
   }
 
   /**
+   * 明日の日付を取得（YYYY-MM-DD形式）
+   */
+  const getTomorrowDate = (): string => {
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const year = tomorrow.getFullYear()
+    const month = String(tomorrow.getMonth() + 1).padStart(2, '0')
+    const day = String(tomorrow.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  /**
+   * 30分刻みの時間オプションを生成（09:00〜21:00）
+   */
+  const generateTimeOptions = (): string[] => {
+    const options: string[] = []
+    for (let hour = 9; hour <= 21; hour++) {
+      options.push(`${String(hour).padStart(2, '0')}:00`)
+      if (hour < 21) {
+        options.push(`${String(hour).padStart(2, '0')}:30`)
+      }
+    }
+    return options
+  }
+
+  /**
    * 時刻を30分単位に丸める
    * @param dateString datetime-local形式の文字列
    * @returns 30分単位に丸められた文字列
@@ -497,25 +523,55 @@ function LPMeetingRequestPageContent() {
                       希望日時（5つ選択してください）*
                     </label>
                     <div className="space-y-3">
-                      {preferredDates.map((date, index) => (
-                        <div key={index} className="flex items-center space-x-2">
-                          <input
-                            type="datetime-local"
-                            value={date}
-                            onChange={(e) => updatePreferredDate(index, e.target.value)}
-                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
-                            required
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removePreferredDate(index)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
+                      {preferredDates.map((date, index) => {
+                        // datetime-local形式から日付と時間を分離
+                        const dateValue = date ? date.split('T')[0] : ''
+                        const timeValue = date ? date.split('T')[1] || '' : ''
+
+                        return (
+                          <div key={index} className="flex items-center space-x-2">
+                            <div className="flex-1 flex space-x-2">
+                              {/* 日付選択 */}
+                              <input
+                                type="date"
+                                value={dateValue}
+                                min={getTomorrowDate()}
+                                onChange={(e) => {
+                                  const newDate = e.target.value
+                                  const currentTime = timeValue || '10:00'
+                                  updatePreferredDate(index, `${newDate}T${currentTime}`)
+                                }}
+                                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                                required
+                              />
+                              {/* 時間選択（30分刻み） */}
+                              <select
+                                value={timeValue}
+                                onChange={(e) => {
+                                  const newTime = e.target.value
+                                  const currentDate = dateValue || getTomorrowDate()
+                                  updatePreferredDate(index, `${currentDate}T${newTime}`)
+                                }}
+                                className="w-28 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                                required
+                              >
+                                <option value="">時間</option>
+                                {generateTimeOptions().map((time) => (
+                                  <option key={time} value={time}>{time}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removePreferredDate(index)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )
+                      })}
                       {preferredDates.length < 5 && (
                         <Button
                           type="button"
@@ -533,7 +589,7 @@ function LPMeetingRequestPageContent() {
                         {preferredDates.length}/5 選択済み
                       </p>
                       <p className="text-xs text-slate-500">
-                        ※時間は30分刻み（10:00、10:30、11:00...）で選択されます
+                        ※時間は30分刻み（10:00、10:30、11:00...）で選択できます
                       </p>
                       <p className="text-xs text-slate-500">
                         ※面談時間は1枠60分です。重複しない時間帯を選択してください。

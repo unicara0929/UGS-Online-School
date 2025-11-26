@@ -28,12 +28,12 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Stripeから詳細情報を取得（discountを展開）
+    // Stripeから詳細情報を取得（discountsを展開）
     try {
       const stripeSubscription: any = await stripe.subscriptions.retrieve(
         subscription.stripeSubscriptionId,
         {
-          expand: ['discount', 'discount.coupon']
+          expand: ['discounts', 'discounts.coupon']
         }
       ) as any
 
@@ -102,41 +102,61 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // デバッグ: Stripeサブスクリプションの割引情報を確認
-      console.log('Stripe subscription discount info:', {
-        discount: stripeSubscription.discount,
-        discounts: stripeSubscription.discounts,
-        hasDiscount: !!stripeSubscription.discount,
-        hasDiscounts: !!(stripeSubscription.discounts && stripeSubscription.discounts.length > 0),
-      })
-
       // 元の金額を取得
       const originalAmount = stripeSubscription.items.data[0]?.price?.unit_amount || 0
 
-      // 割引情報を取得（discount または discounts から）
+      // デバッグ: Stripeサブスクリプションの生データ
+      console.log('=== STRIPE SUBSCRIPTION DEBUG ===')
+      console.log('Subscription ID:', subscription.stripeSubscriptionId)
+      console.log('discounts (raw):', JSON.stringify(stripeSubscription.discounts))
+      console.log('discount (raw):', JSON.stringify(stripeSubscription.discount))
+      console.log('discounts type:', typeof stripeSubscription.discounts)
+      console.log('discounts is array:', Array.isArray(stripeSubscription.discounts))
+      console.log('discounts length:', stripeSubscription.discounts?.length)
+      console.log('=================================')
+
+      // 割引情報を取得
       let discountPercentOff = 0
       let discountAmountOff = 0
       let discountName = null
 
-      // 単一のdiscountの場合
-      if (stripeSubscription.discount?.coupon) {
+      // discountsが配列の場合（新しいStripe API）
+      if (stripeSubscription.discounts && Array.isArray(stripeSubscription.discounts) && stripeSubscription.discounts.length > 0) {
+        const firstDiscountItem = stripeSubscription.discounts[0]
+        console.log('firstDiscountItem:', JSON.stringify(firstDiscountItem, null, 2))
+
+        // source.coupon からクーポンIDを取得して、クーポン詳細を取得
+        if (firstDiscountItem?.source?.coupon) {
+          const couponId = firstDiscountItem.source.coupon
+          console.log('Coupon ID from source:', couponId)
+
+          try {
+            const coupon = await stripe.coupons.retrieve(couponId)
+            console.log('Retrieved coupon:', JSON.stringify(coupon, null, 2))
+            discountPercentOff = coupon.percent_off || 0
+            discountAmountOff = coupon.amount_off || 0
+            discountName = coupon.name || null
+          } catch (couponError) {
+            console.error('Failed to retrieve coupon:', couponError)
+          }
+        } else if (firstDiscountItem?.coupon) {
+          // discountsの要素がオブジェクトの場合（展開済み、古い形式）
+          const coupon = firstDiscountItem.coupon
+          discountPercentOff = coupon.percent_off || 0
+          discountAmountOff = coupon.amount_off || 0
+          discountName = coupon.name || null
+        }
+      }
+
+      // 単一のdiscountの場合（古いStripe API）
+      if (discountPercentOff === 0 && discountAmountOff === 0 && stripeSubscription.discount?.coupon) {
         const coupon = stripeSubscription.discount.coupon
         discountPercentOff = coupon.percent_off || 0
         discountAmountOff = coupon.amount_off || 0
         discountName = coupon.name || null
       }
 
-      // 複数のdiscountsの場合（配列）
-      if (stripeSubscription.discounts && Array.isArray(stripeSubscription.discounts) && stripeSubscription.discounts.length > 0) {
-        // 最初の割引を適用（通常は1つのみ）
-        const firstDiscount = stripeSubscription.discounts[0]
-        if (firstDiscount?.coupon) {
-          const coupon = firstDiscount.coupon
-          discountPercentOff = coupon.percent_off || 0
-          discountAmountOff = coupon.amount_off || 0
-          discountName = coupon.name || null
-        }
-      }
+      console.log('Final discount values:', { discountPercentOff, discountAmountOff, discountName })
 
       // 割引後の金額を計算
       let actualAmount = originalAmount
