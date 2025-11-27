@@ -20,8 +20,14 @@ function AccountSettingsPage() {
   const [userDetails, setUserDetails] = useState<{
     createdAt?: string
     lastLoginAt?: string
-    cancellationAllowedDate?: string
-    canRequestCancellation?: boolean
+    contractEndDate?: string
+    isWithinMinimumPeriod?: boolean
+  } | null>(null)
+  const [cancelResult, setCancelResult] = useState<{
+    success: boolean
+    isScheduled: boolean
+    contractEndDate?: string
+    message: string
   } | null>(null)
   const [cancelForm, setCancelForm] = useState({
     reason: '',
@@ -44,17 +50,17 @@ function AccountSettingsPage() {
         if (response.ok) {
           const data = await response.json()
           if (data.success && data.user) {
-            // 退会可能日を計算（登録日から6ヶ月後）
+            // 契約解除日を計算（登録日から6ヶ月後）
             const createdAt = new Date(data.user.createdAt)
-            const cancellationAllowedDate = new Date(createdAt)
-            cancellationAllowedDate.setMonth(cancellationAllowedDate.getMonth() + 6)
-            const canRequestCancellation = new Date() >= cancellationAllowedDate
+            const contractEndDate = new Date(createdAt)
+            contractEndDate.setMonth(contractEndDate.getMonth() + 6)
+            const isWithinMinimumPeriod = new Date() < contractEndDate
 
             setUserDetails({
               createdAt: data.user.createdAt,
               lastLoginAt: data.user.lastLoginAt,
-              cancellationAllowedDate: cancellationAllowedDate.toISOString(),
-              canRequestCancellation
+              contractEndDate: contractEndDate.toISOString(),
+              isWithinMinimumPeriod
             })
           }
         }
@@ -79,10 +85,8 @@ function AccountSettingsPage() {
   ]
 
   const continuationOptions = [
-    { value: 'pause', label: '月額を一時停止したい（休会）' },
-    { value: 'cheaper', label: '安いプランに変更したい' },
-    { value: 'free', label: '無料会員に変更したい' },
-    { value: 'cancel', label: '完全に退会したい' }
+    { value: 'temporary', label: '一時的な退会（将来的に再入会を検討）' },
+    { value: 'permanent', label: '完全に退会したい' }
   ]
 
   const validateForm = () => {
@@ -101,7 +105,7 @@ function AccountSettingsPage() {
     }
 
     if (!cancelForm.continuationOption) {
-      newErrors.continuationOption = '継続オプションを選択してください'
+      newErrors.continuationOption = '退会種別を選択してください'
     }
 
     if (!cancelForm.agreeContentAccess) {
@@ -139,11 +143,20 @@ function AccountSettingsPage() {
         }),
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        throw new Error('退会申請の送信に失敗しました')
+        throw new Error(data.error || '退会申請の送信に失敗しました')
       }
 
-      alert('退会申請を受け付けました。運営による確認後、アカウントが削除されます。')
+      // 申請結果を保存してダイアログを閉じる
+      setCancelResult({
+        success: data.success,
+        isScheduled: data.isScheduled,
+        contractEndDate: data.contractEndDate,
+        message: data.message
+      })
+
       setShowCancelDialog(false)
       setCancelForm({
         reason: '',
@@ -153,8 +166,8 @@ function AccountSettingsPage() {
         agreeBillingStop: false
       })
       setErrors({})
-    } catch (error) {
-      alert('退会申請の送信に失敗しました。もう一度お試しください。')
+    } catch (error: any) {
+      alert(error.message || '退会申請の送信に失敗しました。もう一度お試しください。')
     } finally {
       setIsSubmitting(false)
     }
@@ -223,37 +236,63 @@ function AccountSettingsPage() {
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">退会可能日</span>
+                  <span className="text-sm font-medium">最低契約期間</span>
                   <span className="text-sm text-slate-600">
-                    {userDetails?.canRequestCancellation
-                      ? '退会手続き可能です'
-                      : userDetails?.cancellationAllowedDate
-                        ? `${formatDate(userDetails.cancellationAllowedDate)}以降`
-                        : '取得中...'}
+                    {userDetails?.isWithinMinimumPeriod
+                      ? `${formatDate(userDetails.contractEndDate!)}まで`
+                      : '契約期間終了'}
                   </span>
                 </div>
                 <div className="pt-4 border-t">
+                  {/* 退会申請完了メッセージ */}
+                  {cancelResult && (
+                    <div className={`mb-4 p-4 rounded-lg ${
+                      cancelResult.isScheduled
+                        ? 'bg-blue-50 border border-blue-200'
+                        : 'bg-green-50 border border-green-200'
+                    }`}>
+                      <div className="flex items-start">
+                        <div className={`flex-shrink-0 h-5 w-5 rounded-full flex items-center justify-center mr-3 mt-0.5 ${
+                          cancelResult.isScheduled ? 'bg-blue-100' : 'bg-green-100'
+                        }`}>
+                          <svg className={`h-3 w-3 ${cancelResult.isScheduled ? 'text-blue-600' : 'text-green-600'}`} fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className={`text-sm font-medium ${cancelResult.isScheduled ? 'text-blue-800' : 'text-green-800'}`}>
+                            {cancelResult.message}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <Button
                     variant="destructive"
                     className="w-full"
                     onClick={() => setShowCancelDialog(true)}
-                    disabled={!userDetails?.canRequestCancellation}
+                    disabled={!!cancelResult}
                   >
                     <UserX className="h-4 w-4 mr-2" />
-                    退会申請
+                    {cancelResult ? '退会申請済み' : '退会申請'}
                   </Button>
-                  {userDetails?.canRequestCancellation === false && userDetails?.cancellationAllowedDate ? (
-                    <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                      <p className="text-sm text-amber-800">
-                        ご登録から6ヶ月間は退会いただけません。
+
+                  {!cancelResult && userDetails?.isWithinMinimumPeriod && (
+                    <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                      <p className="text-sm text-slate-600">
+                        いつでも退会申請いただけます。
                       </p>
-                      <p className="text-sm text-amber-800 font-medium mt-1">
-                        {formatDate(userDetails.cancellationAllowedDate)}以降に退会手続きが可能になります。
+                      <p className="text-sm text-slate-600 mt-1">
+                        ご登録から6ヶ月間は契約継続期間となっておりますので、
+                        期間内に申請された場合は <span className="font-medium">{formatDate(userDetails.contractEndDate!)}</span> が契約解除日となります。
                       </p>
                     </div>
-                  ) : (
+                  )}
+
+                  {!cancelResult && !userDetails?.isWithinMinimumPeriod && (
                     <p className="text-xs text-slate-500 mt-2 text-center">
-                      退会申請後、運営による確認を経てアカウントが削除されます
+                      退会申請後、運営による確認を経て退会処理を実施いたします
                     </p>
                   )}
                 </div>
@@ -269,9 +308,21 @@ function AccountSettingsPage() {
           <DialogHeader>
             <DialogTitle className="text-2xl">退会申請</DialogTitle>
             <DialogDescription>
-              退会申請フォームにご記入ください。運営による確認後、ご指定の対応を実施いたします。
+              退会申請フォームにご記入ください。運営にて確認後、ご対応いたします。
             </DialogDescription>
           </DialogHeader>
+
+          {/* 6ヶ月未満の場合の案内 */}
+          {userDetails?.isWithinMinimumPeriod && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-2">
+              <p className="text-sm text-blue-800">
+                ご登録から6ヶ月間は契約継続期間となっております。
+              </p>
+              <p className="text-sm text-blue-800 mt-1">
+                現在申請された場合、契約の解除日は <span className="font-semibold">{formatDate(userDetails.contractEndDate!)}</span> となります。
+              </p>
+            </div>
+          )}
 
           <div className="space-y-6 py-4">
             {/* 会員情報 */}
@@ -364,10 +415,10 @@ function AccountSettingsPage() {
               </div>
             )}
 
-            {/* 継続オプション */}
+            {/* 退会種別 */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
-                継続オプション <span className="text-red-500">*</span>
+                退会種別 <span className="text-red-500">*</span>
               </label>
               <div className="space-y-2">
                 {continuationOptions.map((option) => (
@@ -446,7 +497,7 @@ function AccountSettingsPage() {
                     className="mt-1 mr-3"
                   />
                   <span className="text-sm">
-                    今後の自動更新・請求が停止されることを確認しました
+                    契約解除日をもって自動更新・請求が停止されることを確認しました（最低契約期間中の場合は、期間満了まで請求が継続されます）
                   </span>
                 </label>
                 {errors.agreeBillingStop && (
