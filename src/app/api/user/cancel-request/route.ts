@@ -2,29 +2,29 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
 
-// 退会制限期間（月数）
-const CANCELLATION_RESTRICTION_MONTHS = 6
+// 最低契約期間（月数）
+const MINIMUM_CONTRACT_MONTHS = 6
 
 /**
- * 退会可能日を計算
+ * 契約解除可能日を計算（登録日 + 6ヶ月）
  * @param createdAt ユーザー登録日
- * @returns 退会可能日
+ * @returns 契約解除可能日
  */
-function calculateCancellationAllowedDate(createdAt: Date): Date {
-  const allowedDate = new Date(createdAt)
-  allowedDate.setMonth(allowedDate.getMonth() + CANCELLATION_RESTRICTION_MONTHS)
-  return allowedDate
+function calculateContractEndDate(createdAt: Date): Date {
+  const endDate = new Date(createdAt)
+  endDate.setMonth(endDate.getMonth() + MINIMUM_CONTRACT_MONTHS)
+  return endDate
 }
 
 /**
- * 退会可能かどうかをチェック
+ * 最低契約期間を経過しているかチェック
  * @param createdAt ユーザー登録日
- * @returns 退会可能な場合true
+ * @returns 6ヶ月経過している場合true
  */
-function canRequestCancellation(createdAt: Date): boolean {
+function hasPassedMinimumContractPeriod(createdAt: Date): boolean {
   const now = new Date()
-  const allowedDate = calculateCancellationAllowedDate(createdAt)
-  return now >= allowedDate
+  const endDate = calculateContractEndDate(createdAt)
+  return now >= endDate
 }
 
 export async function POST(request: NextRequest) {
@@ -60,55 +60,58 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 6ヶ月制限チェック
-    if (!canRequestCancellation(user.createdAt)) {
-      const allowedDate = calculateCancellationAllowedDate(user.createdAt)
-      const formattedDate = allowedDate.toLocaleDateString('ja-JP', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
-      return NextResponse.json(
-        {
-          error: `ご登録から6ヶ月間は退会いただけません。${formattedDate}以降に退会手続きが可能になります。`,
-          cancellationAllowedDate: allowedDate.toISOString()
-        },
-        { status: 403 }
-      )
-    }
-
     const name = user?.name || email
+    const isWithinMinimumPeriod = !hasPassedMinimumContractPeriod(user.createdAt)
+    const contractEndDate = calculateContractEndDate(user.createdAt)
 
     // 退会申請をデータベースに保存
-    // まず、退会申請テーブルがあるか確認し、なければ作成
-    // ここでは、後でPrismaスキーマに追加する想定で、一時的にログに記録
+    const cancelRequest = await prisma.cancelRequest.create({
+      data: {
+        userId,
+        name,
+        email,
+        reason,
+        otherReason: otherReason || null,
+        continuationOption,
+        isScheduled: isWithinMinimumPeriod,
+        contractEndDate: isWithinMinimumPeriod ? contractEndDate : null,
+        status: 'PENDING'
+      }
+    })
+
     console.log('退会申請を受け付けました:', {
+      id: cancelRequest.id,
       userId,
       name,
       email,
       reason,
-      otherReason,
       continuationOption,
-      submittedAt: new Date().toISOString()
+      isWithinMinimumPeriod,
+      contractEndDate: isWithinMinimumPeriod ? contractEndDate.toISOString() : null,
+      submittedAt: cancelRequest.createdAt.toISOString()
     })
 
-    // 実際の実装では、prisma.cancelRequest.create() などで保存
-    // 例:
-    // await prisma.cancelRequest.create({
-    //   data: {
-    //     userId,
-    //     name,
-    //     email,
-    //     reason,
-    //     otherReason,
-    //     continuationOption,
-    //     status: 'PENDING'
-    //   }
-    // })
+    // 6ヶ月未満の場合：申請は受け付けるが、解約予約として扱う
+    if (isWithinMinimumPeriod) {
+      const formattedDate = contractEndDate.toLocaleDateString('ja-JP', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
 
+      return NextResponse.json({
+        success: true,
+        isScheduled: true,
+        contractEndDate: contractEndDate.toISOString(),
+        message: `退会申請を受け付けました。ご登録から6ヶ月間は契約が継続される期間となっております。契約の解除日は ${formattedDate} となりますので、ご確認ください。`
+      })
+    }
+
+    // 6ヶ月以上経過：通常の退会処理
     return NextResponse.json({
       success: true,
-      message: '退会申請を受け付けました'
+      isScheduled: false,
+      message: '退会申請を受け付けました。運営による確認後、退会処理を実施いたします。'
     })
   } catch (error) {
     console.error('退会申請エラー:', error)
