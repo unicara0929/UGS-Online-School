@@ -169,49 +169,49 @@ function AdminConsultationsPageContent() {
       <Sidebar />
       <div className="flex-1 md:ml-64">
         <PageHeader title="個別相談管理" />
-        <main className="px-4 sm:px-6 lg:px-8 py-8">
-          <div className="space-y-6">
+        <main className="px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+          <div className="space-y-4 sm:space-y-6">
             {/* ヘッダー */}
             <div>
-              <h2 className="text-2xl font-bold text-slate-900">個別相談管理</h2>
-              <p className="text-slate-600">会員からの個別相談を確認・対応</p>
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-900">個別相談管理</h2>
+              <p className="text-sm sm:text-base text-slate-600">会員からの個別相談を確認・対応</p>
             </div>
 
             {/* ステータス別カウント */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
               <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setFilterStatus('')}>
-                <CardContent className="py-4">
-                  <p className="text-2xl font-bold text-slate-800">{stats.total}</p>
-                  <p className="text-sm text-slate-500">全て</p>
+                <CardContent className="p-3 sm:py-4 sm:px-6">
+                  <p className="text-xl sm:text-2xl font-bold text-slate-800">{stats.total}</p>
+                  <p className="text-xs sm:text-sm text-slate-500">全て</p>
                 </CardContent>
               </Card>
               <Card className="cursor-pointer hover:shadow-md transition-shadow border-yellow-200" onClick={() => setFilterStatus('PENDING')}>
-                <CardContent className="py-4">
-                  <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
-                  <p className="text-sm text-slate-500">未対応</p>
+                <CardContent className="p-3 sm:py-4 sm:px-6">
+                  <p className="text-xl sm:text-2xl font-bold text-yellow-600">{stats.pending}</p>
+                  <p className="text-xs sm:text-sm text-slate-500">未対応</p>
                 </CardContent>
               </Card>
               <Card className="cursor-pointer hover:shadow-md transition-shadow border-blue-200" onClick={() => setFilterStatus('IN_PROGRESS')}>
-                <CardContent className="py-4">
-                  <p className="text-2xl font-bold text-blue-600">{stats.inProgress}</p>
-                  <p className="text-sm text-slate-500">対応中</p>
+                <CardContent className="p-3 sm:py-4 sm:px-6">
+                  <p className="text-xl sm:text-2xl font-bold text-blue-600">{stats.inProgress}</p>
+                  <p className="text-xs sm:text-sm text-slate-500">対応中</p>
                 </CardContent>
               </Card>
               <Card className="cursor-pointer hover:shadow-md transition-shadow border-green-200" onClick={() => setFilterStatus('COMPLETED')}>
-                <CardContent className="py-4">
-                  <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
-                  <p className="text-sm text-slate-500">完了</p>
+                <CardContent className="p-3 sm:py-4 sm:px-6">
+                  <p className="text-xl sm:text-2xl font-bold text-green-600">{stats.completed}</p>
+                  <p className="text-xs sm:text-sm text-slate-500">完了</p>
                 </CardContent>
               </Card>
             </div>
 
             {/* ジャンル別カウント */}
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">ジャンル別</CardTitle>
+              <CardHeader className="pb-2 p-4 sm:p-6">
+                <CardTitle className="text-sm sm:text-base">ジャンル別</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-3">
+              <CardContent className="p-4 sm:p-6 pt-0">
+                <div className="flex flex-wrap gap-2 sm:gap-3">
                   {Object.entries(CONSULTATION_TYPES).map(([type, config]) => {
                     const Icon = config.icon
                     const count = stats.byType[type] || 0
@@ -219,10 +219,10 @@ function AdminConsultationsPageContent() {
                       <Badge
                         key={type}
                         variant={filterType === type ? 'default' : 'outline'}
-                        className="cursor-pointer py-2 px-3"
+                        className="cursor-pointer py-1.5 sm:py-2 px-2 sm:px-3 text-xs sm:text-sm"
                         onClick={() => setFilterType(filterType === type ? '' : type)}
                       >
-                        <Icon className={`h-4 w-4 mr-1 ${config.color}`} />
+                        <Icon className={`h-3 w-3 sm:h-4 sm:w-4 mr-1 ${config.color}`} />
                         {config.label}: {count}
                       </Badge>
                     )
@@ -233,14 +233,14 @@ function AdminConsultationsPageContent() {
 
             {/* フィルター */}
             <Card>
-              <CardContent className="py-4">
-                <div className="flex flex-wrap gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">ステータス</label>
+              <CardContent className="p-4 sm:py-4 sm:px-6">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                  <div className="flex-1 sm:flex-none">
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">ステータス</label>
                     <select
                       value={filterStatus}
                       onChange={(e) => setFilterStatus(e.target.value)}
-                      className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                      className="w-full sm:w-auto px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
                     >
                       <option value="">すべて</option>
                       {Object.entries(STATUS_CONFIG).map(([value, config]) => (
@@ -248,12 +248,12 @@ function AdminConsultationsPageContent() {
                       ))}
                     </select>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">ジャンル</label>
+                  <div className="flex-1 sm:flex-none">
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">ジャンル</label>
                     <select
                       value={filterType}
                       onChange={(e) => setFilterType(e.target.value)}
-                      className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                      className="w-full sm:w-auto px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
                     >
                       <option value="">すべて</option>
                       {Object.entries(CONSULTATION_TYPES).map(([value, config]) => (
@@ -275,18 +275,18 @@ function AdminConsultationsPageContent() {
 
             {/* 相談一覧 */}
             <Card>
-              <CardHeader>
-                <CardTitle>相談一覧</CardTitle>
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="text-base sm:text-lg">相談一覧</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 sm:p-6 pt-0">
                 {isLoading ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
                   </div>
                 ) : consultations.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Inbox className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                    <p className="text-slate-500">相談はありません</p>
+                  <div className="text-center py-8 sm:py-12">
+                    <Inbox className="h-10 w-10 sm:h-12 sm:w-12 text-slate-300 mx-auto mb-4" />
+                    <p className="text-sm sm:text-base text-slate-500">相談はありません</p>
                   </div>
                 ) : (
                   <div className="divide-y divide-slate-200">
@@ -297,47 +297,47 @@ function AdminConsultationsPageContent() {
                       const ContactIcon = contactMethod?.icon || Mail
 
                       return (
-                        <div key={consultation.id} className="py-4">
-                          <div className="flex items-start justify-between gap-4">
+                        <div key={consultation.id} className="py-3 sm:py-4">
+                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                             <div className="flex-1 min-w-0">
                               {/* ステータスとジャンル */}
-                              <div className="flex items-center gap-2 mb-2">
+                              <div className="flex items-center gap-2 mb-2 flex-wrap">
                                 <span className={`text-xs px-2 py-1 rounded-full ${STATUS_CONFIG[consultation.status]?.bgColor} ${STATUS_CONFIG[consultation.status]?.color}`}>
                                   {STATUS_CONFIG[consultation.status]?.label || consultation.status}
                                 </span>
-                                <Badge variant="outline" className="flex items-center gap-1">
+                                <Badge variant="outline" className="flex items-center gap-1 text-xs">
                                   <TypeIcon className={`h-3 w-3 ${typeConfig?.color}`} />
                                   {consultation.typeLabel}
                                 </Badge>
                               </div>
 
                               {/* ユーザー情報 */}
-                              <div className="flex items-center gap-2 text-sm text-slate-600 mb-1">
-                                <User className="h-4 w-4" />
+                              <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-600 mb-1 flex-wrap">
+                                <User className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                                 <span className="font-medium">{consultation.user.name}</span>
-                                <span className="text-slate-400">({consultation.user.memberId})</span>
+                                <span className="text-slate-400 hidden sm:inline">({consultation.user.memberId})</span>
                                 <Badge variant="secondary" className="text-xs">
                                   {ROLE_LABELS[consultation.user.role] || consultation.user.role}
                                 </Badge>
                               </div>
 
                               {/* 連絡先 */}
-                              <div className="flex items-center gap-4 text-sm text-slate-500 mb-2">
-                                <div className="flex items-center gap-1">
-                                  <Mail className="h-4 w-4" />
-                                  <span>{consultation.user.email}</span>
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs sm:text-sm text-slate-500 mb-2">
+                                <div className="flex items-center gap-1 min-w-0">
+                                  <Mail className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                                  <span className="truncate">{consultation.user.email}</span>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                  <Phone className="h-4 w-4" />
+                                  <Phone className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                                   <span>{consultation.phoneNumber}</span>
                                 </div>
                               </div>
 
                               {/* 相談内容 */}
-                              <p className="text-sm text-slate-600 line-clamp-2 mb-2">{consultation.content}</p>
+                              <p className="text-xs sm:text-sm text-slate-600 line-clamp-2 mb-2">{consultation.content}</p>
 
                               {/* 希望連絡方法と希望日時 */}
-                              <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                              <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-slate-500">
                                 <div className="flex items-center gap-1">
                                   <ContactIcon className="h-3 w-3" />
                                   <span>希望: {contactMethod?.label}</span>
@@ -355,9 +355,9 @@ function AdminConsultationsPageContent() {
                               </div>
 
                               {/* 対応者と日時 */}
-                              <div className="flex items-center gap-1 text-xs text-slate-400 mt-2">
+                              <div className="flex flex-wrap items-center gap-1 text-xs text-slate-400 mt-2">
                                 <Clock className="h-3 w-3" />
-                                {formatDate(consultation.createdAt)}
+                                <span>{formatDate(consultation.createdAt)}</span>
                                 {consultation.handler && (
                                   <span className="ml-2">/ 対応: {consultation.handler.name}</span>
                                 )}
@@ -365,11 +365,11 @@ function AdminConsultationsPageContent() {
                             </div>
 
                             {/* アクション */}
-                            <div className="flex flex-col gap-2">
+                            <div className="flex flex-row sm:flex-col gap-2 justify-end">
                               <select
                                 value={consultation.status}
                                 onChange={(e) => handleStatusChange(consultation.id, e.target.value)}
-                                className="text-sm px-2 py-1 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                                className="text-xs sm:text-sm px-2 py-1 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
                               >
                                 {Object.entries(STATUS_CONFIG).map(([value, config]) => (
                                   <option key={value} value={value}>{config.label}</option>
@@ -379,8 +379,9 @@ function AdminConsultationsPageContent() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => router.push(`/dashboard/admin/consultations/${consultation.id}`)}
+                                className="text-xs sm:text-sm"
                               >
-                                <ExternalLink className="h-4 w-4 mr-1" />
+                                <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                                 詳細
                               </Button>
                             </div>
