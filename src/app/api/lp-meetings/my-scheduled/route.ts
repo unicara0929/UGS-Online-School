@@ -41,6 +41,18 @@ export async function GET(request: NextRequest) {
             name: true,
             email: true
           }
+        },
+        preInterviewResponse: {
+          include: {
+            template: {
+              include: {
+                questions: {
+                  orderBy: { order: 'asc' }
+                }
+              }
+            },
+            answers: true
+          }
         }
       },
       orderBy: {
@@ -62,7 +74,27 @@ export async function GET(request: NextRequest) {
         notes: meeting.notes,
         memberNotes: meeting.memberNotes,
         member: meeting.member,
-        fp: meeting.fp
+        fp: meeting.fp,
+        preInterviewResponse: meeting.preInterviewResponse ? {
+          id: meeting.preInterviewResponse.id,
+          status: meeting.preInterviewResponse.status,
+          completedAt: meeting.preInterviewResponse.completedAt?.toISOString() || null,
+          template: {
+            name: meeting.preInterviewResponse.template.name,
+            questions: meeting.preInterviewResponse.template.questions.map(q => ({
+              id: q.id,
+              order: q.order,
+              category: q.category,
+              question: q.question,
+              type: q.type,
+              options: q.options
+            }))
+          },
+          answers: meeting.preInterviewResponse.answers.map(a => ({
+            questionId: a.questionId,
+            value: a.value
+          }))
+        } : null
       }))
     })
   } catch (error: any) {

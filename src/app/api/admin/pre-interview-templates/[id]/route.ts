@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { requireAdmin } from '@/lib/auth/api-helpers'
+import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
 
 /**
  * 事前アンケートテンプレート詳細取得
@@ -12,8 +12,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authError = await requireAdmin(request)
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
     if (authError) return authError
+
+    const { isAdmin, error: adminError } = checkAdmin(authUser!.role)
+    if (!isAdmin) return adminError!
 
     const { id } = await params
 
@@ -59,8 +62,11 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authError = await requireAdmin(request)
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
     if (authError) return authError
+
+    const { isAdmin, error: adminError } = checkAdmin(authUser!.role)
+    if (!isAdmin) return adminError!
 
     const { id } = await params
     const body = await request.json()
@@ -141,8 +147,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authError = await requireAdmin(request)
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
     if (authError) return authError
+
+    const { isAdmin, error: adminError } = checkAdmin(authUser!.role)
+    if (!isAdmin) return adminError!
 
     const { id } = await params
 

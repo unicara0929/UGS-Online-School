@@ -8,8 +8,33 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/contexts/auth-context"
-import { Calendar, Clock, Video, CheckCircle, Loader2, Users, MessageSquare } from "lucide-react"
+import { Calendar, Clock, Video, CheckCircle, Loader2, Users, MessageSquare, ClipboardList, ChevronDown, ChevronUp } from "lucide-react"
 import { formatDateTime } from "@/lib/utils/format"
+
+interface PreInterviewAnswer {
+  questionId: string
+  value: any
+}
+
+interface PreInterviewQuestion {
+  id: string
+  order: number
+  category: string | null
+  question: string
+  type: string
+  options: string[] | null
+}
+
+interface PreInterviewResponse {
+  id: string
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED'
+  completedAt: string | null
+  template: {
+    name: string
+    questions: PreInterviewQuestion[]
+  }
+  answers: PreInterviewAnswer[]
+}
 
 interface LPMeeting {
   id: string
@@ -27,6 +52,7 @@ interface LPMeeting {
     name: string
     email: string
   }
+  preInterviewResponse?: PreInterviewResponse | null
 }
 
 function FPLPMeetingsPageContent() {
@@ -37,6 +63,7 @@ function FPLPMeetingsPageContent() {
   const [showCompleteForm, setShowCompleteForm] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [notes, setNotes] = useState('')
+  const [expandedPreInterview, setExpandedPreInterview] = useState<string | null>(null)
 
   useEffect(() => {
     if (user?.id && user?.role === 'fp') {
@@ -117,6 +144,72 @@ function FPLPMeetingsPageContent() {
     }
   }
 
+  const getPreInterviewStatusBadge = (status: string) => {
+    switch (status) {
+      case 'COMPLETED':
+        return <Badge className="bg-green-100 text-green-800">回答済み</Badge>
+      case 'IN_PROGRESS':
+        return <Badge className="bg-yellow-100 text-yellow-800">回答中</Badge>
+      case 'PENDING':
+        return <Badge className="bg-gray-100 text-gray-800">未回答</Badge>
+      default:
+        return null
+    }
+  }
+
+  const formatAnswerValue = (value: any): string => {
+    if (value === null || value === undefined) return '回答なし'
+    if (Array.isArray(value)) return value.join(', ')
+    if (typeof value === 'boolean') return value ? 'はい' : 'いいえ'
+    return String(value)
+  }
+
+  const renderPreInterviewAnswers = (meeting: LPMeeting) => {
+    const response = meeting.preInterviewResponse
+    if (!response || response.status !== 'COMPLETED') return null
+
+    const isExpanded = expandedPreInterview === meeting.id
+
+    return (
+      <div className="mt-3 border-t pt-3">
+        <button
+          onClick={() => setExpandedPreInterview(isExpanded ? null : meeting.id)}
+          className="flex items-center justify-between w-full text-left"
+        >
+          <div className="flex items-center gap-2">
+            <ClipboardList className="h-4 w-4 text-green-600" />
+            <span className="text-sm font-medium text-slate-700">事前アンケート回答</span>
+            {getPreInterviewStatusBadge(response.status)}
+          </div>
+          {isExpanded ? (
+            <ChevronUp className="h-4 w-4 text-slate-400" />
+          ) : (
+            <ChevronDown className="h-4 w-4 text-slate-400" />
+          )}
+        </button>
+
+        {isExpanded && (
+          <div className="mt-3 space-y-3 bg-slate-50 p-3 rounded-lg">
+            {response.template.questions.map((question) => {
+              const answer = response.answers.find(a => a.questionId === question.id)
+              return (
+                <div key={question.id} className="border-b border-slate-200 pb-2 last:border-b-0 last:pb-0">
+                  <p className="text-xs text-slate-500 mb-1">
+                    {question.category && <span className="mr-1">[{question.category}]</span>}
+                    {question.question}
+                  </p>
+                  <p className="text-sm text-slate-900">
+                    {answer ? formatAnswerValue(answer.value) : '回答なし'}
+                  </p>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    )
+  }
+
   const scheduledMeetings = meetings.filter(m => m.status === 'SCHEDULED')
   const completedMeetings = meetings.filter(m => m.status === 'COMPLETED')
 
@@ -190,6 +283,19 @@ function FPLPMeetingsPageContent() {
                               <div className="mt-2 p-2 bg-slate-50 rounded">
                                 <p className="text-xs font-medium text-slate-700 mb-1">メンバーからの要望・質問</p>
                                 <p className="text-sm text-slate-600">{meeting.memberNotes}</p>
+                              </div>
+                            )}
+                            {meeting.preInterviewResponse && (
+                              <div className="mt-2">
+                                {meeting.preInterviewResponse.status === 'COMPLETED' ? (
+                                  renderPreInterviewAnswers(meeting)
+                                ) : (
+                                  <div className="flex items-center gap-2 text-sm text-slate-500">
+                                    <ClipboardList className="h-4 w-4" />
+                                    <span>事前アンケート: </span>
+                                    {getPreInterviewStatusBadge(meeting.preInterviewResponse.status)}
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
