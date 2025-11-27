@@ -84,6 +84,7 @@ export const navigation: NavItem[] = [
   { name: 'FAQ管理', href: '/dashboard/admin/faq', icon: HelpCircle, roles: ['admin'] },
   { name: 'お問い合わせ管理', href: '/dashboard/admin/contacts', icon: Inbox, roles: ['admin'] },
   { name: '個別相談管理', href: '/dashboard/admin/consultations', icon: UserRound, roles: ['admin'] },
+  { name: '事前アンケート管理', href: '/dashboard/admin/pre-interview-templates', icon: ClipboardList, roles: ['admin'] },
   { name: '名刺注文管理', href: '/dashboard/admin/business-card', icon: CreditCard, roles: ['admin'] },
   { name: '退会申請管理', href: '/dashboard/admin/cancel-requests', icon: UserX, roles: ['admin'] },
   { name: '設定', href: '/dashboard/settings', icon: Settings, roles: ['member', 'fp', 'manager', 'admin'] },
