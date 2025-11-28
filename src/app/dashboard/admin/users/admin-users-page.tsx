@@ -184,6 +184,27 @@ export default function AdminUsersPage() {
   }
 
   const updateUserRole = async (userId: string, newRole: string) => {
+    // 対象ユーザーを取得
+    const targetUser = users.find(u => u.id === userId)
+    const currentRole = targetUser?.role || ''
+    const userName = targetUser?.raw_user_meta_data?.name || targetUser?.email || 'このユーザー'
+
+    // 降格かどうかを判定（FP/MANAGER/ADMIN → MEMBER）
+    const isDemotion = newRole === 'MEMBER' &&
+      (currentRole === 'FP' || currentRole === 'MANAGER' || currentRole === 'ADMIN')
+
+    // 確認メッセージを作成
+    let confirmMessage = `${userName} のロールを「${getRoleLabel(currentRole)}」から「${getRoleLabel(newRole)}」に変更しますか？`
+
+    if (isDemotion) {
+      confirmMessage += '\n\n⚠️ 降格の場合、以下のデータがリセットされます：\n・LP面談データ\n・事前アンケート回答\n・昇格申請データ'
+    }
+
+    // 確認ダイアログを表示
+    if (!window.confirm(confirmMessage)) {
+      return
+    }
+
     try {
       const response = await fetch('/api/admin/users/role', {
         method: 'PUT',
