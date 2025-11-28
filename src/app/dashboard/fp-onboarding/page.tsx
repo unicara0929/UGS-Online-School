@@ -258,7 +258,7 @@ export default function FPOnboardingPage() {
               <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
                 <iframe
                   ref={iframeRef}
-                  src={`https://player.vimeo.com/video/${vimeoId}?api=1`}
+                  src={`https://player.vimeo.com/video/${vimeoId}?api=1&quality=720p`}
                   className="w-full h-full"
                   allow="autoplay; fullscreen; picture-in-picture"
                   allowFullScreen

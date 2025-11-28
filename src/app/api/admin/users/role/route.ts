@@ -84,7 +84,18 @@ export async function PUT(request: NextRequest) {
         await prisma.fPPromotionApplication.deleteMany({
           where: { userId }
         })
-        console.log(`Reset FPPromotionApplication for user ${userId} due to demotion to MEMBER`)
+
+        // LP面談データを削除（完了済みも含めて全て削除し、再度申請可能にする）
+        await prisma.lPMeeting.deleteMany({
+          where: { memberId: userId }
+        })
+
+        // 事前アンケート回答を削除
+        await prisma.preInterviewResponse.deleteMany({
+          where: { userId }
+        })
+
+        console.log(`Reset FPPromotionApplication, LPMeeting, and PreInterviewResponse for user ${userId} due to demotion to MEMBER`)
       }
     } catch (prismaError: any) {
       console.error('Prisma user update error:', prismaError)
