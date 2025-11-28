@@ -25,7 +25,6 @@ import {
 } from "lucide-react"
 
 interface PromotionConditions {
-  testPassed: boolean
   lpMeetingCompleted: boolean
   surveyCompleted: boolean
   isEligible: boolean
@@ -48,7 +47,6 @@ export function FPPromotion() {
   const [contractAgreed, setContractAgreed] = useState(false)
   const [contractUrl, setContractUrl] = useState<string | null>(null) // GMOサインのリンク
   const [conditions, setConditions] = useState<PromotionConditions>({
-    testPassed: false,
     lpMeetingCompleted: false,
     surveyCompleted: false,
     isEligible: false
@@ -136,7 +134,6 @@ export function FPPromotion() {
         success: boolean
         eligibility?: {
           conditions?: {
-            testPassed?: boolean
             lpMeetingCompleted?: boolean
             surveyCompleted?: boolean
           }
@@ -145,7 +142,6 @@ export function FPPromotion() {
       }>(response)
 
       setConditions({
-        testPassed: data.eligibility?.conditions?.testPassed || false,
         lpMeetingCompleted: data.eligibility?.conditions?.lpMeetingCompleted || false,
         surveyCompleted: data.eligibility?.conditions?.surveyCompleted || false,
         isEligible: data.eligibility?.isEligible || false
@@ -245,7 +241,6 @@ export function FPPromotion() {
   }
 
   const completedCount = [
-    conditions.testPassed,
     conditions.lpMeetingCompleted,
     conditions.surveyCompleted
   ].filter(Boolean).length
@@ -303,46 +298,16 @@ export function FPPromotion() {
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl">
                 <div className="flex items-center flex-1">
-                  <FileText className="h-5 w-5 mr-3 text-slate-600" />
-                  <div className="flex-1">
-                    <h4 className="font-medium">基礎編テスト合格</h4>
-                    <p className="text-sm text-slate-600">基礎編テスト（10問）に合格する（70%以上）</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  {conditions.testPassed ? (
-                    <Badge className="bg-green-100 text-green-800">完了</Badge>
-                  ) : (
-                    <>
-                      <Badge variant="secondary">未完了</Badge>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => router.push('/dashboard/basic-test')}
-                      >
-                        テストを受ける
-                        <ArrowRight className="h-4 w-4 ml-1" />
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl">
-                <div className="flex items-center flex-1">
                   <MessageSquare className="h-5 w-5 mr-3 text-slate-600" />
                   <div className="flex-1">
                     <h4 className="font-medium">LP面談完了</h4>
                     <p className="text-sm text-slate-600">ライフプランナーとの面談を完了する</p>
-                    {!conditions.testPassed && (
-                      <p className="text-xs text-orange-600 mt-1">※ 基礎テスト合格後に予約可能</p>
-                    )}
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   {conditions.lpMeetingCompleted ? (
                     <Badge className="bg-green-100 text-green-800">完了</Badge>
-                  ) : conditions.testPassed ? (
+                  ) : (
                     <>
                       <Badge variant="secondary">未完了</Badge>
                       <Button
@@ -354,8 +319,6 @@ export function FPPromotion() {
                         <ArrowRight className="h-4 w-4 ml-1" />
                       </Button>
                     </>
-                  ) : (
-                    <Badge variant="secondary" className="bg-slate-100 text-slate-500">ロック中</Badge>
                   )}
                 </div>
               </div>
@@ -398,9 +361,9 @@ export function FPPromotion() {
           <div className="bg-slate-50 p-4 rounded-xl">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium">昇格進捗</span>
-              <span className="text-sm text-slate-600">{completedCount}/3 完了</span>
+              <span className="text-sm text-slate-600">{completedCount}/2 完了</span>
             </div>
-            <Progress value={(completedCount / 3) * 100} className="h-2" />
+            <Progress value={(completedCount / 2) * 100} className="h-2" />
             <p className="text-xs text-slate-600 mt-2">
               全条件を満たすと昇格申請が可能になります
             </p>
@@ -586,7 +549,7 @@ export function FPPromotion() {
                   すべての昇格条件を満たすと、昇格申請セクションが表示されます
                 </p>
                 <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
-                  <span>進捗: {completedCount}/3</span>
+                  <span>進捗: {completedCount}/2</span>
                 </div>
               </div>
             </div>
@@ -597,7 +560,7 @@ export function FPPromotion() {
             <h4 className="font-medium text-yellow-800 mb-2">注意事項</h4>
             <ul className="text-sm text-yellow-700 space-y-1">
               <li>• 申請後、運営による確認が完了するまで数日かかる場合があります</li>
-              <li>• 昇格後はFPエイド昇格後ガイダンスの視聴が必須となります</li>
+              <li>• 昇格後は「コンプライアンステスト」（合格ライン90%）と「ガイダンス動画」の視聴が必須となります</li>
             </ul>
           </div>
         </div>
