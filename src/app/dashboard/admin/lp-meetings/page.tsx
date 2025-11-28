@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/contexts/auth-context"
-import { Calendar, Clock, Video, CheckCircle, XCircle, Loader2, Users, AlertCircle } from "lucide-react"
+import { Calendar, Clock, Video, CheckCircle, XCircle, Loader2, Users, AlertCircle, UserX, Ban } from "lucide-react"
 import { formatDateTime } from "@/lib/utils/format"
 import { LP_MEETING_COUNSELORS } from '@/lib/constants/lp-meeting-counselors'
 
@@ -148,6 +148,95 @@ function AdminLPMeetingsPageContent() {
     }
   }
 
+  const handleComplete = async (meeting: LPMeeting) => {
+    const confirmed = window.confirm(
+      `${meeting.member?.name}さんの面談を完了にしますか？\nこの操作を行うと、会員に完了通知が送信されます。`
+    )
+    if (!confirmed) return
+
+    setIsSubmitting(true)
+    try {
+      const response = await fetch(`/api/admin/lp-meetings/${meeting.id}/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || '面談の完了処理に失敗しました')
+      }
+
+      alert('面談を完了しました。会員に完了通知が送信されました。')
+      await fetchMeetings()
+    } catch (error: any) {
+      alert(error.message || '面談の完了処理に失敗しました')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleCancel = async (meeting: LPMeeting) => {
+    const reason = window.prompt(
+      `${meeting.member?.name}さんの面談をキャンセルしますか？\nキャンセル理由を入力してください（任意）：`,
+      ''
+    )
+    if (reason === null) return // ダイアログでキャンセルが押された
+
+    setIsSubmitting(true)
+    try {
+      const response = await fetch(`/api/admin/lp-meetings/${meeting.id}/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ reason: reason || undefined })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || '面談のキャンセルに失敗しました')
+      }
+
+      alert('面談をキャンセルしました。会員と面談者に通知が送信されました。')
+      await fetchMeetings()
+    } catch (error: any) {
+      alert(error.message || '面談のキャンセルに失敗しました')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleNoShow = async (meeting: LPMeeting) => {
+    const confirmed = window.confirm(
+      `${meeting.member?.name}さんの面談をノーショー（無断欠席）として処理しますか？\nこの操作を行うと、会員と面談者に通知が送信されます。`
+    )
+    if (!confirmed) return
+
+    setIsSubmitting(true)
+    try {
+      const response = await fetch(`/api/admin/lp-meetings/${meeting.id}/no-show`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || '面談のノーショー処理に失敗しました')
+      }
+
+      alert('面談をノーショーとして処理しました。会員と面談者に通知が送信されました。')
+      await fetchMeetings()
+    } catch (error: any) {
+      alert(error.message || '面談のノーショー処理に失敗しました')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'REQUESTED':
@@ -158,6 +247,8 @@ function AdminLPMeetingsPageContent() {
         return <Badge className="bg-green-100 text-green-800">完了</Badge>
       case 'CANCELLED':
         return <Badge className="bg-red-100 text-red-800">キャンセル</Badge>
+      case 'NO_SHOW':
+        return <Badge className="bg-orange-100 text-orange-800">ノーショー</Badge>
       default:
         return <Badge>{status}</Badge>
     }
@@ -176,6 +267,8 @@ function AdminLPMeetingsPageContent() {
   const requestedMeetings = meetings.filter(m => m.status === 'REQUESTED')
   const scheduledMeetings = meetings.filter(m => m.status === 'SCHEDULED')
   const completedMeetings = meetings.filter(m => m.status === 'COMPLETED')
+  const cancelledMeetings = meetings.filter(m => m.status === 'CANCELLED')
+  const noShowMeetings = meetings.filter(m => m.status === 'NO_SHOW')
 
   if (isLoading) {
     return (
@@ -399,16 +492,19 @@ function AdminLPMeetingsPageContent() {
               </Card>
             )}
 
-            {/* 予約済み・完了済み面談 */}
-            {(scheduledMeetings.length > 0 || completedMeetings.length > 0) && (
+            {/* 予約済み面談（アクション可能） */}
+            {scheduledMeetings.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>面談一覧</CardTitle>
-                  <CardDescription>予約済み・完了済みの面談</CardDescription>
+                  <CardTitle className="flex items-center">
+                    <Clock className="h-5 w-5 mr-2 text-blue-600" />
+                    予約済み面談 ({scheduledMeetings.length}件)
+                  </CardTitle>
+                  <CardDescription>面談実施後に完了ボタンを押してください</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {[...scheduledMeetings, ...completedMeetings].map((meeting) => (
+                    {scheduledMeetings.map((meeting) => (
                       <div
                         key={meeting.id}
                         className="p-4 border border-slate-200 rounded-lg"
@@ -446,9 +542,134 @@ function AdminLPMeetingsPageContent() {
                                 </span>
                               </div>
                             )}
+                          </div>
+                          <div className="flex flex-col space-y-2 ml-4">
+                            <Button
+                              size="sm"
+                              onClick={() => handleComplete(meeting)}
+                              disabled={isSubmitting}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              完了
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleCancel(meeting)}
+                              disabled={isSubmitting}
+                              className="text-red-600 border-red-300 hover:bg-red-50"
+                            >
+                              <Ban className="h-4 w-4 mr-1" />
+                              キャンセル
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleNoShow(meeting)}
+                              disabled={isSubmitting}
+                              className="text-orange-600 border-orange-300 hover:bg-orange-50"
+                            >
+                              <UserX className="h-4 w-4 mr-1" />
+                              ノーショー
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* 完了済み面談 */}
+            {completedMeetings.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <CheckCircle className="h-5 w-5 mr-2 text-green-600" />
+                    完了済み面談 ({completedMeetings.length}件)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {completedMeetings.map((meeting) => (
+                      <div
+                        key={meeting.id}
+                        className="p-4 border border-slate-200 rounded-lg"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <Users className="h-4 w-4 text-slate-600" />
+                              <p className="font-medium text-slate-900">{meeting.member?.name}</p>
+                              {getStatusBadge(meeting.status)}
+                            </div>
+                            {meeting.scheduledAt && (
+                              <p className="text-sm text-slate-600 mb-1">
+                                面談日時: {formatDateTime(new Date(meeting.scheduledAt))}
+                              </p>
+                            )}
+                            {(meeting.counselorName || meeting.fp) && (
+                              <p className="text-sm text-slate-600 mb-1">
+                                面談者: {meeting.counselorName || meeting.fp?.name}
+                              </p>
+                            )}
                             {meeting.completedAt && (
-                              <p className="text-sm text-slate-600 mt-2">
+                              <p className="text-sm text-slate-600">
                                 完了日時: {formatDateTime(new Date(meeting.completedAt))}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* キャンセル・ノーショー済み面談 */}
+            {(cancelledMeetings.length > 0 || noShowMeetings.length > 0) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <XCircle className="h-5 w-5 mr-2 text-red-600" />
+                    キャンセル・ノーショー ({cancelledMeetings.length + noShowMeetings.length}件)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {[...cancelledMeetings, ...noShowMeetings].map((meeting) => (
+                      <div
+                        key={meeting.id}
+                        className="p-4 border border-slate-200 rounded-lg bg-slate-50"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <Users className="h-4 w-4 text-slate-600" />
+                              <p className="font-medium text-slate-900">{meeting.member?.name}</p>
+                              {getStatusBadge(meeting.status)}
+                            </div>
+                            {meeting.scheduledAt && (
+                              <p className="text-sm text-slate-600 mb-1">
+                                面談予定日時: {formatDateTime(new Date(meeting.scheduledAt))}
+                              </p>
+                            )}
+                            {(meeting.counselorName || meeting.fp) && (
+                              <p className="text-sm text-slate-600 mb-1">
+                                面談者: {meeting.counselorName || meeting.fp?.name}
+                              </p>
+                            )}
+                            {meeting.cancelledAt && (
+                              <p className="text-sm text-slate-600">
+                                キャンセル日時: {formatDateTime(new Date(meeting.cancelledAt))}
+                              </p>
+                            )}
+                            {meeting.notes && (
+                              <p className="text-sm text-slate-500 mt-2">
+                                備考: {meeting.notes}
                               </p>
                             )}
                           </div>
