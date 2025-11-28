@@ -872,24 +872,17 @@ export default function AdminUsersPage() {
                     </TableCell>
                     <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
                       {user.type === 'registered' && (
-                        <div className="flex flex-wrap gap-1">
+                        <select
+                          value={user.role}
+                          onChange={(e) => updateUserRole(user.id, e.target.value)}
+                          className="text-xs sm:text-sm px-2 py-1 border border-slate-300 rounded-md bg-white hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer"
+                        >
                           {USER_ROLES.map((role) => (
-                            <Button
-                              key={role}
-                              variant={user.role === role ? 'default' : 'outline'}
-                              size="sm"
-                              onClick={() => updateUserRole(user.id, role)}
-                              disabled={user.role === role}
-                              className={`text-xs px-2 py-0.5 h-auto transition-all duration-200 ${
-                                user.role === role
-                                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
-                                  : 'hover:bg-gradient-to-r hover:from-slate-50 hover:to-blue-50 border-slate-300'
-                              }`}
-                            >
+                            <option key={role} value={role}>
                               {getRoleLabel(role)}
-                            </Button>
+                            </option>
                           ))}
-                        </div>
+                        </select>
                       )}
                     </TableCell>
                   </TableRow>
