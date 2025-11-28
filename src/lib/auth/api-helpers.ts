@@ -272,6 +272,63 @@ export function checkOwnershipOrAdmin(
 }
 
 /**
+ * FPエイドのコンプライアンステスト合格チェック
+ * FPエイドの場合、コンプライアンステストに合格しているか確認
+ */
+export async function checkComplianceTest(
+  userId: string,
+  userRole: string
+): Promise<{ passed: boolean; error: NextResponse | null }> {
+  // FPエイドでない場合はチェック不要
+  if (userRole.toLowerCase() !== 'fp') {
+    return { passed: true, error: null }
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        complianceTestPassed: true
+      }
+    })
+
+    if (!user) {
+      return {
+        passed: false,
+        error: NextResponse.json(
+          { error: 'ユーザーが見つかりません' },
+          { status: 404 }
+        )
+      }
+    }
+
+    if (!user.complianceTestPassed) {
+      return {
+        passed: false,
+        error: NextResponse.json(
+          {
+            error: 'コンプライアンステストに合格してください',
+            actionUrl: '/dashboard/compliance-test'
+          },
+          { status: 403 }
+        )
+      }
+    }
+
+    return { passed: true, error: null }
+  } catch (error) {
+    console.error('Check compliance test error:', error)
+    return {
+      passed: false,
+      error: NextResponse.json(
+        { error: 'コンプライアンステスト状況の確認に失敗しました' },
+        { status: 500 }
+      )
+    }
+  }
+}
+
+/**
  * FPエイド向け動画ガイダンス完了チェック
  * FPエイドの場合、オンボーディングが完了しているか確認
  */

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { stripe } from '@/lib/stripe'
 import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
 
 // 最低契約期間（月数）
@@ -47,10 +48,18 @@ export async function POST(request: NextRequest) {
     const userId = authUser!.id
     const email = authUser!.email
 
-    // ユーザー情報をPrismaから取得（名前と登録日）
+    // ユーザー情報をPrismaから取得（名前、登録日、サブスクリプション）
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { name: true, createdAt: true }
+      select: {
+        name: true,
+        createdAt: true,
+        subscriptions: {
+          where: { status: 'ACTIVE' },
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        }
+      }
     })
 
     if (!user) {
@@ -91,6 +100,45 @@ export async function POST(request: NextRequest) {
       submittedAt: cancelRequest.createdAt.toISOString()
     })
 
+    // Stripeサブスクリプションのキャンセル予約を設定
+    const subscription = user.subscriptions?.[0]
+    if (subscription?.stripeSubscriptionId) {
+      try {
+        if (isWithinMinimumPeriod) {
+          // 6ヶ月未満：契約満了日（6ヶ月後）でキャンセル
+          // cancel_at はUnixタイムスタンプ（秒）
+          const cancelAtTimestamp = Math.floor(contractEndDate.getTime() / 1000)
+          await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
+            cancel_at: cancelAtTimestamp
+          })
+          console.log('Stripeサブスクリプションを契約満了日でキャンセル予約:', {
+            subscriptionId: subscription.stripeSubscriptionId,
+            cancelAt: contractEndDate.toISOString()
+          })
+        } else {
+          // 6ヶ月以上経過：次の請求期間終了時にキャンセル
+          await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
+            cancel_at_period_end: true
+          })
+          console.log('Stripeサブスクリプションを期間終了時にキャンセル予約:', {
+            subscriptionId: subscription.stripeSubscriptionId
+          })
+        }
+
+        // サブスクリプションのステータスを更新
+        await prisma.subscription.update({
+          where: { id: subscription.id },
+          data: {
+            cancelRequestedAt: new Date(),
+            cancelAt: isWithinMinimumPeriod ? contractEndDate : null
+          }
+        })
+      } catch (stripeError) {
+        console.error('Stripeサブスクリプションのキャンセル予約に失敗:', stripeError)
+        // エラーでも退会申請自体は受け付ける（管理者が後で対応可能）
+      }
+    }
+
     // 6ヶ月未満の場合：申請は受け付けるが、解約予約として扱う
     if (isWithinMinimumPeriod) {
       const formattedDate = contractEndDate.toLocaleDateString('ja-JP', {
@@ -107,11 +155,11 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // 6ヶ月以上経過：通常の退会処理
+    // 6ヶ月以上経過：次の請求期間終了時にキャンセル
     return NextResponse.json({
       success: true,
       isScheduled: false,
-      message: '退会申請を受け付けました。運営による確認後、退会処理を実施いたします。'
+      message: '退会申請を受け付けました。現在の請求期間終了時に退会となります。'
     })
   } catch (error) {
     console.error('退会申請エラー:', error)

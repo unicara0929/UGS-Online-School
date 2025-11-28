@@ -30,11 +30,15 @@ export interface AdminEventItem {
   thumbnailUrl: string | null
   currentParticipants: number
   registrations: EventRegistration[]
+  // 出席確認関連
+  attendanceCode: string | null
+  vimeoUrl: string | null
+  surveyUrl: string | null
+  attendanceDeadline: string | null
   // 過去イベント記録用
   summary: string | null
   photos: string[]
   materialsUrl: string | null
-  vimeoUrl: string | null
   actualParticipants: number | null
   actualLocation: string | null
   adminNotes: string | null
