@@ -742,7 +742,6 @@ export default function AdminUsersPage() {
                     </div>
                   </TableHead>
                   <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm">会員番号</TableHead>
-                  <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm">ステータス</TableHead>
                   <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm">決済</TableHead>
                   <TableHead
                     className="cursor-pointer hover:bg-slate-100 transition-colors py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm"
@@ -762,7 +761,7 @@ export default function AdminUsersPage() {
                       <ArrowUpDown className="h-3 w-3 sm:h-4 sm:w-4 text-slate-500" />
                     </div>
                   </TableHead>
-                  <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm">アクション</TableHead>
+                  <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm">ステータス</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -826,14 +825,6 @@ export default function AdminUsersPage() {
                       )}
                     </TableCell>
                     <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
-                      <Badge
-                        variant={getRoleBadgeVariant(user.role)}
-                        className="shadow-sm font-medium text-xs"
-                      >
-                        {getRoleLabel(user.role)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
                       {user.type === 'pending' ? (
                         <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200 shadow-sm text-xs">
                           <CreditCard className="h-3 w-3 mr-1" />
@@ -871,11 +862,17 @@ export default function AdminUsersPage() {
                       </div>
                     </TableCell>
                     <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
-                      {user.type === 'registered' && (
+                      {user.type === 'registered' ? (
                         <select
                           value={user.role}
                           onChange={(e) => updateUserRole(user.id, e.target.value)}
-                          className="text-xs sm:text-sm px-2 py-1 border border-slate-300 rounded-md bg-white hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer"
+                          className={`text-xs sm:text-sm px-2 py-1 border-2 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all cursor-pointer ${
+                            user.role === 'MEMBER' ? 'bg-slate-100 border-slate-300 text-slate-700 focus:ring-slate-400' :
+                            user.role === 'FP' ? 'bg-blue-100 border-blue-300 text-blue-700 focus:ring-blue-400' :
+                            user.role === 'MANAGER' ? 'bg-purple-100 border-purple-300 text-purple-700 focus:ring-purple-400' :
+                            user.role === 'ADMIN' ? 'bg-red-100 border-red-300 text-red-700 focus:ring-red-400' :
+                            'bg-white border-slate-300 text-slate-700 focus:ring-blue-400'
+                          }`}
                         >
                           {USER_ROLES.map((role) => (
                             <option key={role} value={role}>
@@ -883,6 +880,8 @@ export default function AdminUsersPage() {
                             </option>
                           ))}
                         </select>
+                      ) : (
+                        <span className="text-xs text-slate-400">-</span>
                       )}
                     </TableCell>
                   </TableRow>
