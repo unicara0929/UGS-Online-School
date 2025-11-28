@@ -521,9 +521,10 @@ model LPMeeting {
 
   preInterviewResponse PreInterviewResponse?  // 事前アンケート回答
 
-  @@unique([memberId])
+  // @@unique([memberId]) を削除し、再申請を可能に（キャンセル/ノーショー後に再申請できる）
   @@index([fpId, status])
   @@index([memberId, status])
+  @@index([memberId])
   @@index([status])
   @@map("lp_meetings")
 }

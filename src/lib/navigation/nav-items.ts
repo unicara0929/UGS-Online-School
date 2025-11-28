@@ -50,7 +50,7 @@ export const navigation: NavItem[] = [
   { name: '通知', href: '/dashboard/notifications', icon: Bell, roles: ['member', 'fp', 'manager', 'admin'] },
   { name: '昇格管理', href: '/dashboard/promotion', icon: Award, roles: ['member', 'fp'] },
   { name: 'LP面談予約', href: '/dashboard/lp-meeting/request', icon: MessageSquare, roles: ['member'] },
-  { name: 'LP面談管理', href: '/dashboard/lp-meeting/manage', icon: MessageSquare, roles: ['fp'] },
+  // FP向けLP面談管理は廃止（面談者が社内スタッフに変更、管理者画面で管理）
   { name: 'イベント', href: '/dashboard/events', icon: Calendar, roles: ['member', 'fp', 'manager', 'admin'] },
   { name: '個別相談', href: '/dashboard/consultation', icon: UserRound, roles: ['member', 'fp', 'manager', 'admin'] },
   {

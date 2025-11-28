@@ -66,15 +66,17 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 既存のアクティブな面談をチェック
-    const existingMeeting = await prisma.lPMeeting.findUnique({
-      where: { memberId }
+    // 既存のアクティブな面談をチェック（REQUESTED または SCHEDULED 状態）
+    const existingActiveMeeting = await prisma.lPMeeting.findFirst({
+      where: {
+        memberId,
+        status: {
+          in: ['REQUESTED', 'SCHEDULED']
+        }
+      }
     })
 
-    if (existingMeeting && 
-        existingMeeting.status !== 'COMPLETED' && 
-        existingMeeting.status !== 'CANCELLED' && 
-        existingMeeting.status !== 'NO_SHOW') {
+    if (existingActiveMeeting) {
       return NextResponse.json(
         { error: '既にアクティブな面談予約があります。現在の面談が完了、キャンセル、またはノーショーになるまで再申請できません。' },
         { status: 409 }
@@ -164,7 +166,34 @@ export async function GET(request: NextRequest) {
     // クエリパラメータのuserIdを使わず、認証ユーザーのIDを使用
     const userId = authUser!.id
 
-    const meeting = await prisma.lPMeeting.findUnique({
+    // 最新の面談を取得（複数ある場合は最新のものを返す）
+    // 優先順位: アクティブな面談（REQUESTED, SCHEDULED）> 最新の面談
+    const activeMeeting = await prisma.lPMeeting.findFirst({
+      where: {
+        memberId: userId,
+        status: { in: ['REQUESTED', 'SCHEDULED'] }
+      },
+      include: {
+        member: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        fp: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    })
+
+    // アクティブな面談がなければ最新の面談を取得
+    const meeting = activeMeeting || await prisma.lPMeeting.findFirst({
       where: { memberId: userId },
       include: {
         member: {
@@ -181,7 +210,8 @@ export async function GET(request: NextRequest) {
             email: true
           }
         }
-      }
+      },
+      orderBy: { createdAt: 'desc' }
     })
 
     if (!meeting) {
@@ -197,6 +227,7 @@ export async function GET(request: NextRequest) {
         id: meeting.id,
         memberId: meeting.memberId,
         fpId: meeting.fpId,
+        counselorName: meeting.counselorName,
         status: meeting.status,
         preferredDates: meeting.preferredDates,
         meetingLocation: meeting.meetingLocation,

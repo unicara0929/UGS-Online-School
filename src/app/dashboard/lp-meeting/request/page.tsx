@@ -16,6 +16,7 @@ interface LPMeeting {
   id: string
   memberId: string
   fpId?: string | null
+  counselorName?: string | null
   status: 'REQUESTED' | 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW'
   preferredDates: string[]
   scheduledAt?: string | null
@@ -315,6 +316,8 @@ function LPMeetingRequestPageContent() {
         return <Badge className="bg-green-100 text-green-800">完了</Badge>
       case 'CANCELLED':
         return <Badge className="bg-red-100 text-red-800">キャンセル</Badge>
+      case 'NO_SHOW':
+        return <Badge className="bg-orange-100 text-orange-800">ノーショー</Badge>
       default:
         return <Badge>{status}</Badge>
     }
@@ -392,10 +395,10 @@ function LPMeetingRequestPageContent() {
                           <p className="text-sm font-medium text-slate-700 mb-1">確定日時</p>
                           <p className="text-sm text-slate-900">{formatDateTime(new Date(meeting.scheduledAt))}</p>
                         </div>
-                        {meeting.fp && (
+                        {(meeting.counselorName || meeting.fp) && (
                           <div>
-                            <p className="text-sm font-medium text-slate-700 mb-1">FPエイド</p>
-                            <p className="text-sm text-slate-900">{meeting.fp.name}</p>
+                            <p className="text-sm font-medium text-slate-700 mb-1">面談担当者</p>
+                            <p className="text-sm text-slate-900">{meeting.counselorName || meeting.fp?.name}</p>
                           </div>
                         )}
                         {meeting.meetingUrl && (
@@ -430,9 +433,15 @@ function LPMeetingRequestPageContent() {
                             {meeting.completedAt ? formatDateTime(new Date(meeting.completedAt)) : '-'}
                           </p>
                         </div>
+                        {(meeting.counselorName || meeting.fp) && (
+                          <div>
+                            <p className="text-sm font-medium text-slate-700 mb-1">面談担当者</p>
+                            <p className="text-sm text-slate-900">{meeting.counselorName || meeting.fp?.name}</p>
+                          </div>
+                        )}
                         {meeting.notes && (
                           <div>
-                            <p className="text-sm font-medium text-slate-700 mb-1">FPエイドからのメモ</p>
+                            <p className="text-sm font-medium text-slate-700 mb-1">面談メモ</p>
                             <p className="text-sm text-slate-600">{meeting.notes}</p>
                           </div>
                         )}
