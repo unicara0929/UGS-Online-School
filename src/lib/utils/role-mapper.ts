@@ -33,10 +33,20 @@ export function appRoleToPrismaRole(role: AppUserRole): PrismaUserRole {
 
 /**
  * 文字列からAppUserRoleに変換（型安全性のため）
+ * 大文字・小文字どちらでも受け付ける
  */
 export function stringToAppRole(role: string): AppUserRole | null {
-  const validRoles: AppUserRole[] = ['member', 'fp', 'manager', 'admin']
-  return validRoles.includes(role as AppUserRole) ? (role as AppUserRole) : null
+  const map: Record<string, AppUserRole> = {
+    'member': 'member',
+    'MEMBER': 'member',
+    'fp': 'fp',
+    'FP': 'fp',
+    'manager': 'manager',
+    'MANAGER': 'manager',
+    'admin': 'admin',
+    'ADMIN': 'admin',
+  }
+  return map[role] || null
 }
 
 /**

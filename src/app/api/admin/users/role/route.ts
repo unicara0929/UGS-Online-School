@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { prisma } from '@/lib/prisma'
+import { UserRole } from '@prisma/client'
 import { appRoleToPrismaRole, stringToAppRole } from '@/lib/utils/role-mapper'
 import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
 
@@ -35,12 +36,56 @@ export async function PUT(request: NextRequest) {
     // PrismaのUserRole（大文字）に変換
     const prismaRole = appRoleToPrismaRole(appRole)
 
+    // 現在のユーザー情報を取得
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true }
+    })
+
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'ユーザーが見つかりません' },
+        { status: 404 }
+      )
+    }
+
+    const currentRole = currentUser.role
+    const isDowngradeToMember = prismaRole === UserRole.MEMBER &&
+      (currentRole === UserRole.FP || currentRole === UserRole.MANAGER)
+    const isUpgradeToFP = prismaRole === UserRole.FP && currentRole === UserRole.MEMBER
+
     // Prismaでユーザーロールを更新
     try {
+      // 更新データを構築
+      const updateData: {
+        role: UserRole
+        complianceTestPassed?: boolean
+        complianceTestPassedAt?: null
+        fpOnboardingCompleted?: boolean
+        fpOnboardingCompletedAt?: null
+      } = { role: prismaRole }
+
+      // FPエイドに昇格する場合はコンプライアンステストを再受験必須にする
+      if (isUpgradeToFP) {
+        updateData.complianceTestPassed = false
+        updateData.complianceTestPassedAt = null
+        updateData.fpOnboardingCompleted = false
+        updateData.fpOnboardingCompletedAt = null
+      }
+
       await prisma.user.update({
         where: { id: userId },
-        data: { role: prismaRole }
+        data: updateData
       })
+
+      // FPエイド/マネージャーからメンバーに降格する場合は昇格申請データをリセット
+      if (isDowngradeToMember) {
+        // FPPromotionApplicationを削除（存在する場合）
+        await prisma.fPPromotionApplication.deleteMany({
+          where: { userId }
+        })
+        console.log(`Reset FPPromotionApplication for user ${userId} due to demotion to MEMBER`)
+      }
     } catch (prismaError: any) {
       console.error('Prisma user update error:', prismaError)
       // ユーザーが存在しない場合は404を返す
