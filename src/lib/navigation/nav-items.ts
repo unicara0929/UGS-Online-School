@@ -21,7 +21,9 @@ import {
   UserRound,
   UserX,
   ClipboardList,
-  ShieldCheck
+  ShieldCheck,
+  Wrench,
+  Briefcase
 } from 'lucide-react'
 
 export interface NavItem {
@@ -71,22 +73,65 @@ export const navigation: NavItem[] = [
       { name: 'お問い合わせ', href: '/dashboard/support/contact', icon: Send, roles: ['member', 'fp', 'manager', 'admin'] },
     ]
   },
-  { name: '教育コンテンツ管理', href: '/dashboard/admin/courses', icon: BookOpen, roles: ['admin'] },
-  { name: 'イベント管理', href: '/dashboard/admin/events', icon: Calendar, roles: ['admin'] },
-  { name: 'LP面談管理（管理者）', href: '/dashboard/admin/lp-meetings', icon: MessageSquare, roles: ['admin'] },
-  { name: '昇格申請管理', href: '/dashboard/admin/promotions', icon: Award, roles: ['admin'] },
-  { name: 'コンプライアンステスト管理', href: '/dashboard/admin/compliance-test', icon: ShieldCheck, roles: ['admin'] },
-  { name: '紹介管理（管理者）', href: '/dashboard/admin/referrals', icon: UserPlus, roles: ['admin'] },
-  { name: '報酬管理（管理者）', href: '/dashboard/admin/compensations', icon: DollarSign, roles: ['admin'] },
+  // ========== 管理者専用メニュー ==========
+  {
+    name: '会員管理',
+    icon: Users,
+    roles: ['admin'],
+    subItems: [
+      { name: 'ユーザー管理', href: '/dashboard/admin/users', icon: UserCheck, roles: ['admin'] },
+      { name: '退会申請管理', href: '/dashboard/admin/cancel-requests', icon: UserX, roles: ['admin'] },
+      { name: '昇格申請管理', href: '/dashboard/admin/promotions', icon: Award, roles: ['admin'] },
+    ]
+  },
+  {
+    name: 'コンテンツ管理',
+    icon: FolderOpen,
+    roles: ['admin'],
+    subItems: [
+      { name: '教育コンテンツ管理', href: '/dashboard/admin/courses', icon: BookOpen, roles: ['admin'] },
+      { name: 'コンプライアンステスト', href: '/dashboard/admin/compliance-test', icon: ShieldCheck, roles: ['admin'] },
+    ]
+  },
+  {
+    name: 'イベント・面談',
+    icon: Calendar,
+    roles: ['admin'],
+    subItems: [
+      { name: 'イベント管理', href: '/dashboard/admin/events', icon: Calendar, roles: ['admin'] },
+      { name: 'LP面談管理', href: '/dashboard/admin/lp-meetings', icon: MessageSquare, roles: ['admin'] },
+      { name: '事前アンケート管理', href: '/dashboard/admin/pre-interview-templates', icon: ClipboardList, roles: ['admin'] },
+    ]
+  },
+  {
+    name: '報酬・紹介',
+    icon: DollarSign,
+    roles: ['admin'],
+    subItems: [
+      { name: '報酬管理', href: '/dashboard/admin/compensations', icon: DollarSign, roles: ['admin'] },
+      { name: '紹介管理', href: '/dashboard/admin/referrals', icon: UserPlus, roles: ['admin'] },
+    ]
+  },
+  {
+    name: '問い合わせ対応',
+    icon: Inbox,
+    roles: ['admin'],
+    subItems: [
+      { name: 'お問い合わせ管理', href: '/dashboard/admin/contacts', icon: Inbox, roles: ['admin'] },
+      { name: '個別相談管理', href: '/dashboard/admin/consultations', icon: UserRound, roles: ['admin'] },
+      { name: 'FAQ管理', href: '/dashboard/admin/faq', icon: HelpCircle, roles: ['admin'] },
+    ]
+  },
+  {
+    name: 'その他管理',
+    icon: Wrench,
+    roles: ['admin'],
+    subItems: [
+      { name: '名刺注文管理', href: '/dashboard/admin/business-card', icon: CreditCard, roles: ['admin'] },
+      { name: 'メール送信履歴', href: '/dashboard/admin/email-history', icon: Mail, roles: ['admin'] },
+    ]
+  },
   { name: 'チーム管理', href: '/dashboard/team', icon: Users, roles: ['manager', 'admin'] },
   { name: '分析', href: '/dashboard/analytics', icon: BarChart3, roles: ['admin'] },
-  { name: 'ユーザー管理', href: '/dashboard/admin/users', icon: UserCheck, roles: ['admin'] },
-  { name: 'メール送信履歴', href: '/dashboard/admin/email-history', icon: Mail, roles: ['admin'] },
-  { name: 'FAQ管理', href: '/dashboard/admin/faq', icon: HelpCircle, roles: ['admin'] },
-  { name: 'お問い合わせ管理', href: '/dashboard/admin/contacts', icon: Inbox, roles: ['admin'] },
-  { name: '個別相談管理', href: '/dashboard/admin/consultations', icon: UserRound, roles: ['admin'] },
-  { name: '事前アンケート管理', href: '/dashboard/admin/pre-interview-templates', icon: ClipboardList, roles: ['admin'] },
-  { name: '名刺注文管理', href: '/dashboard/admin/business-card', icon: CreditCard, roles: ['admin'] },
-  { name: '退会申請管理', href: '/dashboard/admin/cancel-requests', icon: UserX, roles: ['admin'] },
   { name: '設定', href: '/dashboard/settings', icon: Settings, roles: ['member', 'fp', 'manager', 'admin'] },
 ]
