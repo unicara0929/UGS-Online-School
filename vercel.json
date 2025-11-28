@@ -14,6 +14,10 @@
     {
       "path": "/api/cron/generate-monthly-events",
       "schedule": "0 0 * * 1"
+    },
+    {
+      "path": "/api/cron/pre-interview-reminder",
+      "schedule": "0 9 * * *"
     }
   ]
 }
