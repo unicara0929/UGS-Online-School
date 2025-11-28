@@ -154,7 +154,13 @@ export async function POST(request: NextRequest) {
           completedAt: isComplete ? new Date() : null
         },
         include: {
-          template: true,
+          template: {
+            include: {
+              questions: {
+                orderBy: { order: 'asc' }
+              }
+            }
+          },
           answers: true,
           lpMeeting: {
             include: {
