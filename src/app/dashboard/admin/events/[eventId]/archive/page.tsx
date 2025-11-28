@@ -49,6 +49,8 @@ function EventArchivePageContent() {
     photos: [] as string[],
     materialsUrl: '',
     vimeoUrl: '',
+    surveyUrl: '',
+    attendanceCode: '',
     actualParticipants: null as number | null,
     actualLocation: '',
     adminNotes: '',
@@ -80,6 +82,8 @@ function EventArchivePageContent() {
         photos: foundEvent.photos || [],
         materialsUrl: foundEvent.materialsUrl || '',
         vimeoUrl: foundEvent.vimeoUrl || '',
+        surveyUrl: foundEvent.surveyUrl || '',
+        attendanceCode: foundEvent.attendanceCode || '',
         actualParticipants: foundEvent.actualParticipants ?? null,
         actualLocation: foundEvent.actualLocation || '',
         adminNotes: foundEvent.adminNotes || '',
@@ -164,6 +168,8 @@ function EventArchivePageContent() {
           photos: formData.photos,
           materialsUrl: formData.materialsUrl || null,
           vimeoUrl: formData.vimeoUrl || null,
+          surveyUrl: formData.surveyUrl || null,
+          attendanceCode: formData.attendanceCode || null,
           actualParticipants: formData.actualParticipants,
           actualLocation: formData.actualLocation || null,
           adminNotes: formData.adminNotes || null,
@@ -371,19 +377,62 @@ function EventArchivePageContent() {
                     </div>
                   </div>
 
-                  {/* Vimeo URL */}
-                  <div>
-                    <label className={FORM_LABEL_CLASS}>
-                      <Video className="h-4 w-4 inline mr-1" />
-                      録画動画URL（Vimeo等）
-                    </label>
-                    <input
-                      type="url"
-                      value={formData.vimeoUrl}
-                      onChange={(e) => setFormData(prev => ({ ...prev, vimeoUrl: e.target.value }))}
-                      className={FORM_INPUT_CLASS}
-                      placeholder="https://vimeo.com/..."
-                    />
+                  {/* 出席確認設定 */}
+                  <div className="border border-slate-200 rounded-lg p-4 space-y-4">
+                    <h4 className="font-medium text-slate-900">出席確認設定</h4>
+
+                    {/* 参加コード */}
+                    <div>
+                      <label className={FORM_LABEL_CLASS}>
+                        参加コード（リアルタイム参加用）
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.attendanceCode}
+                        onChange={(e) => setFormData(prev => ({ ...prev, attendanceCode: e.target.value.toUpperCase() }))}
+                        className={FORM_INPUT_CLASS}
+                        placeholder="例: TESTMTG"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">
+                        イベント当日に会場/オンラインで表示するコード。参加者はこのコードを入力して出席を記録します。
+                      </p>
+                    </div>
+
+                    {/* Vimeo URL */}
+                    <div>
+                      <label className={FORM_LABEL_CLASS}>
+                        <Video className="h-4 w-4 inline mr-1" />
+                        録画動画URL（Vimeo等）
+                      </label>
+                      <input
+                        type="url"
+                        value={formData.vimeoUrl}
+                        onChange={(e) => setFormData(prev => ({ ...prev, vimeoUrl: e.target.value }))}
+                        className={FORM_INPUT_CLASS}
+                        placeholder="https://vimeo.com/..."
+                      />
+                      <p className="text-xs text-slate-500 mt-1">
+                        後日視聴用の録画URL。設定すると参加者が録画視聴で出席を記録できます。
+                      </p>
+                    </div>
+
+                    {/* アンケートURL */}
+                    <div>
+                      <label className={FORM_LABEL_CLASS}>
+                        <Link2 className="h-4 w-4 inline mr-1" />
+                        アンケートURL（Google Forms等）
+                      </label>
+                      <input
+                        type="url"
+                        value={formData.surveyUrl}
+                        onChange={(e) => setFormData(prev => ({ ...prev, surveyUrl: e.target.value }))}
+                        className={FORM_INPUT_CLASS}
+                        placeholder="https://forms.google.com/..."
+                      />
+                      <p className="text-xs text-slate-500 mt-1">
+                        録画視聴後に回答するアンケート。録画視聴+アンケート回答で出席完了となります。
+                      </p>
+                    </div>
                   </div>
 
                   {/* 資料リンク */}

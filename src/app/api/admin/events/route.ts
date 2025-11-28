@@ -121,7 +121,10 @@ export async function GET(request: NextRequest) {
         adminNotes: event.adminNotes ?? null,
         isArchiveOnly: event.isArchiveOnly ?? false,
         // 出席確認関連
+        attendanceCode: event.attendanceCode ?? null,
         vimeoUrl: event.vimeoUrl ?? null,
+        surveyUrl: event.surveyUrl ?? null,
+        attendanceDeadline: event.attendanceDeadline?.toISOString() ?? null,
         registrations: event.registrations.map((registration) => ({
           id: registration.id,
           userId: registration.userId,
