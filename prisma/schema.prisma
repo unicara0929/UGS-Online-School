@@ -27,8 +27,11 @@ model User {
   profileImageUrl         String?
   notificationPreferences Json?
   lastLoginAt             DateTime?
+  // FPエイド オンボーディング関連
   fpOnboardingCompleted   Boolean                  @default(true) // FPエイド向け動画ガイダンス完了フラグ（既存ユーザーはtrue）
   fpOnboardingCompletedAt DateTime?                // FPエイド向け動画ガイダンス完了日時
+  complianceTestPassed    Boolean                  @default(true) // コンプライアンステスト合格フラグ（既存ユーザーはtrue）
+  complianceTestPassedAt  DateTime?                // コンプライアンステスト合格日時
   // 会員管理フィールド
   membershipStatus        MembershipStatus         @default(ACTIVE) // 会員ステータス
   membershipStatusReason  String?                  // ステータス変更理由
@@ -71,6 +74,8 @@ model User {
   notificationReads       UserNotificationRead[] // システム通知の既読管理
   // 事前アンケート
   preInterviewResponses   PreInterviewResponse[] @relation("PreInterviewRespondent")
+  // コンプライアンステスト
+  complianceTestAttempts  ComplianceTestAttempt[]
 
   @@map("users")
 }
@@ -98,6 +103,8 @@ model Subscription {
   stripeSubscriptionId String?            @unique
   status               SubscriptionStatus @default(ACTIVE)
   currentPeriodEnd     DateTime?
+  cancelRequestedAt    DateTime?          // 退会申請日時
+  cancelAt             DateTime?          // キャンセル予定日（6ヶ月契約満了日）
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
   user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -1219,4 +1226,69 @@ model PreInterviewAnswer {
   @@unique([responseId, questionId])
   @@index([responseId])
   @@map("pre_interview_answers")
+}
+
+// =====================
+// コンプライアンステスト機能
+// =====================
+
+// コンプライアンステスト問題
+model ComplianceTestQuestion {
+  id              String   @id @default(cuid())
+  question        String   @db.Text // 設問文
+  options         Json     // 選択肢（4択）: ["選択肢A", "選択肢B", "選択肢C", "選択肢D"]
+  correctAnswer   Int      // 正解の選択肢インデックス（0-3）
+  explanation     String?  @db.Text // 解説（不正解時に表示）
+  category        String?  // カテゴリ（マネロン、コンプライアンス、個人情報保護など）
+  order           Int      @default(0) // 表示順
+  isActive        Boolean  @default(true) // 有効/無効
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  answers         ComplianceTestAnswer[]
+
+  @@index([isActive, order])
+  @@map("compliance_test_questions")
+}
+
+// コンプライアンステスト受験履歴
+model ComplianceTestAttempt {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  totalQuestions  Int      // 問題数
+  correctCount    Int      // 正解数
+  score           Float    // スコア（%）
+  isPassed        Boolean  // 合格したか（90%以上）
+
+  startedAt       DateTime @default(now())
+  completedAt     DateTime?
+  createdAt       DateTime @default(now())
+
+  answers         ComplianceTestAnswer[]
+
+  @@index([userId])
+  @@index([isPassed])
+  @@index([createdAt])
+  @@map("compliance_test_attempts")
+}
+
+// 個別回答履歴
+model ComplianceTestAnswer {
+  id              String   @id @default(cuid())
+  attemptId       String
+  attempt         ComplianceTestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  questionId      String
+  question        ComplianceTestQuestion @relation(fields: [questionId], references: [id])
+
+  selectedAnswer  Int      // 選択した回答インデックス（0-3）
+  isCorrect       Boolean  // 正解かどうか
+
+  createdAt       DateTime @default(now())
+
+  @@unique([attemptId, questionId])
+  @@index([attemptId])
+  @@map("compliance_test_answers")
 }

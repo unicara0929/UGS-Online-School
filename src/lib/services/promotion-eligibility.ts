@@ -8,7 +8,6 @@ import { calculateAverageCompensation, getReferralStats, getContractAchievement 
 export interface PromotionEligibility {
   isEligible: boolean
   conditions: {
-    testPassed?: boolean
     lpMeetingCompleted?: boolean
     surveyCompleted?: boolean
     compensationAverage?: {
@@ -40,14 +39,14 @@ export async function checkFPPromotionEligibility(userId: string): Promise<Promo
       where: { userId }
     })
 
+    // 知識テストは廃止、LP面談とアンケートのみ確認
+    // コンプライアンステストはFPエイド昇格後にダッシュボードで実施
     const conditions = {
-      testPassed: application?.basicTestCompleted || false,
       lpMeetingCompleted: application?.lpMeetingCompleted || false,
       surveyCompleted: application?.surveyCompleted || false
     }
 
-    const isEligible = conditions.testPassed && 
-                      conditions.lpMeetingCompleted && 
+    const isEligible = conditions.lpMeetingCompleted &&
                       conditions.surveyCompleted
 
     return {
