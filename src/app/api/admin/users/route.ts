@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
         name: true,
         role: true,
         membershipStatus: true,
+        memberId: true,
         createdAt: true,
       }
     })
@@ -53,6 +54,7 @@ export async function GET(request: NextRequest) {
         last_sign_in_at: supabaseUser?.last_sign_in_at || null,
         role: prismaUser.role, // Prismaのロールが正
         membershipStatus: prismaUser.membershipStatus, // 会員ステータス
+        memberId: prismaUser.memberId, // 会員番号
         raw_user_meta_data: {
           name: prismaUser.name, // Prismaの名前が正
           role: prismaUser.role,
