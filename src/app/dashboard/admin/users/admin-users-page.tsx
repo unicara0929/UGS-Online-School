@@ -66,6 +66,7 @@ interface SupabaseUser {
   last_sign_in_at: string | null
   role: string
   membershipStatus?: string
+  memberId?: string | null
   raw_user_meta_data: {
     name?: string
     [key: string]: any
@@ -247,6 +248,7 @@ export default function AdminUsersPage() {
       email: string
       role: string
       membershipStatus?: string
+      memberId?: string
       createdAt: string
       lastSignIn: string | null
       subscription: SubscriptionInfo | null
@@ -261,6 +263,7 @@ export default function AdminUsersPage() {
         email: pending.email,
         role: 'PENDING',
         membershipStatus: 'PENDING',
+        memberId: undefined as string | undefined,
         createdAt: pending.createdAt,
         lastSignIn: null as string | null,
         subscription: null as SubscriptionInfo | null,
@@ -273,6 +276,7 @@ export default function AdminUsersPage() {
         email: user.email,
         role: user.role,
         membershipStatus: user.membershipStatus || 'ACTIVE',
+        memberId: user.memberId || undefined,
         createdAt: user.created_at,
         lastSignIn: user.last_sign_in_at,
         subscription: (subscriptions.find(sub => sub.userId === user.id) || null) as SubscriptionInfo | null,
@@ -723,6 +727,7 @@ export default function AdminUsersPage() {
                       className="w-4 h-4 text-blue-600 bg-white border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
                     />
                   </TableHead>
+                  <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm">会員番号</TableHead>
                   <TableHead
                     className="cursor-pointer hover:bg-slate-100 transition-colors py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm"
                     onClick={() => handleSort('name')}
@@ -732,6 +737,7 @@ export default function AdminUsersPage() {
                       <ArrowUpDown className="h-3 w-3 sm:h-4 sm:w-4 text-slate-500" />
                     </div>
                   </TableHead>
+                  <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm">ステータス</TableHead>
                   <TableHead
                     className="cursor-pointer hover:bg-slate-100 transition-colors py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm"
                     onClick={() => handleSort('email')}
@@ -741,7 +747,6 @@ export default function AdminUsersPage() {
                       <ArrowUpDown className="h-3 w-3 sm:h-4 sm:w-4 text-slate-500" />
                     </div>
                   </TableHead>
-                  <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm">会員番号</TableHead>
                   <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm">決済</TableHead>
                   <TableHead
                     className="cursor-pointer hover:bg-slate-100 transition-colors py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm"
@@ -761,7 +766,6 @@ export default function AdminUsersPage() {
                       <ArrowUpDown className="h-3 w-3 sm:h-4 sm:w-4 text-slate-500" />
                     </div>
                   </TableHead>
-                  <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm">ステータス</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -771,6 +775,7 @@ export default function AdminUsersPage() {
                     className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/50 transition-all duration-200 border-b border-slate-100"
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
+                    {/* 1. チェックボックス */}
                     <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
                       {user.type === 'registered' && (
                         <input
@@ -781,6 +786,17 @@ export default function AdminUsersPage() {
                         />
                       )}
                     </TableCell>
+                    {/* 2. 会員番号 */}
+                    <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
+                      {user.memberId ? (
+                        <div className="font-mono text-xs text-slate-600 bg-slate-50 px-2 py-1 rounded border border-slate-200 inline-block">
+                          {user.memberId}
+                        </div>
+                      ) : (
+                        <span className="text-slate-400 text-xs">未付与</span>
+                      )}
+                    </TableCell>
+                    {/* 3. 名前 */}
                     <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
                       <div className="flex items-center space-x-2 sm:space-x-3">
                         <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm shadow-lg flex-shrink-0">
@@ -812,18 +828,37 @@ export default function AdminUsersPage() {
                         </div>
                       </div>
                     </TableCell>
+                    {/* 4. ステータス（ロール） */}
+                    <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
+                      {user.type === 'registered' ? (
+                        <select
+                          value={user.role}
+                          onChange={(e) => updateUserRole(user.id, e.target.value)}
+                          className={`text-xs sm:text-sm px-2 py-1 border-2 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all cursor-pointer ${
+                            user.role === 'MEMBER' ? 'bg-slate-100 border-slate-300 text-slate-700 focus:ring-slate-400' :
+                            user.role === 'FP' ? 'bg-blue-100 border-blue-300 text-blue-700 focus:ring-blue-400' :
+                            user.role === 'MANAGER' ? 'bg-purple-100 border-purple-300 text-purple-700 focus:ring-purple-400' :
+                            user.role === 'ADMIN' ? 'bg-red-100 border-red-300 text-red-700 focus:ring-red-400' :
+                            'bg-white border-slate-300 text-slate-700 focus:ring-blue-400'
+                          }`}
+                        >
+                          {USER_ROLES.map((role) => (
+                            <option key={role} value={role}>
+                              {getRoleLabel(role)}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <Badge variant="outline" className="text-orange-600 border-orange-300 bg-orange-50 text-xs">
+                          仮登録
+                        </Badge>
+                      )}
+                    </TableCell>
+                    {/* 5. メール */}
                     <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
                       <div className="text-slate-700 text-xs sm:text-sm truncate max-w-[150px]">{user.email}</div>
                     </TableCell>
-                    <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
-                      {user.type === 'registered' && (user as any).memberId ? (
-                        <div className="font-mono text-xs text-slate-600 bg-slate-50 px-2 py-1 rounded border border-slate-200 inline-block">
-                          {(user as any).memberId}
-                        </div>
-                      ) : (
-                        <span className="text-slate-400 text-xs">未付与</span>
-                      )}
-                    </TableCell>
+                    {/* 6. 決済 */}
                     <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
                       {user.type === 'pending' ? (
                         <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200 shadow-sm text-xs">
@@ -853,36 +888,15 @@ export default function AdminUsersPage() {
                         })()
                       )}
                     </TableCell>
+                    {/* 7. 登録日 */}
                     <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
                       <div className="text-slate-600 text-xs sm:text-sm whitespace-nowrap">{formatDate(user.createdAt)}</div>
                     </TableCell>
+                    {/* 8. 最終ログイン */}
                     <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
                       <div className="text-slate-600 text-xs sm:text-sm whitespace-nowrap">
                         {user.lastSignIn ? formatDate(user.lastSignIn) : '未ログイン'}
                       </div>
-                    </TableCell>
-                    <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
-                      {user.type === 'registered' ? (
-                        <select
-                          value={user.role}
-                          onChange={(e) => updateUserRole(user.id, e.target.value)}
-                          className={`text-xs sm:text-sm px-2 py-1 border-2 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all cursor-pointer ${
-                            user.role === 'MEMBER' ? 'bg-slate-100 border-slate-300 text-slate-700 focus:ring-slate-400' :
-                            user.role === 'FP' ? 'bg-blue-100 border-blue-300 text-blue-700 focus:ring-blue-400' :
-                            user.role === 'MANAGER' ? 'bg-purple-100 border-purple-300 text-purple-700 focus:ring-purple-400' :
-                            user.role === 'ADMIN' ? 'bg-red-100 border-red-300 text-red-700 focus:ring-red-400' :
-                            'bg-white border-slate-300 text-slate-700 focus:ring-blue-400'
-                          }`}
-                        >
-                          {USER_ROLES.map((role) => (
-                            <option key={role} value={role}>
-                              {getRoleLabel(role)}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <span className="text-xs text-slate-400">-</span>
-                      )}
                     </TableCell>
                   </TableRow>
                 ))}
