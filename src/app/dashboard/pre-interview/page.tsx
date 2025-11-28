@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Loader2, CheckCircle, Clock, AlertCircle, Calendar, Save } from 'lucide-react'
+import { ProtectedRoute } from '@/components/auth/protected-route'
 
 interface Question {
   id: string
@@ -53,7 +54,7 @@ interface PreInterviewResponse {
   }
 }
 
-export default function PreInterviewPage() {
+function PreInterviewPageContent() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -426,5 +427,13 @@ export default function PreInterviewPage() {
         )}
       </Card>
     </div>
+  )
+}
+
+export default function PreInterviewPage() {
+  return (
+    <ProtectedRoute>
+      <PreInterviewPageContent />
+    </ProtectedRoute>
   )
 }
