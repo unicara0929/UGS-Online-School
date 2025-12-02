@@ -396,7 +396,12 @@ function LearningPage() {
   }
 
   const getLevelLabel = (level: string) => {
-    return level === 'basic' ? '基礎編' : '実践編'
+    switch (level) {
+      case 'basic': return '基礎編'
+      case 'intermediate': return '実践編'
+      case 'advanced': return '応用編'
+      default: return level
+    }
   }
 
   const getCategoryColor = (category: string) => {
