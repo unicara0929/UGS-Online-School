@@ -11,14 +11,16 @@ interface FPOnboardingGuardProps {
 }
 
 interface FPOnboardingStatus {
+  managerContactConfirmed: boolean
   complianceTestPassed: boolean
   fpOnboardingCompleted: boolean
 }
 
 /**
  * FPエイドのオンボーディングフローを制御するガード
- * 1. コンプライアンステスト未合格 → /dashboard/compliance-test
- * 2. ガイダンス動画未視聴 → /dashboard/fp-onboarding
+ * 1. マネージャー連絡先未確認 → /dashboard/manager-contact
+ * 2. コンプライアンステスト未合格 → /dashboard/compliance-test
+ * 3. ガイダンス動画未視聴 → /dashboard/fp-onboarding
  */
 export function FPOnboardingGuard({ children }: FPOnboardingGuardProps) {
   const { user, isLoading: authLoading } = useAuth()
@@ -39,6 +41,7 @@ export function FPOnboardingGuard({ children }: FPOnboardingGuardProps) {
 
       // 既にオンボーディング関連ページにいる場合はチェック不要
       const onboardingPages = [
+        '/dashboard/manager-contact',
         '/dashboard/compliance-test',
         '/dashboard/fp-onboarding'
       ]
@@ -53,14 +56,21 @@ export function FPOnboardingGuard({ children }: FPOnboardingGuardProps) {
         if (response.ok) {
           const data: FPOnboardingStatus = await response.json()
 
-          // 1. コンプライアンステスト未合格 → テストページへ
+          // 1. マネージャー連絡先未確認 → 連絡先確認ページへ
+          if (!data.managerContactConfirmed) {
+            router.push('/dashboard/manager-contact')
+            // リダイレクト時はisCheckingをtrueのままにしてローディング画面を維持
+            return
+          }
+
+          // 2. コンプライアンステスト未合格 → テストページへ
           if (!data.complianceTestPassed) {
             router.push('/dashboard/compliance-test')
             // リダイレクト時はisCheckingをtrueのままにしてローディング画面を維持
             return
           }
 
-          // 2. ガイダンス動画未視聴 → ガイダンスページへ
+          // 3. ガイダンス動画未視聴 → ガイダンスページへ
           if (!data.fpOnboardingCompleted) {
             router.push('/dashboard/fp-onboarding')
             // リダイレクト時はisCheckingをtrueのままにしてローディング画面を維持
