@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
       select: {
         id: true,
         role: true,
+        managerContactConfirmedAt: true,
         complianceTestPassed: true,
         complianceTestPassedAt: true,
         fpOnboardingCompleted: true,
@@ -42,6 +43,7 @@ export async function GET(request: NextRequest) {
     // FPエイドでない場合は完了扱い
     if (user.role !== Roles.FP) {
       return NextResponse.json({
+        managerContactConfirmed: true,
         complianceTestPassed: true,
         fpOnboardingCompleted: true,
         message: 'FPエイドではないため、オンボーディングは不要です'
@@ -49,6 +51,8 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
+      managerContactConfirmed: !!user.managerContactConfirmedAt,
+      managerContactConfirmedAt: user.managerContactConfirmedAt,
       complianceTestPassed: user.complianceTestPassed || false,
       complianceTestPassedAt: user.complianceTestPassedAt,
       fpOnboardingCompleted: user.fpOnboardingCompleted || false,

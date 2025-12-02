@@ -18,6 +18,7 @@ model User {
   bankAccount             Json?
   // プロフィール拡張フィールド
   phone                   String?
+  lineId                  String?                  // LINE ID（マネージャー連絡用）
   address                 String?
   bio                     String?
   attribute               String?
@@ -28,6 +29,7 @@ model User {
   notificationPreferences Json?
   lastLoginAt             DateTime?
   // FPエイド オンボーディング関連
+  managerContactConfirmedAt DateTime?              // マネージャー連絡先確認完了日時（FP昇格後に入力）
   fpOnboardingCompleted   Boolean                  @default(true) // FPエイド向け動画ガイダンス完了フラグ（既存ユーザーはtrue）
   fpOnboardingCompletedAt DateTime?                // FPエイド向け動画ガイダンス完了日時
   complianceTestPassed    Boolean                  @default(true) // コンプライアンステスト合格フラグ（既存ユーザーはtrue）
