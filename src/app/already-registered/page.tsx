@@ -11,7 +11,10 @@ function AlreadyRegisteredContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
+  const [name, setName] = useState('')
   const [isPending, setIsPending] = useState(false)
+  const [isEmailVerified, setIsEmailVerified] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     const emailParam = searchParams.get('email')
@@ -19,12 +22,59 @@ function AlreadyRegisteredContent() {
 
     if (emailParam) {
       setEmail(emailParam)
+      // PendingUserの情報を取得
+      if (statusParam === 'pending') {
+        fetchPendingUserInfo(emailParam)
+      }
     }
 
     if (statusParam === 'pending') {
       setIsPending(true)
     }
   }, [searchParams])
+
+  const fetchPendingUserInfo = async (emailAddr: string) => {
+    try {
+      const res = await fetch(`/api/pending-users/check?email=${encodeURIComponent(emailAddr)}`)
+      const data = await res.json()
+      if (res.ok) {
+        setName(data.name || '')
+        setIsEmailVerified(data.emailVerified || false)
+      }
+    } catch (err) {
+      console.error('Failed to fetch pending user info:', err)
+    }
+  }
+
+  const handleGoToCheckout = () => {
+    if (!email) return
+    setIsLoading(true)
+    // checkoutページへ直接リダイレクト
+    const checkoutUrl = `/checkout?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&verified=${isEmailVerified}`
+    router.push(checkoutUrl)
+  }
+
+  const handleResendVerification = async () => {
+    if (!email) return
+    setIsLoading(true)
+    try {
+      const res = await fetch('/api/pending-users/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+      if (res.ok) {
+        alert('認証メールを再送信しました。メールボックスをご確認ください。')
+      } else {
+        alert('再送信に失敗しました。')
+      }
+    } catch (err) {
+      console.error('Failed to resend verification:', err)
+      alert('再送信に失敗しました。')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center px-4">
@@ -55,11 +105,12 @@ function AlreadyRegisteredContent() {
                   <AlertCircle className="h-6 w-6 text-yellow-600 mr-3 mt-0.5 flex-shrink-0" />
                   <div>
                     <h3 className="font-semibold text-yellow-900 mb-2">
-                      決済が未完了です
+                      {isEmailVerified ? '決済が未完了です' : 'メール認証が必要です'}
                     </h3>
                     <p className="text-sm text-yellow-800 mb-3">
-                      アカウントの仮登録は完了していますが、決済が完了していません。
-                      下記のボタンから決済を完了すると、すぐにサービスをご利用いただけます。
+                      {isEmailVerified
+                        ? 'アカウントの仮登録は完了していますが、決済が完了していません。下記のボタンから決済を完了すると、すぐにサービスをご利用いただけます。'
+                        : 'アカウントの仮登録は完了していますが、メール認証がまだ完了していません。メールボックスを確認するか、認証メールを再送信してください。'}
                     </p>
                     <p className="text-xs text-yellow-700">
                       ※ 仮登録から7日経過すると、アカウント情報は削除されます
@@ -88,13 +139,25 @@ function AlreadyRegisteredContent() {
             <div className="space-y-3 pt-4">
               {isPending ? (
                 <>
-                  <Button
-                    onClick={() => router.push('/complete-payment')}
-                    className="w-full h-14 text-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all"
-                  >
-                    <CreditCard className="h-5 w-5 mr-2" />
-                    決済を完了して本登録する
-                  </Button>
+                  {isEmailVerified ? (
+                    <Button
+                      onClick={handleGoToCheckout}
+                      disabled={isLoading}
+                      className="w-full h-14 text-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all"
+                    >
+                      <CreditCard className="h-5 w-5 mr-2" />
+                      {isLoading ? '処理中...' : '決済を完了して本登録する'}
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={handleResendVerification}
+                      disabled={isLoading}
+                      className="w-full h-14 text-lg bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 shadow-lg hover:shadow-xl transition-all"
+                    >
+                      <Mail className="h-5 w-5 mr-2" />
+                      {isLoading ? '送信中...' : '認証メールを再送信'}
+                    </Button>
+                  )}
                   <Button
                     onClick={() => router.push('/login')}
                     variant="outline"

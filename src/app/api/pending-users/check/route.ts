@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
     const pendingUser = await prisma.pendingUser.findUnique({
       where: { email },
       select: {
+        name: true,
         emailVerified: true,
         tokenExpiresAt: true,
       }
@@ -34,6 +35,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      name: pendingUser.name,
       emailVerified: pendingUser.emailVerified,
       tokenExpired: pendingUser.tokenExpiresAt ? pendingUser.tokenExpiresAt < new Date() : false,
     })
