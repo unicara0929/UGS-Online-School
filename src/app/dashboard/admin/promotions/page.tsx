@@ -29,7 +29,6 @@ interface FPPromotionApplication {
   userId: string
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'COMPLETED'
   lpMeetingCompleted: boolean
-  basicTestCompleted: boolean
   surveyCompleted: boolean
   idDocumentUrl: string | null
   appliedAt: string
@@ -330,17 +329,7 @@ function AdminPromotionsPageContent() {
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-                            <div className={`p-3 rounded-lg ${application.basicTestCompleted ? 'bg-green-50' : 'bg-slate-50'}`}>
-                              <div className="flex items-center gap-2">
-                                {application.basicTestCompleted ? (
-                                  <CheckCircle className="h-4 w-4 text-green-600" />
-                                ) : (
-                                  <XCircle className="h-4 w-4 text-slate-400" />
-                                )}
-                                <span className="text-sm font-medium">基礎テスト</span>
-                              </div>
-                            </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                             <div className={`p-3 rounded-lg ${application.lpMeetingCompleted ? 'bg-green-50' : 'bg-slate-50'}`}>
                               <div className="flex items-center gap-2">
                                 {application.lpMeetingCompleted ? (

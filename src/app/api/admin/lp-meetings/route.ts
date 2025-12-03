@@ -54,6 +54,18 @@ export async function GET(request: NextRequest) {
             id: true,
             name: true
           }
+        },
+        preInterviewResponse: {
+          include: {
+            template: {
+              include: {
+                questions: {
+                  orderBy: { order: 'asc' }
+                }
+              }
+            },
+            answers: true
+          }
         }
       },
       orderBy: {
@@ -91,7 +103,8 @@ export async function GET(request: NextRequest) {
         updatedAt: meeting.updatedAt,
         member: meeting.member,
         fp: meeting.fp,
-        assigner: meeting.assigner
+        assigner: meeting.assigner,
+        preInterviewResponse: meeting.preInterviewResponse || null
       })),
       statistics: {
         total,
