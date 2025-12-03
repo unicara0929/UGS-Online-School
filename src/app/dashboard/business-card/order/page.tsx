@@ -196,8 +196,8 @@ function BusinessCardOrderContent() {
     }
     if (!formData.phoneNumber.trim()) {
       errors.phoneNumber = '電話番号を入力してください'
-    } else if (!/^[\d-]+$/.test(formData.phoneNumber)) {
-      errors.phoneNumber = '電話番号の形式が正しくありません'
+    } else if (!/^(070|080|090)\d{8}$/.test(formData.phoneNumber)) {
+      errors.phoneNumber = 'ハイフンなしの11桁で入力してください（例：09012345678）'
     }
     if (!formData.email.trim()) {
       errors.email = 'メールアドレスを入力してください'
@@ -584,15 +584,20 @@ function BusinessCardOrderContent() {
                       <input
                         type="tel"
                         value={formData.phoneNumber}
-                        onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, '').slice(0, 11)
+                          handleInputChange('phoneNumber', value)
+                        }}
                         className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 ${
                           validationErrors.phoneNumber ? 'border-red-300' : 'border-slate-300'
                         }`}
-                        placeholder="090-1234-5678"
+                        placeholder="09012345678"
+                        maxLength={11}
                       />
                       {validationErrors.phoneNumber && (
                         <p className="text-sm text-red-600 mt-1">{validationErrors.phoneNumber}</p>
                       )}
+                      <p className="text-xs text-slate-500 mt-1">携帯番号のみ（070/080/090）ハイフンなし11桁</p>
                     </div>
 
                     <div>

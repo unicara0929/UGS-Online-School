@@ -43,6 +43,7 @@ export default function ConsultationFormPage({ params }: { params: Promise<{ typ
 
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
   const [phoneNumber, setPhoneNumber] = useState('')
+  const [phoneError, setPhoneError] = useState('')
   const [content, setContent] = useState('')
   const [preferredContact, setPreferredContact] = useState('EMAIL')
   const [preferredDates, setPreferredDates] = useState<string[]>([''])
@@ -166,6 +167,12 @@ export default function ConsultationFormPage({ params }: { params: Promise<{ typ
       setError('電話番号を入力してください')
       return
     }
+    // 携帯電話番号バリデーション
+    const phoneRegex = /^(070|080|090)\d{8}$/
+    if (!phoneRegex.test(phoneNumber)) {
+      setError('ハイフンなしの11桁で入力してください（例：09012345678）')
+      return
+    }
     if (!content) {
       setError('相談内容を入力してください')
       return
@@ -284,10 +291,23 @@ export default function ConsultationFormPage({ params }: { params: Promise<{ typ
                 id="phone"
                 type="tel"
                 value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                placeholder="090-1234-5678"
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 11)
+                  setPhoneNumber(value)
+                  if (value && !/^(070|080|090)\d{8}$/.test(value)) {
+                    setPhoneError('ハイフンなしの11桁で入力してください（例：09012345678）')
+                  } else {
+                    setPhoneError('')
+                  }
+                }}
+                placeholder="09012345678"
+                maxLength={11}
                 required
               />
+              {phoneError && (
+                <p className="text-sm text-red-500">{phoneError}</p>
+              )}
+              <p className="text-xs text-slate-500">携帯番号のみ（070/080/090）ハイフンなし11桁</p>
             </div>
 
             {/* 相談ジャンル（自動反映） */}

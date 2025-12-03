@@ -17,7 +17,9 @@ import {
   MessageSquare,
   Award,
   Loader2,
-  ArrowRight
+  ArrowRight,
+  ClipboardList,
+  AlertTriangle
 } from "lucide-react"
 
 interface PromotionConditions {
@@ -31,6 +33,13 @@ interface ApplicationStatus {
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'COMPLETED' | null
   appliedAt: string | null
   approvedAt: string | null
+}
+
+interface PreInterviewStatus {
+  hasScheduledMeeting: boolean
+  meetingScheduledAt: string | null
+  preInterviewStatus: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | null
+  preInterviewDueDate: string | null
 }
 
 export function FPPromotion() {
@@ -48,14 +57,13 @@ export function FPPromotion() {
     appliedAt: null,
     approvedAt: null
   })
+  const [preInterviewStatus, setPreInterviewStatus] = useState<PreInterviewStatus>({
+    hasScheduledMeeting: false,
+    meetingScheduledAt: null,
+    preInterviewStatus: null,
+    preInterviewDueDate: null
+  })
   const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    if (user?.id) {
-      fetchPromotionConditions()
-      fetchExistingApplication()
-    }
-  }, [user?.id])
 
   /**
    * 既存のアプリケーション情報を取得
@@ -78,6 +86,28 @@ export function FPPromotion() {
       }
     } catch (error) {
       console.error('Error fetching existing application:', error)
+    }
+  }
+
+  /**
+   * 事前アンケート状況を取得
+   */
+  const fetchPreInterviewStatus = async () => {
+    try {
+      const response = await authenticatedFetch('/api/pre-interview')
+      if (response.ok) {
+        const data = await response.json()
+        if (data.response) {
+          setPreInterviewStatus({
+            hasScheduledMeeting: true,
+            meetingScheduledAt: data.response.lpMeeting?.scheduledAt || null,
+            preInterviewStatus: data.response.status,
+            preInterviewDueDate: data.response.dueDate
+          })
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching pre-interview status:', error)
     }
   }
 
@@ -154,6 +184,15 @@ export function FPPromotion() {
       setIsApplying(false)
     }
   }
+
+  // useEffectは関数定義の後に配置
+  useEffect(() => {
+    if (user?.id) {
+      fetchPromotionConditions()
+      fetchExistingApplication()
+      fetchPreInterviewStatus()
+    }
+  }, [user?.id])
 
   const completedCount = [
     conditions.lpMeetingCompleted,
@@ -293,6 +332,56 @@ export function FPPromotion() {
               全条件を満たすと昇格申請が可能になります
             </p>
           </div>
+
+          {/* 事前アンケート促進バナー */}
+          {preInterviewStatus.hasScheduledMeeting &&
+           preInterviewStatus.preInterviewStatus !== 'COMPLETED' &&
+           !conditions.lpMeetingCompleted && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <ClipboardList className="h-6 w-6 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h4 className="font-semibold text-blue-800">事前アンケートにご回答ください</h4>
+                    {preInterviewStatus.preInterviewStatus === 'IN_PROGRESS' ? (
+                      <Badge className="bg-blue-100 text-blue-800 text-xs">回答中</Badge>
+                    ) : (
+                      <Badge className="bg-orange-100 text-orange-800 text-xs">未回答</Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-blue-700 mb-3">
+                    LP面談をより有意義にするため、事前アンケートへのご回答をお願いします。
+                    {preInterviewStatus.meetingScheduledAt && (
+                      <span className="block mt-1 text-xs">
+                        面談予定日: {new Date(preInterviewStatus.meetingScheduledAt).toLocaleDateString('ja-JP', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                    )}
+                  </p>
+                  {preInterviewStatus.preInterviewDueDate &&
+                   new Date(preInterviewStatus.preInterviewDueDate) < new Date() && (
+                    <div className="flex items-center gap-1 text-xs text-red-600 mb-3">
+                      <AlertTriangle className="h-3 w-3" />
+                      <span>回答期限を過ぎています。お早めにご回答ください。</span>
+                    </div>
+                  )}
+                  <Button
+                    size="sm"
+                    onClick={() => router.push('/dashboard/pre-interview')}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <ClipboardList className="h-4 w-4 mr-2" />
+                    {preInterviewStatus.preInterviewStatus === 'IN_PROGRESS' ? '回答を続ける' : 'アンケートに回答する'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* 申請ステータスバナー */}
           {applicationStatus.hasApplication && applicationStatus.status === 'PENDING' && (
