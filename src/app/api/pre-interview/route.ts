@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
+import { Resend } from 'resend'
+
+// 遅延初期化（ビルド時のエラーを回避）
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY)
+}
 
 /**
  * 自分の事前アンケート回答状況を取得
@@ -183,19 +189,62 @@ export async function POST(request: NextRequest) {
       })
     })
 
-    // 完了時はFPとアプリ内に通知を送信
-    if (isComplete && updatedResponse.lpMeeting?.fp) {
-      // FPへのアプリ内通知
-      await prisma.notification.create({
-        data: {
-          userId: updatedResponse.lpMeeting.fp.id,
-          type: 'PRE_INTERVIEW_COMPLETED',
-          priority: 'INFO',
-          title: '事前アンケート回答完了',
-          message: `${updatedResponse.lpMeeting.member.name}さんが事前アンケートに回答しました。`,
-          actionUrl: `/dashboard/lp-meeting/manage?meeting=${updatedResponse.lpMeetingId}`
-        }
+    // 完了時は管理者へアプリ内通知とメール通知を送信
+    if (isComplete && updatedResponse.lpMeeting) {
+      const memberName = updatedResponse.lpMeeting.member?.name || '面談者'
+
+      // 管理者を取得
+      const admins = await prisma.user.findMany({
+        where: { role: 'ADMIN' },
+        select: { id: true, email: true, name: true }
       })
+
+      // 管理者へのアプリ内通知
+      for (const admin of admins) {
+        await prisma.notification.create({
+          data: {
+            userId: admin.id,
+            type: 'PRE_INTERVIEW_COMPLETED',
+            priority: 'INFO',
+            title: '事前アンケート回答完了',
+            message: `${memberName}さんがLP面談の事前アンケートに回答しました。`,
+            actionUrl: `/dashboard/admin/lp-meetings`
+          }
+        })
+      }
+
+      // 管理者へのメール通知
+      const resend = getResend()
+      for (const admin of admins) {
+        try {
+          await resend.emails.send({
+            from: 'UGSオンラインスクール <inc@unicara.jp>',
+            to: admin.email,
+            subject: `【UGS】事前アンケート回答完了 - ${memberName}さん`,
+            html: `
+              <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #1e293b;">事前アンケート回答完了のお知らせ</h2>
+                <p>${admin.name}さん</p>
+                <p><strong>${memberName}</strong>さんがLP面談の事前アンケートに回答しました。</p>
+                <p>管理画面から回答内容を確認してください。</p>
+                <div style="margin: 24px 0;">
+                  <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/admin/lp-meetings"
+                     style="background-color: #f08300; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
+                    LP面談管理画面を開く
+                  </a>
+                </div>
+                <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+                <p style="color: #64748b; font-size: 12px;">
+                  このメールはUGSオンラインスクールから自動送信されています。
+                </p>
+              </div>
+            `
+          })
+          console.log(`Pre-interview completion email sent to admin: ${admin.email}`)
+        } catch (emailError) {
+          console.error(`Failed to send pre-interview email to ${admin.email}:`, emailError)
+        }
+      }
 
       // 通知送信日時を記録
       await prisma.preInterviewResponse.update({

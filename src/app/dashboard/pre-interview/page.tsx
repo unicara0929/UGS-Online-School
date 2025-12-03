@@ -12,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, CheckCircle, Clock, AlertCircle, Calendar, Save } from 'lucide-react'
+import { Loader2, CheckCircle, Clock, AlertCircle, Calendar, Save, Home } from 'lucide-react'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 
 interface Question {
@@ -398,7 +398,7 @@ function PreInterviewPageContent() {
           </div>
         </CardContent>
 
-        {response.status !== 'COMPLETED' && (
+        {response.status !== 'COMPLETED' ? (
           <CardFooter className="flex justify-between border-t pt-6">
             <Button
               variant="outline"
@@ -422,6 +422,15 @@ function PreInterviewPageContent() {
                 <CheckCircle className="h-4 w-4 mr-2" />
               )}
               回答を送信
+            </Button>
+          </CardFooter>
+        ) : (
+          <CardFooter className="flex justify-center border-t pt-6">
+            <Button
+              onClick={() => router.push('/dashboard')}
+            >
+              <Home className="h-4 w-4 mr-2" />
+              ダッシュボードに戻る
             </Button>
           </CardFooter>
         )}
