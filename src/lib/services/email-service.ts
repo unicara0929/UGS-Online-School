@@ -57,7 +57,7 @@ export async function sendFPPromotionApprovedEmail(params: {
   // 環境変数からアプリURLを取得
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const loginPageUrl = `${appUrl}/login`
-  const fpOnboardingLink = `${appUrl}/dashboard/fp-onboarding?from=email`
+  const dashboardLink = `${appUrl}/dashboard`
 
   const subject = '【UGSオンラインスクール】FPエイド昇格のお知らせとご案内'
 
@@ -89,42 +89,48 @@ export async function sendFPPromotionApprovedEmail(params: {
 
     <p style="margin-bottom: 15px;">
       FPエイドとして活動をスタートしていただく前に、<br>
-      まずは<strong>「FPエイド向けガイダンス動画」の視聴</strong>をお願いしています。
+      以下の<strong>3つのステップ</strong>を完了していただく必要があります。
     </p>
 
-    <p style="margin-bottom: 15px;">ガイダンス動画では、以下のような内容を解説しています。</p>
+    <div style="background-color: #e0f2fe; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+      <p style="margin: 0 0 10px 0; font-weight: bold; color: #0369a1;">【ステップ1】マネージャー連絡先の登録</p>
+      <p style="margin: 0; font-size: 14px; color: #0c4a6e;">担当マネージャーからの連絡用に、電話番号・LINE IDを登録いただきます。</p>
+    </div>
 
-    <ul style="margin-bottom: 15px; padding-left: 20px;">
-      <li>FPエイドの役割とスタンス</li>
-      <li>UGSオンラインスクール内での具体的な動き方</li>
-      <li>紹介・契約・報酬に関する基本ルール</li>
-      <li>注意事項や禁止事項 など</li>
-    </ul>
+    <div style="background-color: #fef3c7; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+      <p style="margin: 0 0 10px 0; font-weight: bold; color: #92400e;">【ステップ2】コンプライアンステスト</p>
+      <p style="margin: 0; font-size: 14px; color: #78350f;">FPエイドとして活動するために必要な知識を確認するテストです。<br>合格ライン：90%以上</p>
+    </div>
+
+    <div style="background-color: #dcfce7; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+      <p style="margin: 0 0 10px 0; font-weight: bold; color: #166534;">【ステップ3】ガイダンス動画の視聴</p>
+      <p style="margin: 0; font-size: 14px; color: #14532d;">FPエイドの役割・ルール・注意事項などを解説した動画を視聴いただきます。<br>視聴完了条件：90%以上</p>
+    </div>
 
     <p style="margin-bottom: 15px;">
-      動画を最後まで（90％以上）視聴いただくと、<br>
+      すべてのステップを完了すると、<br>
       通常のFPエイド向け機能（紹介管理・契約管理など）が利用できるようになります。
     </p>
 
     <div style="border-top: 2px solid #cbd5e1; margin: 30px 0;"></div>
 
-    <h2 style="color: #1e40af; font-size: 18px; margin-bottom: 15px;">■ ガイダンス動画の視聴方法</h2>
+    <h2 style="color: #1e40af; font-size: 18px; margin-bottom: 15px;">■ 開始方法</h2>
 
     <ol style="margin-bottom: 15px; padding-left: 20px;">
       <li>下記のボタン、またはURLからUGSにアクセス</li>
       <li>ログイン（※登録メールアドレス：${userEmail}）</li>
-      <li>ログイン後、自動的に「FPエイド向けガイダンス動画」のページが表示されます</li>
+      <li>ログイン後、自動的に最初のステップが表示されます</li>
     </ol>
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${fpOnboardingLink}" style="display: inline-block; background-color: #1e40af; color: #ffffff; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">
-        FPエイドガイダンス動画を開く
+      <a href="${dashboardLink}" style="display: inline-block; background-color: #1e40af; color: #ffffff; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">
+        FPエイドオンボーディングを開始
       </a>
     </div>
 
     <p style="margin-bottom: 15px; font-size: 14px; color: #64748b;">
       ※ログインしていない場合は、先にログイン画面が表示されます。<br>
-      　ログイン完了後、自動的にガイダンス動画ページへ遷移します。
+      　ログイン完了後、自動的にオンボーディングページへ遷移します。
     </p>
 
     <div style="border-top: 2px solid #cbd5e1; margin: 30px 0;"></div>
@@ -176,29 +182,34 @@ UGSオンラインスクール事務局です。
 ■ 今後の流れについて
 ────────────────────
 FPエイドとして活動をスタートしていただく前に、
-まずは「FPエイド向けガイダンス動画」の視聴をお願いしています。
+以下の3つのステップを完了していただく必要があります。
 
-ガイダンス動画では、以下のような内容を解説しています。
-・FPエイドの役割とスタンス
-・UGSオンラインスクール内での具体的な動き方
-・紹介・契約・報酬に関する基本ルール
-・注意事項や禁止事項 など
+【STEP 1】マネージャー連絡先の登録
+担当マネージャーの電話番号とLINE IDを登録してください。
 
-動画を最後まで（90％以上）視聴いただくと、
-通常のFPエイド向け機能（紹介管理・契約管理など）が利用できるようになります。
+【STEP 2】コンプライアンステストの受験
+FPエイドとして活動するために必要なコンプライアンス知識を
+テストで確認します。合格するまで次のステップに進めません。
+
+【STEP 3】ガイダンス動画の視聴
+FPエイドの役割、活動の進め方、報酬ルールなどを解説した
+ガイダンス動画を最後まで（90％以上）視聴してください。
+
+すべてのステップを完了すると、
+通常のFPエイド向け機能（紹介管理・契約管理など）が
+利用できるようになります。
 
 ────────────────────
-■ ガイダンス動画の視聴方法
+■ オンボーディングの開始方法
 ────────────────────
-1. 下記のボタン、またはURLからUGSにアクセス
+1. 下記URLからUGSにアクセス
 2. ログイン（※登録メールアドレス：${userEmail}）
-3. ログイン後、自動的に「FPエイド向けガイダンス動画」のページが表示されます
+3. ログイン後、自動的にオンボーディング画面が表示されます
 
-【FPエイドガイダンス動画を開く】
-${fpOnboardingLink}
+【UGSにログインする】
+${dashboardLink}
 
 ※ログインしていない場合は、先にログイン画面が表示されます。
-　ログイン完了後、自動的にガイダンス動画ページへ遷移します。
 
 ────────────────────
 ■ ログイン情報の確認

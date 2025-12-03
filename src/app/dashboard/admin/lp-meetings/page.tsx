@@ -8,9 +8,37 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/contexts/auth-context"
-import { Calendar, Clock, Video, CheckCircle, XCircle, Loader2, Users, AlertCircle, UserX, Ban, MapPin, Building2 } from "lucide-react"
+import { Calendar, Clock, Video, CheckCircle, XCircle, Loader2, Users, AlertCircle, UserX, Ban, MapPin, Building2, FileText, ChevronDown, ChevronUp } from "lucide-react"
 import { formatDateTime } from "@/lib/utils/format"
 import { LP_MEETING_COUNSELORS } from '@/lib/constants/lp-meeting-counselors'
+
+interface PreInterviewAnswer {
+  id: string
+  questionId: string
+  value: any
+}
+
+interface PreInterviewQuestion {
+  id: string
+  question: string
+  type: string
+  required: boolean
+  options?: string[]
+  order: number
+}
+
+interface PreInterviewResponse {
+  id: string
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED'
+  startedAt?: string | null
+  completedAt?: string | null
+  template: {
+    id: string
+    name: string
+    questions: PreInterviewQuestion[]
+  }
+  answers: PreInterviewAnswer[]
+}
 
 interface LPMeeting {
   id: string
@@ -40,6 +68,7 @@ interface LPMeeting {
     name: string
     email: string
   }
+  preInterviewResponse?: PreInterviewResponse | null
 }
 
 function AdminLPMeetingsPageContent() {
@@ -56,6 +85,7 @@ function AdminLPMeetingsPageContent() {
   const [selectedMeeting, setSelectedMeeting] = useState<LPMeeting | null>(null)
   const [showScheduleForm, setShowScheduleForm] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [expandedPreInterview, setExpandedPreInterview] = useState<string | null>(null)
 
   const [scheduleForm, setScheduleForm] = useState({
     scheduledAt: '',
@@ -290,6 +320,28 @@ function AdminLPMeetingsPageContent() {
     }
   }
 
+  // 事前アンケートの回答を取得するヘルパー
+  const getAnswerValue = (response: PreInterviewResponse, questionId: string): string => {
+    const answer = response.answers.find(a => a.questionId === questionId)
+    if (!answer) return '未回答'
+    if (Array.isArray(answer.value)) {
+      return answer.value.join(', ')
+    }
+    return String(answer.value)
+  }
+
+  // 事前アンケートのステータスバッジ
+  const getPreInterviewStatusBadge = (status: string) => {
+    switch (status) {
+      case 'COMPLETED':
+        return <Badge className="bg-green-100 text-green-800">回答済み</Badge>
+      case 'IN_PROGRESS':
+        return <Badge className="bg-yellow-100 text-yellow-800">回答中</Badge>
+      default:
+        return <Badge className="bg-slate-100 text-slate-600">未回答</Badge>
+    }
+  }
+
   const requestedMeetings = meetings.filter(m => m.status === 'REQUESTED')
   const scheduledMeetings = meetings.filter(m => m.status === 'SCHEDULED')
   const completedMeetings = meetings.filter(m => m.status === 'COMPLETED')
@@ -398,6 +450,42 @@ function AdminLPMeetingsPageContent() {
                               <div className="mt-2">
                                 <p className="text-sm font-medium text-slate-700 mb-1">要望・質問事項</p>
                                 <p className="text-sm text-slate-600">{meeting.memberNotes}</p>
+                              </div>
+                            )}
+
+                            {/* 事前アンケート回答 */}
+                            {meeting.preInterviewResponse && (
+                              <div className="mt-4 border-t pt-4">
+                                <div
+                                  className="flex items-center justify-between cursor-pointer"
+                                  onClick={() => setExpandedPreInterview(
+                                    expandedPreInterview === meeting.id ? null : meeting.id
+                                  )}
+                                >
+                                  <div className="flex items-center space-x-2">
+                                    <FileText className="h-4 w-4 text-slate-600" />
+                                    <span className="text-sm font-medium text-slate-700">事前アンケート</span>
+                                    {getPreInterviewStatusBadge(meeting.preInterviewResponse.status)}
+                                  </div>
+                                  {expandedPreInterview === meeting.id ? (
+                                    <ChevronUp className="h-4 w-4 text-slate-400" />
+                                  ) : (
+                                    <ChevronDown className="h-4 w-4 text-slate-400" />
+                                  )}
+                                </div>
+
+                                {expandedPreInterview === meeting.id && meeting.preInterviewResponse.status === 'COMPLETED' && (
+                                  <div className="mt-3 space-y-3 bg-slate-50 rounded-lg p-3">
+                                    {meeting.preInterviewResponse.template.questions.map((question) => (
+                                      <div key={question.id} className="border-b border-slate-200 pb-2 last:border-b-0 last:pb-0">
+                                        <p className="text-sm font-medium text-slate-700">{question.question}</p>
+                                        <p className="text-sm text-slate-600 mt-1">
+                                          {getAnswerValue(meeting.preInterviewResponse!, question.id)}
+                                        </p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
@@ -581,6 +669,42 @@ function AdminLPMeetingsPageContent() {
                                 </span>
                               </div>
                             )}
+
+                            {/* 事前アンケート回答 */}
+                            {meeting.preInterviewResponse && (
+                              <div className="mt-4 border-t pt-4">
+                                <div
+                                  className="flex items-center justify-between cursor-pointer"
+                                  onClick={() => setExpandedPreInterview(
+                                    expandedPreInterview === meeting.id ? null : meeting.id
+                                  )}
+                                >
+                                  <div className="flex items-center space-x-2">
+                                    <FileText className="h-4 w-4 text-slate-600" />
+                                    <span className="text-sm font-medium text-slate-700">事前アンケート</span>
+                                    {getPreInterviewStatusBadge(meeting.preInterviewResponse.status)}
+                                  </div>
+                                  {expandedPreInterview === meeting.id ? (
+                                    <ChevronUp className="h-4 w-4 text-slate-400" />
+                                  ) : (
+                                    <ChevronDown className="h-4 w-4 text-slate-400" />
+                                  )}
+                                </div>
+
+                                {expandedPreInterview === meeting.id && meeting.preInterviewResponse.status === 'COMPLETED' && (
+                                  <div className="mt-3 space-y-3 bg-slate-50 rounded-lg p-3">
+                                    {meeting.preInterviewResponse.template.questions.map((question) => (
+                                      <div key={question.id} className="border-b border-slate-200 pb-2 last:border-b-0 last:pb-0">
+                                        <p className="text-sm font-medium text-slate-700">{question.question}</p>
+                                        <p className="text-sm text-slate-600 mt-1">
+                                          {getAnswerValue(meeting.preInterviewResponse!, question.id)}
+                                        </p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                           <div className="flex flex-col space-y-2 ml-4">
                             <Button
@@ -658,6 +782,42 @@ function AdminLPMeetingsPageContent() {
                               <p className="text-sm text-slate-600">
                                 完了日時: {formatDateTime(new Date(meeting.completedAt))}
                               </p>
+                            )}
+
+                            {/* 事前アンケート回答 */}
+                            {meeting.preInterviewResponse && (
+                              <div className="mt-4 border-t pt-4">
+                                <div
+                                  className="flex items-center justify-between cursor-pointer"
+                                  onClick={() => setExpandedPreInterview(
+                                    expandedPreInterview === meeting.id ? null : meeting.id
+                                  )}
+                                >
+                                  <div className="flex items-center space-x-2">
+                                    <FileText className="h-4 w-4 text-slate-600" />
+                                    <span className="text-sm font-medium text-slate-700">事前アンケート</span>
+                                    {getPreInterviewStatusBadge(meeting.preInterviewResponse.status)}
+                                  </div>
+                                  {expandedPreInterview === meeting.id ? (
+                                    <ChevronUp className="h-4 w-4 text-slate-400" />
+                                  ) : (
+                                    <ChevronDown className="h-4 w-4 text-slate-400" />
+                                  )}
+                                </div>
+
+                                {expandedPreInterview === meeting.id && meeting.preInterviewResponse.status === 'COMPLETED' && (
+                                  <div className="mt-3 space-y-3 bg-slate-50 rounded-lg p-3">
+                                    {meeting.preInterviewResponse.template.questions.map((question) => (
+                                      <div key={question.id} className="border-b border-slate-200 pb-2 last:border-b-0 last:pb-0">
+                                        <p className="text-sm font-medium text-slate-700">{question.question}</p>
+                                        <p className="text-sm text-slate-600 mt-1">
+                                          {getAnswerValue(meeting.preInterviewResponse!, question.id)}
+                                        </p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
                             )}
                           </div>
                         </div>

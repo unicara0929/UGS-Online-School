@@ -1,7 +1,7 @@
 # UGSオンラインスクール 機能ガイド（実装版）
 
-> **最終更新:** 2025-01-25
-> **バージョン:** 1.0（実装ベース）
+> **最終更新:** 2025-12-01
+> **バージョン:** 2.0（実装ベース）
 > **注意:** このドキュメントは実際の実装に基づいて作成されています
 
 このドキュメントでは、UGSオンラインスクールに**実際に実装されている**すべての機能とその使い方を説明します。
@@ -22,12 +22,15 @@
 10. [LP面談機能](#10-lp面談機能)
 11. [契約管理機能](#11-契約管理機能)
 12. [基礎テスト・アンケート](#12-基礎テストアンケート)
-13. [FAQ・お問い合わせ](#13-faqお問い合わせ)
-14. [名刺注文機能](#14-名刺注文機能)
-15. [チーム管理機能](#15-チーム管理機能)
-16. [サブスクリプション管理](#16-サブスクリプション管理)
-17. [プロフィール・アカウント設定](#17-プロフィールアカウント設定)
-18. [管理者機能](#18-管理者機能)
+13. [コンプライアンステスト](#13-コンプライアンステスト)
+14. [事前アンケート機能](#14-事前アンケート機能)
+15. [個別相談機能](#15-個別相談機能)
+16. [FAQ・お問い合わせ](#16-faqお問い合わせ)
+17. [名刺注文機能](#17-名刺注文機能)
+18. [チーム管理機能](#18-チーム管理機能)
+19. [サブスクリプション管理](#19-サブスクリプション管理)
+20. [プロフィール・アカウント設定](#20-プロフィールアカウント設定)
+21. [管理者機能](#21-管理者機能)
 
 ---
 
@@ -1089,11 +1092,20 @@ MANAGER（マネージャー）
 3. **承認後の手続き（すべて必須）**
    - 業務委託契約書への同意
    - 身分証アップロード
+   - **コンプライアンステスト合格**（90%以上）← NEW
    - FPオンボーディング動画視聴（90%以上）
 
 4. **ロール変更**
    - すべて完了で `role: FP` に昇格
    - FPエイド機能が解放
+
+#### コンプライアンステスト
+
+FPエイド昇格に必須のテスト（詳細は[13. コンプライアンステスト](#13-コンプライアンステスト)を参照）:
+- 合格ライン: 90%以上
+- 何度でも再受験可能
+- 不合格時は解説表示
+- 合格後にガイダンス動画視聴可能
 
 #### FPオンボーディング
 
@@ -1102,6 +1114,7 @@ MANAGER（マネージャー）
 - 視聴進捗追跡
 - 90%以上視聴で完了
 - 完了すると FPエイドダッシュボードにアクセス可能
+- **コンプライアンステスト合格が前提条件**
 
 ### FPエイド → マネージャー昇格
 
@@ -1261,7 +1274,22 @@ SCHEDULED    スケジュール確定
   ↓ 面談実施
 COMPLETED    面談完了
 CANCELLED    キャンセル
+NO_SHOW      ノーショー（無断欠席）← NEW
 ```
+
+### 再申請機能
+
+**重要な変更:** 以前は1会員につき1面談のみでしたが、現在は以下の条件で再申請可能:
+
+- **再申請可能なケース:**
+  - 面談完了（COMPLETED）後に再度申請
+  - キャンセル（CANCELLED）された場合
+  - ノーショー（NO_SHOW）になった場合
+
+- **再申請不可なケース:**
+  - 既にアクティブな面談（REQUESTED または SCHEDULED）がある場合
+
+これにより、MEMBERからFPへの昇格後に降格された場合でも、再度LP面談を受けることが可能になりました。
 
 ### 昇格条件との連携
 
@@ -1285,21 +1313,34 @@ CANCELLED    キャンセル
 ```prisma
 model LPMeeting {
   id              String           @id
-  memberId        String           @unique  // 1会員1面談
+  memberId        String           // 複数面談可能に変更（uniqueを削除）
   fpId            String?
-  status          LPMeetingStatus
+  counselorName   String?          // FP以外の担当者名（手動入力）← NEW
+  status          LPMeetingStatus  // REQUESTED/SCHEDULED/COMPLETED/CANCELLED/NO_SHOW
   preferredDates  Json             // 希望日時5つ
   meetingLocation MeetingLocation  // OFFLINE/UGS_OFFICE
   scheduledAt     DateTime?
   completedAt     DateTime?
+  cancelledAt     DateTime?        // キャンセル日時← NEW
   meetingUrl      String?
   meetingPlatform MeetingPlatform? // ZOOM/GOOGLE_MEET/TEAMS
   notes           String?
   memberNotes     String?
   assignedBy      String?
   createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  // 事前アンケート関連
+  preInterviewResponses PreInterviewResponse[]
 }
 ```
+
+**重要な変更点:**
+- `memberId` の `@unique` 制約を削除 → 再申請可能に
+- `NO_SHOW` ステータスを追加
+- `counselorName` フィールドを追加（FP以外の担当者対応）
+- `cancelledAt` フィールドを追加
+- `preInterviewResponses` リレーションを追加
 
 ---
 
@@ -1466,7 +1507,411 @@ model SurveySubmission {
 
 ---
 
-## 13. FAQ・お問い合わせ
+## 13. コンプライアンステスト
+
+### 概要
+FPエイド向けのコンプライアンス知識を確認するテスト。FPエイド昇格後、ガイダンス動画視聴前に合格が必要。
+
+### 対象ユーザー
+- **FPエイド（FPロール）のみ**
+- MEMBERがアクセスした場合はダッシュボードにリダイレクト
+
+### テスト仕様
+
+#### 合格条件
+- **合格ライン: 90%以上**
+- 再受験: 何度でも可能
+- 不合格時: 間違えた問題の解説を表示
+
+#### 問題形式
+- 選択式（複数選択肢）
+- カテゴリー分類可能
+- 管理者が問題を設定・編集
+
+### 機能詳細
+
+#### テスト受験 (`/dashboard/compliance-test`)
+
+**表示ステップ:**
+
+1. **イントロ画面**
+   - テスト概要表示
+   - 問題数表示
+   - 合格ライン表示（90%）
+   - 過去の受験履歴（最新5件）
+   - 「テストを開始する」ボタン
+
+2. **テスト画面**
+   - 1問ずつ表示
+   - 進捗バー表示
+   - 問題番号ナビゲーション（クリックで移動可能）
+   - 回答済み問題はハイライト表示
+   - 「前の問題」「次の問題」ボタン
+
+3. **結果画面**
+   - 合格/不合格表示
+   - スコア表示（%と正解数/総問題数）
+   - 問題別結果
+     - 正解: 緑色ハイライト
+     - 不正解: 赤色ハイライト、解説表示
+   - 合格時: 「ガイダンス動画へ進む」ボタン
+   - 不合格時: 「もう一度受験する」ボタン
+
+#### 管理者画面 (`/dashboard/admin/compliance-test`)
+
+**問題管理:**
+- 問題一覧表示
+- 新規問題作成
+- 問題編集
+- 問題削除
+- 並び順変更（ドラッグ&ドロップ）
+- カテゴリー設定
+
+**受験履歴:**
+- 全ユーザーの受験履歴
+- スコア・合否・受験日時
+
+### ロール変更との連携
+
+**重要:** FPエイドがMEMBERに降格された場合:
+- `complianceTestPassed: false` にリセット
+- `fpOnboardingCompleted: false` にリセット
+- 再度FPエイドに昇格時は、再受験が必要
+
+### APIエンドポイント
+
+#### ユーザー向け
+- `GET /api/user/compliance-test` - テスト問題と合格状況取得
+- `POST /api/user/compliance-test` - 回答提出
+
+#### 管理者向け
+- `GET /api/admin/compliance-test/questions` - 問題一覧
+- `POST /api/admin/compliance-test/questions` - 問題作成
+- `PUT /api/admin/compliance-test/questions/[id]` - 問題更新
+- `DELETE /api/admin/compliance-test/questions/[id]` - 問題削除
+- `POST /api/admin/compliance-test/questions/reorder` - 並び順変更
+- `GET /api/admin/compliance-test/attempts` - 受験履歴一覧
+
+### データベースモデル
+
+```prisma
+model ComplianceTestQuestion {
+  id           String   @id @default(cuid())
+  question     String   @db.Text
+  options      Json     // 選択肢配列
+  correctIndex Int      // 正解のインデックス
+  explanation  String?  @db.Text  // 解説（不正解時に表示）
+  category     String?  // カテゴリー
+  order        Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  attempts     ComplianceTestAnswer[]
+}
+
+model ComplianceTestAttempt {
+  id             String   @id @default(cuid())
+  userId         String
+  totalQuestions Int
+  correctCount   Int
+  score          Float    // パーセンテージ
+  isPassed       Boolean
+  createdAt      DateTime @default(now())
+
+  user    User                     @relation(fields: [userId], references: [id])
+  answers ComplianceTestAnswer[]
+}
+
+model ComplianceTestAnswer {
+  id              String   @id @default(cuid())
+  attemptId       String
+  questionId      String
+  selectedAnswer  Int
+  isCorrect       Boolean
+  createdAt       DateTime @default(now())
+
+  attempt  ComplianceTestAttempt    @relation(fields: [attemptId], references: [id])
+  question ComplianceTestQuestion   @relation(fields: [questionId], references: [id])
+
+  @@unique([attemptId, questionId])
+}
+
+model User {
+  complianceTestPassed    Boolean   @default(false)
+  complianceTestPassedAt  DateTime?
+  // ...
+}
+```
+
+---
+
+## 14. 事前アンケート機能
+
+### 概要
+LP面談の前にメンバーが回答する事前アンケート。管理者がテンプレートを作成し、面談予約時に自動的に回答依頼が送られる。
+
+### 対象ユーザー
+- **LP面談を予約したMEMBER**
+- FPは面談管理画面で回答を確認可能
+
+### 機能詳細
+
+#### アンケート回答 (`/dashboard/pre-interview`)
+
+**回答フロー:**
+1. LP面談予約時にアンケートが自動作成
+2. メンバーがアンケートページにアクセス
+3. 質問に回答（途中保存可能）
+4. 全必須項目回答後に「送信」
+5. FPに通知
+
+**回答ステータス:**
+```
+NOT_STARTED  未開始
+IN_PROGRESS  回答中（途中保存済み）
+COMPLETED    回答完了
+```
+
+#### 質問タイプ
+- **TEXT**: テキスト入力
+- **TEXTAREA**: 長文テキスト
+- **RADIO**: ラジオボタン（単一選択）
+- **CHECKBOX**: チェックボックス（複数選択）
+- **SELECT**: プルダウン選択
+
+#### テンプレート管理 (`/dashboard/admin/pre-interview-templates`)
+
+**管理者機能:**
+- テンプレート作成・編集
+- 質問追加・削除
+- 質問の並び順変更
+- 必須/任意設定
+- デフォルトテンプレート設定
+
+#### FP側の確認 (`/dashboard/lp-meeting/manage`)
+
+面談管理画面で:
+- 回答ステータス確認
+- 回答内容閲覧
+- 回答完了通知受信
+
+### 通知連携
+
+**回答完了時:**
+- 担当FPにアプリ内通知
+- 通知タイプ: `PRE_INTERVIEW_COMPLETED`
+
+### APIエンドポイント
+
+#### ユーザー向け
+- `GET /api/pre-interview` - 自分のアンケート回答状況取得
+- `POST /api/pre-interview` - 回答保存（途中保存・完了）
+- `GET /api/pre-interview/[responseId]` - 回答詳細取得
+
+#### 管理者向け
+- `GET /api/admin/pre-interview-templates` - テンプレート一覧
+- `POST /api/admin/pre-interview-templates` - テンプレート作成
+- `PUT /api/admin/pre-interview-templates/[id]` - テンプレート更新
+- `DELETE /api/admin/pre-interview-templates/[id]` - テンプレート削除
+
+### データベースモデル
+
+```prisma
+model PreInterviewTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  questions   PreInterviewQuestion[]
+  responses   PreInterviewResponse[]
+}
+
+model PreInterviewQuestion {
+  id         String                   @id @default(cuid())
+  templateId String
+  question   String                   @db.Text
+  type       PreInterviewQuestionType // TEXT/TEXTAREA/RADIO/CHECKBOX/SELECT
+  options    Json?                    // 選択肢（RADIO/CHECKBOX/SELECT用）
+  required   Boolean                  @default(false)
+  order      Int                      @default(0)
+  createdAt  DateTime                 @default(now())
+  updatedAt  DateTime                 @updatedAt
+
+  template   PreInterviewTemplate     @relation(fields: [templateId], references: [id])
+  answers    PreInterviewAnswer[]
+}
+
+model PreInterviewResponse {
+  id                    String                      @id @default(cuid())
+  templateId            String
+  respondentId          String                      // 回答者（MEMBER）
+  lpMeetingId           String?                     // 関連するLP面談
+  status                PreInterviewResponseStatus  // NOT_STARTED/IN_PROGRESS/COMPLETED
+  startedAt             DateTime?
+  completedAt           DateTime?
+  completionNotifiedAt  DateTime?                   // FPへの通知送信日時
+  createdAt             DateTime                    @default(now())
+  updatedAt             DateTime                    @updatedAt
+
+  template   PreInterviewTemplate  @relation(fields: [templateId], references: [id])
+  respondent User                  @relation(fields: [respondentId], references: [id])
+  lpMeeting  LPMeeting?            @relation(fields: [lpMeetingId], references: [id])
+  answers    PreInterviewAnswer[]
+}
+
+model PreInterviewAnswer {
+  id         String   @id @default(cuid())
+  responseId String
+  questionId String
+  value      Json     // 回答値（文字列または配列）
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  response   PreInterviewResponse  @relation(fields: [responseId], references: [id])
+  question   PreInterviewQuestion  @relation(fields: [questionId], references: [id])
+
+  @@unique([responseId, questionId])
+}
+```
+
+---
+
+## 15. 個別相談機能
+
+### 概要
+メンバーが各種相談（ライフプラン、住宅、転職など）を申請できる機能。管理者が対応・管理。
+
+### 対象ユーザー
+- **全認証済みユーザー**
+
+### 相談ジャンル
+
+| ジャンル | コード | 説明 |
+|---------|--------|------|
+| ライフプラン | LIFE_PLAN | 将来設計、資産形成など |
+| 住宅 | HOUSING | 住宅ローン、購入相談など |
+| 転職 | CAREER | キャリア相談、転職支援など |
+| 賃貸 | RENTAL | 賃貸物件相談など |
+| その他 | OTHER | 上記以外の相談 |
+
+### 連絡方法
+
+| 方法 | コード | 説明 |
+|------|--------|------|
+| 電話 | PHONE | 電話での連絡希望 |
+| メール | EMAIL | メールでの連絡希望 |
+| LINE | LINE | LINEでの連絡希望 |
+| その他 | OTHER | その他の方法 |
+
+### 機能詳細
+
+#### 相談申請 (`/dashboard/consultation`)
+
+**申請画面:**
+- 相談ジャンル選択
+- 電話番号入力
+- 相談内容入力
+- 希望連絡方法選択
+- 希望日時選択（複数可）
+- 添付ファイル（オプション）
+
+**ジャンル別ページ:**
+- `/dashboard/consultation/[type]`
+- 例: `/dashboard/consultation/life-plan`
+
+#### 相談履歴 (`/dashboard/consultation/history`)
+
+**表示内容:**
+- 自分の相談一覧
+- ステータス（未対応/対応中/完了）
+- 相談ジャンル
+- 申請日時
+- 担当者（アサイン済みの場合）
+
+#### 管理者画面 (`/dashboard/admin/consultations`)
+
+**一覧表示:**
+- 全相談一覧
+- ステータス別フィルター
+- ジャンル別フィルター
+- 統計情報表示
+  - 総件数
+  - 未対応件数
+  - 対応中件数
+  - 完了件数
+  - ジャンル別件数
+
+**詳細画面 (`/dashboard/admin/consultations/[id]`):**
+- 相談内容詳細
+- ユーザー情報
+- 添付ファイル閲覧
+- ステータス変更
+- 担当者アサイン
+- 管理者メモ入力
+
+### 相談ステータス
+
+```
+PENDING       未対応
+  ↓ 管理者が対応開始
+IN_PROGRESS   対応中
+  ↓ 対応完了
+COMPLETED     完了
+```
+
+### 通知連携
+
+**申請時:**
+- 全管理者にアプリ内通知
+- 通知タイプ: `CONSULTATION_SUBMITTED`
+
+### APIエンドポイント
+
+#### ユーザー向け
+- `POST /api/consultations` - 相談申請
+- `GET /api/consultations` - 自分の相談履歴
+- `POST /api/consultations/upload` - 添付ファイルアップロード
+
+#### 管理者向け
+- `GET /api/admin/consultations` - 相談一覧
+- `GET /api/admin/consultations/[id]` - 相談詳細
+- `PUT /api/admin/consultations/[id]` - 相談更新（ステータス、担当者など）
+
+### データベースモデル
+
+```prisma
+model Consultation {
+  id               String              @id @default(cuid())
+  userId           String
+  type             ConsultationType    // LIFE_PLAN/HOUSING/CAREER/RENTAL/OTHER
+  phoneNumber      String
+  content          String              @db.Text
+  preferredContact ContactMethod       // PHONE/EMAIL/LINE/OTHER
+  preferredDates   DateTime[]          // 希望日時（複数）
+  attachmentUrl    String?             // 添付ファイルURL
+  attachmentName   String?             // 添付ファイル名
+  status           ConsultationStatus  // PENDING/IN_PROGRESS/COMPLETED
+  handlerId        String?             // 担当者ID
+  adminNotes       String?             @db.Text  // 管理者メモ
+  completedAt      DateTime?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  user    User  @relation("UserConsultations", fields: [userId], references: [id])
+  handler User? @relation("ConsultationHandler", fields: [handlerId], references: [id])
+}
+```
+
+---
+
+## 16. FAQ・お問い合わせ
+
+> **注:** 以前は「13. FAQ・お問い合わせ」でしたが、新機能追加により番号が変更されました。
 
 ### 概要
 よくある質問と個別問い合わせ機能。
@@ -1562,7 +2007,7 @@ model ContactSubmission {
 
 ---
 
-## 14. 名刺注文機能
+## 17. 名刺注文機能
 
 ### 概要
 FPエイド・マネージャー向けの名刺注文システム。Stripe決済対応。
@@ -1692,7 +2137,7 @@ model BusinessCardOrder {
 
 ---
 
-## 15. チーム管理機能
+## 18. チーム管理機能
 
 ### 概要
 マネージャー向けのチーム管理機能。
@@ -1723,7 +2168,7 @@ API: `GET /api/team/stats`
 
 ---
 
-## 16. サブスクリプション管理
+## 19. サブスクリプション管理
 
 ### 概要
 月額サブスクリプションの管理。Stripe連携。
@@ -1786,7 +2231,7 @@ model Subscription {
 
 ---
 
-## 17. プロフィール・アカウント設定
+## 20. プロフィール・アカウント設定
 
 ### 概要
 ユーザー情報の管理。
@@ -1820,7 +2265,7 @@ model Subscription {
 
 ---
 
-## 18. 管理者機能
+## 21. 管理者機能
 
 ### 概要
 システム全体の管理機能。
@@ -1879,6 +2324,9 @@ model Subscription {
 - 昇格申請管理
 - LP面談管理
 - 名刺注文管理
+- **コンプライアンステスト管理** ← NEW
+- **事前アンケートテンプレート管理** ← NEW
+- **個別相談管理** ← NEW
 
 ---
 
@@ -1956,21 +2404,30 @@ model Subscription {
 
 ## 🎯 システム統計
 
-- **実装機能数**: 20以上
-- **データベースモデル**: 30以上
-- **APIエンドポイント**: 140以上
-- **ページ数**: 48ページ
-- **コード行数**: 約52,000行
+- **実装機能数**: 23以上
+- **データベースモデル**: 40以上
+- **APIエンドポイント**: 160以上
+- **ページ数**: 70ページ以上
+- **コード行数**: 約60,000行
 
 ---
 
 ## 📝 更新履歴
 
-- **2025-01-25**: 実装ベースで全面改訂
-- 実際の実装状況を反映
-- 既知の問題点を明記
-- 会員番号機能の詳細を追加
-- 名刺注文機能を追加
+- **2025-12-01**: バージョン2.0に更新
+  - コンプライアンステスト機能を追加（セクション13）
+  - 事前アンケート機能を追加（セクション14）
+  - 個別相談機能を追加（セクション15）
+  - LP面談機能の更新（NO_SHOWステータス、再申請機能）
+  - FP昇格フローにコンプライアンステストを追加
+  - ロール変更時のデータリセットロジックを文書化
+  - セクション番号を再編成（16-21に変更）
+
+- **2025-01-25**: 実装ベースで全面改訂（バージョン1.0）
+  - 実際の実装状況を反映
+  - 既知の問題点を明記
+  - 会員番号機能の詳細を追加
+  - 名刺注文機能を追加
 
 ---
 

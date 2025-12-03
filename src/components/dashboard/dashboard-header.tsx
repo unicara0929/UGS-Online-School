@@ -66,7 +66,7 @@ export function DashboardHeader() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-3">
             {logoError ? (
-              <div className="w-7 h-7 rounded bg-slate-800 flex items-center justify-center">
+              <div className="w-7 h-7 rounded bg-primary-500 flex items-center justify-center">
                 <span className="text-white text-xs font-bold">UG</span>
               </div>
             ) : (
@@ -87,7 +87,7 @@ export function DashboardHeader() {
               <Bell className="h-5 w-5 text-slate-600" />
             </Button>
             <div className="flex items-center space-x-3">
-              <div className="w-9 h-9 bg-gradient-to-br from-slate-700 to-slate-800 rounded-full flex items-center justify-center shadow-md overflow-hidden">
+              <div className="w-9 h-9 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center shadow-md overflow-hidden">
                 {profileImage ? (
                   <Image
                     src={profileImage}
