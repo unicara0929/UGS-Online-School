@@ -241,7 +241,7 @@ function AdminLPMeetingsPageContent() {
 
   const handleNoShow = async (meeting: LPMeeting) => {
     const confirmed = window.confirm(
-      `${meeting.member?.name}さんの面談をノーショー（無断欠席）として処理しますか？\nこの操作を行うと、会員と面談者に通知が送信されます。`
+      `${meeting.member?.name}さんの面談を無断欠席として処理しますか？\nこの操作を行うと、会員と面談者に通知が送信されます。`
     )
     if (!confirmed) return
 
@@ -256,13 +256,13 @@ function AdminLPMeetingsPageContent() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || '面談のノーショー処理に失敗しました')
+        throw new Error(data.error || '面談の無断欠席処理に失敗しました')
       }
 
-      alert('面談をノーショーとして処理しました。会員と面談者に通知が送信されました。')
+      alert('面談を無断欠席として処理しました。会員と面談者に通知が送信されました。')
       await fetchMeetings()
     } catch (error: any) {
-      alert(error.message || '面談のノーショー処理に失敗しました')
+      alert(error.message || '面談の無断欠席処理に失敗しました')
     } finally {
       setIsSubmitting(false)
     }
@@ -279,7 +279,7 @@ function AdminLPMeetingsPageContent() {
       case 'CANCELLED':
         return <Badge className="bg-red-100 text-red-800">キャンセル</Badge>
       case 'NO_SHOW':
-        return <Badge className="bg-orange-100 text-orange-800">ノーショー</Badge>
+        return <Badge className="bg-orange-100 text-orange-800">無断欠席</Badge>
       default:
         return <Badge>{status}</Badge>
     }
@@ -735,7 +735,7 @@ function AdminLPMeetingsPageContent() {
                               className="text-orange-600 border-orange-300 hover:bg-orange-50 flex-1 lg:flex-initial"
                             >
                               <UserX className="h-4 w-4 mr-1" />
-                              ノーショー
+                              無断欠席
                             </Button>
                           </div>
                         </div>
@@ -829,13 +829,13 @@ function AdminLPMeetingsPageContent() {
               </Card>
             )}
 
-            {/* キャンセル・ノーショー済み面談 */}
+            {/* キャンセル・無断欠席済み面談 */}
             {(cancelledMeetings.length > 0 || noShowMeetings.length > 0) && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <XCircle className="h-5 w-5 mr-2 text-red-600" />
-                    キャンセル・ノーショー ({cancelledMeetings.length + noShowMeetings.length}件)
+                    キャンセル・無断欠席 ({cancelledMeetings.length + noShowMeetings.length}件)
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
