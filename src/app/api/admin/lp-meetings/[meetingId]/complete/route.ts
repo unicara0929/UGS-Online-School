@@ -80,7 +80,7 @@ export async function POST(
       NotificationPriority.SUCCESS,
       'LP面談が完了しました',
       `LP面談が完了しました。ご参加いただきありがとうございました。`,
-      '/dashboard/fp-promotion'
+      '/dashboard/promotion'
     )
 
     // メンバーにメール通知を送信
@@ -102,7 +102,7 @@ export async function POST(
           <p>─────────────────</p>
           <br>
           <p>引き続きFPエイド昇格に向けて、次のステップにお進みください。</p>
-          <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/fp-promotion" style="background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">FPエイド昇格ページを確認する</a></p>
+          <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/promotion" style="background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">FPエイド昇格ページを確認する</a></p>
         `
       })
       console.log('[LP面談完了通知] メール送信成功:', updatedMeeting.member.email)
