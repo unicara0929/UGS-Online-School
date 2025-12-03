@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, CreditCard, AlertCircle, UserCheck, FileText, Users, Building2, UserPlus, TrendingUp } from 'lucide-react'
+import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, CreditCard, AlertCircle, UserCheck, FileText, Users, Building2, UserPlus, TrendingUp, MessageCircle } from 'lucide-react'
 import { getRoleLabel, getRoleBadgeVariant, formatDate } from '@/lib/utils/user-helpers'
 
 interface UserDetail {
@@ -17,6 +17,7 @@ interface UserDetail {
 
   // プロフィール情報
   phone: string | null
+  lineId: string | null
   address: string | null
   bio: string | null
   attribute: string | null
@@ -248,6 +249,7 @@ export default function UserDetailPage() {
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               <InfoRow icon={<Phone className="h-4 w-4" />} label="電話番号" value={user.phone || '未設定'} />
+              <InfoRow icon={<MessageCircle className="h-4 w-4" />} label="LINE ID" value={user.lineId || '未設定'} />
               <InfoRow icon={<MapPin className="h-4 w-4" />} label="都道府県" value={user.prefecture || '未設定'} />
               <InfoRow icon={<MapPin className="h-4 w-4" />} label="住所" value={user.address || '未設定'} />
               <InfoRow icon={<User className="h-4 w-4" />} label="性別" value={user.gender || '未設定'} />
