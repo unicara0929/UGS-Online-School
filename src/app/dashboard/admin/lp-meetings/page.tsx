@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/contexts/auth-context"
-import { Calendar, Clock, Video, CheckCircle, XCircle, Loader2, Users, AlertCircle, UserX, Ban } from "lucide-react"
+import { Calendar, Clock, Video, CheckCircle, XCircle, Loader2, Users, AlertCircle, UserX, Ban, MapPin, Building2 } from "lucide-react"
 import { formatDateTime } from "@/lib/utils/format"
 import { LP_MEETING_COUNSELORS } from '@/lib/constants/lp-meeting-counselors'
 
@@ -20,6 +20,7 @@ interface LPMeeting {
   counselorEmail?: string | null
   status: 'REQUESTED' | 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW'
   preferredDates: string[]
+  meetingLocation?: 'OFFLINE' | 'UGS_OFFICE' | null
   scheduledAt?: string | null
   completedAt?: string | null
   cancelledAt?: string | null
@@ -264,6 +265,31 @@ function AdminLPMeetingsPageContent() {
     }
   }
 
+  const getMeetingLocationBadge = (location: string | null | undefined) => {
+    switch (location) {
+      case 'UGS_OFFICE':
+        return (
+          <Badge className="bg-blue-100 text-blue-800 flex items-center gap-1">
+            <Building2 className="h-3 w-3" />
+            本社（オフライン）
+          </Badge>
+        )
+      case 'OFFLINE':
+        return (
+          <Badge className="bg-green-100 text-green-800 flex items-center gap-1">
+            <Video className="h-3 w-3" />
+            オンライン
+          </Badge>
+        )
+      default:
+        return (
+          <Badge className="bg-slate-100 text-slate-600">
+            未選択
+          </Badge>
+        )
+    }
+  }
+
   const requestedMeetings = meetings.filter(m => m.status === 'REQUESTED')
   const scheduledMeetings = meetings.filter(m => m.status === 'SCHEDULED')
   const completedMeetings = meetings.filter(m => m.status === 'COMPLETED')
@@ -355,6 +381,11 @@ function AdminLPMeetingsPageContent() {
                               <p className="font-medium text-slate-900">{meeting.member?.name}</p>
                               <span className="text-sm text-slate-500">({meeting.member?.email})</span>
                             </div>
+                            <div className="flex items-center space-x-2 mb-3">
+                              <MapPin className="h-4 w-4 text-slate-600" />
+                              <span className="text-sm font-medium text-slate-700">希望場所:</span>
+                              {getMeetingLocationBadge(meeting.meetingLocation)}
+                            </div>
                             <div className="space-y-1 mb-3">
                               <p className="text-sm font-medium text-slate-700">希望日時（5つ）</p>
                               <ul className="list-disc list-inside space-y-1 text-sm text-slate-600">
@@ -395,6 +426,13 @@ function AdminLPMeetingsPageContent() {
                     {selectedMeeting.member?.name}さんの面談を確定します
                   </CardDescription>
                 </CardHeader>
+                <div className="px-6 pb-4">
+                  <div className="flex items-center space-x-2 p-3 bg-slate-50 rounded-lg">
+                    <MapPin className="h-4 w-4 text-slate-600" />
+                    <span className="text-sm font-medium text-slate-700">希望場所:</span>
+                    {getMeetingLocationBadge(selectedMeeting.meetingLocation)}
+                  </div>
+                </div>
                 <CardContent>
                   <form onSubmit={handleSchedule} className="space-y-4">
                     <div>
@@ -515,6 +553,7 @@ function AdminLPMeetingsPageContent() {
                               <Users className="h-4 w-4 text-slate-600" />
                               <p className="font-medium text-slate-900">{meeting.member?.name}</p>
                               {getStatusBadge(meeting.status)}
+                              {getMeetingLocationBadge(meeting.meetingLocation)}
                             </div>
                             {meeting.scheduledAt && (
                               <p className="text-sm text-slate-600 mb-1">
