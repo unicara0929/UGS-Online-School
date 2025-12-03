@@ -55,9 +55,6 @@ export function PricingSection() {
                   今すぐ始める
                 </Button>
               </Link>
-              <p className="text-xs text-slate-500 text-center">
-                月額¥5,500でいつでもキャンセル可能
-              </p>
             </CardContent>
           </Card>
         </div>
