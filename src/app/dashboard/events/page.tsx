@@ -435,8 +435,8 @@ function EventsPageContent() {
                     </div>
                   )}
                   <CardHeader>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                      <div className="flex flex-wrap items-center gap-1.5">
                         {event.isNew && (
                           <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 animate-pulse">
                             <Sparkles className="h-3 w-3 mr-1" />
@@ -462,7 +462,7 @@ function EventsPageContent() {
                           </Badge>
                         )}
                       </div>
-                      <div className="flex items-center text-sm text-slate-500">
+                      <div className="flex items-center text-sm text-slate-500 flex-shrink-0">
                         <Users className="h-4 w-4 mr-1" />
                         {event.currentParticipants}/{event.maxParticipants}名
                       </div>
@@ -508,7 +508,7 @@ function EventsPageContent() {
                       </Button>
                     </div>
 
-                    <div className="mt-2 flex gap-2">
+                    <div className="mt-2 flex flex-col sm:flex-row gap-2">
                       {/* PENDING状態：支払い完了ボタン＋キャンセルボタン */}
                       {event.isPaid && event.paymentStatus === 'PENDING' ? (
                         <>

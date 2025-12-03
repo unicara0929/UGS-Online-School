@@ -538,8 +538,8 @@ function LPMeetingRequestPageContent() {
                         const timeValue = date ? date.split('T')[1] || '' : ''
 
                         return (
-                          <div key={index} className="flex items-center space-x-2">
-                            <div className="flex-1 flex space-x-2">
+                          <div key={index} className="flex items-start sm:items-center gap-2">
+                            <div className="flex-1 flex flex-col sm:flex-row gap-2">
                               {/* 日付選択 */}
                               <input
                                 type="date"
@@ -550,7 +550,7 @@ function LPMeetingRequestPageContent() {
                                   const currentTime = timeValue || '10:00'
                                   updatePreferredDate(index, `${newDate}T${currentTime}`)
                                 }}
-                                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                                className="w-full sm:flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 text-base"
                                 required
                               />
                               {/* 時間選択（30分刻み） */}
@@ -561,7 +561,7 @@ function LPMeetingRequestPageContent() {
                                   const currentDate = dateValue || getTomorrowDate()
                                   updatePreferredDate(index, `${currentDate}T${newTime}`)
                                 }}
-                                className="w-28 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                                className="w-full sm:w-28 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 text-base"
                                 required
                               >
                                 <option value="">時間</option>
@@ -575,6 +575,7 @@ function LPMeetingRequestPageContent() {
                               variant="ghost"
                               size="sm"
                               onClick={() => removePreferredDate(index)}
+                              className="flex-shrink-0"
                             >
                               <X className="h-4 w-4" />
                             </Button>

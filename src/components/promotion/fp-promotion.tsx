@@ -296,62 +296,72 @@ export function FPPromotion() {
           <div>
             <h3 className="text-lg font-semibold mb-4">昇格条件</h3>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl">
-                <div className="flex items-center flex-1">
-                  <MessageSquare className="h-5 w-5 mr-3 text-slate-600" />
-                  <div className="flex-1">
-                    <h4 className="font-medium">LP面談完了</h4>
-                    <p className="text-sm text-slate-600">ライフプランナーとの面談を完了する</p>
+              <div className="p-4 border border-slate-200 rounded-xl">
+                <div className="flex items-start gap-3">
+                  <MessageSquare className="h-5 w-5 text-slate-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <div>
+                        <h4 className="font-medium">LP面談完了</h4>
+                        <p className="text-sm text-slate-600">ライフプランナーとの面談を完了する</p>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {conditions.lpMeetingCompleted ? (
+                          <Badge className="bg-green-100 text-green-800">完了</Badge>
+                        ) : (
+                          <>
+                            <Badge variant="secondary">未完了</Badge>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => router.push('/dashboard/lp-meeting/request')}
+                              className="whitespace-nowrap"
+                            >
+                              面談を予約
+                              <ArrowRight className="h-4 w-4 ml-1" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  {conditions.lpMeetingCompleted ? (
-                    <Badge className="bg-green-100 text-green-800">完了</Badge>
-                  ) : (
-                    <>
-                      <Badge variant="secondary">未完了</Badge>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => router.push('/dashboard/lp-meeting/request')}
-                      >
-                        面談を予約
-                        <ArrowRight className="h-4 w-4 ml-1" />
-                      </Button>
-                    </>
-                  )}
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl">
-                <div className="flex items-center flex-1">
-                  <Calendar className="h-5 w-5 mr-3 text-slate-600" />
-                  <div className="flex-1">
-                    <h4 className="font-medium">アンケート提出</h4>
-                    <p className="text-sm text-slate-600">初回アンケート（10設問）を提出する</p>
-                    {!conditions.lpMeetingCompleted && (
-                      <p className="text-xs text-orange-600 mt-1">※ LP面談完了後に回答可能</p>
-                    )}
+              <div className="p-4 border border-slate-200 rounded-xl">
+                <div className="flex items-start gap-3">
+                  <Calendar className="h-5 w-5 text-slate-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <div>
+                        <h4 className="font-medium">アンケート提出</h4>
+                        <p className="text-sm text-slate-600">初回アンケート（10設問）を提出する</p>
+                        {!conditions.lpMeetingCompleted && (
+                          <p className="text-xs text-orange-600 mt-1">※ LP面談完了後に回答可能</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {conditions.surveyCompleted ? (
+                          <Badge className="bg-green-100 text-green-800">完了</Badge>
+                        ) : conditions.lpMeetingCompleted ? (
+                          <>
+                            <Badge variant="secondary">未完了</Badge>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => router.push('/dashboard/survey')}
+                              className="whitespace-nowrap"
+                            >
+                              アンケートに回答
+                              <ArrowRight className="h-4 w-4 ml-1" />
+                            </Button>
+                          </>
+                        ) : (
+                          <Badge variant="secondary" className="bg-slate-100 text-slate-500">ロック中</Badge>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  {conditions.surveyCompleted ? (
-                    <Badge className="bg-green-100 text-green-800">完了</Badge>
-                  ) : conditions.lpMeetingCompleted ? (
-                    <>
-                      <Badge variant="secondary">未完了</Badge>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => router.push('/dashboard/survey')}
-                      >
-                        アンケートに回答
-                        <ArrowRight className="h-4 w-4 ml-1" />
-                      </Button>
-                    </>
-                  ) : (
-                    <Badge variant="secondary" className="bg-slate-100 text-slate-500">ロック中</Badge>
-                  )}
                 </div>
               </div>
             </div>
@@ -413,7 +423,7 @@ export function FPPromotion() {
                   本人確認のため、身分証（運転免許証、パスポート等）の画像をアップロードしてください
                 </p>
                 <div className="space-y-3">
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                     <input
                       type="file"
                       accept="image/jpeg,image/png,image/jpg,application/pdf"
@@ -431,7 +441,7 @@ export function FPPromotion() {
                       </Button>
                     </label>
                     {selectedFile && (
-                      <span className="text-sm text-slate-700">
+                      <span className="text-sm text-slate-700 break-all">
                         {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)}MB)
                       </span>
                     )}
