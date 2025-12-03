@@ -12,7 +12,7 @@ export function CTASection() {
           あなたの成長を、いま加速させよう
         </h2>
         <p className="text-lg md:text-xl text-slate-300 mb-8">
-          月額¥5,500。いつでもキャンセル可能。動画×実践で確かなスキルを。
+          月額¥5,500。動画×実践で確かなスキルを。
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link href="/register">

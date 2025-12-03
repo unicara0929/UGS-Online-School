@@ -539,7 +539,7 @@ function CheckoutContent() {
                     ? `プロモーション適用: 登録費用無料、月額¥${promoCodeInfo.estimatedMonthlyPrice.toLocaleString()}（${promoCodeInfo.durationDescription}）`
                     : process.env.NEXT_PUBLIC_STRIPE_SETUP_FEE_ENABLED === 'true'
                       ? '初回のみ登録費用が含まれます。2ヶ月目以降は月額¥5,500'
-                      : '月額¥5,500でいつでもキャンセル可能'}
+                      : '月額¥5,500'}
                 </p>
               </CardContent>
             </Card>

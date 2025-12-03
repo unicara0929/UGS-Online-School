@@ -157,9 +157,6 @@ export default function CompletePaymentPage() {
                       <p className="text-4xl font-bold text-slate-900">¥5,500</p>
                       <p className="text-sm text-slate-600 mt-1">(税込)</p>
                     </div>
-                    <div className="text-sm text-slate-600 pt-2">
-                      月額¥5,500でいつでもキャンセル可能
-                    </div>
                   </>
                 )}
               </div>
