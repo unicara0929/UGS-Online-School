@@ -122,6 +122,7 @@ export async function GET(
 
       // プロフィール情報
       phone: user.phone,
+      lineId: user.lineId,
       address: user.address,
       bio: user.bio,
       attribute: user.attribute,
