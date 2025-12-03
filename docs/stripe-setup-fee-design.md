@@ -1,4 +1,4 @@
-# UGSオンラインスクール：初回登録費用を含む決済フロー設計案
+# Unicara Growth Salon：初回登録費用を含む決済フロー設計案
 
 ## 📋 目次
 1. [現在の実装概要](#現在の実装概要)
@@ -366,7 +366,7 @@ const subscription = await stripe.subscriptions.create({
 
 2. **既存の月額Priceを確認**
    ```
-   商品名: UGSオンラインスクール 月額プラン
+   商品名: Unicara Growth Salon 月額プラン
    価格: ¥5,500
    課金タイプ: Recurring（月次）
    Price ID: price_yyy

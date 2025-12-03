@@ -297,7 +297,7 @@ export function Sidebar() {
           {/* フッター */}
           <div className="p-4 border-t border-slate-200">
             <p className="text-xs text-slate-500 text-center">
-              UGSオンラインスクール v1.0
+              Unicara Growth Salon v1.0
             </p>
           </div>
         </div>

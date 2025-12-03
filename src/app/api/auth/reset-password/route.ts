@@ -41,9 +41,11 @@ export async function POST(request: NextRequest) {
 
     // パスワードリセットメールを送信（サーバーサイド用のSupabaseクライアントを使用）
     // supabaseAdminはService Role Keyを使用しているため、resetPasswordForEmailを直接呼び出す
-    const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
+    console.log(`[PASSWORD_RESET] Sending reset email to: ${email}`)
+    const { data, error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
       redirectTo: redirectUrl,
     })
+    console.log(`[PASSWORD_RESET] Response - data:`, data, `error:`, error)
 
     if (error) {
       console.error('Password reset error:', error)

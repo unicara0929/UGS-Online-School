@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
         console.log('⚠️ Price not found, creating new product and price...')
         
         const product = await stripe.products.create({
-          name: 'UGSオンラインスクール 月額プラン',
+          name: 'Unicara Growth Salon 月額プラン',
           description: '学び → 実践 → 自立を一体化したFP育成プラットフォーム',
         })
         console.log(`✅ Created new product: ${product.id}`)

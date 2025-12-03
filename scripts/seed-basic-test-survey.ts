@@ -140,7 +140,7 @@ async function main() {
       questions: [
         {
           id: 'sq1',
-          question: 'UGSオンラインスクールに参加した理由を教えてください。',
+          question: 'Unicara Growth Salonに参加した理由を教えてください。',
           type: 'textarea',
           required: true
         },
@@ -172,7 +172,7 @@ async function main() {
         },
         {
           id: 'sq6',
-          question: 'UGSオンラインスクールで最も興味のあるカテゴリはどれですか？',
+          question: 'Unicara Growth Salonで最も興味のあるカテゴリはどれですか？',
           type: 'radio',
           options: ['所得を増やす', '生き方を豊かにする', 'スタートアップ支援'],
           required: true
@@ -186,7 +186,7 @@ async function main() {
         },
         {
           id: 'sq8',
-          question: 'UGSオンラインスクールで学びたいことや期待することを教えてください。',
+          question: 'Unicara Growth Salonで学びたいことや期待することを教えてください。',
           type: 'textarea',
           required: true
         },

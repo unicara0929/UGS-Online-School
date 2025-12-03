@@ -87,7 +87,7 @@ export default function ReferralsPage() {
               あなたの紹介リンク
             </CardTitle>
             <CardDescription className="text-xs sm:text-sm">
-              このリンクを友達に共有して、UGSオンラインスクールに招待しましょう
+              このリンクを友達に共有して、Unicara Growth Salonに招待しましょう
             </CardDescription>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0 space-y-3 sm:space-y-4">

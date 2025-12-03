@@ -260,7 +260,7 @@ function CheckoutContent() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Link href="/lp">
-                <h1 className="text-2xl font-bold text-slate-900">UGSオンラインスクール</h1>
+                <h1 className="text-2xl font-bold text-slate-900">Unicara Growth Salon</h1>
               </Link>
             </div>
             <div className="flex items-center space-x-4">
@@ -284,7 +284,7 @@ function CheckoutContent() {
                 </Button>
               </Link>
               <h1 className="text-3xl font-bold text-slate-900 mb-2">決済情報</h1>
-              <p className="text-slate-600">UGSオンラインスクールのサブスクリプションを開始します</p>
+              <p className="text-slate-600">Unicara Growth Salonのサブスクリプションを開始します</p>
             </div>
 
             <Card>
@@ -432,7 +432,7 @@ function CheckoutContent() {
           <div className="space-y-6">
             <Card className={`border-2 ${promoCodeInfo ? 'border-green-500' : 'border-slate-700'}`}>
               <CardHeader className="text-center">
-                <CardTitle className="text-2xl">UGSオンラインスクール</CardTitle>
+                <CardTitle className="text-2xl">Unicara Growth Salon</CardTitle>
                 <CardDescription>全機能利用可能</CardDescription>
                 {promoCodeInfo ? (
                   <div className="mt-4 space-y-2">
