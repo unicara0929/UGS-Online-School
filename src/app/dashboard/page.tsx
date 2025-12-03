@@ -123,23 +123,25 @@ function Dashboard() {
         <NotificationBar />
 
         <main className="px-4 sm:px-6 lg:px-8 py-8">
-          {/* アクション必須通知 */}
-          {!loading && <ActionNotifications notifications={notifications} />}
+          <div className="space-y-8">
+            {/* アクション必須通知 */}
+            {!loading && <ActionNotifications notifications={notifications} />}
 
-          {/* ダッシュボード統計 */}
-          <DashboardStats userRole={user?.role || 'member'} />
+            {/* ダッシュボード統計 */}
+            <DashboardStats userRole={user?.role || 'member'} />
 
-          {/* 教育コンテンツ一覧 */}
-          <CourseList />
+            {/* 教育コンテンツ一覧 */}
+            <CourseList />
 
-          {/* 報酬管理ダッシュボード */}
-          <CompensationDashboard userRole={user?.role || 'member'} />
+            {/* 報酬管理ダッシュボード */}
+            <CompensationDashboard userRole={user?.role || 'member'} />
 
-          {/* FP昇格システム */}
-          <FPPromotion />
+            {/* FP昇格システム */}
+            <FPPromotion />
 
-          {/* 今後のイベント */}
-          <UpcomingEvents events={upcomingEvents} />
+            {/* 今後のイベント */}
+            <UpcomingEvents events={upcomingEvents} />
+          </div>
         </main>
       </div>
     </div>
