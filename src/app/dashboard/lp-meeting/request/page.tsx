@@ -501,7 +501,7 @@ function LPMeetingRequestPageContent() {
                           required
                         />
                         <div>
-                          <div className="font-medium text-slate-900">オンライン（対面）</div>
+                          <div className="font-medium text-slate-900">オンライン</div>
                           <div className="text-sm text-slate-600 mt-1">
                             ZoomやGoogle Meetなどのオンラインツールを使用した面談
                           </div>
