@@ -67,11 +67,23 @@ export async function POST(
       }
     })
 
-    // FPPromotionApplicationのlpMeetingCompletedをtrueに更新
-    await prisma.fPPromotionApplication.updateMany({
-      where: { userId: meeting.memberId },
-      data: { lpMeetingCompleted: true }
-    })
+    // FPPromotionApplicationのlpMeetingCompletedをtrueに更新（存在しない場合は作成）
+    try {
+      await prisma.fPPromotionApplication.update({
+        where: { userId: meeting.memberId },
+        data: { lpMeetingCompleted: true }
+      })
+    } catch (error: any) {
+      // FPPromotionApplicationが存在しない場合は作成
+      if (error.code === 'P2025') {
+        await prisma.fPPromotionApplication.create({
+          data: {
+            userId: meeting.memberId,
+            lpMeetingCompleted: true
+          }
+        })
+      }
+    }
 
     // メンバーにアプリ内通知を送信
     await createNotification(
