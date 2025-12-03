@@ -6,16 +6,12 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { authenticatedFetch } from '@/lib/utils/api-client'
-import { fetchWithTimeout, handleApiResponse } from '@/lib/utils/api-helpers-client'
-import { validateFile } from '@/lib/utils/file-helpers'
-import { uploadIdDocument, fetchExistingIdDocumentUrl } from '@/lib/services/file-upload-service'
+import { handleApiResponse } from '@/lib/utils/api-helpers-client'
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from 'next/navigation'
-import { 
-  CheckCircle, 
-  XCircle, 
-  Upload, 
-  FileText,
+import {
+  CheckCircle,
+  XCircle,
   Calendar,
   Clock,
   MessageSquare,
@@ -41,11 +37,6 @@ export function FPPromotion() {
   const { user } = useAuth()
   const router = useRouter()
   const [isApplying, setIsApplying] = useState(false)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null)
-  const [contractAgreed, setContractAgreed] = useState(false)
-  const [contractUrl, setContractUrl] = useState<string | null>(null) // GMOサインのリンク
   const [conditions, setConditions] = useState<PromotionConditions>({
     lpMeetingCompleted: false,
     surveyCompleted: false,
@@ -63,25 +54,11 @@ export function FPPromotion() {
     if (user?.id) {
       fetchPromotionConditions()
       fetchExistingApplication()
-      fetchContractUrl()
     }
   }, [user?.id])
 
-  const fetchContractUrl = async () => {
-    try {
-      const response = await authenticatedFetch('/api/user/contract-url')
-      if (response.ok) {
-        const data = await response.json()
-        setContractUrl(data.contractUrl)
-      }
-    } catch (error) {
-      console.error('Error fetching contract URL:', error)
-    }
-  }
-
   /**
    * 既存のアプリケーション情報を取得
-   * 根本的な解決: サービス関数を使用してロジックを分離し、可読性を向上
    */
   const fetchExistingApplication = async () => {
     if (!user?.id) return
@@ -91,21 +68,12 @@ export function FPPromotion() {
       if (response.ok) {
         const data = await response.json()
         if (data.application) {
-          // 申請ステータスを設定
           setApplicationStatus({
             hasApplication: true,
             status: data.application.status,
             appliedAt: data.application.appliedAt,
             approvedAt: data.application.approvedAt
           })
-
-          // 既存の身分証URLを取得
-          if (data.application.idDocumentUrl) {
-            const fileUrl = await fetchExistingIdDocumentUrl(user.id, data.application.idDocumentUrl)
-            if (fileUrl) {
-              setUploadedFileUrl(fileUrl)
-            }
-          }
         }
       }
     } catch (error) {
@@ -154,61 +122,9 @@ export function FPPromotion() {
     }
   }
 
-  /**
-   * ファイル選択ハンドラー
-   * 根本的な解決: ヘルパー関数を使用してロジックを分離し、可読性を向上
-   */
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    const validation = validateFile(file)
-    if (!validation.valid) {
-      alert(validation.error)
-      return
-    }
-
-    setSelectedFile(file)
-    setUploadedFileUrl(null)
-  }
-
-  /**
-   * ファイルアップロードハンドラー
-   * 根本的な解決: サービス関数を使用してロジックを分離し、可読性を向上
-   */
-  const handleFileUpload = async () => {
-    if (!selectedFile || !user?.id) {
-      alert('ファイルを選択してください')
-      return
-    }
-
-    setIsUploading(true)
-    try {
-      const result = await uploadIdDocument(selectedFile, user.id)
-      
-      if (!result.success) {
-        alert(result.error || 'アップロードに失敗しました')
-        return
-      }
-
-      setUploadedFileUrl(result.fileUrl || null)
-      alert('身分証のアップロードが完了しました')
-    } catch (error: any) {
-      console.error('Upload error:', error)
-      alert(error.message || 'アップロードに失敗しました')
-    } finally {
-      setIsUploading(false)
-    }
-  }
-
   const handlePromotionApplication = async () => {
-    if (!uploadedFileUrl) {
-      alert('先に身分証をアップロードしてください')
-      return
-    }
-
-    if (!contractAgreed) {
-      alert('業務委託契約書の締結が必要です')
+    if (!conditions.isEligible) {
+      alert('昇格条件をすべて満たしてください')
       return
     }
 
@@ -219,7 +135,6 @@ export function FPPromotion() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: user?.id,
-          contractAgreed: true,
         }),
       })
 
@@ -410,160 +325,87 @@ export function FPPromotion() {
           )}
 
           {/* 昇格申請 */}
-          {conditions.surveyCompleted ? (
-            <div className="border-t pt-6">
-              <h3 className="text-lg font-semibold mb-4">昇格申請</h3>
+          <div className="border-t pt-6">
+            <h3 className="text-lg font-semibold mb-4">昇格申請</h3>
+
+            {/* 申請ボタン - 条件達成後、申請前のみ表示 */}
+            {conditions.isEligible && !applicationStatus.hasApplication && (
               <div className="space-y-4">
-              {/* 身分証アップロードと業務委託契約書は、申請前または審査完了（承認）後のみ表示 */}
-              {(!applicationStatus.hasApplication || applicationStatus.status === 'APPROVED') && (
-                <>
-              <div className="p-4 border border-slate-200 rounded-xl">
-                <h4 className="font-medium mb-2">身分証アップロード</h4>
-                <p className="text-sm text-slate-600 mb-4">
-                  本人確認のため、身分証（運転免許証、パスポート等）の画像をアップロードしてください
-                </p>
-                <div className="space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/jpg,application/pdf"
-                      onChange={handleFileSelect}
-                      className="hidden"
-                      id="id-document-upload"
-                      disabled={isUploading}
-                    />
-                    <label htmlFor="id-document-upload">
-                      <Button variant="outline" size="sm" asChild disabled={isUploading}>
-                        <span>
-                          <Upload className="h-4 w-4 mr-2" />
-                          {selectedFile ? 'ファイルを変更' : 'ファイル選択'}
-                        </span>
-                      </Button>
-                    </label>
-                    {selectedFile && (
-                      <span className="text-sm text-slate-700 break-all">
-                        {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)}MB)
-                      </span>
-                    )}
-                    {!selectedFile && !uploadedFileUrl && (
-                      <span className="text-sm text-slate-500">未選択</span>
-                    )}
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <h4 className="font-semibold text-green-800">昇格条件を達成しました！</h4>
                   </div>
-                  {selectedFile && !uploadedFileUrl && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleFileUpload}
-                      disabled={isUploading}
-                    >
-                      {isUploading ? 'アップロード中...' : 'アップロード'}
-                    </Button>
-                  )}
-                  {uploadedFileUrl && (
-                    <div className="flex items-center gap-2 text-sm text-green-600">
-                      <CheckCircle className="h-4 w-4" />
-                      <span>アップロード完了</span>
-                      <a
-                        href={uploadedFileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
-                      >
-                        確認
-                      </a>
-                    </div>
-                  )}
+                  <p className="text-sm text-green-700">
+                    全ての昇格条件を満たしました。下のボタンをクリックして昇格申請を行ってください。
+                  </p>
                 </div>
-              </div>
-
-              {/* 業務委託契約書 */}
-              <div className="p-4 border border-slate-200 rounded-xl">
-                <h4 className="font-medium mb-2">業務委託契約書の締結</h4>
-                <p className="text-sm text-slate-600 mb-4">
-                  業務委託契約書（GMOサイン）を確認し、締結してください
-                </p>
-                <div className="space-y-3">
-                  {contractUrl ? (
-                    <a
-                      href={contractUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center text-blue-600 hover:underline"
-                    >
-                      <FileText className="h-4 w-4 mr-2" />
-                      業務委託契約書を開く
-                    </a>
-                  ) : (
-                    <p className="text-sm text-slate-500">契約書のリンクが設定されていません</p>
-                  )}
-                  <div className="flex items-start space-x-2">
-                    <input
-                      type="checkbox"
-                      id="contract-agreement"
-                      checked={contractAgreed}
-                      onChange={(e) => setContractAgreed(e.target.checked)}
-                      className="mt-1"
-                      disabled={!contractUrl}
-                    />
-                    <label htmlFor="contract-agreement" className="text-sm text-slate-700 cursor-pointer">
-                      業務委託契約書の内容を確認し、同意します
-                    </label>
-                  </div>
-                </div>
-              </div>
-              </>
-              )}
-
-              {/* 申請ボタンは申請前のみ表示 */}
-              {!applicationStatus.hasApplication && (
                 <Button
                   className="w-full"
-                  disabled={
-                    !conditions.isEligible ||
-                    isApplying ||
-                    !uploadedFileUrl ||
-                    !contractAgreed
-                  }
+                  size="lg"
+                  disabled={isApplying}
                   onClick={handlePromotionApplication}
                 >
-                  {isApplying ? '申請中...' : 'FPエイド昇格申請'}
+                  {isApplying ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      申請中...
+                    </>
+                  ) : (
+                    <>
+                      <Award className="h-4 w-4 mr-2" />
+                      FPエイド昇格申請
+                    </>
+                  )}
                 </Button>
-              )}
-
-              {!applicationStatus.hasApplication && (
-                <>
-                  {!conditions.isEligible && (
-                    <p className="text-sm text-slate-500 text-center">
-                      昇格条件をすべて満たすと申請可能になります
-                    </p>
-                  )}
-                  {conditions.isEligible && !uploadedFileUrl && (
-                    <p className="text-sm text-slate-500 text-center">
-                      身分証のアップロードが必要です
-                    </p>
-                  )}
-                  {conditions.isEligible && uploadedFileUrl && !contractAgreed && (
-                    <p className="text-sm text-slate-500 text-center">
-                      業務委託契約書の締結が必要です
-                    </p>
-                  )}
-                </>
-              )}
               </div>
-            </div>
-          ) : (
-            <div className="border-t pt-6">
+            )}
+
+            {/* 条件未達成の場合 */}
+            {!conditions.isEligible && !applicationStatus.hasApplication && (
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 text-center">
-                <h3 className="text-lg font-semibold mb-2">昇格申請</h3>
                 <p className="text-sm text-slate-600 mb-4">
-                  すべての昇格条件を満たすと、昇格申請セクションが表示されます
+                  すべての昇格条件を満たすと、昇格申請ボタンが有効になります
                 </p>
                 <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
                   <span>進捗: {completedCount}/2</span>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+
+            {/* 申請済みの場合（審査中・承認済みなど）はステータスバナーで表示済み */}
+            {applicationStatus.hasApplication && applicationStatus.status !== 'REJECTED' && (
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">
+                <p className="text-sm text-slate-600">
+                  昇格申請は送信済みです。上部のステータスをご確認ください。
+                </p>
+              </div>
+            )}
+
+            {/* 却下された場合は再申請可能 */}
+            {applicationStatus.hasApplication && applicationStatus.status === 'REJECTED' && conditions.isEligible && (
+              <div className="space-y-4">
+                <Button
+                  className="w-full"
+                  size="lg"
+                  disabled={isApplying}
+                  onClick={handlePromotionApplication}
+                >
+                  {isApplying ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      申請中...
+                    </>
+                  ) : (
+                    <>
+                      <Award className="h-4 w-4 mr-2" />
+                      再申請する
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          </div>
 
           {/* 注意事項 */}
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
