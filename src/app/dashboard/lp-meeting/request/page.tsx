@@ -317,7 +317,7 @@ function LPMeetingRequestPageContent() {
       case 'CANCELLED':
         return <Badge className="bg-red-100 text-red-800">キャンセル</Badge>
       case 'NO_SHOW':
-        return <Badge className="bg-orange-100 text-orange-800">ノーショー</Badge>
+        return <Badge className="bg-orange-100 text-orange-800">無断欠席</Badge>
       default:
         return <Badge>{status}</Badge>
     }
@@ -462,7 +462,7 @@ function LPMeetingRequestPageContent() {
                       <div className="space-y-3">
                         <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                           <p className="text-sm text-red-800">
-                            この面談はノーショーとなりました。再度申請することができます。
+                            この面談は無断欠席となりました。再度申請することができます。
                           </p>
                         </div>
                       </div>
