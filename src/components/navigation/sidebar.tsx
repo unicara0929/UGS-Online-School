@@ -128,7 +128,7 @@ export function Sidebar() {
 
       {/* サイドバー */}
       <div className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out
+        fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out overflow-hidden
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         md:translate-x-0 md:static md:inset-0
       `}>
@@ -137,7 +137,7 @@ export function Sidebar() {
           <div className="flex items-center justify-center h-20 px-4 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
             <div className="flex items-center space-x-3">
               {logoError ? (
-                <div className="w-7 h-7 rounded bg-slate-800 flex items-center justify-center">
+                <div className="w-7 h-7 rounded bg-primary-500 flex items-center justify-center">
                   <span className="text-white text-xs font-bold">UG</span>
                 </div>
               ) : (
@@ -158,7 +158,7 @@ export function Sidebar() {
           {/* ユーザー情報 */}
           <div className="p-4 border-b border-slate-200 bg-slate-50/50">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-slate-700 to-slate-800 rounded-full flex items-center justify-center shadow-md overflow-hidden flex-shrink-0">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center shadow-md overflow-hidden flex-shrink-0">
                 {profileImage ? (
                   <Image
                     src={profileImage}
@@ -211,17 +211,17 @@ export function Sidebar() {
                       className={`
                         w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200
                         ${hasActiveSubItem
-                          ? 'bg-gradient-to-r from-slate-700 to-slate-800 text-white shadow-md' 
-                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                          ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md'
+                          : 'text-slate-600 hover:bg-primary-50 hover:text-primary-900'
                         }
                       `}
                     >
-                      <item.icon className={`h-5 w-5 mr-3 ${hasActiveSubItem ? 'text-white' : 'text-slate-500'}`} />
-                      <span className="flex-1 text-left">{item.name}</span>
+                      <item.icon className={`h-5 w-5 mr-3 flex-shrink-0 ${hasActiveSubItem ? 'text-white' : 'text-slate-500'}`} />
+                      <span className="flex-1 text-left truncate">{item.name}</span>
                       {isExpandedItem ? (
-                        <ChevronDown className={`h-4 w-4 ${hasActiveSubItem ? 'text-white' : 'text-slate-500'}`} />
+                        <ChevronDown className={`h-4 w-4 flex-shrink-0 ${hasActiveSubItem ? 'text-white' : 'text-slate-500'}`} />
                       ) : (
-                        <ChevronRight className={`h-4 w-4 ${hasActiveSubItem ? 'text-white' : 'text-slate-500'}`} />
+                        <ChevronRight className={`h-4 w-4 flex-shrink-0 ${hasActiveSubItem ? 'text-white' : 'text-slate-500'}`} />
                       )}
                     </button>
                     
@@ -245,14 +245,14 @@ export function Sidebar() {
                               className={`
                                 flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200
                                 ${isSubActive
-                                  ? 'bg-gradient-to-r from-slate-700 to-slate-800 text-white shadow-md'
-                                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md'
+                                  : 'text-slate-600 hover:bg-primary-50 hover:text-primary-900'
                                 }
                               `}
                               onClick={() => setIsOpen(false)}
                             >
-                              <subItem.icon className={`h-4 w-4 mr-3 ${isSubActive ? 'text-white' : 'text-slate-500'}`} />
-                              <span className="flex-1">{subItem.name}</span>
+                              <subItem.icon className={`h-4 w-4 mr-3 flex-shrink-0 ${isSubActive ? 'text-white' : 'text-slate-500'}`} />
+                              <span className="flex-1 truncate">{subItem.name}</span>
                               {getBadgeCount(subItem.href) > 0 && (
                                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
                                   {getBadgeCount(subItem.href) > 99 ? '99+' : getBadgeCount(subItem.href)}
@@ -276,14 +276,14 @@ export function Sidebar() {
                   className={`
                     flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200
                     ${isActive
-                      ? 'bg-gradient-to-r from-slate-700 to-slate-800 text-white shadow-md'
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                      ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md'
+                      : 'text-slate-600 hover:bg-primary-50 hover:text-primary-900'
                     }
                   `}
                   onClick={() => setIsOpen(false)}
                 >
-                  <item.icon className={`h-5 w-5 mr-3 ${isActive ? 'text-white' : 'text-slate-500'}`} />
-                  <span className="flex-1">{item.name}</span>
+                  <item.icon className={`h-5 w-5 mr-3 flex-shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} />
+                  <span className="flex-1 truncate">{item.name}</span>
                   {itemBadgeCount > 0 && (
                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
                       {itemBadgeCount > 99 ? '99+' : itemBadgeCount}
