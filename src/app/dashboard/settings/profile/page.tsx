@@ -64,6 +64,7 @@ function ProfileSettingsPage() {
     birthDate: "",
     prefecture: ""
   })
+  const [phoneError, setPhoneError] = useState('')
 
   // ユーザー情報とプロフィール画像を読み込む
   useEffect(() => {
@@ -208,6 +209,12 @@ function ProfileSettingsPage() {
     try {
       if (!user?.id) {
         alert('ユーザー情報が取得できませんでした')
+        return
+      }
+
+      // 電話番号バリデーション
+      if (profile.phone && !/^(070|080|090)\d{8}$/.test(profile.phone)) {
+        alert('電話番号はハイフンなしの11桁で入力してください（例：09012345678）')
         return
       }
 
@@ -425,10 +432,23 @@ function ProfileSettingsPage() {
                   <input
                     type="tel"
                     value={profile.phone}
-                    onChange={(e) => setProfile({...profile, phone: e.target.value})}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md"
-                    placeholder="090-1234-5678"
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 11)
+                      setProfile({...profile, phone: value})
+                      if (value && !/^(070|080|090)\d{8}$/.test(value)) {
+                        setPhoneError('ハイフンなしの11桁で入力してください（例：09012345678）')
+                      } else {
+                        setPhoneError('')
+                      }
+                    }}
+                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md ${phoneError ? 'border-red-300' : 'border-slate-300'}`}
+                    placeholder="09012345678"
+                    maxLength={11}
                   />
+                  {phoneError && (
+                    <p className="text-sm text-red-500 mt-1">{phoneError}</p>
+                  )}
+                  <p className="text-xs text-slate-500 mt-1">携帯番号のみ（070/080/090）ハイフンなし11桁</p>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
