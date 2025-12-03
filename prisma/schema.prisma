@@ -309,13 +309,14 @@ enum SubscriptionStatus {
 }
 
 enum MembershipStatus {
-  PENDING      // 仮登録（決済未完了）
-  ACTIVE       // 有効会員（通常の状態）
-  PAST_DUE     // 支払い遅延（決済失敗、猶予期間中）
-  DELINQUENT   // 長期滞納（猶予期間経過後も未払い）
-  CANCELED     // 退会済み（ユーザーによる退会申請）
-  TERMINATED   // 強制解約（運営による強制解約）
-  EXPIRED      // 期限切れ（仮登録の有効期限切れ）
+  PENDING                // 仮登録（決済未完了）
+  ACTIVE                 // 有効会員（通常の状態）
+  PAST_DUE               // 支払い遅延（決済失敗、猶予期間中）
+  DELINQUENT             // 長期滞納（猶予期間経過後も未払い）
+  CANCELLATION_PENDING   // 退会予定（退会申請済み、期間終了待ち）
+  CANCELED               // 退会済み（ユーザーによる退会申請）
+  TERMINATED             // 強制解約（運営による強制解約）
+  EXPIRED                // 期限切れ（仮登録の有効期限切れ）
 }
 
 enum CourseCategory {

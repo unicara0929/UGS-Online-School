@@ -97,6 +97,9 @@ export function RegisterForm() {
         throw new Error(errorData.error || '仮登録に失敗しました')
       }
 
+      // 登録完了後、LocalStorageから紹介コードをクリア
+      localStorage.removeItem('referralCode')
+
       // メール確認待ちページにリダイレクト
       const params = new URLSearchParams({
         email: formData.email,

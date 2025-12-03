@@ -139,6 +139,18 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // ユーザーの会員ステータスを「退会予定」に更新
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        membershipStatus: 'CANCELLATION_PENDING',
+        membershipStatusChangedAt: new Date(),
+        membershipStatusReason: `退会申請: ${reason}${otherReason ? ` - ${otherReason}` : ''}`,
+        cancellationReason: reason + (otherReason ? `: ${otherReason}` : '')
+      }
+    })
+    console.log('ユーザーの会員ステータスを退会予定に更新:', userId)
+
     // 6ヶ月未満の場合：申請は受け付けるが、解約予約として扱う
     if (isWithinMinimumPeriod) {
       const formattedDate = contractEndDate.toLocaleDateString('ja-JP', {
