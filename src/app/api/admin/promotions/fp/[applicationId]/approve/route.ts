@@ -55,12 +55,17 @@ export async function POST(
         }
       })
 
-      // 2. ユーザーのロールをFPに変更し、オンボーディング未完了フラグを設定
+      // 2. ユーザーのロールをFPに変更し、オンボーディングフラグをリセット
       await tx.user.update({
         where: { id: application.userId },
         data: {
           role: UserRole.FP,
-          fpOnboardingCompleted: false // FP昇格時は動画ガイダンス未完了
+          // FP昇格時はオンボーディングフローを最初から
+          managerContactConfirmedAt: null,  // マネージャー連絡先確認をリセット
+          complianceTestPassed: false,       // コンプライアンステストをリセット
+          complianceTestPassedAt: null,
+          fpOnboardingCompleted: false,      // 動画ガイダンスをリセット
+          fpOnboardingCompletedAt: null
         }
       })
 
