@@ -48,9 +48,9 @@ export function NotificationBar() {
         method: 'POST'
       })
 
-      // 詳細ページに遷移
+      // 詳細ページを新規タブで開く
       if (notification.targetUrl) {
-        router.push(notification.targetUrl)
+        window.open(notification.targetUrl, '_blank', 'noopener,noreferrer')
       }
 
       // 通知を非表示

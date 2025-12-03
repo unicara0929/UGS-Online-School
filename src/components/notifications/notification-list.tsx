@@ -218,7 +218,7 @@ export function NotificationList() {
                         className="p-0 h-auto text-xs"
                         onClick={() => {
                           markAsRead(notification.id)
-                          window.location.href = notification.actionUrl!
+                          window.open(notification.actionUrl!, '_blank', 'noopener,noreferrer')
                         }}
                       >
                         詳細
@@ -267,7 +267,7 @@ export function NotificationList() {
                         size="sm"
                         className="p-0 h-auto text-xs"
                         onClick={() => {
-                          window.location.href = notification.actionUrl!
+                          window.open(notification.actionUrl!, '_blank', 'noopener,noreferrer')
                         }}
                       >
                         詳細
