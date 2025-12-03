@@ -99,7 +99,7 @@ export async function POST(
     try {
       const resend = getResend()
       await resend.emails.send({
-        from: 'UGSオンラインスクール <inc@unicara.jp>',
+        from: 'Unicara Growth Salon <inc@unicara.jp>',
         to: updatedMeeting.member.email,
         subject: '【LP面談完了】ご参加ありがとうございました',
         html: `

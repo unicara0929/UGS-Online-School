@@ -10,7 +10,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "UGSオンラインスクール",
+  title: "Unicara Growth Salon",
   description: "学び → 実践 → 自立を一体化したFP育成プラットフォーム",
 };
 

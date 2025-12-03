@@ -79,7 +79,7 @@ function PaymentSuccessContent() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Link href="/lp">
-                <h1 className="text-2xl font-bold text-slate-900">UGSオンラインスクール</h1>
+                <h1 className="text-2xl font-bold text-slate-900">Unicara Growth Salon</h1>
               </Link>
             </div>
           </div>
@@ -92,7 +92,7 @@ function PaymentSuccessContent() {
             <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">決済完了！</h1>
-          <p className="text-slate-600">UGSオンラインスクールへのご登録が完了しました</p>
+          <p className="text-slate-600">Unicara Growth Salonへのご登録が完了しました</p>
         </div>
 
         <Card className="mb-8">

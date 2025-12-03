@@ -218,7 +218,7 @@ export async function POST(request: NextRequest) {
       for (const admin of admins) {
         try {
           await resend.emails.send({
-            from: 'UGSオンラインスクール <inc@unicara.jp>',
+            from: 'Unicara Growth Salon <inc@unicara.jp>',
             to: admin.email,
             subject: `【UGS】事前アンケート回答完了 - ${memberName}さん`,
             html: `
@@ -235,7 +235,7 @@ export async function POST(request: NextRequest) {
                 </div>
                 <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
                 <p style="color: #64748b; font-size: 12px;">
-                  このメールはUGSオンラインスクールから自動送信されています。
+                  このメールはUnicara Growth Salonから自動送信されています。
                 </p>
               </div>
             `

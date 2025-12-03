@@ -31,7 +31,7 @@ export async function sendEmail(params: {
     const transporter = createTransporter()
 
     await transporter.sendMail({
-      from: `"UGSオンラインスクール" <${process.env.SMTP_USER}>`,
+      from: `"Unicara Growth Salon" <${process.env.SMTP_USER}>`,
       to,
       subject,
       html,
@@ -59,7 +59,7 @@ export async function sendFPPromotionApprovedEmail(params: {
   const loginPageUrl = `${appUrl}/login`
   const dashboardLink = `${appUrl}/dashboard`
 
-  const subject = '【UGSオンラインスクール】FPエイド昇格のお知らせとご案内'
+  const subject = '【Unicara Growth Salon】FPエイド昇格のお知らせとご案内'
 
   const html = `
 <!DOCTYPE html>
@@ -75,10 +75,10 @@ export async function sendFPPromotionApprovedEmail(params: {
 
     <p style="margin-bottom: 15px;">${userName} 様</p>
 
-    <p style="margin-bottom: 15px;">UGSオンラインスクール事務局です。</p>
+    <p style="margin-bottom: 15px;">Unicara Growth Salon事務局です。</p>
 
     <p style="margin-bottom: 15px;">
-      このたびは、UGSオンラインスクールにおける<br>
+      このたびは、Unicara Growth Salonにおける<br>
       <strong style="color: #1e40af;">「FPエイド」への昇格が承認されました</strong>のでお知らせいたします。<br>
       おめでとうございます！
     </p>
@@ -158,11 +158,11 @@ export async function sendFPPromotionApprovedEmail(params: {
     </p>
 
     <p style="margin-bottom: 15px;">
-      今後のご活躍を、UGSオンラインスクール一同楽しみにしております。
+      今後のご活躍を、Unicara Growth Salon一同楽しみにしております。
     </p>
 
     <div style="border-top: 1px solid #cbd5e1; margin-top: 40px; padding-top: 20px; text-align: center; font-size: 14px; color: #64748b;">
-      <p style="margin: 0;">UGSオンラインスクール事務局</p>
+      <p style="margin: 0;">Unicara Growth Salon事務局</p>
     </div>
   </div>
 </body>
@@ -172,9 +172,9 @@ export async function sendFPPromotionApprovedEmail(params: {
   const text = `
 ${userName} 様
 
-UGSオンラインスクール事務局です。
+Unicara Growth Salon事務局です。
 
-このたびは、UGSオンラインスクールにおける
+このたびは、Unicara Growth Salonにおける
 「FPエイド」への昇格が承認されましたのでお知らせいたします。
 おめでとうございます！
 
@@ -227,10 +227,10 @@ ${dashboardLink}
 ご不明点やお困りごとがございましたら、
 本メールへのご返信、もしくは事務局窓口までお気軽にご連絡ください。
 
-今後のご活躍を、UGSオンラインスクール一同楽しみにしております。
+今後のご活躍を、Unicara Growth Salon一同楽しみにしております。
 
 --------------------------------
-UGSオンラインスクール事務局
+Unicara Growth Salon事務局
 --------------------------------
   `
 
@@ -238,7 +238,7 @@ UGSオンラインスクール事務局
 
   try {
     const info = await transporter.sendMail({
-      from: `"UGSオンラインスクール事務局" <${process.env.SMTP_USER}>`,
+      from: `"Unicara Growth Salon事務局" <${process.env.SMTP_USER}>`,
       to,
       subject,
       text,
@@ -264,7 +264,7 @@ export async function sendEmailVerification(params: {
 }) {
   const { to, userName, verificationLink } = params
 
-  const subject = '【UGSオンラインスクール】メールアドレスの確認'
+  const subject = '【Unicara Growth Salon】メールアドレスの確認'
 
   const html = `
     <!DOCTYPE html>
@@ -275,7 +275,7 @@ export async function sendEmailVerification(params: {
     </head>
     <body style="font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-        <h1 style="color: white; margin: 0; font-size: 28px;">UGSオンラインスクール</h1>
+        <h1 style="color: white; margin: 0; font-size: 28px;">Unicara Growth Salon</h1>
       </div>
 
       <div style="background: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 10px 10px;">
@@ -283,7 +283,7 @@ export async function sendEmailVerification(params: {
 
         <p>こんにちは、<strong>${userName}</strong>様</p>
 
-        <p>UGSオンラインスクールへのご登録ありがとうございます。</p>
+        <p>Unicara Growth Salonへのご登録ありがとうございます。</p>
 
         <p>登録を完了するには、以下のボタンをクリックしてメールアドレスを確認してください：</p>
 
@@ -312,7 +312,7 @@ export async function sendEmailVerification(params: {
         <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
 
         <p style="color: #999; font-size: 12px; text-align: center;">
-          © 2025 UGSオンラインスクール. All rights reserved.
+          © 2025 Unicara Growth Salon. All rights reserved.
         </p>
       </div>
     </body>
@@ -320,11 +320,11 @@ export async function sendEmailVerification(params: {
   `
 
   const text = `
-UGSオンラインスクール - メールアドレスの確認
+Unicara Growth Salon - メールアドレスの確認
 
 こんにちは、${userName}様
 
-UGSオンラインスクールへのご登録ありがとうございます。
+Unicara Growth Salonへのご登録ありがとうございます。
 
 登録を完了するには、以下のリンクをクリックしてメールアドレスを確認してください：
 
@@ -335,14 +335,14 @@ ${verificationLink}
 このメールに心当たりがない場合は、無視していただいて構いません。
 
 ---
-© 2025 UGSオンラインスクール. All rights reserved.
+© 2025 Unicara Growth Salon. All rights reserved.
   `
 
   try {
     const transporter = createTransporter()
 
     const info = await transporter.sendMail({
-      from: `"UGSオンラインスクール" <${process.env.SMTP_USER}>`,
+      from: `"Unicara Growth Salon" <${process.env.SMTP_USER}>`,
       to,
       subject,
       text,
@@ -373,7 +373,7 @@ export async function sendEventConfirmationEmail(params: {
 }) {
   const { to, userName, eventTitle, eventDate, eventTime, eventLocation, venueType, eventId } = params
 
-  const subject = `【UGSオンラインスクール】イベント参加確定：${eventTitle}`
+  const subject = `【Unicara Growth Salon】イベント参加確定：${eventTitle}`
 
   const venueTypeText = venueType === 'ONLINE' ? 'オンライン開催' :
                         venueType === 'OFFLINE' ? 'オフライン開催' : 'ハイブリッド開催'
@@ -387,7 +387,7 @@ export async function sendEventConfirmationEmail(params: {
     </head>
     <body style="font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-        <h1 style="color: white; margin: 0; font-size: 28px;">UGSオンラインスクール</h1>
+        <h1 style="color: white; margin: 0; font-size: 28px;">Unicara Growth Salon</h1>
       </div>
 
       <div style="background: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 10px 10px;">
@@ -433,7 +433,7 @@ export async function sendEventConfirmationEmail(params: {
         <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
 
         <p style="color: #999; font-size: 12px; text-align: center;">
-          © 2025 UGSオンラインスクール. All rights reserved.
+          © 2025 Unicara Growth Salon. All rights reserved.
         </p>
       </div>
     </body>
@@ -441,7 +441,7 @@ export async function sendEventConfirmationEmail(params: {
   `
 
   const text = `
-UGSオンラインスクール - イベント参加確定
+Unicara Growth Salon - イベント参加確定
 
 こんにちは、${userName}様
 
@@ -461,14 +461,14 @@ ${eventLocation ? `場所: ${eventLocation}` : ''}
 ご参加をお待ちしております！
 
 ---
-© 2025 UGSオンラインスクール. All rights reserved.
+© 2025 Unicara Growth Salon. All rights reserved.
   `
 
   try {
     const transporter = createTransporter()
 
     const info = await transporter.sendMail({
-      from: `"UGSオンラインスクール" <${process.env.SMTP_USER}>`,
+      from: `"Unicara Growth Salon" <${process.env.SMTP_USER}>`,
       to,
       subject,
       text,

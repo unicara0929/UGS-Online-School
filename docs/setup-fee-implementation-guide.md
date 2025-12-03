@@ -29,7 +29,7 @@
 2. **新しいProductを作成**
    - `Products` → `Add Product` をクリック
    - 商品名: `初回登録費用` または `UGS初回登録料`
-   - 説明: `UGSオンラインスクールの初回のみ課金される登録費用`
+   - 説明: `Unicara Growth Salonの初回のみ課金される登録費用`
 
 3. **Priceを作成**
    - Price設定:

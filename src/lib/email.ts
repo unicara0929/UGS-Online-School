@@ -38,9 +38,9 @@ export interface SubscriptionCancelledEmailData {
 
 export async function sendPaymentConfirmationEmail(data: PaymentConfirmationEmailData) {
   const mailOptions = {
-    from: `"UGSオンラインスクール" <${process.env.SMTP_USER}>`,
+    from: `"Unicara Growth Salon" <${process.env.SMTP_USER}>`,
     to: data.to,
-    subject: 'UGSオンラインスクール - 決済完了のお知らせ',
+    subject: 'Unicara Growth Salon - 決済完了のお知らせ',
     encoding: 'utf-8',
     html: `
       <!DOCTYPE html>
@@ -60,13 +60,13 @@ export async function sendPaymentConfirmationEmail(data: PaymentConfirmationEmai
       <body>
         <div class="container">
           <div class="header">
-            <h1>UGSオンラインスクール</h1>
+            <h1>Unicara Growth Salon</h1>
             <p>決済完了のお知らせ</p>
           </div>
           
           <div class="content">
             <h2>${data.userName} 様</h2>
-            <p>この度は、UGSオンラインスクールにお申し込みいただき、誠にありがとうございます。</p>
+            <p>この度は、Unicara Growth Salonにお申し込みいただき、誠にありがとうございます。</p>
             
             <p>決済が正常に完了いたしました。以下の内容でご確認ください。</p>
             
@@ -77,7 +77,7 @@ export async function sendPaymentConfirmationEmail(data: PaymentConfirmationEmai
               <p><strong>決済日時:</strong> ${new Date().toLocaleString('ja-JP')}</p>
             </div>
             
-            <p>これで、UGSオンラインスクールの全機能をご利用いただけます。</p>
+            <p>これで、Unicara Growth Salonの全機能をご利用いただけます。</p>
             
             <div style="text-align: center;">
               <a href="${data.loginUrl}" class="button">ログインして学習を開始する</a>
@@ -97,7 +97,7 @@ export async function sendPaymentConfirmationEmail(data: PaymentConfirmationEmai
           </div>
           
           <div class="footer">
-            <p>UGSオンラインスクール</p>
+            <p>Unicara Growth Salon</p>
             <p>学び → 実践 → 自立を一体化したFP育成プラットフォーム</p>
           </div>
         </div>
@@ -140,9 +140,9 @@ export async function sendPaymentConfirmationEmail(data: PaymentConfirmationEmai
  */
 export async function sendPaymentFailedEmail(data: PaymentFailedEmailData) {
   const mailOptions = {
-    from: `"UGSオンラインスクール" <${process.env.SMTP_USER}>`,
+    from: `"Unicara Growth Salon" <${process.env.SMTP_USER}>`,
     to: data.to,
-    subject: 'UGSオンラインスクール - 決済失敗のお知らせ',
+    subject: 'Unicara Growth Salon - 決済失敗のお知らせ',
     encoding: 'utf-8',
     html: `
       <!DOCTYPE html>
@@ -163,7 +163,7 @@ export async function sendPaymentFailedEmail(data: PaymentFailedEmailData) {
       <body>
         <div class="container">
           <div class="header">
-            <h1>UGSオンラインスクール</h1>
+            <h1>Unicara Growth Salon</h1>
             <p>決済失敗のお知らせ</p>
           </div>
           
@@ -200,7 +200,7 @@ export async function sendPaymentFailedEmail(data: PaymentFailedEmailData) {
           </div>
           
           <div class="footer">
-            <p>UGSオンラインスクール</p>
+            <p>Unicara Growth Salon</p>
             <p>学び → 実践 → 自立を一体化したFP育成プラットフォーム</p>
           </div>
         </div>
@@ -232,9 +232,9 @@ export async function sendPaymentFailedEmail(data: PaymentFailedEmailData) {
  */
 export async function sendSubscriptionCancelledEmail(data: SubscriptionCancelledEmailData) {
   const mailOptions = {
-    from: `"UGSオンラインスクール" <${process.env.SMTP_USER}>`,
+    from: `"Unicara Growth Salon" <${process.env.SMTP_USER}>`,
     to: data.to,
-    subject: 'UGSオンラインスクール - サブスクリプションキャンセルのお知らせ',
+    subject: 'Unicara Growth Salon - サブスクリプションキャンセルのお知らせ',
     encoding: 'utf-8',
     html: `
       <!DOCTYPE html>
@@ -255,7 +255,7 @@ export async function sendSubscriptionCancelledEmail(data: SubscriptionCancelled
       <body>
         <div class="container">
           <div class="header">
-            <h1>UGSオンラインスクール</h1>
+            <h1>Unicara Growth Salon</h1>
             <p>サブスクリプションキャンセルのお知らせ</p>
           </div>
           
@@ -286,7 +286,7 @@ export async function sendSubscriptionCancelledEmail(data: SubscriptionCancelled
           </div>
           
           <div class="footer">
-            <p>UGSオンラインスクール</p>
+            <p>Unicara Growth Salon</p>
             <p>学び → 実践 → 自立を一体化したFP育成プラットフォーム</p>
           </div>
         </div>
@@ -345,9 +345,9 @@ const CONTACT_TYPE_LABELS: Record<string, string> = {
 // ユーザーへの自動返信メール
 export async function sendContactConfirmationEmail(data: ContactConfirmationEmailData) {
   const mailOptions = {
-    from: `"UGSオンラインスクール" <${process.env.SMTP_USER}>`,
+    from: `"Unicara Growth Salon" <${process.env.SMTP_USER}>`,
     to: data.to,
-    subject: 'UGSオンラインスクール - お問い合わせ受付完了',
+    subject: 'Unicara Growth Salon - お問い合わせ受付完了',
     encoding: 'utf-8',
     html: `
       <!DOCTYPE html>
@@ -367,7 +367,7 @@ export async function sendContactConfirmationEmail(data: ContactConfirmationEmai
       <body>
         <div class="container">
           <div class="header">
-            <h1>UGSオンラインスクール</h1>
+            <h1>Unicara Growth Salon</h1>
             <p>お問い合わせ受付完了</p>
           </div>
 
@@ -392,7 +392,7 @@ export async function sendContactConfirmationEmail(data: ContactConfirmationEmai
           </div>
 
           <div class="footer">
-            <p>UGSオンラインスクール</p>
+            <p>Unicara Growth Salon</p>
             <p>※ このメールは自動送信されています。</p>
           </div>
         </div>
@@ -424,7 +424,7 @@ export async function sendContactNotificationToAdmin(data: ContactNotificationTo
   const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER
 
   const mailOptions = {
-    from: `"UGSオンラインスクール" <${process.env.SMTP_USER}>`,
+    from: `"Unicara Growth Salon" <${process.env.SMTP_USER}>`,
     to: adminEmail,
     subject: `【お問い合わせ】${CONTACT_TYPE_LABELS[data.type] || data.type} - ${data.userName}様`,
     encoding: 'utf-8',
@@ -481,7 +481,7 @@ export async function sendContactNotificationToAdmin(data: ContactNotificationTo
           </div>
 
           <div class="footer">
-            <p>UGSオンラインスクール 管理者通知</p>
+            <p>Unicara Growth Salon 管理者通知</p>
           </div>
         </div>
       </body>
@@ -547,9 +547,9 @@ export interface BusinessCardOrderNotificationToAdminData {
 // ユーザーへの名刺注文確認メール
 export async function sendBusinessCardOrderConfirmationEmail(data: BusinessCardOrderConfirmationEmailData) {
   const mailOptions = {
-    from: `"UGSオンラインスクール" <${process.env.SMTP_USER}>`,
+    from: `"Unicara Growth Salon" <${process.env.SMTP_USER}>`,
     to: data.to,
-    subject: 'UGSオンラインスクール - 名刺注文受付完了',
+    subject: 'Unicara Growth Salon - 名刺注文受付完了',
     encoding: 'utf-8',
     html: `
       <!DOCTYPE html>
@@ -572,7 +572,7 @@ export async function sendBusinessCardOrderConfirmationEmail(data: BusinessCardO
       <body>
         <div class="container">
           <div class="header">
-            <h1>UGSオンラインスクール</h1>
+            <h1>Unicara Growth Salon</h1>
             <p>名刺注文受付完了</p>
           </div>
 
@@ -639,7 +639,7 @@ export async function sendBusinessCardOrderConfirmationEmail(data: BusinessCardO
           </div>
 
           <div class="footer">
-            <p>UGSオンラインスクール</p>
+            <p>Unicara Growth Salon</p>
             <p>※ このメールは自動送信されています。</p>
           </div>
         </div>
@@ -671,7 +671,7 @@ export async function sendBusinessCardOrderNotificationToAdmin(data: BusinessCar
   const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER
 
   const mailOptions = {
-    from: `"UGSオンラインスクール" <${process.env.SMTP_USER}>`,
+    from: `"Unicara Growth Salon" <${process.env.SMTP_USER}>`,
     to: adminEmail,
     subject: `【名刺注文】${data.userName}様から注文がありました`,
     encoding: 'utf-8',
@@ -726,7 +726,7 @@ export async function sendBusinessCardOrderNotificationToAdmin(data: BusinessCar
           </div>
 
           <div class="footer">
-            <p>UGSオンラインスクール 管理者通知</p>
+            <p>Unicara Growth Salon 管理者通知</p>
           </div>
         </div>
       </body>

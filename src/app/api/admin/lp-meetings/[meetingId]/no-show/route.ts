@@ -85,7 +85,7 @@ export async function POST(
     try {
       const resend = getResend()
       await resend.emails.send({
-        from: 'UGSオンラインスクール <inc@unicara.jp>',
+        from: 'Unicara Growth Salon <inc@unicara.jp>',
         to: updatedMeeting.member.email,
         subject: '【LP面談】出席確認のお知らせ',
         html: `
@@ -115,7 +115,7 @@ export async function POST(
       try {
         const resend = getResend()
         await resend.emails.send({
-          from: 'UGSオンラインスクール <inc@unicara.jp>',
+          from: 'Unicara Growth Salon <inc@unicara.jp>',
           to: meeting.counselorEmail,
           subject: `【LP面談ノーショー】${updatedMeeting.member.name}様が面談に出席されませんでした`,
           html: `

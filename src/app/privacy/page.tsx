@@ -17,7 +17,7 @@ export default function PrivacyPage() {
               <section className="bg-blue-50 p-6 rounded-lg">
                 <h2 className="text-xl font-semibold text-slate-900 mb-3">はじめに</h2>
                 <p className="text-slate-700 leading-relaxed">
-                  UGSオンラインスクール（以下「当スクール」といいます。）は、本ウェブサイト上で提供するサービス（以下「本サービス」といいます。）における、ユーザーの個人情報の取扱いについて、以下のとおりプライバシーポリシー（以下「本ポリシー」といいます。）を定めます。
+                  Unicara Growth Salon（以下「当スクール」といいます。）は、本ウェブサイト上で提供するサービス（以下「本サービス」といいます。）における、ユーザーの個人情報の取扱いについて、以下のとおりプライバシーポリシー（以下「本ポリシー」といいます。）を定めます。
                 </p>
               </section>
 
@@ -213,7 +213,7 @@ export default function PrivacyPage() {
                 </p>
                 <div className="bg-white p-4 rounded border">
                   <p className="text-slate-700">
-                    <strong>UGSオンラインスクール 個人情報保護管理者</strong><br />
+                    <strong>Unicara Growth Salon 個人情報保護管理者</strong><br />
                     Email: privacy@ugs-online-school.com<br />
                     受付時間: 平日 9:00-18:00<br />
                     <br />

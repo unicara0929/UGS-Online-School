@@ -42,7 +42,7 @@ export async function createPaymentLink(
       // 価格が見つからない場合は新規作成
       console.log(`  ⚠️ 価格が見つからないため新規作成中...`)
       const product = await stripe.products.create({
-        name: 'UGSオンラインスクール 月額プラン',
+        name: 'Unicara Growth Salon 月額プラン',
         description: '学び → 実践 → 自立を一体化したFP育成プラットフォーム',
       })
 

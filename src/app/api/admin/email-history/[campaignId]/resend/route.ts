@@ -125,7 +125,7 @@ export async function POST(
         }
 
         await transporter.sendMail({
-          from: `"UGSオンラインスクール事務局" <${process.env.SMTP_USER}>`,
+          from: `"Unicara Growth Salon事務局" <${process.env.SMTP_USER}>`,
           to: log.user.email,
           subject: originalCampaign.subject,
           text: personalizedBody,

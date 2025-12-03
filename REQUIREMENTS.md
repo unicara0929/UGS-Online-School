@@ -1,4 +1,4 @@
-# UGSオンラインスクール 要件定義書
+# Unicara Growth Salon 要件定義書
 
 ## 📋 目次
 

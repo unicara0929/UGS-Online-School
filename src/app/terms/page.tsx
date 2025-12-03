@@ -17,7 +17,7 @@ export default function TermsPage() {
               <section>
                 <h2 className="text-2xl font-semibold text-slate-900 mb-4">第1条（適用）</h2>
                 <p className="text-slate-700 leading-relaxed">
-                  本利用規約（以下「本規約」といいます。）は、UGSオンラインスクール（以下「当スクール」といいます。）が提供するオンライン学習サービス（以下「本サービス」といいます。）の利用条件を定めるものです。登録ユーザーの皆さま（以下「ユーザー」といいます。）には、本規約に従って、本サービスをご利用いただきます。
+                  本利用規約（以下「本規約」といいます。）は、Unicara Growth Salon（以下「当スクール」といいます。）が提供するオンライン学習サービス（以下「本サービス」といいます。）の利用条件を定めるものです。登録ユーザーの皆さま（以下「ユーザー」といいます。）には、本規約に従って、本サービスをご利用いただきます。
                 </p>
               </section>
 
@@ -224,7 +224,7 @@ export default function TermsPage() {
                 </p>
                 <div className="mt-4">
                   <p className="text-slate-700">
-                    <strong>UGSオンラインスクール</strong><br />
+                    <strong>Unicara Growth Salon</strong><br />
                     Email: support@ugs-online-school.com<br />
                     受付時間: 平日 9:00-18:00
                   </p>

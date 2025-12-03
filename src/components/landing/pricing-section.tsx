@@ -20,7 +20,7 @@ export function PricingSection() {
         <div className="max-w-md mx-auto">
           <Card className="border-2 border-slate-700">
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl">UGSオンラインスクール</CardTitle>
+              <CardTitle className="text-2xl">Unicara Growth Salon</CardTitle>
               <CardDescription>全機能利用可能</CardDescription>
               <div className="mt-4">
                 <span className="text-4xl font-bold text-slate-900">¥5,500</span>
