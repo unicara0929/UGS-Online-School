@@ -33,28 +33,35 @@ export async function findOrCreateSupabaseUser(
   if (existingUser) {
     console.log('Found existing Supabase user:', { userId: existingUser.id, email })
 
-    // 既存ユーザーが見つかった場合、プレーンパスワードであればパスワードを更新する
-    if (isPlainPassword) {
-      try {
-        await supabaseAdmin.auth.admin.updateUserById(existingUser.id, {
-          password: password,
-          user_metadata: {
-            ...existingUser.user_metadata,
-            name,
-            requiresPasswordReset: false
-          }
-        })
-        console.log('✅ Updated existing Supabase user password with plain password:', { userId: existingUser.id, email })
-      } catch (updateError: any) {
-        console.error('Failed to update existing user password:', updateError)
-        throw new Error(`既存ユーザーのパスワード更新に失敗しました: ${updateError.message}`)
+    // 既存ユーザーが見つかった場合、パスワードと名前を更新する（再登録対応）
+    try {
+      const updateData: { password?: string; user_metadata: Record<string, unknown> } = {
+        user_metadata: {
+          ...existingUser.user_metadata,
+          name,  // 常に新しい名前で更新
+          requiresPasswordReset: !isPlainPassword
+        }
       }
-    } else {
-      console.warn('⚠️ Existing user found but hashed password provided - password not updated')
-      console.warn('⚠️ User may need to reset password. Email:', email)
+
+      // プレーンパスワードの場合のみパスワードも更新
+      if (isPlainPassword) {
+        updateData.password = password
+      }
+
+      await supabaseAdmin.auth.admin.updateUserById(existingUser.id, updateData)
+      console.log('✅ Updated existing Supabase user:', {
+        userId: existingUser.id,
+        email,
+        nameUpdated: existingUser.user_metadata?.name !== name,
+        passwordUpdated: isPlainPassword
+      })
+    } catch (updateError: any) {
+      console.error('Failed to update existing user:', updateError)
+      throw new Error(`既存ユーザーの更新に失敗しました: ${updateError.message}`)
     }
 
-    return { user: existingUser }
+    // 更新後のユーザー情報を返す（名前が更新されている）
+    return { user: { ...existingUser, user_metadata: { ...existingUser.user_metadata, name } } }
   }
 
   // 新規ユーザーを作成
@@ -107,6 +114,7 @@ export async function findOrCreateSupabaseUser(
 
 /**
  * Prismaユーザーの作成または取得
+ * 既存ユーザーの場合は名前を更新する（再登録対応）
  */
 export async function findOrCreatePrismaUser(
   supabaseUserId: string,
@@ -118,6 +126,15 @@ export async function findOrCreatePrismaUser(
   })
 
   if (existingPrismaUser) {
+    // 既存ユーザーの場合、名前が異なれば更新する（再登録時に新しい名前を反映）
+    if (existingPrismaUser.name !== name) {
+      const updatedUser = await prisma.user.update({
+        where: { id: supabaseUserId },
+        data: { name }
+      })
+      console.log('Updated existing Prisma user name:', { userId: updatedUser.id, email, oldName: existingPrismaUser.name, newName: name })
+      return updatedUser
+    }
     console.log('Using existing Prisma user:', { userId: existingPrismaUser.id, email })
     return existingPrismaUser
   }
