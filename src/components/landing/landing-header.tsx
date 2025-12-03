@@ -14,7 +14,7 @@ export function LandingPageHeader() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-3">
             {markError ? (
-              <div className="w-7 h-7 rounded bg-primary-500 text-white text-xs flex items-center justify-center">UG</div>
+              <div className="w-7 h-7 rounded bg-slate-800 text-white text-xs flex items-center justify-center">UG</div>
             ) : (
               // eslint-disable-next-line @next/next/no-img-element
               <img 
