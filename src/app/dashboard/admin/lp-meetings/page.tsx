@@ -366,7 +366,7 @@ function AdminLPMeetingsPageContent() {
         <main className="px-4 sm:px-6 lg:px-8 py-8">
           <div className="space-y-6">
             {/* 統計情報 */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium">総数</CardTitle>
@@ -426,15 +426,15 @@ function AdminLPMeetingsPageContent() {
                         key={meeting.id}
                         className="p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
                       >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-2">
-                              <Users className="h-4 w-4 text-slate-600" />
+                        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                              <Users className="h-4 w-4 text-slate-600 flex-shrink-0" />
                               <p className="font-medium text-slate-900">{meeting.member?.name}</p>
-                              <span className="text-sm text-slate-500">({meeting.member?.email})</span>
+                              <span className="text-sm text-slate-500 break-all">({meeting.member?.email})</span>
                             </div>
-                            <div className="flex items-center space-x-2 mb-3">
-                              <MapPin className="h-4 w-4 text-slate-600" />
+                            <div className="flex flex-wrap items-center gap-2 mb-3">
+                              <MapPin className="h-4 w-4 text-slate-600 flex-shrink-0" />
                               <span className="text-sm font-medium text-slate-700">希望場所:</span>
                               {getMeetingLocationBadge(meeting.meetingLocation)}
                             </div>
@@ -494,6 +494,7 @@ function AdminLPMeetingsPageContent() {
                               setSelectedMeeting(meeting)
                               setShowScheduleForm(true)
                             }}
+                            className="w-full lg:w-auto flex-shrink-0"
                           >
                             面談を確定
                           </Button>
@@ -635,10 +636,10 @@ function AdminLPMeetingsPageContent() {
                         key={meeting.id}
                         className="p-4 border border-slate-200 rounded-lg"
                       >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-2">
-                              <Users className="h-4 w-4 text-slate-600" />
+                        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                              <Users className="h-4 w-4 text-slate-600 flex-shrink-0" />
                               <p className="font-medium text-slate-900">{meeting.member?.name}</p>
                               {getStatusBadge(meeting.status)}
                               {getMeetingLocationBadge(meeting.meetingLocation)}
@@ -706,12 +707,12 @@ function AdminLPMeetingsPageContent() {
                               </div>
                             )}
                           </div>
-                          <div className="flex flex-col space-y-2 ml-4">
+                          <div className="flex flex-row lg:flex-col gap-2 flex-shrink-0">
                             <Button
                               size="sm"
                               onClick={() => handleComplete(meeting)}
                               disabled={isSubmitting}
-                              className="bg-green-600 hover:bg-green-700"
+                              className="bg-green-600 hover:bg-green-700 flex-1 lg:flex-initial"
                             >
                               <CheckCircle className="h-4 w-4 mr-1" />
                               完了
@@ -721,7 +722,7 @@ function AdminLPMeetingsPageContent() {
                               variant="outline"
                               onClick={() => handleCancel(meeting)}
                               disabled={isSubmitting}
-                              className="text-red-600 border-red-300 hover:bg-red-50"
+                              className="text-red-600 border-red-300 hover:bg-red-50 flex-1 lg:flex-initial"
                             >
                               <Ban className="h-4 w-4 mr-1" />
                               キャンセル
@@ -731,7 +732,7 @@ function AdminLPMeetingsPageContent() {
                               variant="outline"
                               onClick={() => handleNoShow(meeting)}
                               disabled={isSubmitting}
-                              className="text-orange-600 border-orange-300 hover:bg-orange-50"
+                              className="text-orange-600 border-orange-300 hover:bg-orange-50 flex-1 lg:flex-initial"
                             >
                               <UserX className="h-4 w-4 mr-1" />
                               ノーショー
