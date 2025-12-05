@@ -58,6 +58,10 @@ export async function sendFPPromotionApprovedEmail(params: {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const loginPageUrl = `${appUrl}/login`
   const dashboardLink = `${appUrl}/dashboard`
+  const profileSettingsLink = `${appUrl}/dashboard/settings/profile`
+
+  // Adobe Sign 業務委託契約書の署名フォームリンク
+  const contractSignUrl = process.env.ADOBE_SIGN_CONTRACT_URL || ''
 
   const subject = '【Unicara Growth Salon】FPエイド昇格のお知らせとご案内'
 
@@ -85,11 +89,51 @@ export async function sendFPPromotionApprovedEmail(params: {
 
     <div style="border-top: 2px solid #cbd5e1; margin: 30px 0;"></div>
 
-    <h2 style="color: #1e40af; font-size: 18px; margin-bottom: 15px;">■ 今後の流れについて</h2>
+    <h2 style="color: #dc2626; font-size: 18px; margin-bottom: 15px;">■ 【重要】必須手続きのご案内</h2>
 
     <p style="margin-bottom: 15px;">
-      FPエイドとして活動をスタートしていただく前に、<br>
-      以下の<strong>3つのステップ</strong>を完了していただく必要があります。
+      FPエイドとして活動を開始する前に、<br>
+      以下の<strong style="color: #dc2626;">2つの手続き</strong>を完了してください。
+    </p>
+
+    <div style="background-color: #fef2f2; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #fecaca;">
+      <p style="margin: 0 0 10px 0; font-weight: bold; color: #dc2626;">【必須1】業務委託契約書への署名</p>
+      <p style="margin: 0 0 15px 0; font-size: 14px; color: #7f1d1d;">
+        FPエイドとして活動するためには、業務委託契約書への署名が必要です。<br>
+        以下のリンクから電子署名をお願いいたします。
+      </p>
+      ${contractSignUrl ? `
+      <div style="text-align: center;">
+        <a href="${contractSignUrl}" style="display: inline-block; background-color: #dc2626; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 14px;">
+          業務委託契約書に署名する
+        </a>
+      </div>
+      ` : `
+      <p style="margin: 0; font-size: 14px; color: #7f1d1d; background-color: #fee2e2; padding: 10px; border-radius: 4px;">
+        ※署名フォームのリンクは別途ご連絡いたします。
+      </p>
+      `}
+    </div>
+
+    <div style="background-color: #fef2f2; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #fecaca;">
+      <p style="margin: 0 0 10px 0; font-weight: bold; color: #dc2626;">【必須2】身分証明書のアップロード</p>
+      <p style="margin: 0 0 15px 0; font-size: 14px; color: #7f1d1d;">
+        本人確認のため、身分証明書（運転免許証・マイナンバーカード等）の画像をアップロードしてください。<br>
+        UGSにログイン後、プロフィール設定画面からアップロードできます。
+      </p>
+      <div style="text-align: center;">
+        <a href="${profileSettingsLink}" style="display: inline-block; background-color: #dc2626; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 14px;">
+          身分証をアップロードする
+        </a>
+      </div>
+    </div>
+
+    <div style="border-top: 2px solid #cbd5e1; margin: 30px 0;"></div>
+
+    <h2 style="color: #1e40af; font-size: 18px; margin-bottom: 15px;">■ オンボーディングステップ</h2>
+
+    <p style="margin-bottom: 15px;">
+      上記の必須手続き完了後、以下の<strong>3つのステップ</strong>を完了してください。
     </p>
 
     <div style="background-color: #e0f2fe; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
@@ -119,19 +163,14 @@ export async function sendFPPromotionApprovedEmail(params: {
     <ol style="margin-bottom: 15px; padding-left: 20px;">
       <li>下記のボタン、またはURLからUGSにアクセス</li>
       <li>ログイン（※登録メールアドレス：${userEmail}）</li>
-      <li>ログイン後、自動的に最初のステップが表示されます</li>
+      <li>画面上部のバナーからオンボーディングを開始できます</li>
     </ol>
 
     <div style="text-align: center; margin: 30px 0;">
       <a href="${dashboardLink}" style="display: inline-block; background-color: #1e40af; color: #ffffff; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">
-        FPエイドオンボーディングを開始
+        UGSにログインする
       </a>
     </div>
-
-    <p style="margin-bottom: 15px; font-size: 14px; color: #64748b;">
-      ※ログインしていない場合は、先にログイン画面が表示されます。<br>
-      　ログイン完了後、自動的にオンボーディングページへ遷移します。
-    </p>
 
     <div style="border-top: 2px solid #cbd5e1; margin: 30px 0;"></div>
 
@@ -178,11 +217,26 @@ Unicara Growth Salon事務局です。
 「FPエイド」への昇格が承認されましたのでお知らせいたします。
 おめでとうございます！
 
+════════════════════════════════
+■【重要】必須手続きのご案内
+════════════════════════════════
+
+FPエイドとして活動を開始する前に、
+以下の2つの手続きを完了してください。
+
+【必須1】業務委託契約書への署名
+FPエイドとして活動するためには、業務委託契約書への署名が必要です。
+${contractSignUrl ? `以下のリンクから電子署名をお願いいたします。\n署名フォーム: ${contractSignUrl}` : '※署名フォームのリンクは別途ご連絡いたします。'}
+
+【必須2】身分証明書のアップロード
+本人確認のため、身分証明書（運転免許証・マイナンバーカード等）の
+画像をアップロードしてください。
+アップロードURL: ${profileSettingsLink}
+
 ────────────────────
-■ 今後の流れについて
+■ オンボーディングステップ
 ────────────────────
-FPエイドとして活動をスタートしていただく前に、
-以下の3つのステップを完了していただく必要があります。
+上記の必須手続き完了後、以下の3つのステップを完了してください。
 
 【STEP 1】マネージャー連絡先の登録
 担当マネージャーの電話番号とLINE IDを登録してください。
@@ -190,6 +244,7 @@ FPエイドとして活動をスタートしていただく前に、
 【STEP 2】コンプライアンステストの受験
 FPエイドとして活動するために必要なコンプライアンス知識を
 テストで確認します。合格するまで次のステップに進めません。
+合格ライン：90%以上
 
 【STEP 3】ガイダンス動画の視聴
 FPエイドの役割、活動の進め方、報酬ルールなどを解説した
@@ -200,16 +255,14 @@ FPエイドの役割、活動の進め方、報酬ルールなどを解説した
 利用できるようになります。
 
 ────────────────────
-■ オンボーディングの開始方法
+■ 開始方法
 ────────────────────
 1. 下記URLからUGSにアクセス
 2. ログイン（※登録メールアドレス：${userEmail}）
-3. ログイン後、自動的にオンボーディング画面が表示されます
+3. 画面上部のバナーからオンボーディングを開始できます
 
 【UGSにログインする】
 ${dashboardLink}
-
-※ログインしていない場合は、先にログイン画面が表示されます。
 
 ────────────────────
 ■ ログイン情報の確認
