@@ -27,7 +27,7 @@ export function HeroSection() {
                 </Button>
               </Link>
               <Link href="/login">
-                <Button variant="outline" size="lg" className="w-full sm:w-auto border-white text-white hover:bg-white hover:text-slate-900">
+                <Button variant="outline" size="lg" className="w-full sm:w-auto bg-white/10 border-white text-white hover:bg-white hover:text-slate-900">
                   既にアカウントをお持ちの方
                 </Button>
               </Link>

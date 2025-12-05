@@ -15,7 +15,7 @@ export function LandingFooter() {
             <Link href="/lp" className="text-slate-400 hover:text-white">
               ホーム
             </Link>
-            <Link href="/login" className="text-slate-400 hover:text-white">
+            <Link href="/login" className="text-white hover:text-slate-300">
               ログイン
             </Link>
             <Link href="/register" className="text-slate-400 hover:text-white">
