@@ -235,29 +235,29 @@ export function FPPromotion() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <Award className="h-5 w-5 mr-2" />
+      <CardHeader className="p-4 sm:p-6">
+        <CardTitle className="flex items-center text-base sm:text-lg">
+          <Award className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
           FPエイド昇格
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-xs sm:text-sm">
           FPエイド昇格に必要な条件を確認し、申請を行います
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
+      <CardContent className="p-4 sm:p-6 pt-0">
+        <div className="space-y-4 sm:space-y-6">
           {/* 昇格条件 */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">昇格条件</h3>
-            <div className="space-y-4">
-              <div className="p-4 border border-slate-200 rounded-xl">
-                <div className="flex items-start gap-3">
-                  <MessageSquare className="h-5 w-5 text-slate-600 flex-shrink-0 mt-0.5" />
+            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">昇格条件</h3>
+            <div className="space-y-3 sm:space-y-4">
+              <div className="p-3 sm:p-4 border border-slate-200 rounded-xl">
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600 flex-shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                       <div>
-                        <h4 className="font-medium">LP面談完了</h4>
-                        <p className="text-sm text-slate-600">ライフプランナーとの面談を完了する</p>
+                        <h4 className="font-medium text-sm sm:text-base">LP面談完了</h4>
+                        <p className="text-xs sm:text-sm text-slate-600">ライフプランナーとの面談を完了する</p>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         {conditions.lpMeetingCompleted ? (
@@ -282,16 +282,16 @@ export function FPPromotion() {
                 </div>
               </div>
 
-              <div className="p-4 border border-slate-200 rounded-xl">
-                <div className="flex items-start gap-3">
-                  <Calendar className="h-5 w-5 text-slate-600 flex-shrink-0 mt-0.5" />
+              <div className="p-3 sm:p-4 border border-slate-200 rounded-xl">
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600 flex-shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                       <div>
-                        <h4 className="font-medium">アンケート提出</h4>
-                        <p className="text-sm text-slate-600">初回アンケート（10設問）を提出する</p>
+                        <h4 className="font-medium text-sm sm:text-base">アンケート提出</h4>
+                        <p className="text-xs sm:text-sm text-slate-600">初回アンケート（10設問）を提出する</p>
                         {!conditions.lpMeetingCompleted && (
-                          <p className="text-xs text-orange-600 mt-1">※ LP面談完了後に回答可能</p>
+                          <p className="text-[10px] sm:text-xs text-orange-600 mt-1">※ LP面談完了後に回答可能</p>
                         )}
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
@@ -322,13 +322,13 @@ export function FPPromotion() {
           </div>
 
           {/* 進捗サマリー */}
-          <div className="bg-slate-50 p-4 rounded-xl">
+          <div className="bg-slate-50 p-3 sm:p-4 rounded-xl">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium">昇格進捗</span>
-              <span className="text-sm text-slate-600">{completedCount}/2 完了</span>
+              <span className="text-xs sm:text-sm font-medium">昇格進捗</span>
+              <span className="text-xs sm:text-sm text-slate-600">{completedCount}/2 完了</span>
             </div>
             <Progress value={(completedCount / 2) * 100} className="h-2" />
-            <p className="text-xs text-slate-600 mt-2">
+            <p className="text-[10px] sm:text-xs text-slate-600 mt-2">
               全条件を満たすと昇格申請が可能になります
             </p>
           </div>
@@ -414,8 +414,8 @@ export function FPPromotion() {
           )}
 
           {/* 昇格申請 */}
-          <div className="border-t pt-6">
-            <h3 className="text-lg font-semibold mb-4">昇格申請</h3>
+          <div className="border-t pt-4 sm:pt-6">
+            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">昇格申請</h3>
 
             {/* 申請ボタン - 条件達成後、申請前のみ表示 */}
             {conditions.isEligible && !applicationStatus.hasApplication && (

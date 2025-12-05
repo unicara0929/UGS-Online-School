@@ -18,20 +18,20 @@ export function ActionNotifications({ notifications }: ActionNotificationsProps)
   }
 
   return (
-    <div className="mb-8">
+    <div className="mb-6 sm:mb-8">
       <Card className="border-red-200 bg-red-50">
-        <CardHeader>
-          <CardTitle className="text-red-800 flex items-center">
-            <Bell className="h-5 w-5 mr-2" />
+        <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-4">
+          <CardTitle className="text-red-800 flex items-center text-base sm:text-lg">
+            <Bell className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
             アクション必須
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 sm:p-6 pt-0">
           <div className="space-y-2">
             {actionNotifications.map(notification => (
-              <div key={notification.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-red-200">
-                <span className="text-red-800 font-medium">{notification.title}</span>
-                <Button size="sm">対応する</Button>
+              <div key={notification.id} className="flex items-center justify-between gap-2 p-2 sm:p-3 bg-white rounded-lg border border-red-200">
+                <span className="text-red-800 font-medium text-sm sm:text-base flex-1 min-w-0 truncate">{notification.title}</span>
+                <Button size="sm" className="flex-shrink-0 text-xs sm:text-sm h-7 sm:h-9 px-2 sm:px-3">対応する</Button>
               </div>
             ))}
           </div>
