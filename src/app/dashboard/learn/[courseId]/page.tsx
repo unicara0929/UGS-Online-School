@@ -455,36 +455,36 @@ function LearningPage() {
       <div className="flex-1 md:ml-64">
         {/* ヘッダー */}
         <header className="bg-white shadow-lg border-b border-slate-200">
-          <div className="px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div className="flex items-center space-x-4">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+          <div className="px-3 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-14 sm:h-16">
+              {/* 左側: 戻るボタンとタイトル */}
+              <div className="flex items-center gap-2 sm:gap-4 ml-10 md:ml-0 min-w-0 flex-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => router.push('/dashboard')}
+                  className="flex-shrink-0 h-8 px-2 sm:px-3"
                 >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  ダッシュボードに戻る
+                  <ArrowLeft className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">戻る</span>
                 </Button>
-                <div>
-                  <h1 className="text-xl font-bold text-slate-900">{course.title}</h1>
-                  <p className="text-sm text-slate-600">{course.description}</p>
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-sm sm:text-xl font-bold text-slate-900 truncate">{course.title}</h1>
+                  <p className="text-xs sm:text-sm text-slate-600 truncate hidden sm:block">{course.description}</p>
                 </div>
               </div>
-              <div className="flex items-center space-x-4">
-                <Button variant="ghost" size="icon">
-                  <Bell className="h-5 w-5" />
-                </Button>
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-medium">
+              {/* 右側: ユーザー情報 */}
+              <div className="flex items-center space-x-1 sm:space-x-4 flex-shrink-0">
+                <div className="flex items-center space-x-1 sm:space-x-2">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-slate-700 to-slate-800 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-xs sm:text-sm font-medium">
                       {user?.name.charAt(0)}
                     </span>
                   </div>
-                  <span className="text-sm font-medium text-slate-700">{user?.name}</span>
-                  <Button variant="ghost" size="sm" onClick={logout}>
-                    <LogOut className="h-4 w-4 mr-1" />
-                    ログアウト
+                  <span className="text-sm font-medium text-slate-700 hidden sm:block">{user?.name}</span>
+                  <Button variant="ghost" size="sm" onClick={logout} className="h-7 sm:h-8 px-1.5 sm:px-3">
+                    <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1" />
+                    <span className="hidden sm:inline">ログアウト</span>
                   </Button>
                 </div>
               </div>
@@ -492,31 +492,31 @@ function LearningPage() {
           </div>
         </header>
 
-        <main className="px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <main className="px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4">
             {/* レッスン一覧サイドバー */}
-            <div className="lg:col-span-3">
+            <div className="lg:col-span-3 order-2 lg:order-1">
               <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center text-sm">
-                    <BookOpen className="h-4 w-4 mr-2" />
+                <CardHeader className="p-3 sm:p-4 pb-2 sm:pb-3">
+                  <CardTitle className="flex items-center text-xs sm:text-sm">
+                    <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                     レッスン一覧
                   </CardTitle>
-                  <div className="flex items-center space-x-1">
-                    <Badge className={`${getCategoryColor(course.category)} text-xs`}>
+                  <div className="flex items-center space-x-1 flex-wrap gap-1">
+                    <Badge className={`${getCategoryColor(course.category)} text-[10px] sm:text-xs`}>
                       {getCategoryLabel(course.category)}
                     </Badge>
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-[10px] sm:text-xs">
                       {getLevelLabel(course.level)}
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="pt-0">
+                <CardContent className="p-3 sm:p-4 pt-0">
                   <div className="space-y-0.5">
                     {course.lessons.map((lesson, index) => (
                       <div
                         key={lesson.id}
-                        className={`p-1.5 rounded cursor-pointer transition-colors ${
+                        className={`p-1.5 sm:p-2 rounded cursor-pointer transition-colors ${
                           index === currentLessonIndex
                             ? 'bg-slate-700 text-white'
                             : lesson.isCompleted
@@ -536,9 +536,9 @@ function LearningPage() {
                             ) : (
                               <div className="h-3 w-3 border border-slate-300 rounded-full mr-1.5 flex-shrink-0" />
                             )}
-                            <span className="text-xs font-medium truncate">{lesson.title}</span>
+                            <span className="text-[10px] sm:text-xs font-medium truncate">{lesson.title}</span>
                           </div>
-                          <div className="flex items-center text-xs ml-1.5 flex-shrink-0">
+                          <div className="flex items-center text-[10px] sm:text-xs ml-1.5 flex-shrink-0">
                             <Clock className="h-2.5 w-2.5 mr-0.5" />
                             <span>{lesson.duration}分</span>
                           </div>
@@ -551,22 +551,22 @@ function LearningPage() {
             </div>
 
             {/* メイン学習エリア */}
-            <div className="lg:col-span-9">
+            <div className="lg:col-span-9 order-1 lg:order-2">
               {currentLesson && (
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {/* レッスンヘッダー */}
                   <Card>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <CardTitle className="text-2xl">{currentLesson.title}</CardTitle>
-                          <CardDescription className="text-base mt-2">
+                    <CardHeader className="p-3 sm:p-6">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <CardTitle className="text-base sm:text-2xl truncate">{currentLesson.title}</CardTitle>
+                          <CardDescription className="text-xs sm:text-base mt-1 sm:mt-2 line-clamp-2">
                             {currentLesson.description}
                           </CardDescription>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <Clock className="h-5 w-5 text-slate-500" />
-                          <span className="text-slate-600">{currentLesson.duration}分</span>
+                        <div className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0">
+                          <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-slate-500" />
+                          <span className="text-xs sm:text-base text-slate-600">{currentLesson.duration}分</span>
                         </div>
                       </div>
                     </CardHeader>
@@ -598,55 +598,58 @@ function LearningPage() {
                       )}
                       
                       {/* 動画コントロール */}
-                      <div className="p-4 bg-slate-50 border-t">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-4">
+                      <div className="p-3 sm:p-4 bg-slate-50 border-t">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+                          <div className="flex items-center space-x-2 sm:space-x-4">
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={handlePlayPause}
+                              className="h-8 text-xs sm:text-sm"
                             >
                               {isPlaying ? (
-                                <Pause className="h-4 w-4 mr-2" />
+                                <Pause className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                               ) : (
-                                <Play className="h-4 w-4 mr-2" />
+                                <Play className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                               )}
-                              {isPlaying ? '一時停止' : '再生'}
+                              {isPlaying ? '停止' : '再生'}
                             </Button>
-                            <Button variant="outline" size="sm">
-                              <RotateCcw className="h-4 w-4 mr-2" />
+                            <Button variant="outline" size="sm" className="h-8 text-xs sm:text-sm hidden sm:flex">
+                              <RotateCcw className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                               リセット
                             </Button>
                           </div>
-                          
-                          <div className="flex items-center space-x-4">
+
+                          <div className="flex items-center space-x-2 sm:space-x-4">
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={handlePreviousLesson}
                               disabled={currentLessonIndex === 0}
+                              className="h-8 text-xs sm:text-sm flex-1 sm:flex-none"
                             >
-                              <ArrowLeft className="h-4 w-4 mr-2" />
-                              前のレッスン
+                              <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
+                              <span className="hidden sm:inline">前へ</span>
                             </Button>
                             <Button
                               size="sm"
                               onClick={handleNextLesson}
                               disabled={currentLessonIndex === course.lessons.length - 1}
+                              className="h-8 text-xs sm:text-sm flex-1 sm:flex-none"
                             >
-                              次のレッスン
-                              <ArrowRight className="h-4 w-4 ml-2" />
+                              <span className="hidden sm:inline">次へ</span>
+                              <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:ml-2" />
                             </Button>
                           </div>
                         </div>
-                        
+
                         {/* 進捗バー */}
-                        <div className="mt-4">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm font-medium">進捗</span>
-                            <span className="text-sm text-slate-600">{lessonProgress}%</span>
+                        <div className="mt-3 sm:mt-4">
+                          <div className="flex justify-between items-center mb-1.5 sm:mb-2">
+                            <span className="text-xs sm:text-sm font-medium">進捗</span>
+                            <span className="text-xs sm:text-sm text-slate-600">{lessonProgress}%</span>
                           </div>
-                          <Progress value={lessonProgress} className="h-2" />
+                          <Progress value={lessonProgress} className="h-1.5 sm:h-2" />
                         </div>
                       </div>
                     </CardContent>
@@ -654,12 +657,12 @@ function LearningPage() {
 
                   {/* レッスン内容 */}
                   <Card>
-                    <CardHeader>
-                      <CardTitle>レッスン内容</CardTitle>
+                    <CardHeader className="p-3 sm:p-6">
+                      <CardTitle className="text-sm sm:text-lg">レッスン内容</CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="p-3 sm:p-6 pt-0">
                       <div className="prose max-w-none">
-                        <p className="text-slate-700 leading-relaxed">
+                        <p className="text-xs sm:text-base text-slate-700 leading-relaxed">
                           {currentLesson.content}
                         </p>
                       </div>
@@ -669,22 +672,22 @@ function LearningPage() {
                   {/* 教育コンテンツ・資料 */}
                   {currentLesson.materials && currentLesson.materials.length > 0 && (
                     <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center">
-                          <FileText className="h-5 w-5 mr-2" />
-                          教育コンテンツ・資料
+                      <CardHeader className="p-3 sm:p-6">
+                        <CardTitle className="flex items-center text-sm sm:text-lg">
+                          <FileText className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
+                          教材・資料
                         </CardTitle>
                       </CardHeader>
-                      <CardContent>
+                      <CardContent className="p-3 sm:p-6 pt-0">
                         <div className="space-y-2">
                           {currentLesson.materials.map((material, index) => (
-                            <div key={index} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                              <div className="flex items-center">
-                                <FileText className="h-4 w-4 mr-2 text-slate-500" />
-                                <span className="text-sm font-medium">{material}</span>
+                            <div key={index} className="flex items-center justify-between gap-2 p-2 sm:p-3 bg-slate-50 rounded-lg">
+                              <div className="flex items-center min-w-0 flex-1">
+                                <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 text-slate-500 flex-shrink-0" />
+                                <span className="text-xs sm:text-sm font-medium truncate">{material}</span>
                               </div>
-                              <Button variant="outline" size="sm">
-                                ダウンロード
+                              <Button variant="outline" size="sm" className="h-7 sm:h-8 text-xs sm:text-sm px-2 sm:px-3 flex-shrink-0">
+                                DL
                               </Button>
                             </div>
                           ))}
@@ -695,22 +698,23 @@ function LearningPage() {
 
                   {/* レッスン完了ボタン */}
                   <Card>
-                    <CardContent className="pt-6">
+                    <CardContent className="p-3 sm:p-6">
                       <div className="text-center">
-                        <Button 
-                          size="lg" 
+                        <Button
+                          size="sm"
                           onClick={handleCompleteLesson}
                           disabled={currentLesson.isCompleted}
+                          className="h-9 sm:h-10 text-xs sm:text-sm w-full sm:w-auto"
                         >
                           {currentLesson.isCompleted ? (
                             <>
-                              <CheckCircle className="h-5 w-5 mr-2" />
-                              レッスン完了済み
+                              <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
+                              完了済み
                             </>
                           ) : (
                             <>
-                              <CheckCircle className="h-5 w-5 mr-2" />
-                              レッスンを完了する
+                              <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
+                              レッスンを完了
                             </>
                           )}
                         </Button>
