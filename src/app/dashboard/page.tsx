@@ -12,6 +12,7 @@ import { ActionNotifications } from "@/components/dashboard/action-notifications
 import { DashboardStats } from "@/components/dashboard/dashboard-stats"
 import { UpcomingEvents } from "@/components/dashboard/upcoming-events"
 import { NotificationBar } from "@/components/NotificationBar"
+import { FPOnboardingBanner } from "@/components/dashboard/fp-onboarding-banner"
 import { useAuth } from "@/contexts/auth-context"
 import { Notification, Event } from "@/lib/types"
 
@@ -118,6 +119,9 @@ function Dashboard() {
       <div className="flex-1 md:ml-64">
         {/* ヘッダー */}
         <DashboardHeader />
+
+        {/* FPオンボーディングバナー */}
+        <FPOnboardingBanner />
 
         {/* 新着通知バー */}
         <NotificationBar />
