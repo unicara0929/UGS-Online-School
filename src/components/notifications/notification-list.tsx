@@ -191,13 +191,19 @@ export function NotificationList() {
           {unreadNotifications.map((notification) => (
             <Card
               key={notification.id}
-              className={`border-l-4 ${
+              className={`border-l-4 cursor-pointer transition-all hover:shadow-md ${
                 notification.priority === 'CRITICAL'
-                  ? 'border-l-red-500 bg-red-50/50'
+                  ? 'border-l-red-500 bg-red-50/50 hover:bg-red-50'
                   : notification.priority === 'SUCCESS'
-                  ? 'border-l-green-500 bg-green-50/50'
-                  : 'border-l-blue-500 bg-blue-50/50'
+                  ? 'border-l-green-500 bg-green-50/50 hover:bg-green-50'
+                  : 'border-l-blue-500 bg-blue-50/50 hover:bg-blue-50'
               }`}
+              onClick={() => {
+                markAsRead(notification.id)
+                if (notification.actionUrl) {
+                  window.open(notification.actionUrl, '_blank', 'noopener,noreferrer')
+                }
+              }}
             >
               <CardContent className="py-3 px-4">
                 <div className="flex items-center gap-3">
@@ -208,27 +214,18 @@ export function NotificationList() {
                       {getPriorityBadge(notification.priority)}
                       <span className="text-xs text-slate-500">{formatDateTime(new Date(notification.createdAt))}</span>
                     </div>
-                    <p className="text-sm text-slate-600 line-clamp-1 mt-0.5">{notification.message}</p>
+                    <p className="text-sm text-slate-600 line-clamp-2 mt-0.5">{notification.message}</p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    {notification.actionUrl && (
-                      <Button
-                        variant="link"
-                        size="sm"
-                        className="p-0 h-auto text-xs"
-                        onClick={() => {
-                          markAsRead(notification.id)
-                          window.open(notification.actionUrl!, '_blank', 'noopener,noreferrer')
-                        }}
-                      >
-                        詳細
-                      </Button>
-                    )}
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => markAsRead(notification.id)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        markAsRead(notification.id)
+                      }}
                       className="h-7 w-7 p-0"
+                      title="既読にする"
                     >
                       <CheckCircle className="h-4 w-4" />
                     </Button>
@@ -247,7 +244,14 @@ export function NotificationList() {
           {readNotifications.map((notification) => (
             <Card
               key={notification.id}
-              className="opacity-60 hover:opacity-100 transition-opacity"
+              className={`opacity-60 hover:opacity-100 transition-all hover:shadow-md ${
+                notification.actionUrl ? 'cursor-pointer' : ''
+              }`}
+              onClick={() => {
+                if (notification.actionUrl) {
+                  window.open(notification.actionUrl, '_blank', 'noopener,noreferrer')
+                }
+              }}
             >
               <CardContent className="py-3 px-4">
                 <div className="flex items-center gap-3">
@@ -258,21 +262,9 @@ export function NotificationList() {
                       {getPriorityBadge(notification.priority)}
                       <span className="text-xs text-slate-500">{formatDateTime(new Date(notification.createdAt))}</span>
                     </div>
-                    <p className="text-sm text-slate-600 line-clamp-1 mt-0.5">{notification.message}</p>
+                    <p className="text-sm text-slate-600 line-clamp-2 mt-0.5">{notification.message}</p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    {notification.actionUrl && (
-                      <Button
-                        variant="link"
-                        size="sm"
-                        className="p-0 h-auto text-xs"
-                        onClick={() => {
-                          window.open(notification.actionUrl!, '_blank', 'noopener,noreferrer')
-                        }}
-                      >
-                        詳細
-                      </Button>
-                    )}
                     <CheckCircle className="h-4 w-4 text-green-600" />
                   </div>
                 </div>
