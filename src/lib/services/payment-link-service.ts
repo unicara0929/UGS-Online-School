@@ -43,7 +43,7 @@ export async function createPaymentLink(
       console.log(`  ⚠️ 価格が見つからないため新規作成中...`)
       const product = await stripe.products.create({
         name: 'Unicara Growth Salon 月額プラン',
-        description: '学び → 実践 → 自立を一体化したFP育成プラットフォーム',
+        description: '"勉強だけで終わらない"「お金の知識×稼げる力」がコンセプトのビジネスコミュニティ',
       })
 
       const price = await stripe.prices.create({

@@ -98,7 +98,7 @@ export async function sendPaymentConfirmationEmail(data: PaymentConfirmationEmai
           
           <div class="footer">
             <p>Unicara Growth Salon</p>
-            <p>学び → 実践 → 自立を一体化したFP育成プラットフォーム</p>
+            <p>"勉強だけで終わらない"「お金の知識×稼げる力」がコンセプトのビジネスコミュニティ</p>
           </div>
         </div>
       </body>
@@ -201,7 +201,7 @@ export async function sendPaymentFailedEmail(data: PaymentFailedEmailData) {
           
           <div class="footer">
             <p>Unicara Growth Salon</p>
-            <p>学び → 実践 → 自立を一体化したFP育成プラットフォーム</p>
+            <p>"勉強だけで終わらない"「お金の知識×稼げる力」がコンセプトのビジネスコミュニティ</p>
           </div>
         </div>
       </body>
@@ -287,7 +287,7 @@ export async function sendSubscriptionCancelledEmail(data: SubscriptionCancelled
           
           <div class="footer">
             <p>Unicara Growth Salon</p>
-            <p>学び → 実践 → 自立を一体化したFP育成プラットフォーム</p>
+            <p>"勉強だけで終わらない"「お金の知識×稼げる力」がコンセプトのビジネスコミュニティ</p>
           </div>
         </div>
       </body>
