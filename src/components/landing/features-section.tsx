@@ -25,7 +25,7 @@ const features: Feature[] = [
   {
     icon: TrendingUp,
     title: "実践的な成長フロー",
-    description: "学び → 実践 → 自立を一体化したFP育成システム"
+    description: "「お金の知識×稼げる力」を身につける独自の成長フロー"
   },
   {
     icon: DollarSign,

@@ -75,7 +75,7 @@ export function LoginForm() {
             </CardTitle>
           </div>
           <CardDescription className="text-sm text-slate-600 pt-2">
-            学び → 実践 → 自立を一体化したFP育成プラットフォーム
+            "勉強だけで終わらない"「お金の知識×稼げる力」がコンセプトのビジネスコミュニティ
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">

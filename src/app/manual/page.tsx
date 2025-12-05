@@ -68,7 +68,7 @@ export default function ManualPage() {
           <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
             <h4 className="font-semibold text-primary-900 mb-2">Unicara Growth Salonとは</h4>
             <p className="text-primary-800">
-              Unicara Growth Salonは、「学び → 実践 → 自立」を一体化したFP育成プラットフォームです。
+              Unicara Growth Salonは、"勉強だけで終わらない"「お金の知識×稼げる力」がコンセプトのビジネスコミュニティです。
               教育コンテンツで金融知識を学び、FPエイドとして活動することで収益を得ることができます。
             </p>
           </div>

@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
         
         const product = await stripe.products.create({
           name: 'Unicara Growth Salon 月額プラン',
-          description: '学び → 実践 → 自立を一体化したFP育成プラットフォーム',
+          description: '"勉強だけで終わらない"「お金の知識×稼げる力」がコンセプトのビジネスコミュニティ',
         })
         console.log(`✅ Created new product: ${product.id}`)
         

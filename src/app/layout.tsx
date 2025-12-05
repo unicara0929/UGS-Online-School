@@ -11,7 +11,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Unicara Growth Salon",
-  description: "学び → 実践 → 自立を一体化したFP育成プラットフォーム",
+  description: "\"勉強だけで終わらない\" 「お金の知識×稼げる力」がコンセプトのビジネスコミュニティ",
 };
 
 export default function RootLayout({

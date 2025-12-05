@@ -9,7 +9,7 @@ export function LandingFooter() {
         <div className="text-center">
           <h3 className="text-2xl font-bold mb-4">Unicara Growth Salon</h3>
           <p className="text-slate-400 mb-4">
-            学び → 実践 → 自立を一体化したFP育成プラットフォーム
+            "勉強だけで終わらない"「お金の知識×稼げる力」がコンセプトのビジネスコミュニティ
           </p>
           <div className="flex justify-center space-x-6">
             <Link href="/lp" className="text-slate-400 hover:text-white">
