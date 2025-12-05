@@ -158,7 +158,7 @@ export function Sidebar() {
           {/* ユーザー情報 */}
           <div className="p-4 border-b border-slate-200 bg-slate-50/50">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center shadow-md overflow-hidden flex-shrink-0">
+              <div className="w-10 h-10 bg-gradient-to-br from-slate-700 to-slate-800 rounded-full flex items-center justify-center shadow-md overflow-hidden flex-shrink-0">
                 {profileImage ? (
                   <Image
                     src={profileImage}
