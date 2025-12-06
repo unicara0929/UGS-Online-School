@@ -8,86 +8,22 @@ import { CompensationDashboard } from "@/components/dashboard/compensation-dashb
 import { CourseList } from "@/components/courses/course-list"
 import { FPPromotion } from "@/components/promotion/fp-promotion"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { ActionNotifications } from "@/components/dashboard/action-notifications"
 import { DashboardStats } from "@/components/dashboard/dashboard-stats"
 import { UpcomingEvents } from "@/components/dashboard/upcoming-events"
 import { NotificationBar } from "@/components/NotificationBar"
 import { FPOnboardingBanner } from "@/components/dashboard/fp-onboarding-banner"
 import { useAuth } from "@/contexts/auth-context"
-import { Notification, Event } from "@/lib/types"
+import { Event } from "@/lib/types"
 
 function Dashboard() {
   const { user } = useAuth()
-  const [notifications, setNotifications] = useState<Notification[]>([])
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([])
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (user?.id) {
-      fetchFPPromotionStatus()
       fetchUpcomingEvents()
     }
   }, [user?.id])
-
-  const fetchFPPromotionStatus = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch(`/api/user/fp-promotion-status?userId=${user?.id}`, {
-        credentials: 'include'
-      })
-      if (!response.ok) {
-        throw new Error('FP昇格申請状態の取得に失敗しました')
-      }
-      const data = await response.json()
-
-      // FP昇格申請済みで未完了項目がある場合のみアクションを生成
-      if (data.hasApplication && data.pendingActions.length > 0) {
-        const actionNotifications: Notification[] = []
-
-        if (data.pendingActions.includes('lpMeeting')) {
-          actionNotifications.push({
-            id: 'fp-promotion-lp-meeting',
-            title: 'LP面談の予約をお願いします',
-            message: '',
-            type: 'action',
-            isRead: false,
-            createdAt: new Date()
-          })
-        }
-
-        if (data.pendingActions.includes('basicTest')) {
-          actionNotifications.push({
-            id: 'fp-promotion-basic-test',
-            title: '基礎編テストが利用可能です',
-            message: '',
-            type: 'action',
-            isRead: false,
-            createdAt: new Date()
-          })
-        }
-
-        if (data.pendingActions.includes('survey')) {
-          actionNotifications.push({
-            id: 'fp-promotion-survey',
-            title: 'アンケートの提出をお願いします',
-            message: '',
-            type: 'action',
-            isRead: false,
-            createdAt: new Date()
-          })
-        }
-
-        setNotifications(actionNotifications)
-      } else {
-        setNotifications([])
-      }
-    } catch (error) {
-      console.error('Error fetching FP promotion status:', error)
-      setNotifications([])
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const fetchUpcomingEvents = async () => {
     try {
@@ -128,9 +64,6 @@ function Dashboard() {
 
         <main className="px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
           <div className="space-y-6 sm:space-y-8">
-            {/* アクション必須通知 */}
-            {!loading && <ActionNotifications notifications={notifications} />}
-
             {/* ダッシュボード統計 */}
             <DashboardStats userRole={user?.role || 'member'} />
 
