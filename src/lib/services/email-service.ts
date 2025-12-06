@@ -58,7 +58,6 @@ export async function sendFPPromotionApprovedEmail(params: {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const loginPageUrl = `${appUrl}/login`
   const dashboardLink = `${appUrl}/dashboard`
-  const profileSettingsLink = `${appUrl}/dashboard/settings/profile`
 
   // Adobe Sign 業務委託契約書の署名フォームリンク
   const contractSignUrl = process.env.ADOBE_SIGN_CONTRACT_URL || ''
@@ -93,11 +92,11 @@ export async function sendFPPromotionApprovedEmail(params: {
 
     <p style="margin-bottom: 15px;">
       FPエイドとして活動を開始する前に、<br>
-      以下の<strong style="color: #dc2626;">2つの手続き</strong>を完了してください。
+      以下の<strong style="color: #dc2626;">手続き</strong>を完了してください。
     </p>
 
     <div style="background-color: #fef2f2; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #fecaca;">
-      <p style="margin: 0 0 10px 0; font-weight: bold; color: #dc2626;">【必須1】業務委託契約書への署名</p>
+      <p style="margin: 0 0 10px 0; font-weight: bold; color: #dc2626;">【必須】業務委託契約書への署名</p>
       <p style="margin: 0 0 15px 0; font-size: 14px; color: #7f1d1d;">
         FPエイドとして活動するためには、業務委託契約書への署名が必要です。<br>
         以下のリンクから電子署名をお願いいたします。
@@ -115,18 +114,6 @@ export async function sendFPPromotionApprovedEmail(params: {
       `}
     </div>
 
-    <div style="background-color: #fef2f2; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #fecaca;">
-      <p style="margin: 0 0 10px 0; font-weight: bold; color: #dc2626;">【必須2】身分証明書のアップロード</p>
-      <p style="margin: 0 0 15px 0; font-size: 14px; color: #7f1d1d;">
-        本人確認のため、身分証明書（運転免許証・マイナンバーカード等）の画像をアップロードしてください。<br>
-        UGSにログイン後、プロフィール設定画面からアップロードできます。
-      </p>
-      <div style="text-align: center;">
-        <a href="${profileSettingsLink}" style="display: inline-block; background-color: #dc2626; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 14px;">
-          身分証をアップロードする
-        </a>
-      </div>
-    </div>
 
     <div style="border-top: 2px solid #cbd5e1; margin: 30px 0;"></div>
 
@@ -222,16 +209,11 @@ Unicara Growth Salon事務局です。
 ════════════════════════════════
 
 FPエイドとして活動を開始する前に、
-以下の2つの手続きを完了してください。
+以下の手続きを完了してください。
 
-【必須1】業務委託契約書への署名
+【必須】業務委託契約書への署名
 FPエイドとして活動するためには、業務委託契約書への署名が必要です。
 ${contractSignUrl ? `以下のリンクから電子署名をお願いいたします。\n署名フォーム: ${contractSignUrl}` : '※署名フォームのリンクは別途ご連絡いたします。'}
-
-【必須2】身分証明書のアップロード
-本人確認のため、身分証明書（運転免許証・マイナンバーカード等）の
-画像をアップロードしてください。
-アップロードURL: ${profileSettingsLink}
 
 ────────────────────
 ■ オンボーディングステップ
