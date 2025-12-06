@@ -66,13 +66,18 @@ export async function createPromotionApprovedNotification(
   userId: string,
   targetRole: string
 ): Promise<void> {
+  // FPエイド昇格の場合はオンボーディングページへ、それ以外はダッシュボードへ
+  const actionUrl = targetRole === 'FPエイド'
+    ? '/dashboard/fp-onboarding'
+    : '/dashboard'
+
   await createNotification(
     userId,
     NotificationType.PROMOTION_APPROVED,
     NotificationPriority.SUCCESS,
     '昇格が承認されました',
     `${targetRole}への昇格が承認されました。おめでとうございます！`,
-    '/dashboard'
+    actionUrl
   )
 }
 

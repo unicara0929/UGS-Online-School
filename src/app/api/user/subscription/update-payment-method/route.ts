@@ -27,40 +27,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // カード更新専用のBilling Portal Configurationを作成
-    const configuration = await stripe.billingPortal.configurations.create({
-      business_profile: {
-        headline: 'お支払い方法の更新',
-      },
-      features: {
-        payment_method_update: {
-          enabled: true,
-        },
-        // 以下の機能を全て無効化
-        subscription_cancel: {
-          enabled: false,
-        },
-        subscription_update: {
-          enabled: false,
-        },
-        invoice_history: {
-          enabled: false,
-        },
-        customer_update: {
-          enabled: false,
-          allowed_updates: [],
-        },
-      },
-    })
-
-    // Stripe Customer Portalセッションを作成（支払い方法更新のみに制限）
+    // Stripe Customer Portalセッションを作成（デフォルト設定を使用）
+    // 注意: Stripeダッシュボードで Customer Portal を事前に設定する必要があります
+    // https://dashboard.stripe.com/settings/billing/portal
     const session = await stripe.billingPortal.sessions.create({
       customer: subscription.stripeCustomerId,
       return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings/subscription`,
-      configuration: configuration.id,
-      flow_data: {
-        type: 'payment_method_update',
-      },
     })
 
     return NextResponse.json({
@@ -69,8 +41,17 @@ export async function POST(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('Create portal session error:', error)
+
+    // より詳細なエラーメッセージ
+    let errorMessage = 'カード情報更新ページの作成に失敗しました'
+    if (error.code === 'resource_missing') {
+      errorMessage = 'Stripeの設定が必要です。管理者にお問い合わせください。'
+    } else if (error.message) {
+      console.error('Stripe error details:', error.message)
+    }
+
     return NextResponse.json(
-      { error: 'カード情報更新ページの作成に失敗しました' },
+      { error: errorMessage },
       { status: 500 }
     )
   }
