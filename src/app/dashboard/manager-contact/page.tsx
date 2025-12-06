@@ -28,11 +28,39 @@ export default function ManagerContactPage() {
   const [lineId, setLineId] = useState('')
   const [isAlreadyConfirmed, setIsAlreadyConfirmed] = useState(false)
 
-  // FPエイドでない場合はダッシュボードにリダイレクト
+  // FPエイドまたはFP昇格承認済みでない場合はダッシュボードにリダイレクト
+  const [canAccess, setCanAccess] = useState<boolean | null>(null)
+
   useEffect(() => {
-    if (user && user.role !== 'fp') {
+    const checkAccess = async () => {
+      if (!user) return
+
+      // FPロールの場合はアクセス可
+      if (user.role === 'fp') {
+        setCanAccess(true)
+        return
+      }
+
+      // FP昇格承認済みかチェック
+      try {
+        const response = await authenticatedFetch('/api/user/fp-onboarding-status')
+        if (response.ok) {
+          const data = await response.json()
+          if (data.fpPromotionApproved) {
+            setCanAccess(true)
+            return
+          }
+        }
+      } catch (error) {
+        console.error('Error checking FP promotion status:', error)
+      }
+
+      // アクセス不可 → ダッシュボードへ
+      setCanAccess(false)
       router.push('/dashboard')
     }
+
+    checkAccess()
   }, [user, router])
 
   // 既存の連絡先情報を取得
@@ -99,7 +127,7 @@ export default function ManagerContactPage() {
     router.push('/dashboard/compliance-test')
   }
 
-  if (isLoading) {
+  if (isLoading || canAccess === null) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center">
@@ -108,6 +136,11 @@ export default function ManagerContactPage() {
         </div>
       </div>
     )
+  }
+
+  // アクセス権がない場合は何も表示しない（リダイレクト中）
+  if (!canAccess) {
+    return null
   }
 
   return (
