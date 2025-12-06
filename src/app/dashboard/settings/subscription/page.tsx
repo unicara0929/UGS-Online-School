@@ -320,7 +320,7 @@ function SubscriptionManagementPage() {
                     )}
 
                     {/* 現在の期間 */}
-                    {subscription.stripeDetails && (
+                    {subscription.stripeDetails && subscription.stripeDetails.currentPeriodStart && subscription.stripeDetails.currentPeriodEnd && (
                       <>
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-medium text-slate-700">現在の期間</span>

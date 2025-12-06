@@ -40,25 +40,52 @@ export async function GET(request: NextRequest) {
       const customerId = subscription.stripeCustomerId || stripeSubscription.customer
       let paymentMethod = null
 
-      // 1. まずサブスクリプションの default_payment_method を確認
-      if (stripeSubscription.default_payment_method) {
+      // 顧客に紐付いた最新のカードを取得（最も確実な方法）
+      if (customerId && typeof customerId === 'string') {
+        try {
+          const paymentMethods = await stripe.paymentMethods.list({
+            customer: customerId,
+            type: 'card',
+            limit: 10  // 複数取得して最新を使う
+          })
+          if (paymentMethods.data.length > 0) {
+            // 最新のカード（配列の先頭）を使用
+            const pm = paymentMethods.data[0]
+            if (pm.card) {
+              paymentMethod = {
+                brand: pm.card.brand || 'unknown',
+                last4: pm.card.last4 || '****',
+                expMonth: pm.card.exp_month || null,
+                expYear: pm.card.exp_year || null
+              }
+            }
+          }
+        } catch (pmError) {
+          console.error('Failed to list payment methods:', pmError)
+        }
+      }
+
+      // フォールバック: サブスクリプションの default_payment_method を確認
+      if (!paymentMethod && stripeSubscription.default_payment_method) {
         try {
           const pmId = typeof stripeSubscription.default_payment_method === 'string'
             ? stripeSubscription.default_payment_method
             : stripeSubscription.default_payment_method.id
           const pm: any = await stripe.paymentMethods.retrieve(pmId) as any
-          paymentMethod = {
-            brand: pm.card?.brand || 'unknown',
-            last4: pm.card?.last4 || '****',
-            expMonth: pm.card?.exp_month || null,
-            expYear: pm.card?.exp_year || null
+          if (pm.card) {
+            paymentMethod = {
+              brand: pm.card.brand || 'unknown',
+              last4: pm.card.last4 || '****',
+              expMonth: pm.card.exp_month || null,
+              expYear: pm.card.exp_year || null
+            }
           }
         } catch (pmError) {
           console.error('Failed to retrieve subscription payment method:', pmError)
         }
       }
 
-      // 2. なければ customer.invoice_settings.default_payment_method を確認
+      // フォールバック: customer.invoice_settings.default_payment_method を確認
       if (!paymentMethod && customerId && typeof customerId === 'string') {
         try {
           const customer: any = await stripe.customers.retrieve(customerId) as any
@@ -67,37 +94,17 @@ export async function GET(request: NextRequest) {
               ? customer.invoice_settings.default_payment_method
               : customer.invoice_settings.default_payment_method.id
             const pm: any = await stripe.paymentMethods.retrieve(pmId) as any
-            paymentMethod = {
-              brand: pm.card?.brand || 'unknown',
-              last4: pm.card?.last4 || '****',
-              expMonth: pm.card?.exp_month || null,
-              expYear: pm.card?.exp_year || null
+            if (pm.card) {
+              paymentMethod = {
+                brand: pm.card.brand || 'unknown',
+                last4: pm.card.last4 || '****',
+                expMonth: pm.card.exp_month || null,
+                expYear: pm.card.exp_year || null
+              }
             }
           }
         } catch (pmError) {
           console.error('Failed to retrieve customer payment method:', pmError)
-        }
-      }
-
-      // 3. それでもなければ、顧客に紐付いた最新のカードを取得
-      if (!paymentMethod && customerId && typeof customerId === 'string') {
-        try {
-          const paymentMethods = await stripe.paymentMethods.list({
-            customer: customerId,
-            type: 'card',
-            limit: 1
-          })
-          if (paymentMethods.data.length > 0) {
-            const pm = paymentMethods.data[0]
-            paymentMethod = {
-              brand: pm.card?.brand || 'unknown',
-              last4: pm.card?.last4 || '****',
-              expMonth: pm.card?.exp_month || null,
-              expYear: pm.card?.exp_year || null
-            }
-          }
-        } catch (pmError) {
-          console.error('Failed to list payment methods:', pmError)
         }
       }
 
@@ -159,10 +166,14 @@ export async function GET(request: NextRequest) {
           currentPeriodEnd: subscription.currentPeriodEnd,
           stripeDetails: {
             status: stripeSubscription.status,
-            currentPeriodEnd: new Date((stripeSubscription.current_period_end || 0) * 1000),
-            currentPeriodStart: new Date((stripeSubscription.current_period_start || 0) * 1000),
+            currentPeriodEnd: stripeSubscription.current_period_end
+              ? new Date(stripeSubscription.current_period_end * 1000).toISOString()
+              : null,
+            currentPeriodStart: stripeSubscription.current_period_start
+              ? new Date(stripeSubscription.current_period_start * 1000).toISOString()
+              : null,
             cancelAtPeriodEnd: !!stripeSubscription.cancel_at_period_end,
-            canceledAt: stripeSubscription.canceled_at ? new Date(stripeSubscription.canceled_at * 1000) : null,
+            canceledAt: stripeSubscription.canceled_at ? new Date(stripeSubscription.canceled_at * 1000).toISOString() : null,
             amount: actualAmount,  // 割引適用後の金額
             originalAmount: originalAmount,  // 元の金額
             currency: stripeSubscription.items.data[0]?.price?.currency || 'jpy',

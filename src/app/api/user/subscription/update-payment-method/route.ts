@@ -27,10 +27,37 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // カード更新専用のBilling Portal Configurationを作成
+    const configuration = await stripe.billingPortal.configurations.create({
+      business_profile: {
+        headline: 'お支払い方法の更新',
+      },
+      features: {
+        payment_method_update: {
+          enabled: true,
+        },
+        // 以下の機能を全て無効化
+        subscription_cancel: {
+          enabled: false,
+        },
+        subscription_update: {
+          enabled: false,
+        },
+        invoice_history: {
+          enabled: false,
+        },
+        customer_update: {
+          enabled: false,
+          allowed_updates: [],
+        },
+      },
+    })
+
     // Stripe Customer Portalセッションを作成（支払い方法更新のみに制限）
     const session = await stripe.billingPortal.sessions.create({
       customer: subscription.stripeCustomerId,
       return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings/subscription`,
+      configuration: configuration.id,
       flow_data: {
         type: 'payment_method_update',
       },
