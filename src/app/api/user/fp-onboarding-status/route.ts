@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
       select: {
         id: true,
         role: true,
+        fpPromotionApproved: true,
         managerContactConfirmedAt: true,
         complianceTestPassed: true,
         complianceTestPassedAt: true,
@@ -40,18 +41,11 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // FP昇格申請がAPPROVED状態かチェック
-    const approvedApplication = await prisma.fPPromotionApplication.findFirst({
-      where: {
-        userId: authUser.id,
-        status: 'APPROVED'
-      }
-    })
-
-    // FPエイドでなく、承認済み申請もない場合はオンボーディング不要
-    if (user.role !== Roles.FP && !approvedApplication) {
+    // FPエイドでなく、昇格承認もされていない場合はオンボーディング不要
+    if (user.role !== Roles.FP && !user.fpPromotionApproved) {
       return NextResponse.json({
         needsOnboarding: false,
+        fpPromotionApproved: false,
         managerContactConfirmed: true,
         complianceTestPassed: true,
         fpOnboardingCompleted: true,
@@ -67,6 +61,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       needsOnboarding: !allComplete,
+      fpPromotionApproved: user.fpPromotionApproved || false,
       managerContactConfirmed: !!user.managerContactConfirmedAt,
       managerContactConfirmedAt: user.managerContactConfirmedAt,
       complianceTestPassed: user.complianceTestPassed || false,

@@ -14,6 +14,8 @@ import {
 } from 'lucide-react'
 
 interface FPOnboardingStatus {
+  needsOnboarding: boolean
+  fpPromotionApproved: boolean
   managerContactConfirmed: boolean
   complianceTestPassed: boolean
   fpOnboardingCompleted: boolean
@@ -34,8 +36,8 @@ export function FPOnboardingBanner() {
 
   useEffect(() => {
     const fetchStatus = async () => {
-      // FPエイドでない場合はスキップ
-      if (!user || user.role !== 'fp') {
+      // ユーザーがいない場合はスキップ
+      if (!user) {
         setIsLoading(false)
         return
       }
@@ -56,8 +58,13 @@ export function FPOnboardingBanner() {
     fetchStatus()
   }, [user])
 
-  // FPエイドでない、ロード中、または全て完了している場合は非表示
+  // ロード中、ステータスなし、閉じた場合は非表示
   if (isLoading || !status || isDismissed) {
+    return null
+  }
+
+  // オンボーディング不要の場合は非表示
+  if (!status.needsOnboarding) {
     return null
   }
 

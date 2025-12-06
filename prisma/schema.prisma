@@ -29,6 +29,7 @@ model User {
   notificationPreferences Json?
   lastLoginAt             DateTime?
   // FPエイド オンボーディング関連
+  fpPromotionApproved     Boolean                  @default(false) // FPエイド昇格申請承認済みフラグ（3ステップ完了でFPに昇格）
   managerContactConfirmedAt DateTime?              // マネージャー連絡先確認完了日時（FP昇格後に入力）
   fpOnboardingCompleted   Boolean                  @default(true) // FPエイド向け動画ガイダンス完了フラグ（既存ユーザーはtrue）
   fpOnboardingCompletedAt DateTime?                // FPエイド向け動画ガイダンス完了日時

@@ -17,29 +17,31 @@ export async function GET(request: NextRequest) {
     const { user: authUser, error: authError } = await getAuthenticatedUser(request)
     if (authError) return authError
 
-    // FPまたは承認済みMEMBERかチェック
-    const approvedApplication = await prisma.fPPromotionApplication.findFirst({
-      where: {
-        userId: authUser!.id,
-        status: 'APPROVED'
+    // ユーザーの状況を確認
+    const user = await prisma.user.findUnique({
+      where: { id: authUser!.id },
+      select: {
+        role: true,
+        fpPromotionApproved: true,
+        complianceTestPassed: true,
+        complianceTestPassedAt: true
       }
     })
 
-    if (authUser!.role.toLowerCase() !== 'fp' && !approvedApplication) {
+    if (!user) {
+      return NextResponse.json(
+        { error: 'ユーザーが見つかりません' },
+        { status: 404 }
+      )
+    }
+
+    // FPまたは承認済みMEMBERかチェック（fpPromotionApprovedフラグを使用）
+    if (user.role.toLowerCase() !== 'fp' && !user.fpPromotionApproved) {
       return NextResponse.json(
         { error: 'FP昇格申請が承認されていません' },
         { status: 403 }
       )
     }
-
-    // ユーザーの合格状況を確認
-    const user = await prisma.user.findUnique({
-      where: { id: authUser!.id },
-      select: {
-        complianceTestPassed: true,
-        complianceTestPassedAt: true
-      }
-    })
 
     // 有効な問題を取得（正解は除外）
     const questions = await prisma.complianceTestQuestion.findMany({
@@ -97,15 +99,27 @@ export async function POST(request: NextRequest) {
     const { user: authUser, error: authError } = await getAuthenticatedUser(request)
     if (authError) return authError
 
-    // FPまたは承認済みMEMBERかチェック
-    const approvedApplication = await prisma.fPPromotionApplication.findFirst({
-      where: {
-        userId: authUser!.id,
-        status: 'APPROVED'
+    // 現在のユーザー情報を取得
+    const currentUser = await prisma.user.findUnique({
+      where: { id: authUser!.id },
+      select: {
+        email: true,
+        role: true,
+        fpPromotionApproved: true,
+        managerContactConfirmedAt: true,
+        fpOnboardingCompleted: true
       }
     })
 
-    if (authUser!.role.toLowerCase() !== 'fp' && !approvedApplication) {
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'ユーザーが見つかりません' },
+        { status: 404 }
+      )
+    }
+
+    // FPまたは承認済みMEMBERかチェック（fpPromotionApprovedフラグを使用）
+    if (currentUser.role.toLowerCase() !== 'fp' && !currentUser.fpPromotionApproved) {
       return NextResponse.json(
         { error: 'FP昇格申請が承認されていません' },
         { status: 403 }
@@ -200,16 +214,6 @@ export async function POST(request: NextRequest) {
     // 合格した場合の処理
     let promoted = false
     if (isPassed) {
-      // 現在のユーザー情報を取得
-      const currentUser = await prisma.user.findUnique({
-        where: { id: authUser!.id },
-        select: {
-          email: true,
-          managerContactConfirmedAt: true,
-          fpOnboardingCompleted: true
-        }
-      })
-
       // ユーザーの合格フラグを更新
       await prisma.user.update({
         where: { id: authUser!.id },
@@ -219,30 +223,41 @@ export async function POST(request: NextRequest) {
         }
       })
 
-      // オンボーディング完了チェック → FP昇格
-      if (approvedApplication && currentUser) {
+      // オンボーディング完了チェック → FP昇格（承認済みの場合のみ）
+      if (currentUser.fpPromotionApproved) {
         const allOnboardingComplete =
           currentUser.managerContactConfirmedAt !== null &&
           currentUser.fpOnboardingCompleted === true
           // complianceTestPassed は今更新したので true とみなす
 
         if (allOnboardingComplete) {
+          // 承認済みの申請を取得（ステータス更新用）
+          const approvedApplication = await prisma.fPPromotionApplication.findFirst({
+            where: {
+              userId: authUser!.id,
+              status: 'APPROVED'
+            }
+          })
+
           // 全オンボーディング完了 → FPロールに昇格
           await prisma.user.update({
             where: { id: authUser!.id },
             data: {
-              role: UserRole.FP
+              role: UserRole.FP,
+              fpPromotionApproved: false // 昇格完了後はフラグをリセット
             }
           })
 
           // 申請ステータスをCOMPLETEDに更新
-          await prisma.fPPromotionApplication.update({
-            where: { id: approvedApplication.id },
-            data: {
-              status: 'COMPLETED',
-              completedAt: new Date()
-            }
-          })
+          if (approvedApplication) {
+            await prisma.fPPromotionApplication.update({
+              where: { id: approvedApplication.id },
+              data: {
+                status: 'COMPLETED',
+                completedAt: new Date()
+              }
+            })
+          }
 
           // Supabaseのロールも更新
           try {
