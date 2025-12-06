@@ -87,12 +87,9 @@ export default function FPOnboardingPage() {
     router.push('/dashboard')
   }, [router])
 
-  // FPエイドでない場合はダッシュボードにリダイレクト
-  useEffect(() => {
-    if (user && user.role !== 'fp') {
-      router.push('/dashboard')
-    }
-  }, [user, router])
+  // FP昇格申請が承認されていない場合のみダッシュボードにリダイレクト
+  // （承認済みMEMBERはオンボーディングが必要）
+  // リダイレクトチェックはステータス確認後に行う
 
   // 既に完了しているか確認
   useEffect(() => {
@@ -191,7 +188,14 @@ export default function FPOnboardingPage() {
       const response = await authenticatedFetch(`/api/user/fp-onboarding-status`)
       if (response.ok) {
         const data = await response.json()
-        if (data.completed) {
+
+        // オンボーディングが不要（承認されていないMEMBERなど）の場合はリダイレクト
+        if (data.needsOnboarding === false) {
+          router.push('/dashboard')
+          return
+        }
+
+        if (data.fpOnboardingCompleted) {
           setHasCompleted(true)
           setShowCompletionBanner(true)
           // 既に完了している場合は完了バナーを表示（自動リダイレクトはしない）

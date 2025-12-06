@@ -40,23 +40,40 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // FPエイドでない場合は完了扱い
-    if (user.role !== Roles.FP) {
+    // FP昇格申請がAPPROVED状態かチェック
+    const approvedApplication = await prisma.fPPromotionApplication.findFirst({
+      where: {
+        userId: authUser.id,
+        status: 'APPROVED'
+      }
+    })
+
+    // FPエイドでなく、承認済み申請もない場合はオンボーディング不要
+    if (user.role !== Roles.FP && !approvedApplication) {
       return NextResponse.json({
+        needsOnboarding: false,
         managerContactConfirmed: true,
         complianceTestPassed: true,
         fpOnboardingCompleted: true,
-        message: 'FPエイドではないため、オンボーディングは不要です'
+        message: 'FP昇格申請が承認されていないため、オンボーディングは不要です'
       })
     }
 
+    // オンボーディングが必要（FPエイドまたは承認済みMEMBER）
+    const allComplete =
+      !!user.managerContactConfirmedAt &&
+      user.complianceTestPassed === true &&
+      user.fpOnboardingCompleted === true
+
     return NextResponse.json({
+      needsOnboarding: !allComplete,
       managerContactConfirmed: !!user.managerContactConfirmedAt,
       managerContactConfirmedAt: user.managerContactConfirmedAt,
       complianceTestPassed: user.complianceTestPassed || false,
       complianceTestPassedAt: user.complianceTestPassedAt,
       fpOnboardingCompleted: user.fpOnboardingCompleted || false,
-      fpOnboardingCompletedAt: user.fpOnboardingCompletedAt
+      fpOnboardingCompletedAt: user.fpOnboardingCompletedAt,
+      allComplete
     })
   } catch (error) {
     console.error('Get FP onboarding status error:', error)
