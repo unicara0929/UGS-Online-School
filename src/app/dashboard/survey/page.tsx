@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from 'next/navigation'
-import { FileText, CheckCircle, Loader2, ArrowLeft, MessageSquare } from "lucide-react"
+import { FileText, CheckCircle, Loader2, ArrowLeft, MessageSquare, Award } from "lucide-react"
 
 interface Question {
   id: string
@@ -166,16 +166,25 @@ function SurveyPageContent() {
                     <div className="text-center">
                       <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
                       <h3 className="text-2xl font-bold text-green-800 mb-2">
-                        提出完了
+                        アンケート提出完了
                       </h3>
-                      <p className="text-lg text-slate-700">
+                      <p className="text-lg text-slate-700 mb-4">
                         アンケートの提出が完了しました。ありがとうございます。
+                      </p>
+                      <p className="text-slate-600">
+                        これで昇格条件をすべて満たしました。<br />
+                        下のボタンから昇格申請を行ってください。
                       </p>
                     </div>
                   </div>
                   <div className="flex justify-center">
-                    <Button onClick={() => router.push('/dashboard/promotion')}>
-                      昇格管理に戻る
+                    <Button
+                      onClick={() => router.push('/dashboard/promotion')}
+                      size="lg"
+                      className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
+                    >
+                      <Award className="h-5 w-5 mr-2" />
+                      FPエイド昇格申請へ進む
                     </Button>
                   </div>
                 </div>
