@@ -70,18 +70,46 @@ export default function ComplianceTestPage() {
     results: Result[]
   } | null>(null)
 
-  useEffect(() => {
-    if (user) {
-      fetchTestData()
-    }
-  }, [user])
+  // FPエイドまたはFP昇格承認済みでない場合はダッシュボードにリダイレクト
+  const [canAccess, setCanAccess] = useState<boolean | null>(null)
 
-  // FPエイドでない場合はダッシュボードにリダイレクト
   useEffect(() => {
-    if (user && user.role !== 'fp') {
+    const checkAccess = async () => {
+      if (!user) return
+
+      // FPロールの場合はアクセス可
+      if (user.role === 'fp') {
+        setCanAccess(true)
+        return
+      }
+
+      // FP昇格承認済みかチェック
+      try {
+        const response = await authenticatedFetch('/api/user/fp-onboarding-status')
+        if (response.ok) {
+          const data = await response.json()
+          if (data.fpPromotionApproved) {
+            setCanAccess(true)
+            return
+          }
+        }
+      } catch (error) {
+        console.error('Error checking FP promotion status:', error)
+      }
+
+      // アクセス不可 → ダッシュボードへ
+      setCanAccess(false)
       router.push('/dashboard')
     }
+
+    checkAccess()
   }, [user, router])
+
+  useEffect(() => {
+    if (user && canAccess) {
+      fetchTestData()
+    }
+  }, [user, canAccess])
 
   const fetchTestData = async () => {
     setIsLoading(true)
@@ -162,7 +190,7 @@ export default function ComplianceTestPage() {
     router.push('/dashboard/fp-onboarding')
   }
 
-  if (isLoading) {
+  if (isLoading || canAccess === null) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center">
@@ -171,6 +199,11 @@ export default function ComplianceTestPage() {
         </div>
       </div>
     )
+  }
+
+  // アクセス権がない場合は何も表示しない（リダイレクト中）
+  if (!canAccess) {
+    return null
   }
 
   if (questions.length === 0) {
