@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
   const { userId, email, name, role } = requestBody
 
   try {
-    console.log('Create profile request:', { userId, email, name, role })
+    console.log('Create profile request:', { userId, role })
 
     if (!userId || !email || !name || !role) {
       console.error('Missing required fields:', { userId: !!userId, email: !!email, name: !!name, role: !!role })
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
 
     // 既に存在する場合は、そのユーザーを返す
     if (existingUserById) {
-      console.log('User already exists by ID:', { id: userId, email: existingUserById.email })
+      console.log('User already exists by ID:', { id: userId })
       const responseRole = prismaRoleToAppRole(existingUserById.role)
       return NextResponse.json({
         success: true,
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
 
     // メールアドレスで既に存在するが、IDが異なる場合
     if (existingUserByEmail && existingUserByEmail.id !== userId) {
-      console.log('User exists with different ID:', { existingId: existingUserByEmail.id, newId: userId, email })
+      console.log('User exists with different ID:', { existingId: existingUserByEmail.id, newId: userId })
       return NextResponse.json(
         { error: 'このメールアドレスは既に別のアカウントで使用されています' },
         { status: 409 }
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    console.log('User created successfully:', { id: user.id, email: user.email, role: user.role })
+    console.log('User created successfully:', { id: user.id, role: user.role })
 
     // アプリケーション側のロール型（小文字）に変換して返す
     const responseRole = prismaRoleToAppRole(user.role)

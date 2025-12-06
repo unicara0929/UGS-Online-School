@@ -240,9 +240,9 @@ export async function POST(request: NextRequest) {
               </div>
             `
           })
-          console.log(`Pre-interview completion email sent to admin: ${admin.email}`)
+          console.log('Pre-interview completion email sent to admin')
         } catch (emailError) {
-          console.error(`Failed to send pre-interview email to ${admin.email}:`, emailError)
+          console.error('Failed to send pre-interview email:', emailError)
         }
       }
 

@@ -4,6 +4,14 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { generateMemberId } from '@/lib/services/member-id-generator'
 
 export async function POST(request: NextRequest) {
+  // 本番環境では無効化
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json(
+      { error: 'This endpoint is disabled in production' },
+      { status: 403 }
+    )
+  }
+
   try {
     const { email, password, name, role } = await request.json()
 

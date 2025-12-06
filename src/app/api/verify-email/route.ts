@@ -67,7 +67,7 @@ async function handleVerification(token: string | null, email: string | null = n
     }
   })
 
-  console.log(`Email verified for: ${pendingUser.email}`)
+  console.log('Email verified for pending user:', { id: pendingUser.id })
 
   // 決済ページへリダイレクト
   const checkoutUrl = `${process.env.NEXT_PUBLIC_APP_URL}/checkout?email=${encodeURIComponent(pendingUser.email)}&name=${encodeURIComponent(pendingUser.name)}&verified=true`

@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 export async function POST(request: NextRequest) {
   try {
     const { email, name, referralCode, promoCodeId } = await request.json()
-    console.log('Creating checkout session for:', { email, name, referralCode, promoCodeId })
+    console.log('Creating checkout session:', { hasReferralCode: !!referralCode, hasPromoCode: !!promoCodeId })
     console.log('Environment variables:', {
       hasStripeSecretKey: !!process.env.STRIPE_SECRET_KEY,
       appUrl: process.env.NEXT_PUBLIC_APP_URL
@@ -27,9 +27,9 @@ export async function POST(request: NextRequest) {
 
       if (pendingUser?.referralCode) {
         finalReferralCode = pendingUser.referralCode
-        console.log('Using referral code from PendingUser:', finalReferralCode)
+        console.log('Using referral code from PendingUser')
       } else if (referralCode) {
-        console.log('Using referral code from request (PendingUser not found or no code):', referralCode)
+        console.log('Using referral code from request')
       }
     } catch (error) {
       console.error('Failed to fetch PendingUser referral code:', error)
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
     // 紹介コードがある場合、metadataに追加（PendingUserの紹介コードを優先）
     if (finalReferralCode) {
       sessionMetadata.referralCode = finalReferralCode
-      console.log('Referral code added to session metadata:', finalReferralCode)
+      console.log('Referral code added to session metadata')
     }
 
     // プロモコードが適用される場合は初期費用をスキップ

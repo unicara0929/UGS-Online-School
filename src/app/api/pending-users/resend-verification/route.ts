@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
         userName: pendingUser.name,
         verificationLink,
       })
-      console.log(`Verification email resent to: ${email}`)
+      console.log('Verification email resent')
     } catch (emailError) {
       console.error('Failed to resend verification email:', emailError)
       return NextResponse.json(
