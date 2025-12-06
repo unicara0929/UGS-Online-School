@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
         id: true,
         email: true,
         role: true,
+        fpPromotionApproved: true,
         fpOnboardingCompleted: true,
         managerContactConfirmedAt: true,
         complianceTestPassed: true
@@ -41,7 +42,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // FP昇格申請がAPPROVED状態であることを確認
+    // FP昇格申請が承認されているか確認（fpPromotionApprovedフラグをチェック）
+    if (!user.fpPromotionApproved) {
+      return NextResponse.json(
+        { error: 'FP昇格申請が承認されていません' },
+        { status: 400 }
+      )
+    }
+
+    // 承認済みの申請を取得（ステータス更新用）
     const approvedApplication = await prisma.fPPromotionApplication.findFirst({
       where: {
         userId: authUser.id,
@@ -51,13 +60,6 @@ export async function POST(request: NextRequest) {
         approvedAt: 'desc'
       }
     })
-
-    if (!approvedApplication) {
-      return NextResponse.json(
-        { error: 'FP昇格申請が承認されていません' },
-        { status: 400 }
-      )
-    }
 
     // 既に完了している場合は成功を返す
     if (user.fpOnboardingCompleted) {
@@ -93,18 +95,21 @@ export async function POST(request: NextRequest) {
         await tx.user.update({
           where: { id: authUser.id },
           data: {
-            role: UserRole.FP
+            role: UserRole.FP,
+            fpPromotionApproved: false // 昇格完了後はフラグをリセット
           }
         })
 
-        // 申請ステータスをCOMPLETEDに更新
-        await tx.fPPromotionApplication.update({
-          where: { id: approvedApplication.id },
-          data: {
-            status: 'COMPLETED',
-            completedAt: new Date()
-          }
-        })
+        // 申請ステータスをCOMPLETEDに更新（申請がある場合）
+        if (approvedApplication) {
+          await tx.fPPromotionApplication.update({
+            where: { id: approvedApplication.id },
+            data: {
+              status: 'COMPLETED',
+              completedAt: new Date()
+            }
+          })
+        }
 
         console.log('All onboarding steps completed, user promoted to FP:', authUser.id)
         return { promoted: true }

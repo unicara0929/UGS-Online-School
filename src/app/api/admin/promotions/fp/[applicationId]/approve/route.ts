@@ -45,6 +45,7 @@ export async function POST(
     }
 
     // トランザクションで処理
+    // 注意: 承認時点ではロールは変更しない。3ステップ完了後にFPに昇格する。
     await prisma.$transaction(async (tx) => {
       // 1. 申請を承認済みに更新
       await tx.fPPromotionApplication.update({
@@ -55,13 +56,14 @@ export async function POST(
         }
       })
 
-      // 2. ユーザーのロールをFPに変更し、オンボーディングフラグをリセット
+      // 2. オンボーディングフラグをリセット（ロールはまだ変更しない）
       await tx.user.update({
         where: { id: application.userId },
         data: {
-          role: UserRole.FP,
+          // ロールはまだ変更しない（3ステップ完了後に変更）
           // FP昇格時はオンボーディングフローを最初から
-          managerContactConfirmedAt: null,  // マネージャー連絡先確認をリセット
+          fpPromotionApproved: true,         // 昇格承認済みフラグ
+          managerContactConfirmedAt: null,   // マネージャー連絡先確認をリセット
           complianceTestPassed: false,       // コンプライアンステストをリセット
           complianceTestPassedAt: null,
           fpOnboardingCompleted: false,      // 動画ガイダンスをリセット
@@ -76,22 +78,13 @@ export async function POST(
           type: 'PROMOTION_APPROVED',
           priority: 'SUCCESS',
           title: 'FPエイド昇格申請が承認されました',
-          message: 'おめでとうございます！FPエイド昇格申請が承認されました。FPエイド向けガイダンス動画の視聴を完了してください。',
+          message: 'おめでとうございます！FPエイド昇格申請が承認されました。3つのオンボーディングステップを完了するとFPエイドに昇格します。',
           actionUrl: '/dashboard/fp-onboarding'
         }
       })
     })
 
-    // Supabaseのuser_metadataも更新（Prismaと同期）
-    try {
-      await supabaseAdmin.auth.admin.updateUserById(application.userId, {
-        user_metadata: { role: UserRole.FP }
-      })
-      console.log('Supabase user_metadata updated for FP promotion:', application.userId)
-    } catch (supabaseError) {
-      console.error('Failed to update Supabase user_metadata:', supabaseError)
-      // Supabase更新失敗しても処理は続行（Prismaは既に更新済み）
-    }
+    // 注意: Supabaseのuser_metadataは3ステップ完了時に更新する
 
     // 4. メール送信（二重送信防止：promotionEmailSentフラグをチェック）
     if (!application.promotionEmailSent) {
