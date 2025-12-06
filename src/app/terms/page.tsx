@@ -7,9 +7,6 @@ export default function TermsPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-3xl font-bold text-center">UGS（Unicara Growth Salon）利用規約</CardTitle>
-            <p className="text-center text-slate-600 mt-2">
-              施行日: 2025年12月1日
-            </p>
           </CardHeader>
           <CardContent className="prose prose-slate max-w-none">
             <div className="space-y-8">
