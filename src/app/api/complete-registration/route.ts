@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { email, name, stripeCustomerId, stripeSubscriptionId } = body
 
-    console.log('Complete registration request:', { email, name, hasStripeCustomerId: !!stripeCustomerId, hasStripeSubscriptionId: !!stripeSubscriptionId })
+    console.log('Complete registration request:', { hasStripeCustomerId: !!stripeCustomerId, hasStripeSubscriptionId: !!stripeSubscriptionId })
 
     if (!email || !name) {
       console.error('Missing required fields:', { email: !!email, name: !!name })
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    console.log('Pending user lookup:', { email, found: !!pendingUser, hasReferralCode: !!pendingUser?.referralCode, hasPlainPassword: !!pendingUser?.plainPassword })
+    console.log('Pending user lookup:', { found: !!pendingUser, hasReferralCode: !!pendingUser?.referralCode, hasPlainPassword: !!pendingUser?.plainPassword })
 
     if (!pendingUser) {
       console.error('Pending user not found for email:', email)
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     // 紹介コードがある場合、紹介レコードを作成
     if (pendingUser.referralCode) {
       try {
-        console.log('Processing referral code from PendingUser:', pendingUser.referralCode)
+        console.log('Processing referral code from PendingUser')
 
         const referrer = await prisma.user.findUnique({
           where: { referralCode: pendingUser.referralCode },
@@ -114,7 +114,6 @@ export async function POST(request: NextRequest) {
               }
             })
             console.log('Referral registered from complete-registration:', {
-              referralCode: pendingUser.referralCode,
               referrerId: referrer.id,
               referredId: user.id,
               referralType
@@ -128,7 +127,7 @@ export async function POST(request: NextRequest) {
         } else if (referrer?.id === user.id) {
           console.log('Self-referral detected, skipping')
         } else {
-          console.log('Referrer not found for code:', pendingUser.referralCode)
+          console.log('Referrer not found for code')
         }
       } catch (error) {
         console.error('Failed to register referral from PendingUser:', error)
@@ -141,7 +140,7 @@ export async function POST(request: NextRequest) {
       where: { id: pendingUser.id }
     })
 
-    console.log('Registration completed successfully:', { userId: user.id, email })
+    console.log('Registration completed successfully:', { userId: user.id })
 
     return NextResponse.json({ 
       success: true, 

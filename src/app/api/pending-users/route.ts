@@ -70,10 +70,7 @@ export async function POST(request: NextRequest) {
 
     // 紹介コードがある場合、ログに記録
     if (referralCode) {
-      console.log(`Pending user created with referral code: ${referralCode}`, {
-        email,
-        name
-      })
+      console.log('Pending user created with referral code')
     }
 
     // メール認証リンクを生成
@@ -87,7 +84,7 @@ export async function POST(request: NextRequest) {
         userName: name,
         verificationLink,
       })
-      console.log(`Verification email sent to: ${email}`)
+      console.log('Verification email sent')
     } catch (emailError) {
       console.error('Failed to send verification email:', emailError)
       // メール送信失敗してもユーザー登録は成功させる

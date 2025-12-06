@@ -68,7 +68,6 @@ export async function POST(request: NextRequest) {
 
     console.log('[PASSWORD_CHANGE] Success:', {
       userId: authUser!.id,
-      email: authUser!.email,
       timestamp: new Date().toISOString()
     })
 

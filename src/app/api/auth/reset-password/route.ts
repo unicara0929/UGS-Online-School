@@ -36,16 +36,17 @@ export async function POST(request: NextRequest) {
 
     const redirectUrl = `${appUrl}/reset-password`
 
-    console.log('Password reset redirect URL:', redirectUrl)
-    console.log('Host:', host, 'Protocol:', protocol)
+    // デバッグログ（本番環境では無効化推奨）
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Password reset redirect URL:', redirectUrl)
+    }
 
     // パスワードリセットメールを送信（サーバーサイド用のSupabaseクライアントを使用）
     // supabaseAdminはService Role Keyを使用しているため、resetPasswordForEmailを直接呼び出す
-    console.log(`[PASSWORD_RESET] Sending reset email to: ${email}`)
+    console.log('[PASSWORD_RESET] Sending reset email')
     const { data, error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
       redirectTo: redirectUrl,
     })
-    console.log(`[PASSWORD_RESET] Response - data:`, data, `error:`, error)
 
     if (error) {
       console.error('Password reset error:', error)

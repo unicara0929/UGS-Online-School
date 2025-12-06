@@ -31,7 +31,7 @@ export async function findOrCreateSupabaseUser(
   const existingUser = existingUsers?.users.find(u => u.email === email)
 
   if (existingUser) {
-    console.log('Found existing Supabase user:', { userId: existingUser.id, email })
+    console.log('Found existing Supabase user:', { userId: existingUser.id })
 
     // 既存ユーザーが見つかった場合、パスワードと名前を更新する（再登録対応）
     try {
@@ -51,7 +51,6 @@ export async function findOrCreateSupabaseUser(
       await supabaseAdmin.auth.admin.updateUserById(existingUser.id, updateData)
       console.log('✅ Updated existing Supabase user:', {
         userId: existingUser.id,
-        email,
         nameUpdated: existingUser.user_metadata?.name !== name,
         passwordUpdated: isPlainPassword
       })
@@ -68,7 +67,7 @@ export async function findOrCreateSupabaseUser(
   if (!isPlainPassword) {
     // ハッシュ化済みパスワードの場合はエラー（互換性のため警告を出すが、一時パスワードでアカウント作成）
     console.warn('⚠️ Hashed password provided for Supabase user creation - creating with temporary password')
-    console.warn('⚠️ User will need to reset password. Email:', email)
+    console.warn('⚠️ User will need to reset password')
 
     // 一時パスワードを生成（32文字のランダム文字列）
     const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8) +
@@ -89,7 +88,7 @@ export async function findOrCreateSupabaseUser(
       throw new Error(`Supabaseユーザー作成に失敗しました: ${supabaseError.message}`)
     }
 
-    console.log('⚠️ Supabase user created with temporary password (requires reset):', { userId: newUser.user.id, email })
+    console.log('⚠️ Supabase user created with temporary password (requires reset):', { userId: newUser.user.id })
     return newUser
   }
 
@@ -108,7 +107,7 @@ export async function findOrCreateSupabaseUser(
     throw new Error(`Supabaseユーザー作成に失敗しました: ${supabaseError.message}`)
   }
 
-  console.log('✅ Supabase user created with plain password:', { userId: newUser.user.id, email })
+  console.log('✅ Supabase user created:', { userId: newUser.user.id })
   return newUser
 }
 
@@ -132,10 +131,10 @@ export async function findOrCreatePrismaUser(
         where: { id: supabaseUserId },
         data: { name }
       })
-      console.log('Updated existing Prisma user name:', { userId: updatedUser.id, email, oldName: existingPrismaUser.name, newName: name })
+      console.log('Updated existing Prisma user name:', { userId: updatedUser.id })
       return updatedUser
     }
-    console.log('Using existing Prisma user:', { userId: existingPrismaUser.id, email })
+    console.log('Using existing Prisma user:', { userId: existingPrismaUser.id })
     return existingPrismaUser
   }
 
@@ -157,7 +156,7 @@ export async function findOrCreatePrismaUser(
     }
   })
 
-  console.log('Prisma user created:', { userId: user.id, email, role: user.role, memberId, referralCode })
+  console.log('Prisma user created:', { userId: user.id, role: user.role })
   return user
 }
 
@@ -196,7 +195,7 @@ export async function createSubscriptionIfNotExists(
           status: 'ACTIVE'
         }
       })
-      console.log('Subscription created:', { userId, stripeCustomerId, stripeSubscriptionId })
+      console.log('Subscription created:', { userId })
     } else {
       console.log('Subscription already exists:', { userId, subscriptionId: existingSubscription.id })
     }

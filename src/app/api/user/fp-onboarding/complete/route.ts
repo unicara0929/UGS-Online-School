@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
           })
         }
 
-        console.log('All onboarding steps completed, user promoted to FP:', authUser.id)
+        console.log('All onboarding steps completed, user promoted to FP')
         return { promoted: true }
       }
 
