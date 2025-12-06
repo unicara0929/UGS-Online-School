@@ -78,43 +78,10 @@ export async function POST(
       }
     })
 
-    // ユーザーのロールを更新（Prisma）
-    await prisma.user.update({
-      where: { id: application.userId },
-      data: {
-        role: application.targetRole
-      }
-    })
-
-    // Supabaseのユーザーロールも更新
-    try {
-      const supabaseUser = await supabaseAdmin.auth.admin.listUsers()
-      const user = supabaseUser.data.users.find(u => u.email === application.user.email)
-      
-      if (user) {
-        // ロール名をマッピング（PrismaのUserRole → Supabaseのuser_metadata）
-        const roleMap: Record<string, string> = {
-          'MEMBER': 'member',
-          'FP': 'fp',
-          'MANAGER': 'manager',
-          'ADMIN': 'admin'
-        }
-        const supabaseRole = roleMap[application.targetRole] || 'member'
-
-        await supabaseAdmin.auth.admin.updateUserById(user.id, {
-          user_metadata: {
-            ...user.user_metadata,
-            role: supabaseRole
-          }
-        })
-      }
-    } catch (supabaseError) {
-      console.error('Failed to update Supabase user role:', supabaseError)
-      // Supabaseの更新に失敗しても処理は続行
-    }
-
-    // FP昇格の場合、FPPromotionApplicationも更新
+    // FP昇格の場合は、オンボーディング完了までロール変更を保留
+    // オンボーディング完了時に /api/fp-onboarding/complete でロールが変更される
     if (application.targetRole === UserRole.FP) {
+      // FPPromotionApplicationを更新（ロールは変更しない）
       const fpApplication = await prisma.fPPromotionApplication.findUnique({
         where: { userId: application.userId }
       })
@@ -127,6 +94,51 @@ export async function POST(
             approvedAt: new Date()
           }
         })
+      }
+
+      // オンボーディングフラグをリセット（これからオンボーディングを行う）
+      await prisma.user.update({
+        where: { id: application.userId },
+        data: {
+          fpOnboardingCompleted: false,
+          complianceTestPassed: false,
+          managerContactConfirmedAt: null
+        }
+      })
+    } else {
+      // FP以外の昇格（マネージャーなど）は即時ロール変更
+      await prisma.user.update({
+        where: { id: application.userId },
+        data: {
+          role: application.targetRole
+        }
+      })
+
+      // Supabaseのユーザーロールも更新
+      try {
+        const supabaseUser = await supabaseAdmin.auth.admin.listUsers()
+        const user = supabaseUser.data.users.find(u => u.email === application.user.email)
+
+        if (user) {
+          // ロール名をマッピング（PrismaのUserRole → Supabaseのuser_metadata）
+          const roleMap: Record<string, string> = {
+            'MEMBER': 'member',
+            'FP': 'fp',
+            'MANAGER': 'manager',
+            'ADMIN': 'admin'
+          }
+          const supabaseRole = roleMap[application.targetRole] || 'member'
+
+          await supabaseAdmin.auth.admin.updateUserById(user.id, {
+            user_metadata: {
+              ...user.user_metadata,
+              role: supabaseRole
+            }
+          })
+        }
+      } catch (supabaseError) {
+        console.error('Failed to update Supabase user role:', supabaseError)
+        // Supabaseの更新に失敗しても処理は続行
       }
     }
 

@@ -1,20 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getAuthenticatedUser, checkRole, Roles } from '@/lib/auth/api-helpers'
+import { UserRole } from '@prisma/client'
+import { getAuthenticatedUser, Roles } from '@/lib/auth/api-helpers'
+import { supabaseAdmin } from '@/lib/supabase'
 
 /**
  * マネージャー連絡先情報を取得
  * GET /api/user/manager-contact
- * 権限: FPエイドのみ
+ * 権限: FPエイドまたはFP昇格申請が承認されたMEMBER
  */
 export async function GET(request: NextRequest) {
   try {
     const { user: authUser, error: authError } = await getAuthenticatedUser(request)
     if (authError) return authError
 
-    // FPロールチェック
-    const { allowed, error: roleError } = checkRole(authUser!.role, [Roles.FP])
-    if (!allowed) return roleError!
+    // FPまたは承認済みMEMBERかチェック
+    const approvedApplication = await prisma.fPPromotionApplication.findFirst({
+      where: {
+        userId: authUser!.id,
+        status: 'APPROVED'
+      }
+    })
+
+    if (authUser!.role !== Roles.FP && !approvedApplication) {
+      return NextResponse.json(
+        { error: 'アクセス権限がありません' },
+        { status: 403 }
+      )
+    }
 
     const user = await prisma.user.findUnique({
       where: { id: authUser!.id },
@@ -51,16 +64,27 @@ export async function GET(request: NextRequest) {
 /**
  * マネージャー連絡先情報を保存
  * POST /api/user/manager-contact
- * 権限: FPエイドのみ
+ * 権限: FPエイドまたはFP昇格申請が承認されたMEMBER
  */
 export async function POST(request: NextRequest) {
   try {
     const { user: authUser, error: authError } = await getAuthenticatedUser(request)
     if (authError) return authError
 
-    // FPロールチェック
-    const { allowed, error: roleError } = checkRole(authUser!.role, [Roles.FP])
-    if (!allowed) return roleError!
+    // FPまたは承認済みMEMBERかチェック
+    const approvedApplication = await prisma.fPPromotionApplication.findFirst({
+      where: {
+        userId: authUser!.id,
+        status: 'APPROVED'
+      }
+    })
+
+    if (authUser!.role !== Roles.FP && !approvedApplication) {
+      return NextResponse.json(
+        { error: 'アクセス権限がありません' },
+        { status: 403 }
+      )
+    }
 
     const body = await request.json()
     const { phone, lineId } = body
@@ -88,6 +112,16 @@ export async function POST(request: NextRequest) {
       sanitizedLineId = lineId.trim()
     }
 
+    // 現在のユーザー情報を取得
+    const currentUser = await prisma.user.findUnique({
+      where: { id: authUser!.id },
+      select: {
+        email: true,
+        complianceTestPassed: true,
+        fpOnboardingCompleted: true
+      }
+    })
+
     // ユーザー情報を更新
     const updatedUser = await prisma.user.update({
       where: { id: authUser!.id },
@@ -103,12 +137,61 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    // オンボーディング完了チェック → FP昇格
+    let promoted = false
+    if (approvedApplication && currentUser) {
+      const allOnboardingComplete =
+        currentUser.complianceTestPassed === true &&
+        currentUser.fpOnboardingCompleted === true
+        // managerContactConfirmedAt は今更新したので true とみなす
+
+      if (allOnboardingComplete) {
+        // 全オンボーディング完了 → FPロールに昇格
+        await prisma.user.update({
+          where: { id: authUser!.id },
+          data: {
+            role: UserRole.FP
+          }
+        })
+
+        // 申請ステータスをCOMPLETEDに更新
+        await prisma.fPPromotionApplication.update({
+          where: { id: approvedApplication.id },
+          data: {
+            status: 'COMPLETED',
+            completedAt: new Date()
+          }
+        })
+
+        // Supabaseのロールも更新
+        try {
+          const supabaseUser = await supabaseAdmin.auth.admin.listUsers()
+          const supaUser = supabaseUser.data.users.find(u => u.email === currentUser.email)
+
+          if (supaUser) {
+            await supabaseAdmin.auth.admin.updateUserById(supaUser.id, {
+              user_metadata: {
+                ...supaUser.user_metadata,
+                role: 'fp'
+              }
+            })
+          }
+        } catch (supabaseError) {
+          console.error('Failed to update Supabase user role:', supabaseError)
+        }
+
+        promoted = true
+        console.log('All onboarding steps completed, user promoted to FP:', authUser!.id)
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      message: '連絡先情報を保存しました',
+      message: promoted ? 'オンボーディング完了！FPエイドに昇格しました' : '連絡先情報を保存しました',
       phone: updatedUser.phone,
       lineId: updatedUser.lineId,
       confirmedAt: updatedUser.managerContactConfirmedAt,
+      promoted
     })
   } catch (error) {
     console.error('Save manager contact error:', error)

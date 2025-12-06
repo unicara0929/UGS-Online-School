@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { UserRole } from '@prisma/client'
 import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
+import { supabaseAdmin } from '@/lib/supabase'
 
 const PASSING_SCORE = 90 // 合格ライン 90%
 
 /**
  * コンプライアンステストの問題を取得
  * GET /api/user/compliance-test
+ * 権限: FPエイドまたはFP昇格申請が承認されたMEMBER
  */
 export async function GET(request: NextRequest) {
   try {
@@ -14,10 +17,17 @@ export async function GET(request: NextRequest) {
     const { user: authUser, error: authError } = await getAuthenticatedUser(request)
     if (authError) return authError
 
-    // FPエイドのみ対象
-    if (authUser!.role.toLowerCase() !== 'fp') {
+    // FPまたは承認済みMEMBERかチェック
+    const approvedApplication = await prisma.fPPromotionApplication.findFirst({
+      where: {
+        userId: authUser!.id,
+        status: 'APPROVED'
+      }
+    })
+
+    if (authUser!.role.toLowerCase() !== 'fp' && !approvedApplication) {
       return NextResponse.json(
-        { error: 'FPエイドのみ受験可能です' },
+        { error: 'FP昇格申請が承認されていません' },
         { status: 403 }
       )
     }
@@ -79,6 +89,7 @@ export async function GET(request: NextRequest) {
 /**
  * コンプライアンステストを提出
  * POST /api/user/compliance-test
+ * 権限: FPエイドまたはFP昇格申請が承認されたMEMBER
  */
 export async function POST(request: NextRequest) {
   try {
@@ -86,10 +97,17 @@ export async function POST(request: NextRequest) {
     const { user: authUser, error: authError } = await getAuthenticatedUser(request)
     if (authError) return authError
 
-    // FPエイドのみ対象
-    if (authUser!.role.toLowerCase() !== 'fp') {
+    // FPまたは承認済みMEMBERかチェック
+    const approvedApplication = await prisma.fPPromotionApplication.findFirst({
+      where: {
+        userId: authUser!.id,
+        status: 'APPROVED'
+      }
+    })
+
+    if (authUser!.role.toLowerCase() !== 'fp' && !approvedApplication) {
       return NextResponse.json(
-        { error: 'FPエイドのみ受験可能です' },
+        { error: 'FP昇格申請が承認されていません' },
         { status: 403 }
       )
     }
@@ -179,8 +197,20 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // 合格した場合、ユーザーの合格フラグを更新
+    // 合格した場合の処理
+    let promoted = false
     if (isPassed) {
+      // 現在のユーザー情報を取得
+      const currentUser = await prisma.user.findUnique({
+        where: { id: authUser!.id },
+        select: {
+          email: true,
+          managerContactConfirmedAt: true,
+          fpOnboardingCompleted: true
+        }
+      })
+
+      // ユーザーの合格フラグを更新
       await prisma.user.update({
         where: { id: authUser!.id },
         data: {
@@ -188,6 +218,53 @@ export async function POST(request: NextRequest) {
           complianceTestPassedAt: new Date()
         }
       })
+
+      // オンボーディング完了チェック → FP昇格
+      if (approvedApplication && currentUser) {
+        const allOnboardingComplete =
+          currentUser.managerContactConfirmedAt !== null &&
+          currentUser.fpOnboardingCompleted === true
+          // complianceTestPassed は今更新したので true とみなす
+
+        if (allOnboardingComplete) {
+          // 全オンボーディング完了 → FPロールに昇格
+          await prisma.user.update({
+            where: { id: authUser!.id },
+            data: {
+              role: UserRole.FP
+            }
+          })
+
+          // 申請ステータスをCOMPLETEDに更新
+          await prisma.fPPromotionApplication.update({
+            where: { id: approvedApplication.id },
+            data: {
+              status: 'COMPLETED',
+              completedAt: new Date()
+            }
+          })
+
+          // Supabaseのロールも更新
+          try {
+            const supabaseUser = await supabaseAdmin.auth.admin.listUsers()
+            const supaUser = supabaseUser.data.users.find(u => u.email === currentUser.email)
+
+            if (supaUser) {
+              await supabaseAdmin.auth.admin.updateUserById(supaUser.id, {
+                user_metadata: {
+                  ...supaUser.user_metadata,
+                  role: 'fp'
+                }
+              })
+            }
+          } catch (supabaseError) {
+            console.error('Failed to update Supabase user role:', supabaseError)
+          }
+
+          promoted = true
+          console.log('All onboarding steps completed, user promoted to FP:', authUser!.id)
+        }
+      }
     }
 
     // 結果を返す（不正解の問題には解説を含める）
@@ -210,7 +287,8 @@ export async function POST(request: NextRequest) {
       score,
       isPassed,
       passingScore: PASSING_SCORE,
-      results
+      results,
+      promoted
     })
   } catch (error) {
     console.error('Submit compliance test error:', error)

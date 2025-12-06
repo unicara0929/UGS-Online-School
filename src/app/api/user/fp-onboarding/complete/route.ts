@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getAuthenticatedUser, Roles } from '@/lib/auth/api-helpers'
+import { UserRole } from '@prisma/client'
+import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
+import { supabaseAdmin } from '@/lib/supabase'
 
 /**
  * FPエイド向け動画ガイダンスの完了を記録
@@ -24,8 +26,11 @@ export async function POST(request: NextRequest) {
       where: { id: authUser.id },
       select: {
         id: true,
+        email: true,
         role: true,
-        fpOnboardingCompleted: true
+        fpOnboardingCompleted: true,
+        managerContactConfirmedAt: true,
+        complianceTestPassed: true
       }
     })
 
@@ -36,10 +41,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // FPエイドでない場合はエラー
-    if (user.role !== Roles.FP) {
+    // FP昇格申請がAPPROVED状態であることを確認
+    const approvedApplication = await prisma.fPPromotionApplication.findFirst({
+      where: {
+        userId: authUser.id,
+        status: 'APPROVED'
+      },
+      orderBy: {
+        approvedAt: 'desc'
+      }
+    })
+
+    if (!approvedApplication) {
       return NextResponse.json(
-        { error: 'FPエイドではないため、オンボーディングは不要です' },
+        { error: 'FP昇格申請が承認されていません' },
         { status: 400 }
       )
     }
@@ -53,7 +68,7 @@ export async function POST(request: NextRequest) {
     }
 
     // トランザクションで処理
-    await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       // 1. 完了フラグを更新
       await tx.user.update({
         where: { id: authUser.id },
@@ -63,45 +78,68 @@ export async function POST(request: NextRequest) {
         }
       })
 
-      // 2. FP昇格申請のステータスをCOMPLETEDに更新
-      // 最新のAPPROVED状態の申請を取得
-      const approvedApplication = await tx.fPPromotionApplication.findFirst({
-        where: {
-          userId: authUser.id,
-          status: 'APPROVED'
-        },
-        orderBy: {
-          approvedAt: 'desc'
-        }
-      })
+      // 2. オンボーディング完了条件をチェック
+      // 3つのステップ:
+      // - マネージャー連絡先確認
+      // - コンプライアンステスト合格
+      // - ガイダンス動画視聴（この関数で完了）
+      const allOnboardingComplete =
+        user.managerContactConfirmedAt !== null &&
+        user.complianceTestPassed === true
+        // fpOnboardingCompleted は今更新するので true とみなす
 
-      if (approvedApplication) {
-        // COMPLETED への更新条件: 3つ全て必要
-        // 1. FPオンボーディング完了（この関数で更新済み）
-        // 2. 業務委託契約書への同意
-        // 3. 身分証のアップロード
-        const allConditionsMet =
-          approvedApplication.contractAgreed &&
-          approvedApplication.idDocumentUrl !== null
+      if (allOnboardingComplete) {
+        // 全オンボーディング完了 → FPロールに昇格
+        await tx.user.update({
+          where: { id: authUser.id },
+          data: {
+            role: UserRole.FP
+          }
+        })
 
-        if (allConditionsMet) {
-          await tx.fPPromotionApplication.update({
-            where: { id: approvedApplication.id },
-            data: {
-              status: 'COMPLETED',
-              completedAt: new Date()
+        // 申請ステータスをCOMPLETEDに更新
+        await tx.fPPromotionApplication.update({
+          where: { id: approvedApplication.id },
+          data: {
+            status: 'COMPLETED',
+            completedAt: new Date()
+          }
+        })
+
+        console.log('All onboarding steps completed, user promoted to FP:', authUser.id)
+        return { promoted: true }
+      }
+
+      return { promoted: false }
+    })
+
+    // FPに昇格した場合、Supabaseのロールも更新
+    if (result.promoted) {
+      try {
+        const supabaseUser = await supabaseAdmin.auth.admin.listUsers()
+        const supaUser = supabaseUser.data.users.find(u => u.email === user.email)
+
+        if (supaUser) {
+          await supabaseAdmin.auth.admin.updateUserById(supaUser.id, {
+            user_metadata: {
+              ...supaUser.user_metadata,
+              role: 'fp'
             }
           })
-          console.log('FP promotion application marked as COMPLETED:', approvedApplication.id)
-        } else {
-          console.log('FP onboarding completed, but waiting for contract agreement and ID document upload')
+          console.log('Supabase user role updated to FP')
         }
+      } catch (supabaseError) {
+        console.error('Failed to update Supabase user role:', supabaseError)
+        // Supabaseの更新に失敗しても処理は続行
       }
-    })
+    }
 
     return NextResponse.json({
       success: true,
-      message: '動画ガイダンスの視聴を完了しました'
+      message: result.promoted
+        ? 'オンボーディング完了！FPエイドに昇格しました'
+        : '動画ガイダンスの視聴を完了しました',
+      promoted: result.promoted
     })
   } catch (error) {
     console.error('Complete FP onboarding error:', error)
