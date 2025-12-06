@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Mail, Lock, AlertCircle, Users, HelpCircle } from 'lucide-react'
+import { Mail, Lock, AlertCircle, HelpCircle } from 'lucide-react'
 
 export function LoginForm() {
   const [email, setEmail] = useState('')
@@ -150,31 +150,6 @@ export function LoginForm() {
               )}
             </Button>
           </form>
-
-          <div className="pt-6 border-t border-slate-200">
-            <div className="flex items-center space-x-2 mb-4">
-              <Users className="h-4 w-4 text-slate-500" />
-              <h3 className="text-sm font-semibold text-slate-700">デモアカウント</h3>
-            </div>
-            <div className="space-y-2.5">
-              <div className="p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                <p className="text-xs font-medium text-slate-700 mb-1">UGS会員</p>
-                <p className="text-xs text-slate-600 font-mono">member@example.com / 123</p>
-              </div>
-              <div className="p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                <p className="text-xs font-medium text-slate-700 mb-1">FPエイド</p>
-                <p className="text-xs text-slate-600 font-mono">fp@example.com / 123</p>
-              </div>
-              <div className="p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                <p className="text-xs font-medium text-slate-700 mb-1">マネージャー</p>
-                <p className="text-xs text-slate-600 font-mono">manager@example.com / 123</p>
-              </div>
-              <div className="p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                <p className="text-xs font-medium text-slate-700 mb-1">運営</p>
-                <p className="text-xs text-slate-600 font-mono">admin@example.com / 123</p>
-              </div>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>
