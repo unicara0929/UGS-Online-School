@@ -79,7 +79,7 @@ export async function POST(
           priority: 'SUCCESS',
           title: 'FPエイド昇格申請が承認されました',
           message: 'おめでとうございます！FPエイド昇格申請が承認されました。3つのオンボーディングステップを完了するとFPエイドに昇格します。',
-          actionUrl: '/dashboard/fp-onboarding'
+          actionUrl: '/dashboard/manager-contact'
         }
       })
     })
