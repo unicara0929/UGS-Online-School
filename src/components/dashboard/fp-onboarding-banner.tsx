@@ -119,7 +119,7 @@ export function FPOnboardingBanner() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <GraduationCap className="h-5 w-5" />
-              <span className="font-medium">FPエイド オンボーディング</span>
+              <span className="font-medium">FPエイド昇格ステップ</span>
             </div>
 
             {/* 進捗インジケーター */}
