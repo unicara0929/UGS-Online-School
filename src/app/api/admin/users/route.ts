@@ -27,19 +27,41 @@ export async function GET(request: NextRequest) {
     })
 
     // 2. Supabaseからユーザー一覧を取得（認証情報用）
-    const { data: supabaseData, error } = await supabaseAdmin.auth.admin.listUsers()
+    // ページネーションで全ユーザーを取得（デフォルトは50件のみ）
+    let allSupabaseUsers: any[] = []
+    let page = 1
+    const perPage = 1000
 
-    if (error) {
-      console.error('Supabase users fetch error:', error)
-      return NextResponse.json(
-        { error: 'ユーザー情報の取得に失敗しました' },
-        { status: 500 }
-      )
+    while (true) {
+      const { data: supabaseData, error } = await supabaseAdmin.auth.admin.listUsers({
+        page,
+        perPage
+      })
+
+      if (error) {
+        console.error('Supabase users fetch error:', error)
+        return NextResponse.json(
+          { error: 'ユーザー情報の取得に失敗しました' },
+          { status: 500 }
+        )
+      }
+
+      if (!supabaseData.users || supabaseData.users.length === 0) {
+        break
+      }
+
+      allSupabaseUsers = allSupabaseUsers.concat(supabaseData.users)
+
+      if (supabaseData.users.length < perPage) {
+        break
+      }
+
+      page++
     }
 
     // 3. Supabaseユーザーのマップを作成
     const supabaseMap = new Map(
-      supabaseData.users.map(user => [user.id, user])
+      allSupabaseUsers.map(user => [user.id, user])
     )
 
     // 4. Prismaユーザーをベースに、Supabaseの認証情報を付加
