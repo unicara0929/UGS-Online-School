@@ -904,15 +904,16 @@ enum BusinessCardPaymentStatus {
 
 // 名刺デザインテンプレート
 model BusinessCardDesign {
-  id           String    @id @default(cuid())
-  name         String    // デザイン名（例: シンプル、写真あり、ロゴ強調）
-  description  String?   // デザインの説明
-  previewUrl   String?   // プレビュー画像URL
-  isActive     Boolean   @default(true) // 有効/無効
-  order        Int       @default(0) // 表示順
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  orders       BusinessCardOrder[]
+  id              String    @id @default(cuid())
+  name            String    // デザイン名（例: シンプル、写真あり、ロゴ強調）
+  description     String?   // デザインの説明
+  previewUrl      String?   // プレビュー画像URL（表面）
+  previewUrlBack  String?   // プレビュー画像URL（裏面）
+  isActive        Boolean   @default(true) // 有効/無効
+  order           Int       @default(0) // 表示順
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  orders          BusinessCardOrder[]
 
   @@index([isActive, order])
   @@map("business_card_designs")

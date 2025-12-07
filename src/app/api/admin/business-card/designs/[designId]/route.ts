@@ -17,7 +17,7 @@ export async function PUT(
 
     const { designId } = await params
     const body = await request.json()
-    const { name, description, previewUrl, isActive, order } = body
+    const { name, description, previewUrl, previewUrlBack, isActive, order } = body
 
     const updateData: any = {}
 
@@ -32,6 +32,7 @@ export async function PUT(
     }
     if (description !== undefined) updateData.description = description?.trim() || null
     if (previewUrl !== undefined) updateData.previewUrl = previewUrl?.trim() || null
+    if (previewUrlBack !== undefined) updateData.previewUrlBack = previewUrlBack?.trim() || null
     if (isActive !== undefined) updateData.isActive = isActive
     if (order !== undefined) updateData.order = order
 

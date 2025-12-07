@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, description, previewUrl, isActive, order } = body
+    const { name, description, previewUrl, previewUrlBack, isActive, order } = body
 
     if (!name?.trim()) {
       return NextResponse.json(
@@ -54,6 +54,7 @@ export async function POST(request: NextRequest) {
         name: name.trim(),
         description: description?.trim() || null,
         previewUrl: previewUrl?.trim() || null,
+        previewUrlBack: previewUrlBack?.trim() || null,
         isActive: isActive !== false,
         order: order || 0,
       },

@@ -15,6 +15,7 @@ interface Design {
   name: string
   description: string | null
   previewUrl: string | null
+  previewUrlBack: string | null
 }
 
 type DeliveryMethod = 'PICKUP' | 'SHIPPING'
@@ -388,13 +389,34 @@ function BusinessCardOrderContent() {
                                 : 'border-slate-200 hover:border-slate-300'
                             }`}
                           >
-                            {design.previewUrl && (
-                              <img
-                                src={design.previewUrl}
-                                alt={design.name}
-                                className="w-full h-32 object-cover rounded mb-3"
-                              />
-                            )}
+                            {/* 表面・裏面の画像を横並びで表示 */}
+                            <div className="flex gap-2 mb-3">
+                              {design.previewUrl && (
+                                <div className="flex-1">
+                                  <img
+                                    src={design.previewUrl}
+                                    alt={`${design.name} 表面`}
+                                    className="w-full aspect-[91/55] object-contain rounded border border-slate-200 bg-slate-50"
+                                  />
+                                  <p className="text-xs text-slate-400 text-center mt-1">表面</p>
+                                </div>
+                              )}
+                              {design.previewUrlBack && (
+                                <div className="flex-1">
+                                  <img
+                                    src={design.previewUrlBack}
+                                    alt={`${design.name} 裏面`}
+                                    className="w-full aspect-[91/55] object-contain rounded border border-slate-200 bg-slate-50"
+                                  />
+                                  <p className="text-xs text-slate-400 text-center mt-1">裏面</p>
+                                </div>
+                              )}
+                              {!design.previewUrl && !design.previewUrlBack && (
+                                <div className="w-full h-24 bg-slate-100 rounded flex items-center justify-center">
+                                  <CreditCard className="h-8 w-8 text-slate-300" />
+                                </div>
+                              )}
+                            </div>
                             <p className="font-medium">{design.name}</p>
                             {design.description && (
                               <p className="text-sm text-slate-500 mt-1">{design.description}</p>

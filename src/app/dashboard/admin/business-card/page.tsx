@@ -86,6 +86,7 @@ interface Design {
   name: string
   description: string | null
   previewUrl: string | null
+  previewUrlBack: string | null
   isActive: boolean
   order: number
   _count: {
@@ -137,10 +138,12 @@ function DesignManagement() {
   const [formName, setFormName] = useState('')
   const [formDescription, setFormDescription] = useState('')
   const [formPreviewUrl, setFormPreviewUrl] = useState('')
+  const [formPreviewUrlBack, setFormPreviewUrlBack] = useState('')
   const [formIsActive, setFormIsActive] = useState(true)
   const [formOrder, setFormOrder] = useState(0)
-  const [isUploading, setIsUploading] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [isUploading, setIsUploading] = useState<'front' | 'back' | null>(null)
+  const fileInputFrontRef = useRef<HTMLInputElement>(null)
+  const fileInputBackRef = useRef<HTMLInputElement>(null)
 
   const fetchDesigns = useCallback(async () => {
     setIsLoading(true)
@@ -166,6 +169,7 @@ function DesignManagement() {
     setFormName('')
     setFormDescription('')
     setFormPreviewUrl('')
+    setFormPreviewUrlBack('')
     setFormIsActive(true)
     setFormOrder(designs.length)
     setEditingDesign(null)
@@ -177,6 +181,7 @@ function DesignManagement() {
     setFormName(design.name)
     setFormDescription(design.description || '')
     setFormPreviewUrl(design.previewUrl || '')
+    setFormPreviewUrlBack(design.previewUrlBack || '')
     setFormIsActive(design.isActive)
     setFormOrder(design.order)
     setIsCreating(false)
@@ -200,6 +205,7 @@ function DesignManagement() {
         name: formName.trim(),
         description: formDescription.trim() || null,
         previewUrl: formPreviewUrl.trim() || null,
+        previewUrlBack: formPreviewUrlBack.trim() || null,
         isActive: formIsActive,
         order: formOrder,
       }
@@ -278,7 +284,7 @@ function DesignManagement() {
     }
   }
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, side: 'front' | 'back') => {
     const file = e.target.files?.[0]
     if (!file) return
 
@@ -295,7 +301,7 @@ function DesignManagement() {
       return
     }
 
-    setIsUploading(true)
+    setIsUploading(side)
     try {
       const formData = new FormData()
       formData.append('file', file)
@@ -311,22 +317,34 @@ function DesignManagement() {
         throw new Error(data.error || '画像のアップロードに失敗しました')
       }
 
-      setFormPreviewUrl(data.imageUrl)
+      if (side === 'front') {
+        setFormPreviewUrl(data.imageUrl)
+      } else {
+        setFormPreviewUrlBack(data.imageUrl)
+      }
     } catch (err) {
       alert(err instanceof Error ? err.message : '画像のアップロードに失敗しました')
     } finally {
-      setIsUploading(false)
+      setIsUploading(null)
       // ファイル入力をリセット
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ''
+      const inputRef = side === 'front' ? fileInputFrontRef : fileInputBackRef
+      if (inputRef.current) {
+        inputRef.current.value = ''
       }
     }
   }
 
-  const handleRemoveImage = () => {
-    setFormPreviewUrl('')
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
+  const handleRemoveImage = (side: 'front' | 'back') => {
+    if (side === 'front') {
+      setFormPreviewUrl('')
+      if (fileInputFrontRef.current) {
+        fileInputFrontRef.current.value = ''
+      }
+    } else {
+      setFormPreviewUrlBack('')
+      if (fileInputBackRef.current) {
+        fileInputBackRef.current.value = ''
+      }
     }
   }
 
@@ -402,74 +420,144 @@ function DesignManagement() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label>プレビュー画像</Label>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                onChange={handleFileUpload}
-                className="hidden"
-                id="design-preview-upload"
-              />
-              {formPreviewUrl ? (
-                <div className="space-y-3">
-                  <img
-                    src={formPreviewUrl}
-                    alt="プレビュー"
-                    className="max-w-xs rounded-lg border border-slate-200"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none'
-                    }}
-                  />
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isUploading}
-                    >
-                      {isUploading ? (
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      ) : (
-                        <Upload className="h-4 w-4 mr-2" />
-                      )}
-                      画像を変更
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleRemoveImage}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <X className="h-4 w-4 mr-2" />
-                      削除
-                    </Button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* 表面画像 */}
+              <div className="space-y-2">
+                <Label>表面画像</Label>
+                <input
+                  ref={fileInputFrontRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={(e) => handleFileUpload(e, 'front')}
+                  className="hidden"
+                  id="design-preview-front-upload"
+                />
+                {formPreviewUrl ? (
+                  <div className="space-y-3">
+                    <img
+                      src={formPreviewUrl}
+                      alt="表面プレビュー"
+                      className="w-full max-w-xs rounded-lg border border-slate-200"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none'
+                      }}
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fileInputFrontRef.current?.click()}
+                        disabled={isUploading !== null}
+                      >
+                        {isUploading === 'front' ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        ) : (
+                          <Upload className="h-4 w-4 mr-2" />
+                        )}
+                        変更
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleRemoveImage('front')}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        削除
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div
-                  onClick={() => !isUploading && fileInputRef.current?.click()}
-                  className={`border-2 border-dashed border-slate-300 rounded-lg p-8 text-center cursor-pointer hover:border-slate-400 transition-colors ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  {isUploading ? (
-                    <>
-                      <Loader2 className="h-8 w-8 text-slate-400 mx-auto mb-2 animate-spin" />
-                      <p className="text-sm text-slate-500">アップロード中...</p>
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-8 w-8 text-slate-400 mx-auto mb-2" />
-                      <p className="text-sm text-slate-500">
-                        クリックして画像を選択<br />
-                        <span className="text-xs text-slate-400">JPEG, PNG, WebP（5MB以下）</span>
-                      </p>
-                    </>
-                  )}
-                </div>
-              )}
+                ) : (
+                  <div
+                    onClick={() => !isUploading && fileInputFrontRef.current?.click()}
+                    className={`border-2 border-dashed border-slate-300 rounded-lg p-6 text-center cursor-pointer hover:border-slate-400 transition-colors ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {isUploading === 'front' ? (
+                      <>
+                        <Loader2 className="h-6 w-6 text-slate-400 mx-auto mb-2 animate-spin" />
+                        <p className="text-sm text-slate-500">アップロード中...</p>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-6 w-6 text-slate-400 mx-auto mb-2" />
+                        <p className="text-sm text-slate-500">表面画像を選択</p>
+                        <p className="text-xs text-slate-400">JPEG, PNG, WebP（5MB以下）</p>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* 裏面画像 */}
+              <div className="space-y-2">
+                <Label>裏面画像</Label>
+                <input
+                  ref={fileInputBackRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={(e) => handleFileUpload(e, 'back')}
+                  className="hidden"
+                  id="design-preview-back-upload"
+                />
+                {formPreviewUrlBack ? (
+                  <div className="space-y-3">
+                    <img
+                      src={formPreviewUrlBack}
+                      alt="裏面プレビュー"
+                      className="w-full max-w-xs rounded-lg border border-slate-200"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none'
+                      }}
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fileInputBackRef.current?.click()}
+                        disabled={isUploading !== null}
+                      >
+                        {isUploading === 'back' ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        ) : (
+                          <Upload className="h-4 w-4 mr-2" />
+                        )}
+                        変更
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleRemoveImage('back')}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        削除
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => !isUploading && fileInputBackRef.current?.click()}
+                    className={`border-2 border-dashed border-slate-300 rounded-lg p-6 text-center cursor-pointer hover:border-slate-400 transition-colors ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {isUploading === 'back' ? (
+                      <>
+                        <Loader2 className="h-6 w-6 text-slate-400 mx-auto mb-2 animate-spin" />
+                        <p className="text-sm text-slate-500">アップロード中...</p>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-6 w-6 text-slate-400 mx-auto mb-2" />
+                        <p className="text-sm text-slate-500">裏面画像を選択</p>
+                        <p className="text-xs text-slate-400">JPEG, PNG, WebP（5MB以下）</p>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center gap-2">
@@ -515,21 +603,43 @@ function DesignManagement() {
             >
               <CardContent className="p-4">
                 <div className="flex items-center gap-4">
-                  {/* プレビュー画像 */}
-                  <div className="flex-shrink-0">
-                    {design.previewUrl ? (
-                      <img
-                        src={design.previewUrl}
-                        alt={design.name}
-                        className="w-20 h-14 object-cover rounded-lg border border-slate-200"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none'
-                          e.currentTarget.nextElementSibling?.classList.remove('hidden')
-                        }}
-                      />
-                    ) : null}
-                    <div className={`w-20 h-14 bg-slate-100 rounded-lg flex items-center justify-center ${design.previewUrl ? 'hidden' : ''}`}>
-                      <ImageIcon className="h-6 w-6 text-slate-400" />
+                  {/* プレビュー画像（表面・裏面） */}
+                  <div className="flex-shrink-0 flex gap-2">
+                    {/* 表面 */}
+                    <div className="relative">
+                      {design.previewUrl ? (
+                        <img
+                          src={design.previewUrl}
+                          alt={`${design.name} 表面`}
+                          className="w-16 h-12 object-cover rounded border border-slate-200"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none'
+                            e.currentTarget.nextElementSibling?.classList.remove('hidden')
+                          }}
+                        />
+                      ) : null}
+                      <div className={`w-16 h-12 bg-slate-100 rounded flex items-center justify-center ${design.previewUrl ? 'hidden' : ''}`}>
+                        <ImageIcon className="h-4 w-4 text-slate-400" />
+                      </div>
+                      <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[10px] text-slate-400 bg-white px-1 rounded">表</span>
+                    </div>
+                    {/* 裏面 */}
+                    <div className="relative">
+                      {design.previewUrlBack ? (
+                        <img
+                          src={design.previewUrlBack}
+                          alt={`${design.name} 裏面`}
+                          className="w-16 h-12 object-cover rounded border border-slate-200"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none'
+                            e.currentTarget.nextElementSibling?.classList.remove('hidden')
+                          }}
+                        />
+                      ) : null}
+                      <div className={`w-16 h-12 bg-slate-100 rounded flex items-center justify-center ${design.previewUrlBack ? 'hidden' : ''}`}>
+                        <ImageIcon className="h-4 w-4 text-slate-400" />
+                      </div>
+                      <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[10px] text-slate-400 bg-white px-1 rounded">裏</span>
                     </div>
                   </div>
 
