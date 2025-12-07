@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { prismaRoleToAppRole } from '@/lib/utils/role-mapper'
+import { createClient } from '@/lib/supabase/server'
 
 export async function GET(
   request: NextRequest,
@@ -13,6 +14,17 @@ export async function GET(
       return NextResponse.json(
         { error: 'ユーザーIDが必要です' },
         { status: 400 }
+      )
+    }
+
+    // 認証チェック: リクエストしたユーザーが自分自身のプロフィールのみ取得可能
+    const supabase = await createClient()
+    const { data: { user: authUser } } = await supabase.auth.getUser()
+
+    if (!authUser || authUser.id !== userId) {
+      return NextResponse.json(
+        { error: 'ユーザーが見つかりません' },
+        { status: 404 }
       )
     }
 

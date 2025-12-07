@@ -88,15 +88,13 @@ export function createServerErrorResponse(
 
 /**
  * Prismaエラーを処理
+ * 注意: セキュリティのため、メールアドレスの存在確認ができないよう曖昧なメッセージを返す
  */
 export function handlePrismaError(error: any): NextResponse {
   // ユニーク制約違反
   if (error.code === 'P2002') {
-    const target = error.meta?.target
-    if (Array.isArray(target) && target.includes('email')) {
-      return createConflictErrorResponse('このメールアドレスは既に登録されています')
-    }
-    return createConflictErrorResponse('このリソースは既に存在します')
+    // セキュリティ: 具体的なフィールド名を漏らさない
+    return createConflictErrorResponse('登録できませんでした。入力内容をご確認ください')
   }
 
   // レコードが見つからない
