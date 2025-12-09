@@ -22,9 +22,18 @@ export function PricingSection() {
             <CardHeader className="text-center">
               <CardTitle className="text-2xl">Unicara Growth Salon</CardTitle>
               <CardDescription>全機能利用可能</CardDescription>
-              <div className="mt-4">
-                <span className="text-4xl font-bold text-slate-900">¥5,500</span>
-                <span className="text-slate-600">/月</span>
+              <div className="mt-6 space-y-3">
+                <div className="bg-slate-50 rounded-lg py-3 px-4">
+                  <p className="text-sm text-slate-500 mb-1">入会金（初回のみ）</p>
+                  <span className="text-2xl font-bold text-slate-900">¥330,000</span>
+                  <span className="text-slate-500 text-sm ml-1">（税込）</span>
+                </div>
+                <div className="pt-2">
+                  <p className="text-sm text-slate-500 mb-1">月額利用料</p>
+                  <span className="text-4xl font-bold text-slate-900">¥5,500</span>
+                  <span className="text-slate-600">/月</span>
+                  <span className="text-slate-500 text-sm ml-1">（税込）</span>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
