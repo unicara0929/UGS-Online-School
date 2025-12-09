@@ -46,6 +46,40 @@ const GENDERS = [
   { value: 'prefer_not_to_say', label: '回答しない' }
 ]
 
+const MBTI_TYPES = [
+  { value: 'INTJ', label: 'INTJ - 建築家' },
+  { value: 'INTP', label: 'INTP - 論理学者' },
+  { value: 'ENTJ', label: 'ENTJ - 指揮官' },
+  { value: 'ENTP', label: 'ENTP - 討論者' },
+  { value: 'INFJ', label: 'INFJ - 提唱者' },
+  { value: 'INFP', label: 'INFP - 仲介者' },
+  { value: 'ENFJ', label: 'ENFJ - 主人公' },
+  { value: 'ENFP', label: 'ENFP - 運動家' },
+  { value: 'ISTJ', label: 'ISTJ - 管理者' },
+  { value: 'ISFJ', label: 'ISFJ - 擁護者' },
+  { value: 'ESTJ', label: 'ESTJ - 幹部' },
+  { value: 'ESFJ', label: 'ESFJ - 領事' },
+  { value: 'ISTP', label: 'ISTP - 巨匠' },
+  { value: 'ISFP', label: 'ISFP - 冒険家' },
+  { value: 'ESTP', label: 'ESTP - 起業家' },
+  { value: 'ESFP', label: 'ESFP - エンターテイナー' }
+]
+
+const DISC_TYPES = [
+  { value: 'D', label: 'D - 主導型' },
+  { value: 'DI', label: 'DI - 主導・感化型' },
+  { value: 'DC', label: 'DC - 主導・慎重型' },
+  { value: 'I', label: 'I - 感化型' },
+  { value: 'ID', label: 'ID - 感化・主導型' },
+  { value: 'IS', label: 'IS - 感化・安定型' },
+  { value: 'S', label: 'S - 安定型' },
+  { value: 'SI', label: 'SI - 安定・感化型' },
+  { value: 'SC', label: 'SC - 安定・慎重型' },
+  { value: 'C', label: 'C - 慎重型' },
+  { value: 'CD', label: 'CD - 慎重・主導型' },
+  { value: 'CS', label: 'CS - 慎重・安定型' }
+]
+
 function ProfileSettingsPage() {
   const { user } = useAuth()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -62,7 +96,9 @@ function ProfileSettingsPage() {
     attribute: "",
     gender: "",
     birthDate: "",
-    prefecture: ""
+    prefecture: "",
+    mbtiType: "",
+    discType: ""
   })
   const [phoneError, setPhoneError] = useState('')
 
@@ -92,7 +128,9 @@ function ProfileSettingsPage() {
               attribute: data.user.attribute || "",
               gender: data.user.gender || "",
               birthDate: data.user.birthDate ? new Date(data.user.birthDate).toISOString().split('T')[0] : "",
-              prefecture: data.user.prefecture || ""
+              prefecture: data.user.prefecture || "",
+              mbtiType: data.user.mbtiType || "",
+              discType: data.user.discType || ""
             })
             
             // プロフィール画像を設定（APIから取得したURLまたはlocalStorageから）
@@ -265,7 +303,9 @@ function ProfileSettingsPage() {
           gender: profile.gender || null,
           birthDate: profile.birthDate || null,
           prefecture: profile.prefecture || null,
-          profileImageUrl: profileImage || null
+          profileImageUrl: profileImage || null,
+          mbtiType: profile.mbtiType || null,
+          discType: profile.discType || null
         }),
       })
 
@@ -559,6 +599,42 @@ function ProfileSettingsPage() {
                       ))}
                     </select>
                   </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    MBTI
+                  </label>
+                  <select
+                    value={profile.mbtiType}
+                    onChange={(e) => setProfile({...profile, mbtiType: e.target.value})}
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md bg-white"
+                  >
+                    <option value="">MBTIタイプを選択してください</option>
+                    {MBTI_TYPES.map((type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-slate-500 mt-1">性格タイプを選択（任意）</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    DISC
+                  </label>
+                  <select
+                    value={profile.discType}
+                    onChange={(e) => setProfile({...profile, discType: e.target.value})}
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md bg-white"
+                  >
+                    <option value="">DISCタイプを選択してください</option>
+                    {DISC_TYPES.map((type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-slate-500 mt-1">行動特性タイプを選択（任意）</p>
                 </div>
               </CardContent>
             </Card>

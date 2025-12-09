@@ -69,6 +69,8 @@ export async function GET(
         birthDate: user.birthDate,
         prefecture: user.prefecture,
         profileImageUrl: user.profileImageUrl,
+        mbtiType: user.mbtiType,
+        discType: user.discType,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
         lastLoginAt: user.lastLoginAt

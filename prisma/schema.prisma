@@ -26,6 +26,8 @@ model User {
   birthDate               DateTime?
   prefecture              String?
   profileImageUrl         String?
+  mbtiType                String?                  // MBTIタイプ（16タイプ）
+  discType                String?                  // DISCタイプ（12タイプ）
   notificationPreferences Json?
   lastLoginAt             DateTime?
   // FPエイド オンボーディング関連

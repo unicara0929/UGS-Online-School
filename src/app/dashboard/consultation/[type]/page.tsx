@@ -57,7 +57,9 @@ export default function ConsultationFormPage({ params }: { params: Promise<{ typ
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        const res = await fetch('/api/user/profile')
+        const res = await fetch('/api/user/profile', {
+          credentials: 'include'
+        })
         if (res.ok) {
           const data = await res.json()
           setUserInfo({
