@@ -1,5 +1,10 @@
 import type { NextConfig } from "next";
 
+// 許可するオリジン（本番とローカル開発）
+const allowedOrigin = process.env.NODE_ENV === 'production'
+  ? 'https://ugs.unicara.jp'
+  : 'http://localhost:3000';
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -13,6 +18,24 @@ const nextConfig: NextConfig = {
   // セキュリティヘッダー
   async headers() {
     return [
+      // CORS設定（APIルート用）
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: allowedOrigin,
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET, POST, PUT, DELETE, OPTIONS',
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'Content-Type, Authorization',
+          },
+        ],
+      },
       {
         source: '/:path*',
         headers: [
