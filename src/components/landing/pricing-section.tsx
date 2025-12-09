@@ -25,7 +25,7 @@ export function PricingSection() {
               <div className="mt-6 space-y-3">
                 <div className="bg-slate-50 rounded-lg py-3 px-4">
                   <p className="text-sm text-slate-500 mb-1">入会金（初回のみ）</p>
-                  <span className="text-2xl font-bold text-slate-900">¥330,000</span>
+                  <span className="text-4xl font-bold text-slate-900">¥33,000</span>
                   <span className="text-slate-500 text-sm ml-1">（税込）</span>
                 </div>
                 <div className="pt-2">
