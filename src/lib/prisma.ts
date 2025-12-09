@@ -15,39 +15,26 @@ function validateConnectionPoolConfig(): void {
   if (globalForPrisma.connectionPoolConfigValidated) {
     return
   }
-  
+
   const databaseUrl = process.env.DATABASE_URL || ''
-  
+
   if (!databaseUrl) {
     console.error('❌ DATABASE_URL is not set. Please configure it in Vercel environment variables.')
     globalForPrisma.connectionPoolConfigValidated = true
     return
   }
-  
-  // 接続プール設定の検証
-  const hasConnectionLimit = databaseUrl.includes('connection_limit')
-  const hasPoolTimeout = databaseUrl.includes('pool_timeout')
-  const hasConnectTimeout = databaseUrl.includes('connect_timeout')
-  
-  if (!hasConnectionLimit || !hasPoolTimeout || !hasConnectTimeout) {
-    console.warn('⚠️ 接続プール設定が不完全です。以下のパラメータをDATABASE_URLに追加してください:')
-    console.warn('   - connection_limit=20')
-    console.warn('   - pool_timeout=30')
-    console.warn('   - connect_timeout=30')
-    console.warn('例: postgresql://...?connection_limit=20&pool_timeout=30&connect_timeout=30')
-    console.warn('詳細: PRISMA-OPTIMIZATION-GUIDE.md を参照してください')
-  } else {
-    console.log('✅ 接続プール設定が検証されました')
-  }
-  
-  // Transaction Poolerの使用を推奨
-  if (databaseUrl.includes('pooler.supabase.com')) {
+
+  // デバッグ: 使用中のURLをログ出力（パスワードは隠す）
+  const urlForLog = databaseUrl.replace(/:[^:@]+@/, ':***@')
+  console.log('🔗 Database URL:', urlForLog)
+
+  // 直接接続を使用している場合はPoolerの警告をスキップ
+  if (databaseUrl.includes('db.') && databaseUrl.includes('.supabase.co') && !databaseUrl.includes('pooler')) {
+    console.log('✅ 直接接続が使用されています（開発環境推奨）')
+  } else if (databaseUrl.includes('pooler.supabase.com')) {
     console.log('✅ Supabase Transaction Poolerが使用されています')
-  } else if (databaseUrl.includes('db.') && databaseUrl.includes('.supabase.co')) {
-    console.warn('⚠️ 直接接続が使用されています。Transaction Poolerの使用を推奨します')
-    console.warn('   Transaction Pooler URL: postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres?pgbouncer=true')
   }
-  
+
   // 検証済みフラグをグローバル変数に設定（モジュール再読み込み時も保持）
   globalForPrisma.connectionPoolConfigValidated = true
 }
