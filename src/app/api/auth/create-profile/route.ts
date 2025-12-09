@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { supabaseAdmin } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/server'
 import { appRoleToPrismaRole, prismaRoleToAppRole, stringToAppRole } from '@/lib/utils/role-mapper'
 import { generateMemberId } from '@/lib/services/member-id-generator'
 
@@ -19,6 +20,19 @@ export async function POST(request: NextRequest) {
   const { userId, email, name, role } = requestBody
 
   try {
+    // 認証チェック: リクエストのuserIdと認証ユーザーのIDが一致するか確認
+    const supabase = await createClient()
+    const { data: { user: authUser } } = await supabase.auth.getUser()
+
+    // 認証済みユーザーの場合、自分のプロファイルのみ作成可能
+    if (authUser && authUser.id !== userId) {
+      console.warn('Unauthorized profile creation attempt:', { authUserId: authUser.id, requestedUserId: userId })
+      return NextResponse.json(
+        { error: '他のユーザーのプロファイルは作成できません' },
+        { status: 403 }
+      )
+    }
+
     console.log('Create profile request:', { userId, role })
 
     if (!userId || !email || !name || !role) {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { LPMeetingStatus } from '@prisma/client'
+import { LPMeetingStatus, Prisma } from '@prisma/client'
 import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
 
 /**
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     const fpId = searchParams.get('fpId')
     const memberId = searchParams.get('memberId')
 
-    const where: any = {}
+    const where: Prisma.LPMeetingWhereInput = {}
     if (status) {
       where.status = status
     }
@@ -73,12 +73,20 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // 統計情報を取得
-    const total = await prisma.lPMeeting.count()
-    const requested = await prisma.lPMeeting.count({ where: { status: 'REQUESTED' } })
-    const scheduled = await prisma.lPMeeting.count({ where: { status: 'SCHEDULED' } })
-    const completed = await prisma.lPMeeting.count({ where: { status: 'COMPLETED' } })
-    const cancelled = await prisma.lPMeeting.count({ where: { status: 'CANCELLED' } })
+    // 統計情報を取得（1つのgroupByクエリで効率化）
+    const statusCounts = await prisma.lPMeeting.groupBy({
+      by: ['status'],
+      _count: { status: true }
+    })
+    const countMap = statusCounts.reduce((acc, { status, _count }) => {
+      acc[status] = _count.status
+      return acc
+    }, {} as Record<LPMeetingStatus, number>)
+    const total = statusCounts.reduce((sum, { _count }) => sum + _count.status, 0)
+    const requested = countMap['REQUESTED'] ?? 0
+    const scheduled = countMap['SCHEDULED'] ?? 0
+    const completed = countMap['COMPLETED'] ?? 0
+    const cancelled = countMap['CANCELLED'] ?? 0
 
     return NextResponse.json({
       success: true,

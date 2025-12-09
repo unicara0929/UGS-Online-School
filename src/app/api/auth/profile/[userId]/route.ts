@@ -74,57 +74,58 @@ export async function GET(
         lastLoginAt: user.lastLoginAt
       }
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { message?: string; code?: string; stack?: string; constructor?: { name?: string } }
     console.error('Get profile error:', error)
     console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      stack: error.stack,
-      errorName: error.constructor?.name
+      message: err.message,
+      code: err.code,
+      stack: err.stack,
+      errorName: err.constructor?.name
     })
     
     // データベース接続エラーの場合
-    if (error.constructor?.name === 'PrismaClientInitializationError' || 
-        error.message?.includes('Can\'t reach database server') ||
-        error.message?.includes('database server') ||
-        error.message?.includes('timeout') ||
-        error.message?.includes('Timeout') ||
-        error.message?.includes('Tenant or user not found') ||
-        error.message?.includes('FATAL') ||
-        error.code === 'P1001' || // Can't reach database server
-        error.code === 'P1017') { // Server has closed the connection
+    if (err.constructor?.name === 'PrismaClientInitializationError' ||
+        err.message?.includes('Can\'t reach database server') ||
+        err.message?.includes('database server') ||
+        err.message?.includes('timeout') ||
+        err.message?.includes('Timeout') ||
+        err.message?.includes('Tenant or user not found') ||
+        err.message?.includes('FATAL') ||
+        err.code === 'P1001' || // Can't reach database server
+        err.code === 'P1017') { // Server has closed the connection
       console.error('Database connection error detected:', {
-        errorName: error.constructor?.name,
-        errorCode: error.code,
-        errorMessage: error.message,
+        errorName: err.constructor?.name,
+        errorCode: err.code,
+        errorMessage: err.message,
         databaseUrl: process.env.DATABASE_URL ? 'SET' : 'NOT SET'
       })
-      
+
       // "Tenant or user not found"エラーの場合、接続URLの形式が間違っている可能性がある
-      if (error.message?.includes('Tenant or user not found')) {
+      if (err.message?.includes('Tenant or user not found')) {
         return NextResponse.json(
-          { 
+          {
             error: 'データベース接続URLの形式が正しくありません。SupabaseのTransaction Pooler URLを確認してください。',
-            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+            details: process.env.NODE_ENV === 'development' ? err.message : undefined
           },
           { status: 503 }
         )
       }
-      
+
       return NextResponse.json(
-        { 
+        {
           error: 'データベースに接続できません。接続設定を確認してください。',
-          details: process.env.NODE_ENV === 'development' ? error.message : undefined
+          details: process.env.NODE_ENV === 'development' ? err.message : undefined
         },
         { status: 503 } // Service Unavailable
       )
     }
-    
+
     // Prisma接続失敗時もUIは落とさない
     return NextResponse.json(
-      { 
+      {
         error: 'ユーザーが見つかりません',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        details: process.env.NODE_ENV === 'development' ? err.message : undefined
       },
       { status: 404 }
     )

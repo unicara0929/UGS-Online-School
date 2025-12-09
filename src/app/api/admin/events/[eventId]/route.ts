@@ -1,36 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
-
-const EVENT_TYPE_INPUT_MAP: Record<string, 'REQUIRED' | 'OPTIONAL' | 'MANAGER_ONLY'> = {
-  required: 'REQUIRED',
-  optional: 'OPTIONAL',
-  'manager-only': 'MANAGER_ONLY',
-}
-
-const EVENT_VENUE_TYPE_INPUT_MAP: Record<string, 'ONLINE' | 'OFFLINE' | 'HYBRID'> = {
-  online: 'ONLINE',
-  offline: 'OFFLINE',
-  hybrid: 'HYBRID',
-}
-
-const EVENT_TARGET_ROLE_INPUT_MAP: Record<string, 'MEMBER' | 'FP' | 'MANAGER' | 'ALL'> = {
-  member: 'MEMBER',
-  fp: 'FP',
-  manager: 'MANAGER',
-  all: 'ALL',
-}
-
-const EVENT_ATTENDANCE_TYPE_INPUT_MAP: Record<string, 'REQUIRED' | 'OPTIONAL'> = {
-  required: 'REQUIRED',
-  optional: 'OPTIONAL',
-}
-
-const EVENT_STATUS_INPUT_MAP: Record<string, 'UPCOMING' | 'COMPLETED' | 'CANCELLED'> = {
-  upcoming: 'UPCOMING',
-  completed: 'COMPLETED',
-  cancelled: 'CANCELLED',
-}
+import {
+  EVENT_TYPE_INPUT_MAP,
+  EVENT_VENUE_TYPE_INPUT_MAP,
+  EVENT_TARGET_ROLE_INPUT_MAP,
+  EVENT_ATTENDANCE_TYPE_INPUT_MAP,
+  EVENT_STATUS_INPUT_MAP,
+} from '@/lib/constants/event-enums'
 
 /**
  * イベント編集API
@@ -105,7 +83,7 @@ export async function PUT(
     } = body || {}
 
     // 更新データを構築
-    const updateData: any = {}
+    const updateData: Prisma.EventUpdateInput = {}
 
     if (title !== undefined) updateData.title = title
     if (description !== undefined) updateData.description = description

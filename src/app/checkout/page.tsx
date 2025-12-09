@@ -12,9 +12,7 @@ import Link from "next/link"
 export const dynamic = 'force-dynamic'
 
 interface ReferrerInfo {
-  id: string
   name: string
-  role: string
 }
 
 interface PromoCodeInfo {
@@ -326,11 +324,9 @@ function CheckoutContent() {
                       <p className="text-xs text-blue-600">
                         紹介コード: <span className="font-mono">{referralCode}</span>
                       </p>
-                      {referrerInfo.role === 'FP' && (
-                        <Badge variant="secondary" className="mt-2 bg-blue-100 text-blue-800 border-blue-300">
-                          FP紹介特典適用
-                        </Badge>
-                      )}
+                      <Badge variant="secondary" className="mt-2 bg-blue-100 text-blue-800 border-blue-300">
+                        紹介特典適用
+                      </Badge>
                     </div>
                   </div>
                 )}

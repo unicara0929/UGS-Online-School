@@ -90,7 +90,7 @@ export function createServerErrorResponse(
  * Prismaエラーを処理
  * 注意: セキュリティのため、メールアドレスの存在確認ができないよう曖昧なメッセージを返す
  */
-export function handlePrismaError(error: any): NextResponse {
+export function handlePrismaError(error: { code?: string; message?: string }): NextResponse {
   // ユニーク制約違反
   if (error.code === 'P2002') {
     // セキュリティ: 具体的なフィールド名を漏らさない

@@ -2,66 +2,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
 import { createEventPrice } from '@/lib/services/event-price-service'
-
-const EVENT_TYPE_MAP = {
-  REQUIRED: 'required',
-  OPTIONAL: 'optional',
-  MANAGER_ONLY: 'manager-only',
-} as const
-
-const EVENT_TARGET_ROLE_MAP = {
-  MEMBER: 'member',
-  FP: 'fp',
-  MANAGER: 'manager',
-  ALL: 'all',
-} as const
-
-const EVENT_ATTENDANCE_TYPE_MAP = {
-  REQUIRED: 'required',
-  OPTIONAL: 'optional',
-} as const
-
-const EVENT_STATUS_MAP = {
-  UPCOMING: 'upcoming',
-  COMPLETED: 'completed',
-  CANCELLED: 'cancelled',
-} as const
-
-const EVENT_VENUE_TYPE_MAP = {
-  ONLINE: 'online',
-  OFFLINE: 'offline',
-  HYBRID: 'hybrid',
-} as const
-
-const EVENT_TYPE_INPUT_MAP: Record<string, 'REQUIRED' | 'OPTIONAL' | 'MANAGER_ONLY'> = {
-  required: 'REQUIRED',
-  optional: 'OPTIONAL',
-  'manager-only': 'MANAGER_ONLY',
-}
-
-const EVENT_VENUE_TYPE_INPUT_MAP: Record<string, 'ONLINE' | 'OFFLINE' | 'HYBRID'> = {
-  online: 'ONLINE',
-  offline: 'OFFLINE',
-  hybrid: 'HYBRID',
-}
-
-const EVENT_TARGET_ROLE_INPUT_MAP: Record<string, 'MEMBER' | 'FP' | 'MANAGER' | 'ALL'> = {
-  member: 'MEMBER',
-  fp: 'FP',
-  manager: 'MANAGER',
-  all: 'ALL',
-}
-
-const EVENT_ATTENDANCE_TYPE_INPUT_MAP: Record<string, 'REQUIRED' | 'OPTIONAL'> = {
-  required: 'REQUIRED',
-  optional: 'OPTIONAL',
-}
-
-const EVENT_STATUS_INPUT_MAP: Record<string, 'UPCOMING' | 'COMPLETED' | 'CANCELLED'> = {
-  upcoming: 'UPCOMING',
-  completed: 'COMPLETED',
-  cancelled: 'CANCELLED',
-}
+import {
+  EVENT_TYPE_MAP,
+  EVENT_TARGET_ROLE_MAP,
+  EVENT_ATTENDANCE_TYPE_MAP,
+  EVENT_STATUS_MAP,
+  EVENT_VENUE_TYPE_MAP,
+  EVENT_TYPE_INPUT_MAP,
+  EVENT_VENUE_TYPE_INPUT_MAP,
+  EVENT_TARGET_ROLE_INPUT_MAP,
+  EVENT_ATTENDANCE_TYPE_INPUT_MAP,
+  EVENT_STATUS_INPUT_MAP,
+} from '@/lib/constants/event-enums'
 
 export async function GET(request: NextRequest) {
   try {

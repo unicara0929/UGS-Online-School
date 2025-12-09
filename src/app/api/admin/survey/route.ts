@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
+import { SURVEY_QUESTION_COUNT } from '@/lib/constants/app-config'
 
 /**
  * アンケートを作成（管理者）
@@ -25,10 +26,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 設問数が10問であることを確認
-    if (questions.length !== 10) {
+    // 設問数が規定数であることを確認
+    if (questions.length !== SURVEY_QUESTION_COUNT) {
       return NextResponse.json(
-        { error: '設問は10問である必要があります' },
+        { error: `設問は${SURVEY_QUESTION_COUNT}問である必要があります` },
         { status: 400 }
       )
     }

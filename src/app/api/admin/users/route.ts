@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
+import type { User as SupabaseUser } from '@supabase/supabase-js'
+import { MAX_SUPABASE_USERS_PER_PAGE } from '@/lib/constants/app-config'
 
 export async function GET(request: NextRequest) {
   // 認証チェック
@@ -28,9 +30,9 @@ export async function GET(request: NextRequest) {
 
     // 2. Supabaseからユーザー一覧を取得（認証情報用）
     // ページネーションで全ユーザーを取得（デフォルトは50件のみ）
-    let allSupabaseUsers: any[] = []
+    let allSupabaseUsers: SupabaseUser[] = []
     let page = 1
-    const perPage = 1000
+    const perPage = MAX_SUPABASE_USERS_PER_PAGE
 
     while (true) {
       const { data: supabaseData, error } = await supabaseAdmin.auth.admin.listUsers({
