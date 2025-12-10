@@ -90,6 +90,12 @@ function EventDetailPageContent() {
         throw new Error(data.error || '参加者情報の取得に失敗しました')
       }
 
+      // 全体MTGの場合は専用ページにリダイレクト
+      if (data.event?.isRecurring) {
+        router.replace(`/dashboard/admin/events/${eventId}/mtg`)
+        return
+      }
+
       setEvent(data.event)
       setParticipants(data.participants)
       setFilteredParticipants(data.participants)

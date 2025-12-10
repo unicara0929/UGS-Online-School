@@ -114,6 +114,7 @@ export async function GET(
         time: event.time || '',
         isPaid: event.isPaid,
         price: event.price,
+        isRecurring: event.isRecurring || false,
       },
       summary,
       participants,
