@@ -425,55 +425,67 @@ function EventDetailPageContent() {
                         </div>
                       ) : (
                         /* 参加/不参加選択 */
-                        <div className="space-y-3">
-                          <p className="text-sm text-slate-600 text-center">
-                            全体MTGへの参加方法を選択してください
+                        <div className="space-y-4">
+                          <p className="text-sm font-medium text-slate-700 text-center">
+                            全体MTGへの参加についてお選びください
                           </p>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {event.status === 'upcoming' ? (
                               <>
-                                <div className="p-4 border-2 border-green-200 bg-green-50 rounded-lg text-center">
-                                  <p className="font-semibold text-green-800 mb-1">当日参加する</p>
-                                  <p className="text-xs text-green-700">参加コードを入力して出席</p>
-                                </div>
-                                <a
-                                  href="#exemption"
-                                  className="p-4 border-2 border-purple-200 bg-purple-50 rounded-lg text-center hover:bg-purple-100 transition-colors cursor-pointer"
-                                  onClick={(e) => {
-                                    e.preventDefault()
+                                <Button
+                                  size="lg"
+                                  className="h-auto py-4 bg-green-600 hover:bg-green-700 flex flex-col items-center"
+                                  onClick={() => {
+                                    document.getElementById('attendance-section')?.scrollIntoView({ behavior: 'smooth' })
+                                  }}
+                                >
+                                  <span className="font-bold text-lg">参加する</span>
+                                  <span className="text-xs opacity-90 mt-1">当日参加コードを入力</span>
+                                </Button>
+                                <Button
+                                  size="lg"
+                                  variant="outline"
+                                  className="h-auto py-4 border-2 border-purple-300 text-purple-700 hover:bg-purple-50 flex flex-col items-center"
+                                  onClick={() => {
                                     document.getElementById('exemption-section')?.scrollIntoView({ behavior: 'smooth' })
                                   }}
                                 >
-                                  <p className="font-semibold text-purple-800 mb-1">参加できない</p>
-                                  <p className="text-xs text-purple-700">免除申請を行う</p>
-                                </a>
+                                  <span className="font-bold text-lg">不参加（免除申請）</span>
+                                  <span className="text-xs opacity-70 mt-1">理由を記入して申請</span>
+                                </Button>
                               </>
                             ) : event.status === 'completed' ? (
                               <>
-                                <div className="p-4 border-2 border-blue-200 bg-blue-50 rounded-lg text-center">
-                                  <p className="font-semibold text-blue-800 mb-1">録画視聴で出席</p>
-                                  <p className="text-xs text-blue-700">動画視聴+アンケート回答</p>
+                                <Button
+                                  size="lg"
+                                  className="h-auto py-4 bg-blue-600 hover:bg-blue-700 flex flex-col items-center"
+                                  onClick={() => {
+                                    document.getElementById('attendance-section')?.scrollIntoView({ behavior: 'smooth' })
+                                  }}
+                                >
+                                  <span className="font-bold text-lg">録画視聴で出席</span>
+                                  <span className="text-xs opacity-90 mt-1">動画+アンケート回答</span>
                                   {event.attendanceDeadline && (
-                                    <p className="text-xs text-blue-600 mt-1">期限: {formatDate(event.attendanceDeadline)}</p>
+                                    <span className="text-xs opacity-75 mt-1">期限: {formatDate(event.attendanceDeadline)}</span>
                                   )}
-                                </div>
-                                <a
-                                  href="#exemption"
-                                  className="p-4 border-2 border-purple-200 bg-purple-50 rounded-lg text-center hover:bg-purple-100 transition-colors cursor-pointer"
-                                  onClick={(e) => {
-                                    e.preventDefault()
+                                </Button>
+                                <Button
+                                  size="lg"
+                                  variant="outline"
+                                  className="h-auto py-4 border-2 border-purple-300 text-purple-700 hover:bg-purple-50 flex flex-col items-center"
+                                  onClick={() => {
                                     document.getElementById('exemption-section')?.scrollIntoView({ behavior: 'smooth' })
                                   }}
                                 >
-                                  <p className="font-semibold text-purple-800 mb-1">参加できない</p>
-                                  <p className="text-xs text-purple-700">免除申請を行う</p>
-                                </a>
+                                  <span className="font-bold text-lg">不参加（免除申請）</span>
+                                  <span className="text-xs opacity-70 mt-1">理由を記入して申請</span>
+                                </Button>
                               </>
                             ) : null}
                           </div>
                           {event.exemption?.status === 'PENDING' && (
-                            <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
-                              <p className="text-sm text-yellow-800">免除申請が承認されました</p>
+                            <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg text-center">
+                              <p className="text-sm text-green-800">✓ 免除申請が承認されました</p>
                             </div>
                           )}
                         </div>
@@ -543,48 +555,57 @@ function EventDetailPageContent() {
             </Card>
 
             {/* 出席確認セクション */}
-            {event.isRegistered && !event.attendanceCompletedAt && event.exemption?.status !== 'APPROVED' && (
-              <Card>
+            {event.isRegistered && !event.attendanceCompletedAt && (
+              <Card id="attendance-section">
                 <CardHeader>
                   <CardTitle>出席確認</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* 参加コード入力 */}
-                  {event.hasAttendanceCode && (
+                  {/* 免除申請中・承認済みの場合のメッセージ */}
+                  {event.isRecurring && event.exemption?.status === 'APPROVED' ? (
+                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                      <p className="text-sm text-purple-700">免除が承認されています。出席確認は不要です。</p>
+                    </div>
+                  ) : (
                     <>
-                      {event.attendanceDeadline && new Date(event.attendanceDeadline) < new Date() ? (
-                        <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                          <p className="text-sm text-slate-600">出席確認の期限が過ぎました</p>
-                        </div>
-                      ) : (
-                        <AttendanceCodeInput
-                          eventId={event.id}
-                          eventTitle={event.title}
-                          onSuccess={() => window.location.reload()}
-                        />
+                      {/* 参加コード入力 */}
+                      {event.hasAttendanceCode && (
+                        <>
+                          {event.attendanceDeadline && new Date(event.attendanceDeadline) < new Date() ? (
+                            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                              <p className="text-sm text-slate-600">出席確認の期限が過ぎました</p>
+                            </div>
+                          ) : (
+                            <AttendanceCodeInput
+                              eventId={event.id}
+                              eventTitle={event.title}
+                              onSuccess={() => window.location.reload()}
+                            />
+                          )}
+                        </>
                       )}
-                    </>
-                  )}
 
-                  {/* 録画視聴+アンケート */}
-                  {(event.vimeoUrl || event.surveyUrl) && (
-                    <>
-                      {event.attendanceDeadline && new Date(event.attendanceDeadline) < new Date() ? (
-                        !event.hasAttendanceCode && (
-                          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                            <p className="text-sm text-slate-600">出席確認の期限が過ぎました</p>
-                          </div>
-                        )
-                      ) : (
-                        <VideoSurveyAttendance
-                          eventId={event.id}
-                          eventTitle={event.title}
-                          vimeoUrl={event.vimeoUrl}
-                          surveyUrl={event.surveyUrl}
-                          videoWatched={event.videoWatched}
-                          surveyCompleted={event.surveyCompleted}
-                          onSuccess={() => window.location.reload()}
-                        />
+                      {/* 録画視聴+アンケート */}
+                      {(event.vimeoUrl || event.surveyUrl) && (
+                        <>
+                          {event.attendanceDeadline && new Date(event.attendanceDeadline) < new Date() ? (
+                            !event.hasAttendanceCode && (
+                              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                                <p className="text-sm text-slate-600">出席確認の期限が過ぎました</p>
+                              </div>
+                            )
+                          ) : (
+                            <VideoSurveyAttendance
+                              eventId={event.id}
+                              eventTitle={event.title}
+                              vimeoUrl={event.vimeoUrl}
+                              surveyUrl={event.surveyUrl}
+                              videoWatched={event.videoWatched}
+                              surveyCompleted={event.surveyCompleted}
+                              onSuccess={() => window.location.reload()}
+                            />
+                          )}
+                        </>
                       )}
                     </>
                   )}

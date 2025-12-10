@@ -195,19 +195,30 @@ export function EventCard({ event, onEdit, onDelete, onMtgComplete, isSubmitting
                   const getStatusBadge = () => {
                     switch (registration.status) {
                       case 'attended_code':
-                        return <Badge className="bg-green-600 text-[10px] px-1.5 py-0">コード出席</Badge>
+                        return <Badge className="bg-green-600 text-[10px] px-1.5 py-0">参加済</Badge>
                       case 'attended_video':
-                        return <Badge className="bg-blue-600 text-[10px] px-1.5 py-0">動画出席</Badge>
+                        return <Badge className="bg-blue-600 text-[10px] px-1.5 py-0">動画完了</Badge>
                       case 'exempted':
-                        return <Badge className="bg-purple-600 text-[10px] px-1.5 py-0">{registration.statusLabel}</Badge>
+                        // 免除の詳細状態を表示
+                        if (registration.exemptionStatus === 'APPROVED') {
+                          return <Badge className="bg-purple-600 text-[10px] px-1.5 py-0">免除承認</Badge>
+                        } else if (registration.exemptionStatus === 'PENDING') {
+                          return <Badge className="bg-yellow-600 text-[10px] px-1.5 py-0">免除申請中</Badge>
+                        }
+                        return <Badge className="bg-purple-600 text-[10px] px-1.5 py-0">免除</Badge>
                       case 'video_incomplete':
-                        return <Badge className="bg-orange-600 text-[10px] px-1.5 py-0">途中</Badge>
+                        return <Badge className="bg-orange-600 text-[10px] px-1.5 py-0">対応中</Badge>
                       case 'registered':
-                        return <Badge variant="secondary" className="text-[10px] px-1.5 py-0">登録済</Badge>
+                        return <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-slate-400 text-slate-500">未対応</Badge>
                       default:
-                        return <Badge variant="outline" className="text-[10px] px-1.5 py-0">未対応</Badge>
+                        return <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-slate-400 text-slate-500">未対応</Badge>
                     }
                   }
+
+                  // 出席完了しているかどうか
+                  const isAttendanceCompleted = registration.status === 'attended_code' || registration.status === 'attended_video'
+                  // 免除されているかどうか
+                  const isExempted = registration.status === 'exempted' && registration.exemptionStatus === 'APPROVED'
 
                   return (
                     <div key={registration.id} className="flex items-center justify-between text-xs bg-slate-50 px-2 py-1.5 rounded">
@@ -216,12 +227,16 @@ export function EventCard({ event, onEdit, onDelete, onMtgComplete, isSubmitting
                         <span className="font-medium truncate">{registration.userName || '名前未設定'}</span>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        {/* 動画・アンケート状況 */}
-                        {(registration.status === 'video_incomplete' || registration.status === 'attended_video' || registration.status === 'registered') && (
+                        {/* 動画・アンケート状況（出席完了・免除以外の人のみ表示） */}
+                        {!isAttendanceCompleted && !isExempted && (
                           <div className="flex items-center gap-1">
                             <Video className={`h-3 w-3 ${registration.videoWatched ? 'text-green-600' : 'text-slate-300'}`} />
                             <FileText className={`h-3 w-3 ${registration.surveyCompleted ? 'text-green-600' : 'text-slate-300'}`} />
                           </div>
+                        )}
+                        {/* 免除申請がある場合のアイコン表示（未承認） */}
+                        {registration.hasExemption && registration.exemptionStatus === 'PENDING' && (
+                          <AlertCircle className="h-3 w-3 text-yellow-600" />
                         )}
                         {getStatusBadge()}
                       </div>
