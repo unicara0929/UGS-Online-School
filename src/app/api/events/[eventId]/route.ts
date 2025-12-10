@@ -64,6 +64,8 @@ export async function GET(
             attendanceCompletedAt: true,
             videoWatched: true,
             surveyCompleted: true,
+            participationIntent: true,
+            participationIntentAt: true,
           },
           take: 1,
         },
@@ -158,6 +160,9 @@ export async function GET(
         actualLocation: event.actualLocation ?? null,
         // 定期開催（全体MTG）判定用
         isRecurring: event.isRecurring,
+        // 参加意思（全体MTG用）
+        participationIntent: registration?.participationIntent ?? 'UNDECIDED',
+        participationIntentAt: registration?.participationIntentAt?.toISOString() ?? null,
         // 免除申請情報
         exemption: exemption ? {
           id: exemption.id,

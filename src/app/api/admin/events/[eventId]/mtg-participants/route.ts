@@ -77,6 +77,8 @@ export async function GET(
         attendanceCompletedAt: true,
         videoWatched: true,
         surveyCompleted: true,
+        participationIntent: true,
+        participationIntentAt: true,
         createdAt: true,
       }
     })
@@ -139,6 +141,9 @@ export async function GET(
         // 登録情報
         isRegistered: !!registration,
         registeredAt: registration?.createdAt?.toISOString() ?? null,
+        // 参加意思
+        participationIntent: registration?.participationIntent ?? 'UNDECIDED',
+        participationIntentAt: registration?.participationIntentAt?.toISOString() ?? null,
         // 出席確認
         attendanceMethod: registration?.attendanceMethod ?? null,
         attendanceCompletedAt: registration?.attendanceCompletedAt?.toISOString() ?? null,
@@ -159,6 +164,10 @@ export async function GET(
       registered: participants.filter(p => p.status === 'registered').length,
       videoIncomplete: participants.filter(p => p.status === 'video_incomplete').length,
       notResponded: participants.filter(p => p.status === 'not_responded').length,
+      // 参加意思の集計
+      willAttend: participants.filter(p => p.participationIntent === 'WILL_ATTEND').length,
+      willNotAttend: participants.filter(p => p.participationIntent === 'WILL_NOT_ATTEND').length,
+      undecided: participants.filter(p => p.participationIntent === 'UNDECIDED').length,
     }
 
     return NextResponse.json({

@@ -242,6 +242,9 @@ model EventRegistration {
   attendanceCompletedAt  DateTime?           // 出席完了日時
   videoWatched           Boolean             @default(false) // 録画視聴済みかどうか
   surveyCompleted        Boolean             @default(false) // アンケート回答済みかどうか
+  // 全体MTG参加意思（事前回答）
+  participationIntent    ParticipationIntent @default(UNDECIDED) // 参加意思
+  participationIntentAt  DateTime?           // 参加意思回答日時
   createdAt              DateTime            @default(now())
   updatedAt              DateTime            @default(now()) @updatedAt
   event                  Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
@@ -309,6 +312,13 @@ enum EventStatus {
 enum AttendanceMethod {
   CODE          // 参加コード入力による出席
   VIDEO_SURVEY  // 録画視聴+アンケート回答による出席
+}
+
+// 全体MTGの参加意思
+enum ParticipationIntent {
+  UNDECIDED     // 未回答
+  WILL_ATTEND   // 参加する
+  WILL_NOT_ATTEND // 参加しない（動画視聴予定）
 }
 
 enum SubscriptionStatus {

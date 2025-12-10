@@ -35,6 +35,10 @@ interface MtgParticipant {
   statusLabel: string
   isRegistered: boolean
   registeredAt: string | null
+  // 参加意思
+  participationIntent: 'UNDECIDED' | 'WILL_ATTEND' | 'WILL_NOT_ATTEND'
+  participationIntentAt: string | null
+  // 出席確認
   attendanceMethod: string | null
   attendanceCompletedAt: string | null
   videoWatched: boolean
@@ -65,6 +69,10 @@ interface Summary {
   registered: number
   videoIncomplete: number
   notResponded: number
+  // 参加意思
+  willAttend: number
+  willNotAttend: number
+  undecided: number
 }
 
 function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: string }> }) {
@@ -264,75 +272,120 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
             </CardContent>
           </Card>
 
-          {/* サマリーカード */}
+          {/* サマリーカード - 参加意思 */}
           {summary && (
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-              <Card className="shadow-sm">
-                <CardContent className="pt-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-slate-600">FPエイド総数</p>
-                      <p className="text-2xl font-bold">{summary.total}</p>
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-slate-700">参加意思</p>
+              <div className="grid grid-cols-3 gap-4">
+                <Card className="shadow-sm bg-green-50">
+                  <CardContent className="pt-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-green-700">参加予定</p>
+                        <p className="text-2xl font-bold text-green-700">{summary.willAttend}</p>
+                      </div>
+                      <CheckCircle className="h-8 w-8 text-green-400" />
                     </div>
-                    <Users className="h-8 w-8 text-slate-400" />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="shadow-sm bg-green-50">
-                <CardContent className="pt-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-green-700">出席完了</p>
-                      <p className="text-2xl font-bold text-green-700">{summary.attended}</p>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm bg-orange-50">
+                  <CardContent className="pt-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-orange-700">不参加予定</p>
+                        <p className="text-2xl font-bold text-orange-700">{summary.willNotAttend}</p>
+                      </div>
+                      <Video className="h-8 w-8 text-orange-400" />
                     </div>
-                    <CheckCircle className="h-8 w-8 text-green-400" />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="shadow-sm bg-purple-50">
-                <CardContent className="pt-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-purple-700">免除</p>
-                      <p className="text-2xl font-bold text-purple-700">{summary.exempted}</p>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm bg-slate-100">
+                  <CardContent className="pt-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-slate-600">未回答</p>
+                        <p className="text-2xl font-bold text-slate-600">{summary.undecided}</p>
+                      </div>
+                      <AlertCircle className="h-8 w-8 text-slate-400" />
                     </div>
-                    <FileText className="h-8 w-8 text-purple-400" />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="shadow-sm bg-yellow-50">
-                <CardContent className="pt-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-yellow-700">登録済み</p>
-                      <p className="text-2xl font-bold text-yellow-700">{summary.registered}</p>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
+
+          {/* サマリーカード - 出席状況 */}
+          {summary && (
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-slate-700">出席状況</p>
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+                <Card className="shadow-sm">
+                  <CardContent className="pt-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-slate-600">FPエイド総数</p>
+                        <p className="text-2xl font-bold">{summary.total}</p>
+                      </div>
+                      <Users className="h-8 w-8 text-slate-400" />
                     </div>
-                    <Clock className="h-8 w-8 text-yellow-400" />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="shadow-sm bg-orange-50">
-                <CardContent className="pt-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-orange-700">途中</p>
-                      <p className="text-2xl font-bold text-orange-700">{summary.videoIncomplete}</p>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm bg-green-50">
+                  <CardContent className="pt-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-green-700">出席完了</p>
+                        <p className="text-2xl font-bold text-green-700">{summary.attended}</p>
+                      </div>
+                      <CheckCircle className="h-8 w-8 text-green-400" />
                     </div>
-                    <Video className="h-8 w-8 text-orange-400" />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="shadow-sm bg-slate-100">
-                <CardContent className="pt-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-slate-600">未対応</p>
-                      <p className="text-2xl font-bold text-slate-600">{summary.notResponded}</p>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm bg-purple-50">
+                  <CardContent className="pt-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-purple-700">免除</p>
+                        <p className="text-2xl font-bold text-purple-700">{summary.exempted}</p>
+                      </div>
+                      <FileText className="h-8 w-8 text-purple-400" />
                     </div>
-                    <AlertCircle className="h-8 w-8 text-slate-400" />
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm bg-yellow-50">
+                  <CardContent className="pt-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-yellow-700">登録済み</p>
+                        <p className="text-2xl font-bold text-yellow-700">{summary.registered}</p>
+                      </div>
+                      <Clock className="h-8 w-8 text-yellow-400" />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm bg-orange-50">
+                  <CardContent className="pt-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-orange-700">途中</p>
+                        <p className="text-2xl font-bold text-orange-700">{summary.videoIncomplete}</p>
+                      </div>
+                      <Video className="h-8 w-8 text-orange-400" />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm bg-slate-100">
+                  <CardContent className="pt-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-slate-600">未対応</p>
+                        <p className="text-2xl font-bold text-slate-600">{summary.notResponded}</p>
+                      </div>
+                      <AlertCircle className="h-8 w-8 text-slate-400" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           )}
 
@@ -389,11 +442,11 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                   <TableRow className="bg-slate-50">
                     <TableHead>会員番号</TableHead>
                     <TableHead>名前</TableHead>
-                    <TableHead>メール</TableHead>
-                    <TableHead>ステータス</TableHead>
-                    <TableHead>動画視聴</TableHead>
+                    <TableHead>参加意思</TableHead>
+                    <TableHead>出席状況</TableHead>
+                    <TableHead>動画</TableHead>
                     <TableHead>アンケート</TableHead>
-                    <TableHead>免除理由</TableHead>
+                    <TableHead>免除</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -404,35 +457,55 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredParticipants.map((participant) => (
-                      <TableRow key={participant.userId} className="hover:bg-slate-50">
-                        <TableCell className="font-mono text-sm">
-                          {participant.memberId || '-'}
-                        </TableCell>
-                        <TableCell className="font-medium">{participant.name || '名前未設定'}</TableCell>
-                        <TableCell className="text-slate-600 text-sm">{participant.email}</TableCell>
-                        <TableCell>
-                          {getStatusBadge(participant.status, participant.statusLabel)}
-                        </TableCell>
-                        <TableCell>
-                          {participant.videoWatched ? (
-                            <CheckCircle className="h-5 w-5 text-green-600" />
-                          ) : (
-                            <XCircle className="h-5 w-5 text-slate-300" />
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {participant.surveyCompleted ? (
-                            <CheckCircle className="h-5 w-5 text-green-600" />
-                          ) : (
-                            <XCircle className="h-5 w-5 text-slate-300" />
-                          )}
-                        </TableCell>
-                        <TableCell className="text-sm text-slate-600 max-w-xs truncate">
-                          {participant.exemptionReason || '-'}
-                        </TableCell>
-                      </TableRow>
-                    ))
+                    filteredParticipants.map((participant) => {
+                      // 参加意思のバッジ
+                      const getIntentBadge = () => {
+                        switch (participant.participationIntent) {
+                          case 'WILL_ATTEND':
+                            return <Badge className="bg-green-600 text-xs">参加</Badge>
+                          case 'WILL_NOT_ATTEND':
+                            return <Badge className="bg-orange-600 text-xs">不参加</Badge>
+                          default:
+                            return <Badge variant="outline" className="text-xs text-slate-400">未回答</Badge>
+                        }
+                      }
+
+                      return (
+                        <TableRow key={participant.userId} className="hover:bg-slate-50">
+                          <TableCell className="font-mono text-sm">
+                            {participant.memberId || '-'}
+                          </TableCell>
+                          <TableCell className="font-medium">{participant.name || '名前未設定'}</TableCell>
+                          <TableCell>
+                            {getIntentBadge()}
+                          </TableCell>
+                          <TableCell>
+                            {getStatusBadge(participant.status, participant.statusLabel)}
+                          </TableCell>
+                          <TableCell>
+                            {participant.videoWatched ? (
+                              <CheckCircle className="h-5 w-5 text-green-600" />
+                            ) : (
+                              <XCircle className="h-5 w-5 text-slate-300" />
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {participant.surveyCompleted ? (
+                              <CheckCircle className="h-5 w-5 text-green-600" />
+                            ) : (
+                              <XCircle className="h-5 w-5 text-slate-300" />
+                            )}
+                          </TableCell>
+                          <TableCell className="text-sm text-slate-600 max-w-xs truncate">
+                            {participant.hasExemption ? (
+                              <span className={participant.exemptionStatus === 'APPROVED' ? 'text-purple-600' : 'text-yellow-600'}>
+                                {participant.exemptionStatus === 'APPROVED' ? '承認済' : '申請中'}
+                              </span>
+                            ) : '-'}
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })
                   )}
                 </TableBody>
               </Table>
