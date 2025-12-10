@@ -402,7 +402,84 @@ function EventDetailPageContent() {
 
                 {/* 参加登録ボタン */}
                 <div className="pt-4 border-t">
-                  {event.isPaid && event.paymentStatus === 'PENDING' ? (
+                  {/* 全体MTGの場合は専用の参加/不参加選択 */}
+                  {event.isRecurring ? (
+                    <div className="space-y-4">
+                      {/* 出席完了済みの場合 */}
+                      {event.attendanceCompletedAt ? (
+                        <div className="w-full text-center py-4 bg-green-50 rounded-lg border border-green-200">
+                          <p className="text-green-600 font-medium text-lg">
+                            ✓ 出席完了
+                          </p>
+                          <p className="text-sm text-green-700 mt-1">
+                            {event.attendanceMethod === 'CODE' ? '参加コードで確認済み' : '動画視聴+アンケート完了'}
+                          </p>
+                        </div>
+                      ) : event.exemption?.status === 'APPROVED' ? (
+                        /* 免除承認済みの場合 */
+                        <div className="w-full text-center py-4 bg-purple-50 rounded-lg border border-purple-200">
+                          <p className="text-purple-600 font-medium text-lg">
+                            免除承認済み
+                          </p>
+                          <p className="text-sm text-purple-700 mt-1">今回の全体MTGは参加免除されています</p>
+                        </div>
+                      ) : (
+                        /* 参加/不参加選択 */
+                        <div className="space-y-3">
+                          <p className="text-sm text-slate-600 text-center">
+                            全体MTGへの参加方法を選択してください
+                          </p>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {event.status === 'upcoming' ? (
+                              <>
+                                <div className="p-4 border-2 border-green-200 bg-green-50 rounded-lg text-center">
+                                  <p className="font-semibold text-green-800 mb-1">当日参加する</p>
+                                  <p className="text-xs text-green-700">参加コードを入力して出席</p>
+                                </div>
+                                <a
+                                  href="#exemption"
+                                  className="p-4 border-2 border-purple-200 bg-purple-50 rounded-lg text-center hover:bg-purple-100 transition-colors cursor-pointer"
+                                  onClick={(e) => {
+                                    e.preventDefault()
+                                    document.getElementById('exemption-section')?.scrollIntoView({ behavior: 'smooth' })
+                                  }}
+                                >
+                                  <p className="font-semibold text-purple-800 mb-1">参加できない</p>
+                                  <p className="text-xs text-purple-700">免除申請を行う</p>
+                                </a>
+                              </>
+                            ) : event.status === 'completed' ? (
+                              <>
+                                <div className="p-4 border-2 border-blue-200 bg-blue-50 rounded-lg text-center">
+                                  <p className="font-semibold text-blue-800 mb-1">録画視聴で出席</p>
+                                  <p className="text-xs text-blue-700">動画視聴+アンケート回答</p>
+                                  {event.attendanceDeadline && (
+                                    <p className="text-xs text-blue-600 mt-1">期限: {formatDate(event.attendanceDeadline)}</p>
+                                  )}
+                                </div>
+                                <a
+                                  href="#exemption"
+                                  className="p-4 border-2 border-purple-200 bg-purple-50 rounded-lg text-center hover:bg-purple-100 transition-colors cursor-pointer"
+                                  onClick={(e) => {
+                                    e.preventDefault()
+                                    document.getElementById('exemption-section')?.scrollIntoView({ behavior: 'smooth' })
+                                  }}
+                                >
+                                  <p className="font-semibold text-purple-800 mb-1">参加できない</p>
+                                  <p className="text-xs text-purple-700">免除申請を行う</p>
+                                </a>
+                              </>
+                            ) : null}
+                          </div>
+                          {event.exemption?.status === 'PENDING' && (
+                            <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
+                              <p className="text-sm text-yellow-800">免除申請が承認されました</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : event.isPaid && event.paymentStatus === 'PENDING' ? (
                     <div className="flex gap-2">
                       <Button
                         size="lg"
@@ -456,7 +533,7 @@ function EventDetailPageContent() {
                       </div>
                     )}
 
-                  {event.maxParticipants !== null && event.currentParticipants >= event.maxParticipants && (
+                  {!event.isRecurring && event.maxParticipants !== null && event.currentParticipants >= event.maxParticipants && (
                     <div className="mt-3 text-sm text-slate-500 text-center">
                       定員に達しました
                     </div>
@@ -466,7 +543,7 @@ function EventDetailPageContent() {
             </Card>
 
             {/* 出席確認セクション */}
-            {event.isRegistered && !event.attendanceCompletedAt && (
+            {event.isRegistered && !event.attendanceCompletedAt && event.exemption?.status !== 'APPROVED' && (
               <Card>
                 <CardHeader>
                   <CardTitle>出席確認</CardTitle>
@@ -536,8 +613,8 @@ function EventDetailPageContent() {
             )}
 
             {/* 全体MTG免除申請セクション */}
-            {event.isRecurring && event.status === 'upcoming' && user && (
-              <Card>
+            {event.isRecurring && user && !event.attendanceCompletedAt && (
+              <Card id="exemption-section">
                 <CardHeader>
                   <CardTitle>全体MTG免除申請</CardTitle>
                 </CardHeader>
