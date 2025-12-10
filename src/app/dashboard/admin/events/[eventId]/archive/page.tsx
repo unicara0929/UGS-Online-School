@@ -40,6 +40,7 @@ function EventArchivePageContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [isUploadingPdf, setIsUploadingPdf] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
@@ -150,6 +151,57 @@ function EventArchivePageContent() {
       ...prev,
       photos: prev.photos.filter((_, i) => i !== index),
     }))
+  }
+
+  // 資料PDFアップロード
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // ファイルタイプチェック
+    if (file.type !== 'application/pdf') {
+      alert('PDFファイルのみアップロード可能です')
+      return
+    }
+
+    // ファイルサイズチェック（20MB）
+    if (file.size > 20 * 1024 * 1024) {
+      alert('ファイルサイズは20MB以下にしてください')
+      return
+    }
+
+    setIsUploadingPdf(true)
+    try {
+      const uploadFormData = new FormData()
+      uploadFormData.append('file', file)
+      uploadFormData.append('eventId', eventId)
+
+      const response = await fetch('/api/admin/events/upload-materials', {
+        method: 'POST',
+        credentials: 'include',
+        body: uploadFormData,
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || '資料のアップロードに失敗しました')
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        materialsUrl: data.materialsUrl,
+      }))
+      setSuccessMessage('資料をアップロードしました')
+      setTimeout(() => setSuccessMessage(null), 3000)
+    } catch (err) {
+      console.error('Failed to upload PDF:', err)
+      alert(err instanceof Error ? err.message : '資料のアップロードに失敗しました')
+    } finally {
+      setIsUploadingPdf(false)
+      // input をリセット
+      e.target.value = ''
+    }
   }
 
   // 保存
@@ -435,19 +487,87 @@ function EventArchivePageContent() {
                     </div>
                   </div>
 
-                  {/* 資料リンク */}
-                  <div>
-                    <label className={FORM_LABEL_CLASS}>
-                      <Link2 className="h-4 w-4 inline mr-1" />
-                      セミナー資料リンク（PDF等）
-                    </label>
-                    <input
-                      type="url"
-                      value={formData.materialsUrl}
-                      onChange={(e) => setFormData(prev => ({ ...prev, materialsUrl: e.target.value }))}
-                      className={FORM_INPUT_CLASS}
-                      placeholder="https://drive.google.com/..."
-                    />
+                  {/* 資料リンク/アップロード */}
+                  <div className="border border-slate-200 rounded-lg p-4 space-y-4">
+                    <h4 className="font-medium text-slate-900">セミナー資料</h4>
+
+                    {/* 現在の資料URL表示 */}
+                    {formData.materialsUrl && (
+                      <div className="p-3 bg-slate-50 rounded-lg">
+                        <p className="text-xs text-slate-500 mb-1">現在設定中の資料URL</p>
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-slate-400" />
+                          <a
+                            href={formData.materialsUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 hover:underline truncate"
+                          >
+                            {formData.materialsUrl}
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, materialsUrl: '' }))}
+                            className="text-red-500 hover:text-red-700 ml-2"
+                            title="資料URLをクリア"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* PDFアップロード */}
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        PDFファイルをアップロード
+                      </label>
+                      <div className="flex items-center gap-4">
+                        <label className="cursor-pointer">
+                          <input
+                            type="file"
+                            accept="application/pdf"
+                            onChange={handlePdfUpload}
+                            className="hidden"
+                            disabled={isUploadingPdf}
+                          />
+                          <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-slate-300 rounded-lg hover:border-slate-500 transition-colors">
+                            {isUploadingPdf ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                アップロード中...
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="h-4 w-4" />
+                                PDFを選択
+                              </>
+                            )}
+                          </div>
+                        </label>
+                        <span className="text-xs text-slate-500">
+                          PDF形式（20MB以下）
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* または外部URL入力 */}
+                    <div>
+                      <label className={FORM_LABEL_CLASS}>
+                        <Link2 className="h-4 w-4 inline mr-1" />
+                        または外部URLを指定
+                      </label>
+                      <input
+                        type="url"
+                        value={formData.materialsUrl}
+                        onChange={(e) => setFormData(prev => ({ ...prev, materialsUrl: e.target.value }))}
+                        className={FORM_INPUT_CLASS}
+                        placeholder="https://drive.google.com/..."
+                      />
+                      <p className="text-xs text-slate-500 mt-1">
+                        Google Drive、Dropbox、その他の共有リンクも利用可能です
+                      </p>
+                    </div>
                   </div>
 
                   {/* 当日の写真 */}
