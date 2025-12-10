@@ -24,6 +24,15 @@ export async function POST(
 
     const { applicationId } = await context.params
 
+    // リクエストボディから担当マネージャーIDを取得
+    let managerId: string | null = null
+    try {
+      const body = await request.json()
+      managerId = body.managerId || null
+    } catch {
+      // bodyがない場合は無視
+    }
+
     // 申請を取得
     const application = await prisma.fPPromotionApplication.findUnique({
       where: { id: applicationId },
@@ -56,7 +65,7 @@ export async function POST(
         }
       })
 
-      // 2. オンボーディングフラグをリセット（ロールはまだ変更しない）
+      // 2. オンボーディングフラグをリセット（ロールはまだ変更しない）+ 担当マネージャーを設定
       await tx.user.update({
         where: { id: application.userId },
         data: {
@@ -67,7 +76,8 @@ export async function POST(
           complianceTestPassed: false,       // コンプライアンステストをリセット
           complianceTestPassedAt: null,
           fpOnboardingCompleted: false,      // 動画ガイダンスをリセット
-          fpOnboardingCompletedAt: null
+          fpOnboardingCompletedAt: null,
+          managerId: managerId               // 担当マネージャーを設定（任意）
         }
       })
 

@@ -40,6 +40,13 @@ interface FPPromotionApplication {
   }
 }
 
+interface Manager {
+  id: string
+  name: string
+  email: string
+  memberId: string
+}
+
 interface ManagerPromotionApplication {
   id: string
   userId: string
@@ -61,6 +68,8 @@ function AdminPromotionsPageContent() {
   const { user } = useAuth()
   const [fpApplications, setFpApplications] = useState<FPPromotionApplication[]>([])
   const [managerApplications, setManagerApplications] = useState<ManagerPromotionApplication[]>([])
+  const [managers, setManagers] = useState<Manager[]>([])
+  const [selectedManagers, setSelectedManagers] = useState<Record<string, string>>({}) // applicationId -> managerId
   const [isLoading, setIsLoading] = useState(true)
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'fp' | 'manager'>('fp')
@@ -68,6 +77,7 @@ function AdminPromotionsPageContent() {
   useEffect(() => {
     fetchFPApplications()
     fetchManagerApplications()
+    fetchManagers()
   }, [])
 
   const fetchFPApplications = async () => {
@@ -96,15 +106,38 @@ function AdminPromotionsPageContent() {
     }
   }
 
+  const fetchManagers = async () => {
+    try {
+      const response = await fetch('/api/admin/managers', {
+        credentials: 'include'
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setManagers(data.managers || [])
+      }
+    } catch (error) {
+      console.error('Error fetching managers:', error)
+    }
+  }
+
   const handleFPApprove = async (applicationId: string) => {
-    if (!confirm('このFPエイド昇格申請を承認しますか？\n\n承認すると、ユーザーのロールがFPエイドに変更され、通知が送信されます。')) {
+    const managerId = selectedManagers[applicationId]
+    const managerName = managerId ? managers.find(m => m.id === managerId)?.name : null
+
+    const confirmMessage = managerId
+      ? `このFPエイド昇格申請を承認しますか？\n\n担当マネージャー: ${managerName}\n\n承認すると、ユーザーのロールがFPエイドに変更され、通知が送信されます。`
+      : 'このFPエイド昇格申請を承認しますか？\n\n※担当マネージャーが未選択です。後からユーザー管理画面で設定できます。\n\n承認すると、ユーザーのロールがFPエイドに変更され、通知が送信されます。'
+
+    if (!confirm(confirmMessage)) {
       return
     }
 
     setProcessingId(applicationId)
     try {
       const response = await authenticatedFetch(`/api/admin/promotions/fp/${applicationId}/approve`, {
-        method: 'POST'
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ managerId: managerId || null })
       })
 
       if (!response.ok) {
@@ -365,6 +398,31 @@ function AdminPromotionsPageContent() {
                               </a>
                             </div>
                           )}
+
+                          {/* 担当マネージャー選択 */}
+                          <div className="mb-4 p-3 bg-slate-50 rounded-lg">
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                              担当マネージャー（任意）
+                            </label>
+                            <select
+                              value={selectedManagers[application.id] || ''}
+                              onChange={(e) => setSelectedManagers({
+                                ...selectedManagers,
+                                [application.id]: e.target.value
+                              })}
+                              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                            >
+                              <option value="">未割り当て（後から設定可）</option>
+                              {managers.map((manager) => (
+                                <option key={manager.id} value={manager.id}>
+                                  {manager.name} ({manager.email})
+                                </option>
+                              ))}
+                            </select>
+                            <p className="text-xs text-slate-500 mt-1">
+                              承認時に担当マネージャーを設定できます
+                            </p>
+                          </div>
 
                           <div className="flex gap-2">
                             <Button
