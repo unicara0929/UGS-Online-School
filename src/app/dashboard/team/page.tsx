@@ -5,8 +5,53 @@ import { ProtectedRoute } from '@/components/auth/protected-route'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Users, TrendingUp, FileCheck, Activity, UserCheck } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Loader2, Users, TrendingUp, FileCheck, Activity, UserCheck, X, Building2, Home, Car, Sun, Briefcase, Shield, HelpCircle } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
+
+// 契約種別の定義
+const CONTRACT_TYPE_CONFIG: Record<string, { label: string; icon: any; color: string }> = {
+  INSURANCE: { label: '保険', icon: Shield, color: 'bg-blue-100 text-blue-800' },
+  REAL_ESTATE: { label: '不動産', icon: Building2, color: 'bg-green-100 text-green-800' },
+  RENTAL: { label: '賃貸', icon: Home, color: 'bg-purple-100 text-purple-800' },
+  SOLAR_BATTERY: { label: '太陽光/蓄電池', icon: Sun, color: 'bg-yellow-100 text-yellow-800' },
+  CAREER: { label: '転職', icon: Briefcase, color: 'bg-orange-100 text-orange-800' },
+  HOUSING: { label: '住宅', icon: Home, color: 'bg-teal-100 text-teal-800' },
+  OTHER: { label: 'その他', icon: HelpCircle, color: 'bg-slate-100 text-slate-800' },
+}
+
+interface ContractDetail {
+  id: string
+  contractNumber: string
+  productName: string | null
+  customerName: string | null
+  amount: number | null
+  rewardAmount: number | null
+  signedAt: string
+  note: string | null
+}
+
+interface ContractsByType {
+  count: number
+  totalAmount: number
+  totalReward: number
+  contracts: ContractDetail[]
+}
+
+interface ContractsData {
+  user: {
+    id: string
+    name: string
+    email: string
+    role: string
+  }
+  contractsByType: Record<string, ContractsByType>
+  totals: {
+    count: number
+    totalAmount: number
+    totalReward: number
+  }
+}
 
 interface TeamMember {
   id: string
@@ -49,6 +94,9 @@ export default function TeamPage() {
   const [stats, setStats] = useState<TeamStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null)
+  const [contractsData, setContractsData] = useState<ContractsData | null>(null)
+  const [contractsLoading, setContractsLoading] = useState(false)
 
   const isManager = user?.role === 'manager'
 
@@ -85,6 +133,39 @@ export default function TeamPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleContractClick = async (member: TeamMember) => {
+    setSelectedMember(member)
+    setContractsLoading(true)
+    setContractsData(null)
+
+    try {
+      const response = await fetch(`/api/team/contracts/${member.id}`, {
+        credentials: 'include'
+      })
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        setContractsData(data)
+      } else {
+        console.error('Failed to fetch contracts:', data.error)
+      }
+    } catch (err) {
+      console.error('Error fetching contracts:', err)
+    } finally {
+      setContractsLoading(false)
+    }
+  }
+
+  const closeModal = () => {
+    setSelectedMember(null)
+    setContractsData(null)
+  }
+
+  const formatCurrency = (amount: number | null) => {
+    if (amount === null) return '-'
+    return `¥${amount.toLocaleString()}`
   }
 
   const getRoleLabel = (role: string) => {
@@ -282,7 +363,13 @@ export default function TeamPage() {
                         {member.stats.completedLessons} レッスン
                       </TableCell>
                       <TableCell className="text-right">
-                        {member.stats.activeContracts} 件
+                        <button
+                          onClick={() => handleContractClick(member)}
+                          className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer font-medium"
+                          title="クリックして契約詳細を表示"
+                        >
+                          {member.stats.activeContracts} 件
+                        </button>
                       </TableCell>
                       <TableCell className="text-slate-600">
                         {isManager ? (
@@ -302,6 +389,127 @@ export default function TeamPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* 契約詳細モーダル */}
+        {selectedMember && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+              {/* モーダルヘッダー */}
+              <div className="flex items-center justify-between p-6 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900">契約詳細</h2>
+                  <p className="text-slate-600">{selectedMember.name} さんの契約一覧</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={closeModal}
+                  className="hover:bg-slate-200"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+
+              {/* モーダルコンテンツ */}
+              <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+                {contractsLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                    <span className="ml-2 text-slate-600">読み込み中...</span>
+                  </div>
+                ) : contractsData ? (
+                  <div className="space-y-6">
+                    {/* 合計サマリー */}
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="bg-blue-50 rounded-xl p-4 text-center">
+                        <p className="text-sm text-blue-600 font-medium">総契約数</p>
+                        <p className="text-2xl font-bold text-blue-800">{contractsData.totals.count}件</p>
+                      </div>
+                      <div className="bg-green-50 rounded-xl p-4 text-center">
+                        <p className="text-sm text-green-600 font-medium">総契約金額</p>
+                        <p className="text-2xl font-bold text-green-800">{formatCurrency(contractsData.totals.totalAmount)}</p>
+                      </div>
+                      <div className="bg-orange-50 rounded-xl p-4 text-center">
+                        <p className="text-sm text-orange-600 font-medium">総報酬額</p>
+                        <p className="text-2xl font-bold text-orange-800">{formatCurrency(contractsData.totals.totalReward)}</p>
+                      </div>
+                    </div>
+
+                    {/* 種別ごとの内訳 */}
+                    {Object.keys(contractsData.contractsByType).length === 0 ? (
+                      <div className="text-center py-8 text-slate-500">
+                        <FileCheck className="h-12 w-12 mx-auto mb-4 text-slate-400" />
+                        <p>契約データがありません</p>
+                      </div>
+                    ) : (
+                      Object.entries(contractsData.contractsByType).map(([type, data]) => {
+                        const config = CONTRACT_TYPE_CONFIG[type] || CONTRACT_TYPE_CONFIG.OTHER
+                        const Icon = config.icon
+
+                        return (
+                          <div key={type} className="border border-slate-200 rounded-xl overflow-hidden">
+                            {/* 種別ヘッダー */}
+                            <div className={`p-4 ${config.color} flex items-center justify-between`}>
+                              <div className="flex items-center space-x-2">
+                                <Icon className="h-5 w-5" />
+                                <span className="font-semibold">{config.label}</span>
+                                <Badge variant="secondary" className="ml-2">{data.count}件</Badge>
+                              </div>
+                              <div className="text-sm">
+                                報酬合計: <span className="font-bold">{formatCurrency(data.totalReward)}</span>
+                              </div>
+                            </div>
+
+                            {/* 契約一覧テーブル */}
+                            <Table>
+                              <TableHeader>
+                                <TableRow className="bg-slate-50">
+                                  <TableHead className="text-xs">契約番号</TableHead>
+                                  <TableHead className="text-xs">商品名</TableHead>
+                                  <TableHead className="text-xs">契約者名</TableHead>
+                                  <TableHead className="text-xs text-right">契約金額</TableHead>
+                                  <TableHead className="text-xs text-right">報酬額</TableHead>
+                                  <TableHead className="text-xs">契約日</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {data.contracts.map((contract) => (
+                                  <TableRow key={contract.id} className="hover:bg-slate-50">
+                                    <TableCell className="text-sm font-mono">{contract.contractNumber}</TableCell>
+                                    <TableCell className="text-sm">{contract.productName || '-'}</TableCell>
+                                    <TableCell className="text-sm">{contract.customerName || '-'}</TableCell>
+                                    <TableCell className="text-sm text-right">{formatCurrency(contract.amount)}</TableCell>
+                                    <TableCell className="text-sm text-right font-medium text-orange-600">
+                                      {formatCurrency(contract.rewardAmount)}
+                                    </TableCell>
+                                    <TableCell className="text-sm text-slate-600">
+                                      {new Date(contract.signedAt).toLocaleDateString('ja-JP')}
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        )
+                      })
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-slate-500">
+                    <p>契約データの取得に失敗しました</p>
+                  </div>
+                )}
+              </div>
+
+              {/* モーダルフッター */}
+              <div className="flex justify-end p-4 border-t border-slate-200 bg-slate-50">
+                <Button onClick={closeModal} variant="outline">
+                  閉じる
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </ProtectedRoute>
   )

@@ -367,8 +367,13 @@ enum ReferralStatus {
 }
 
 enum ContractType {
-  INSURANCE
-  OTHER
+  INSURANCE     // 保険
+  REAL_ESTATE   // 不動産
+  RENTAL        // 賃貸
+  SOLAR_BATTERY // 太陽光/蓄電池
+  CAREER        // 転職
+  HOUSING       // 住宅
+  OTHER         // その他
 }
 
 enum ContractStatus {
@@ -454,14 +459,16 @@ model Referral {
 
 model Contract {
   id             String         @id @default(cuid())
-  userId         String
-  contractNumber String         @unique
-  productName    String?        // 商品名
-  contractType   ContractType
-  status         ContractStatus @default(ACTIVE)
-  signedAt       DateTime
-  amount         Int?           // 保険料
-  rewardAmount   Int?
+  userId         String                              // FPエイドのユーザーID
+  contractNumber String         @unique             // 契約番号
+  productName    String?                            // 商品名
+  contractType   ContractType                       // 契約種別（販売事業区分）
+  status         ContractStatus @default(ACTIVE)    // 契約ステータス
+  signedAt       DateTime                           // 契約日
+  amount         Int?                               // 契約金額・保険料
+  rewardAmount   Int?                               // 報酬額
+  customerName   String?                            // 契約者名
+  note           String?                            // メモ・備考
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
   user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)

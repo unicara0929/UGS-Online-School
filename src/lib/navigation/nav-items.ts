@@ -104,11 +104,12 @@ export const navigation: NavItem[] = [
     ]
   },
   {
-    name: '報酬・紹介',
+    name: '報酬・契約・紹介',
     icon: DollarSign,
     roles: ['admin'],
     subItems: [
       { name: '報酬管理', href: '/dashboard/admin/compensations', icon: DollarSign, roles: ['admin'] },
+      { name: '契約管理', href: '/dashboard/admin/contracts', icon: Briefcase, roles: ['admin'] },
       { name: '紹介管理', href: '/dashboard/admin/referrals', icon: UserPlus, roles: ['admin'] },
     ]
   },
