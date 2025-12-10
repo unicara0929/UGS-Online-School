@@ -216,6 +216,31 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // 全体MTGの場合、全FPエイドを自動登録
+    if (isRecurring) {
+      try {
+        const fpUsers = await prisma.user.findMany({
+          where: { role: 'FP' },
+          select: { id: true },
+        })
+
+        if (fpUsers.length > 0) {
+          await prisma.eventRegistration.createMany({
+            data: fpUsers.map(user => ({
+              userId: user.id,
+              eventId: createdEvent.id,
+              paymentStatus: 'FREE', // 全体MTGは無料
+            })),
+            skipDuplicates: true,
+          })
+          console.log(`[MTG_AUTO_REGISTER] ${fpUsers.length}名のFPエイドを自動登録しました`)
+        }
+      } catch (registrationError) {
+        console.error('[MTG_AUTO_REGISTER_ERROR]', registrationError)
+        // 登録失敗はイベント作成の失敗とはしない（ログのみ）
+      }
+    }
+
     // 記録専用イベントでない場合のみ新着通知を作成
     if (!isArchiveOnly) {
       try {
