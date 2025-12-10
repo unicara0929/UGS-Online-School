@@ -5,13 +5,27 @@ export type AttendanceType = 'required' | 'optional'
 export type VenueType = 'online' | 'offline' | 'hybrid'
 export type EventStatus = 'upcoming' | 'completed' | 'cancelled'
 export type EventType = 'required' | 'optional' | 'manager-only'
+export type ParticipantStatus = 'attended_code' | 'attended_video' | 'exempted' | 'video_incomplete' | 'registered' | 'not_responded'
 
 export interface EventRegistration {
   id: string
   userId: string
   userName: string
   userEmail: string
+  userMemberId: string | null
   registeredAt: string
+  // 出席状況
+  attendanceMethod: string | null
+  attendanceCompletedAt: string | null
+  videoWatched: boolean
+  surveyCompleted: boolean
+  // ステータス
+  status: ParticipantStatus
+  statusLabel: string
+  // 免除申請
+  hasExemption: boolean
+  exemptionStatus: string | null
+  exemptionReason: string | null
 }
 
 export interface AdminEventItem {

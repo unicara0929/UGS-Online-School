@@ -35,12 +35,36 @@ export async function GET(request: NextRequest) {
                 id: true,
                 name: true,
                 email: true,
+                memberId: true,
               },
             },
           },
         },
         _count: { select: { registrations: true } },
       },
+    })
+
+    // 全体MTGの免除申請を一括取得
+    const mtgEventIds = events.filter(e => e.isRecurring).map(e => e.id)
+    const exemptions = mtgEventIds.length > 0
+      ? await prisma.mtgExemption.findMany({
+          where: { eventId: { in: mtgEventIds } },
+          select: {
+            userId: true,
+            eventId: true,
+            status: true,
+            reason: true,
+          },
+        })
+      : []
+
+    // イベントごとの免除申請をマップ化
+    const exemptionsByEvent = new Map<string, Map<string, { status: string; reason: string | null }>>()
+    exemptions.forEach(e => {
+      if (!exemptionsByEvent.has(e.eventId)) {
+        exemptionsByEvent.set(e.eventId, new Map())
+      }
+      exemptionsByEvent.get(e.eventId)!.set(e.userId, { status: e.status, reason: e.reason })
     })
 
     const formattedEvents = events.map((event) => {
@@ -77,13 +101,58 @@ export async function GET(request: NextRequest) {
         vimeoUrl: event.vimeoUrl ?? null,
         surveyUrl: event.surveyUrl ?? null,
         attendanceDeadline: event.attendanceDeadline?.toISOString() ?? null,
-        registrations: event.registrations.map((registration) => ({
-          id: registration.id,
-          userId: registration.userId,
-          userName: registration.user?.name ?? '',
-          userEmail: registration.user?.email ?? '',
-          registeredAt: registration.createdAt.toISOString(),
-        })),
+        // 全体MTGフラグ
+        isRecurring: event.isRecurring ?? false,
+        registrations: event.registrations.map((registration) => {
+          // 免除申請情報を取得
+          const exemption = event.isRecurring
+            ? exemptionsByEvent.get(event.id)?.get(registration.userId)
+            : undefined
+
+          // ステータスを計算
+          let participantStatus: 'attended_code' | 'attended_video' | 'exempted' | 'video_incomplete' | 'registered' | 'not_responded' = 'registered'
+          let statusLabel = '参加登録済み'
+
+          if (exemption && exemption.status === 'APPROVED') {
+            participantStatus = 'exempted'
+            statusLabel = '免除承認済み'
+          } else if (exemption && exemption.status === 'PENDING') {
+            participantStatus = 'exempted'
+            statusLabel = '免除申請中'
+          } else if (registration.attendanceCompletedAt) {
+            if (registration.attendanceMethod === 'CODE') {
+              participantStatus = 'attended_code'
+              statusLabel = '参加コード出席'
+            } else {
+              participantStatus = 'attended_video'
+              statusLabel = '動画視聴出席'
+            }
+          } else if (registration.videoWatched || registration.surveyCompleted) {
+            participantStatus = 'video_incomplete'
+            statusLabel = '動画/アンケート途中'
+          }
+
+          return {
+            id: registration.id,
+            userId: registration.userId,
+            userName: registration.user?.name ?? '',
+            userEmail: registration.user?.email ?? '',
+            userMemberId: registration.user?.memberId ?? null,
+            registeredAt: registration.createdAt.toISOString(),
+            // 出席状況
+            attendanceMethod: registration.attendanceMethod ?? null,
+            attendanceCompletedAt: registration.attendanceCompletedAt?.toISOString() ?? null,
+            videoWatched: registration.videoWatched ?? false,
+            surveyCompleted: registration.surveyCompleted ?? false,
+            // ステータス
+            status: participantStatus,
+            statusLabel,
+            // 免除申請
+            hasExemption: !!exemption,
+            exemptionStatus: exemption?.status ?? null,
+            exemptionReason: exemption?.reason ?? null,
+          }
+        }),
       }
     })
 

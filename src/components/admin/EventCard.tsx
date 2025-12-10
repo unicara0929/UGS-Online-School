@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
-import { Calendar, Clock, MapPin, Users, Video, Edit, Trash2, Image, FileText, Link2, CheckCircle2 } from 'lucide-react'
+import { Calendar, Clock, MapPin, Users, Video, Edit, Trash2, Image, FileText, Link2, CheckCircle2, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -183,15 +183,63 @@ export function EventCard({ event, onEdit, onDelete, onMtgComplete, isSubmitting
         {/* 参加者一覧 */}
         {event.registrations.length > 0 && (
           <div className="mt-4">
-            <p className="text-sm font-semibold text-slate-700 mb-1">参加者一覧</p>
-            <ul className="space-y-1 max-h-32 overflow-y-auto">
-              {event.registrations.map((registration) => (
-                <li key={registration.id} className="text-xs text-slate-600 bg-slate-50 px-2 py-1 rounded">
-                  <span className="font-medium">{registration.userName || '名前未設定'}</span>
-                  <span className="ml-2 text-slate-500">{registration.userEmail || 'メール未設定'}</span>
-                </li>
-              ))}
-            </ul>
+            <p className="text-sm font-semibold text-slate-700 mb-1">
+              {event.isRecurring ? 'FPエイド参加状況' : '参加者一覧'}
+              <span className="ml-2 text-xs font-normal text-slate-500">({event.registrations.length}名)</span>
+            </p>
+            {event.isRecurring ? (
+              // 全体MTG用: ステータス付きリスト
+              <div className="space-y-1 max-h-48 overflow-y-auto">
+                {event.registrations.map((registration) => {
+                  // ステータスに応じたバッジの色とアイコン
+                  const getStatusBadge = () => {
+                    switch (registration.status) {
+                      case 'attended_code':
+                        return <Badge className="bg-green-600 text-[10px] px-1.5 py-0">コード出席</Badge>
+                      case 'attended_video':
+                        return <Badge className="bg-blue-600 text-[10px] px-1.5 py-0">動画出席</Badge>
+                      case 'exempted':
+                        return <Badge className="bg-purple-600 text-[10px] px-1.5 py-0">{registration.statusLabel}</Badge>
+                      case 'video_incomplete':
+                        return <Badge className="bg-orange-600 text-[10px] px-1.5 py-0">途中</Badge>
+                      case 'registered':
+                        return <Badge variant="secondary" className="text-[10px] px-1.5 py-0">登録済</Badge>
+                      default:
+                        return <Badge variant="outline" className="text-[10px] px-1.5 py-0">未対応</Badge>
+                    }
+                  }
+
+                  return (
+                    <div key={registration.id} className="flex items-center justify-between text-xs bg-slate-50 px-2 py-1.5 rounded">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="font-mono text-slate-500 shrink-0">{registration.userMemberId || '-'}</span>
+                        <span className="font-medium truncate">{registration.userName || '名前未設定'}</span>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {/* 動画・アンケート状況 */}
+                        {(registration.status === 'video_incomplete' || registration.status === 'attended_video' || registration.status === 'registered') && (
+                          <div className="flex items-center gap-1">
+                            <Video className={`h-3 w-3 ${registration.videoWatched ? 'text-green-600' : 'text-slate-300'}`} />
+                            <FileText className={`h-3 w-3 ${registration.surveyCompleted ? 'text-green-600' : 'text-slate-300'}`} />
+                          </div>
+                        )}
+                        {getStatusBadge()}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              // 通常イベント用: シンプルリスト
+              <ul className="space-y-1 max-h-32 overflow-y-auto">
+                {event.registrations.map((registration) => (
+                  <li key={registration.id} className="text-xs text-slate-600 bg-slate-50 px-2 py-1 rounded">
+                    <span className="font-medium">{registration.userName || '名前未設定'}</span>
+                    <span className="ml-2 text-slate-500">{registration.userEmail || 'メール未設定'}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
         {event.registrations.length === 0 && !showArchiveInfo && (
