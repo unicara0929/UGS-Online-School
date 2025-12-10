@@ -64,15 +64,20 @@ interface MtgEvent {
 
 interface Summary {
   total: number
-  attended: number
-  exempted: number
-  registered: number
-  videoIncomplete: number
-  notResponded: number
-  // 参加意思
+  // 正式参加
+  officiallyAttended: number
+  // 出席方法別
+  attendedByCode: number
+  attendedByVideo: number
+  exemptedApproved: number
+  // 選択ステータス別
   willAttend: number
   willNotAttend: number
+  exemptionRequested: number
   undecided: number
+  // その他
+  videoIncomplete: number
+  notResponded: number
 }
 
 function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: string }> }) {
@@ -272,53 +277,11 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
             </CardContent>
           </Card>
 
-          {/* サマリーカード - 参加意思 */}
+          {/* サマリーカード - 正式参加状況 */}
           {summary && (
             <div className="space-y-2">
-              <p className="text-sm font-semibold text-slate-700">参加意思</p>
-              <div className="grid grid-cols-3 gap-4">
-                <Card className="shadow-sm bg-green-50">
-                  <CardContent className="pt-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs text-green-700">参加予定</p>
-                        <p className="text-2xl font-bold text-green-700">{summary.willAttend}</p>
-                      </div>
-                      <CheckCircle className="h-8 w-8 text-green-400" />
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="shadow-sm bg-orange-50">
-                  <CardContent className="pt-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs text-orange-700">不参加予定</p>
-                        <p className="text-2xl font-bold text-orange-700">{summary.willNotAttend}</p>
-                      </div>
-                      <Video className="h-8 w-8 text-orange-400" />
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="shadow-sm bg-slate-100">
-                  <CardContent className="pt-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs text-slate-600">未回答</p>
-                        <p className="text-2xl font-bold text-slate-600">{summary.undecided}</p>
-                      </div>
-                      <AlertCircle className="h-8 w-8 text-slate-400" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          )}
-
-          {/* サマリーカード - 出席状況 */}
-          {summary && (
-            <div className="space-y-2">
-              <p className="text-sm font-semibold text-slate-700">出席状況</p>
-              <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+              <p className="text-sm font-semibold text-slate-700">正式参加状況（FPエイド維持判定用）</p>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <Card className="shadow-sm">
                   <CardContent className="pt-4">
                     <div className="flex items-center justify-between">
@@ -330,14 +293,34 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                     </div>
                   </CardContent>
                 </Card>
+                <Card className="shadow-sm bg-green-100 border-green-300">
+                  <CardContent className="pt-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-green-800 font-semibold">正式参加</p>
+                        <p className="text-2xl font-bold text-green-700">{summary.officiallyAttended}</p>
+                      </div>
+                      <CheckCircle className="h-8 w-8 text-green-500" />
+                    </div>
+                  </CardContent>
+                </Card>
                 <Card className="shadow-sm bg-green-50">
                   <CardContent className="pt-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs text-green-700">出席完了</p>
-                        <p className="text-2xl font-bold text-green-700">{summary.attended}</p>
+                        <p className="text-xs text-green-700">コード入力</p>
+                        <p className="text-2xl font-bold text-green-700">{summary.attendedByCode}</p>
                       </div>
-                      <CheckCircle className="h-8 w-8 text-green-400" />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm bg-blue-50">
+                  <CardContent className="pt-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-blue-700">動画+アンケート</p>
+                        <p className="text-2xl font-bold text-blue-700">{summary.attendedByVideo}</p>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -345,32 +328,51 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                   <CardContent className="pt-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs text-purple-700">免除</p>
-                        <p className="text-2xl font-bold text-purple-700">{summary.exempted}</p>
+                        <p className="text-xs text-purple-700">免除承認</p>
+                        <p className="text-2xl font-bold text-purple-700">{summary.exemptedApproved}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
+
+          {/* サマリーカード - 選択ステータス */}
+          {summary && (
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-slate-700">選択ステータス</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Card className="shadow-sm bg-green-50">
+                  <CardContent className="pt-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-green-700">① 参加</p>
+                        <p className="text-2xl font-bold text-green-700">{summary.willAttend}</p>
+                      </div>
+                      <CheckCircle className="h-8 w-8 text-green-400" />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm bg-blue-50">
+                  <CardContent className="pt-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-blue-700">② 不参加</p>
+                        <p className="text-2xl font-bold text-blue-700">{summary.willNotAttend}</p>
+                      </div>
+                      <Video className="h-8 w-8 text-blue-400" />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm bg-purple-50">
+                  <CardContent className="pt-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-purple-700">③ 免除申請</p>
+                        <p className="text-2xl font-bold text-purple-700">{summary.exemptionRequested}</p>
                       </div>
                       <FileText className="h-8 w-8 text-purple-400" />
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="shadow-sm bg-yellow-50">
-                  <CardContent className="pt-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs text-yellow-700">登録済み</p>
-                        <p className="text-2xl font-bold text-yellow-700">{summary.registered}</p>
-                      </div>
-                      <Clock className="h-8 w-8 text-yellow-400" />
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="shadow-sm bg-orange-50">
-                  <CardContent className="pt-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs text-orange-700">途中</p>
-                        <p className="text-2xl font-bold text-orange-700">{summary.videoIncomplete}</p>
-                      </div>
-                      <Video className="h-8 w-8 text-orange-400" />
                     </div>
                   </CardContent>
                 </Card>
@@ -378,8 +380,8 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                   <CardContent className="pt-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs text-slate-600">未対応</p>
-                        <p className="text-2xl font-bold text-slate-600">{summary.notResponded}</p>
+                        <p className="text-xs text-slate-600">未回答</p>
+                        <p className="text-2xl font-bold text-slate-600">{summary.undecided}</p>
                       </div>
                       <AlertCircle className="h-8 w-8 text-slate-400" />
                     </div>
@@ -442,11 +444,11 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                   <TableRow className="bg-slate-50">
                     <TableHead>会員番号</TableHead>
                     <TableHead>名前</TableHead>
-                    <TableHead>参加意思</TableHead>
-                    <TableHead>出席状況</TableHead>
-                    <TableHead>動画</TableHead>
+                    <TableHead>選択ステータス</TableHead>
+                    <TableHead>正式参加</TableHead>
+                    <TableHead>動画視聴</TableHead>
                     <TableHead>アンケート</TableHead>
-                    <TableHead>免除</TableHead>
+                    <TableHead>免除申請</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -458,17 +460,39 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                     </TableRow>
                   ) : (
                     filteredParticipants.map((participant) => {
-                      // 参加意思のバッジ
+                      // 選択ステータスのバッジ（参加/不参加/免除申請/未回答）
                       const getIntentBadge = () => {
+                        // 免除申請がある場合は免除申請を優先表示
+                        if (participant.hasExemption) {
+                          return <Badge className="bg-purple-600 text-xs">免除申請</Badge>
+                        }
                         switch (participant.participationIntent) {
                           case 'WILL_ATTEND':
                             return <Badge className="bg-green-600 text-xs">参加</Badge>
                           case 'WILL_NOT_ATTEND':
-                            return <Badge className="bg-orange-600 text-xs">不参加</Badge>
+                            return <Badge className="bg-blue-600 text-xs">不参加</Badge>
                           default:
                             return <Badge variant="outline" className="text-xs text-slate-400">未回答</Badge>
                         }
                       }
+
+                      // 正式参加の判定
+                      // - 参加選択 → コード入力で正式参加
+                      // - 不参加選択 → 動画+アンケート完了で正式参加
+                      // - 免除申請 → 承認で正式参加扱い
+                      const isOfficiallyAttended = () => {
+                        if (participant.status === 'attended_code') {
+                          return { attended: true, method: 'コード入力' }
+                        }
+                        if (participant.status === 'attended_video') {
+                          return { attended: true, method: '動画+アンケート' }
+                        }
+                        if (participant.hasExemption && participant.exemptionStatus === 'APPROVED') {
+                          return { attended: true, method: '免除承認' }
+                        }
+                        return { attended: false, method: null }
+                      }
+                      const officialStatus = isOfficiallyAttended()
 
                       return (
                         <TableRow key={participant.userId} className="hover:bg-slate-50">
@@ -480,7 +504,14 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                             {getIntentBadge()}
                           </TableCell>
                           <TableCell>
-                            {getStatusBadge(participant.status, participant.statusLabel)}
+                            {officialStatus.attended ? (
+                              <div className="flex items-center gap-1">
+                                <CheckCircle className="h-5 w-5 text-green-600" />
+                                <span className="text-xs text-green-700">{officialStatus.method}</span>
+                              </div>
+                            ) : (
+                              <XCircle className="h-5 w-5 text-slate-300" />
+                            )}
                           </TableCell>
                           <TableCell>
                             {participant.videoWatched ? (
@@ -496,12 +527,31 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                               <XCircle className="h-5 w-5 text-slate-300" />
                             )}
                           </TableCell>
-                          <TableCell className="text-sm text-slate-600 max-w-xs truncate">
+                          <TableCell className="text-sm max-w-xs">
                             {participant.hasExemption ? (
-                              <span className={participant.exemptionStatus === 'APPROVED' ? 'text-purple-600' : 'text-yellow-600'}>
-                                {participant.exemptionStatus === 'APPROVED' ? '承認済' : '申請中'}
-                              </span>
-                            ) : '-'}
+                              <div className="space-y-1">
+                                <Badge
+                                  variant="outline"
+                                  className={
+                                    participant.exemptionStatus === 'APPROVED'
+                                      ? 'bg-green-50 text-green-700 border-green-300'
+                                      : participant.exemptionStatus === 'REJECTED'
+                                      ? 'bg-red-50 text-red-700 border-red-300'
+                                      : 'bg-yellow-50 text-yellow-700 border-yellow-300'
+                                  }
+                                >
+                                  {participant.exemptionStatus === 'APPROVED' ? '承認' :
+                                   participant.exemptionStatus === 'REJECTED' ? '却下' : '未処理'}
+                                </Badge>
+                                {participant.exemptionReason && (
+                                  <p className="text-xs text-slate-500 truncate" title={participant.exemptionReason}>
+                                    {participant.exemptionReason}
+                                  </p>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-slate-400">-</span>
+                            )}
                           </TableCell>
                         </TableRow>
                       )

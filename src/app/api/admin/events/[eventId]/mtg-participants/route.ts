@@ -156,18 +156,30 @@ export async function GET(
       }
     })
 
+    // 正式参加の判定（コード入力 or 動画+アンケート完了 or 免除承認）
+    const officiallyAttended = participants.filter(p =>
+      p.status === 'attended_code' ||
+      p.status === 'attended_video' ||
+      (p.hasExemption && p.exemptionStatus === 'APPROVED')
+    ).length
+
     // ステータス別の集計
     const summary = {
       total: participants.length,
-      attended: participants.filter(p => p.status === 'attended_code' || p.status === 'attended_video').length,
-      exempted: participants.filter(p => p.status === 'exempted').length,
-      registered: participants.filter(p => p.status === 'registered').length,
+      // 正式参加（最重要指標）
+      officiallyAttended,
+      // 出席方法別
+      attendedByCode: participants.filter(p => p.status === 'attended_code').length,
+      attendedByVideo: participants.filter(p => p.status === 'attended_video').length,
+      exemptedApproved: participants.filter(p => p.hasExemption && p.exemptionStatus === 'APPROVED').length,
+      // 選択ステータス別
+      willAttend: participants.filter(p => p.participationIntent === 'WILL_ATTEND' && !p.hasExemption).length,
+      willNotAttend: participants.filter(p => p.participationIntent === 'WILL_NOT_ATTEND' && !p.hasExemption).length,
+      exemptionRequested: participants.filter(p => p.hasExemption).length,
+      undecided: participants.filter(p => p.participationIntent === 'UNDECIDED' && !p.hasExemption).length,
+      // その他
       videoIncomplete: participants.filter(p => p.status === 'video_incomplete').length,
       notResponded: participants.filter(p => p.status === 'not_responded').length,
-      // 参加意思の集計
-      willAttend: participants.filter(p => p.participationIntent === 'WILL_ATTEND').length,
-      willNotAttend: participants.filter(p => p.participationIntent === 'WILL_NOT_ATTEND').length,
-      undecided: participants.filter(p => p.participationIntent === 'UNDECIDED').length,
     }
 
     return NextResponse.json({
