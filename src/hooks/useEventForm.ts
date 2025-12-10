@@ -117,6 +117,11 @@ export function useEventForm(): UseEventFormReturn {
       actualLocation: event.actualLocation,
       adminNotes: event.adminNotes,
       isArchiveOnly: event.isArchiveOnly,
+      // 出席確認・全体MTG関連
+      attendanceCode: event.attendanceCode ?? null,
+      surveyUrl: event.surveyUrl ?? null,
+      attendanceDeadline: event.attendanceDeadline ?? null,
+      isRecurring: event.isRecurring ?? false,
     })
     setThumbnailPreview(event.thumbnailUrl)
     setThumbnailFile(null)

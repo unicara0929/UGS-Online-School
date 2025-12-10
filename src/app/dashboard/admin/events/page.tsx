@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
-import { Loader2, Plus, Calendar, Archive, FileText } from 'lucide-react'
+import { Loader2, Plus, Calendar, Archive, FileText, Users } from 'lucide-react'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import { Sidebar } from '@/components/navigation/sidebar'
 import { PageHeader } from '@/components/dashboard/page-header'
@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { EventForm } from '@/components/admin/EventForm'
 import { EventCard } from '@/components/admin/EventCard'
 import { ArchiveEventForm } from '@/components/admin/ArchiveEventForm'
+import { MtgEventForm } from '@/components/admin/MtgEventForm'
 import { useEvents } from '@/hooks/useEvents'
 import { useEventForm } from '@/hooks/useEventForm'
 import type { AdminEventItem } from '@/types/event'
@@ -20,6 +21,9 @@ function AdminEventsPageContent() {
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [showEditForm, setShowEditForm] = useState(false)
   const [showArchiveForm, setShowArchiveForm] = useState(false)
+  const [showMtgCreateForm, setShowMtgCreateForm] = useState(false)
+  const [showMtgCompleteForm, setShowMtgCompleteForm] = useState(false)
+  const [completingMtgEvent, setCompletingMtgEvent] = useState<AdminEventItem | null>(null)
   const [editingEventId, setEditingEventId] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeTab, setActiveTab] = useState<EventTab>('upcoming')
@@ -185,6 +189,81 @@ function AdminEventsPageContent() {
     }
   }
 
+  // 全体MTG作成
+  const handleCreateMtgEvent = async (data: {
+    title: string
+    description: string
+    date: string
+    time: string
+    location: string
+    maxParticipants: number | null
+    attendanceCode: string
+  }) => {
+    setIsSubmitting(true)
+    try {
+      const success = await createEvent({
+        title: data.title,
+        description: data.description,
+        date: data.date,
+        time: data.time,
+        location: data.location,
+        maxParticipants: data.maxParticipants,
+        attendanceCode: data.attendanceCode || null,
+        status: 'upcoming',
+        isRecurring: true, // 全体MTGフラグ
+        targetRoles: ['all'],
+        attendanceType: 'required',
+        venueType: 'online',
+        isPaid: false,
+        price: null,
+        isArchiveOnly: false,
+      })
+
+      if (success) {
+        setShowMtgCreateForm(false)
+        await fetchEvents()
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // 全体MTG完了設定
+  const handleCompleteMtgEvent = async (data: {
+    vimeoUrl: string
+    surveyUrl: string
+    materialsUrl: string
+    attendanceDeadline: string
+  }) => {
+    if (!completingMtgEvent) return
+
+    setIsSubmitting(true)
+    try {
+      const success = await updateEvent(completingMtgEvent.id, {
+        ...editForm.formData,
+        status: 'completed',
+        vimeoUrl: data.vimeoUrl,
+        surveyUrl: data.surveyUrl,
+        materialsUrl: data.materialsUrl,
+        attendanceDeadline: data.attendanceDeadline,
+      })
+
+      if (success) {
+        setShowMtgCompleteForm(false)
+        setCompletingMtgEvent(null)
+        await fetchEvents()
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // 全体MTG完了設定を開始
+  const handleStartMtgComplete = (event: AdminEventItem) => {
+    setCompletingMtgEvent(event)
+    setShowMtgCompleteForm(true)
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 flex">
       <Sidebar />
@@ -203,10 +282,19 @@ function AdminEventsPageContent() {
                   参加者合計: {totalParticipants}名
                 </p>
               </div>
-              <Button onClick={() => setShowCreateForm(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                新規イベント作成
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => setShowMtgCreateForm(true)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Users className="h-4 w-4 mr-2" />
+                  全体MTGを作成
+                </Button>
+                <Button onClick={() => setShowCreateForm(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  新規イベント作成
+                </Button>
+              </div>
             </div>
 
             {/* タブ切り替え */}
@@ -295,6 +383,36 @@ function AdminEventsPageContent() {
               />
             )}
 
+            {/* 全体MTG作成フォーム */}
+            {showMtgCreateForm && (
+              <MtgEventForm
+                mode="create"
+                onSubmit={handleCreateMtgEvent}
+                onCancel={() => setShowMtgCreateForm(false)}
+                isSubmitting={isSubmitting}
+              />
+            )}
+
+            {/* 全体MTG完了設定フォーム */}
+            {showMtgCompleteForm && completingMtgEvent && (
+              <MtgEventForm
+                mode="complete"
+                initialData={{
+                  title: completingMtgEvent.title,
+                  vimeoUrl: completingMtgEvent.vimeoUrl || '',
+                  surveyUrl: completingMtgEvent.surveyUrl || '',
+                  materialsUrl: completingMtgEvent.materialsUrl || '',
+                  attendanceDeadline: completingMtgEvent.attendanceDeadline || '',
+                }}
+                onSubmit={handleCompleteMtgEvent}
+                onCancel={() => {
+                  setShowMtgCompleteForm(false)
+                  setCompletingMtgEvent(null)
+                }}
+                isSubmitting={isSubmitting}
+              />
+            )}
+
             {/* イベント一覧 */}
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
@@ -323,6 +441,7 @@ function AdminEventsPageContent() {
                     event={event}
                     onEdit={handleEditEvent}
                     onDelete={handleDeleteEvent}
+                    onMtgComplete={handleStartMtgComplete}
                     isSubmitting={isSubmitting}
                     showArchiveInfo={activeTab === 'past'}
                   />

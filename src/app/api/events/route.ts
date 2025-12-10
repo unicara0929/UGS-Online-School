@@ -82,11 +82,11 @@ export async function GET(request: NextRequest) {
     const userRole = authUser!.role
     const userTargetRole = USER_ROLE_TO_EVENT_TARGET_ROLE[userRole as keyof typeof USER_ROLE_TO_EVENT_TARGET_ROLE] || 'MEMBER'
 
+    const now = new Date()
+
     const eventsPromise = prisma.event.findMany({
       where: {
         AND: [
-          // 開催予定のイベントのみ（終了・キャンセルを除外）
-          { status: 'UPCOMING' },
           // 記録専用イベントを除外
           { isArchiveOnly: false },
           // ロールによるフィルタリング
@@ -94,6 +94,21 @@ export async function GET(request: NextRequest) {
             OR: [
               { targetRoles: { has: 'ALL' } }, // 全員対象のイベント
               { targetRoles: { has: userTargetRole } }, // ユーザーのロールに一致するイベント
+            ],
+          },
+          // ステータスフィルタリング
+          {
+            OR: [
+              // 開催予定のイベント
+              { status: 'UPCOMING' },
+              // 全体MTG（isRecurring=true）で完了済み、かつ視聴期限内のイベント
+              {
+                AND: [
+                  { isRecurring: true },
+                  { status: 'COMPLETED' },
+                  { attendanceDeadline: { gte: now } },
+                ],
+              },
             ],
           },
         ],
@@ -170,10 +185,13 @@ export async function GET(request: NextRequest) {
         attendanceDeadline: event.attendanceDeadline?.toISOString() ?? null,
         vimeoUrl: event.vimeoUrl ?? null,
         surveyUrl: event.surveyUrl ?? null,
+        materialsUrl: event.materialsUrl ?? null,
         attendanceMethod: registration?.attendanceMethod ?? null,
         attendanceCompletedAt: registration?.attendanceCompletedAt?.toISOString() ?? null,
         videoWatched: registration?.videoWatched ?? false,
         surveyCompleted: registration?.surveyCompleted ?? false,
+        // 全体MTG関連
+        isRecurring: event.isRecurring,
       }
     })
 

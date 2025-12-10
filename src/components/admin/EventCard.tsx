@@ -14,11 +14,12 @@ interface EventCardProps {
   event: AdminEventItem
   onEdit: (event: AdminEventItem) => void
   onDelete: (id: string) => void
+  onMtgComplete?: (event: AdminEventItem) => void
   isSubmitting: boolean
   showArchiveInfo?: boolean
 }
 
-export function EventCard({ event, onEdit, onDelete, isSubmitting, showArchiveInfo = false }: EventCardProps) {
+export function EventCard({ event, onEdit, onDelete, onMtgComplete, isSubmitting, showArchiveInfo = false }: EventCardProps) {
   const router = useRouter()
 
   const formatDate = (dateString: string) => {
@@ -71,6 +72,9 @@ export function EventCard({ event, onEdit, onDelete, isSubmitting, showArchiveIn
         <div className="flex items-center justify-between mb-2">
           {/* バッジ */}
           <div className="flex items-center gap-2 flex-wrap">
+            {event.isRecurring && (
+              <Badge className="bg-blue-600">全体MTG</Badge>
+            )}
             {event.targetRoles.map(role => (
               <Badge key={role} variant="outline">
                 {getTargetRoleLabel(role)}
@@ -207,15 +211,32 @@ export function EventCard({ event, onEdit, onDelete, isSubmitting, showArchiveIn
               記録を編集
             </Button>
           ) : (
-            <Button
-              size="sm"
-              variant="outline"
-              className="w-full"
-              onClick={() => router.push(`/dashboard/admin/events/${event.id}`)}
-            >
-              <Users className="h-4 w-4 mr-2" />
-              参加者を管理
-            </Button>
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full"
+                onClick={() => router.push(
+                  event.isRecurring
+                    ? `/dashboard/admin/events/${event.id}/mtg`
+                    : `/dashboard/admin/events/${event.id}`
+                )}
+              >
+                <Users className="h-4 w-4 mr-2" />
+                {event.isRecurring ? 'FPエイド参加状況' : '参加者を管理'}
+              </Button>
+              {/* 全体MTGの場合、完了設定ボタンを表示 */}
+              {event.isRecurring && event.status === 'upcoming' && onMtgComplete && (
+                <Button
+                  size="sm"
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  onClick={() => onMtgComplete(event)}
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  完了設定（動画・資料）
+                </Button>
+              )}
+            </>
           )}
         </div>
       </CardContent>

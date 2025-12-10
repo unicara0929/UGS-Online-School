@@ -35,6 +35,8 @@ export interface AdminEventItem {
   vimeoUrl: string | null
   surveyUrl: string | null
   attendanceDeadline: string | null
+  // 全体MTG関連
+  isRecurring: boolean
   // 過去イベント記録用
   summary: string | null
   photos: string[]
@@ -60,6 +62,12 @@ export interface EventFormData {
   thumbnailUrl: string | null
   isPaid: boolean
   price: number | null
+  // 出席確認関連
+  attendanceCode: string | null
+  surveyUrl: string | null
+  attendanceDeadline: string | null
+  // 全体MTG関連
+  isRecurring: boolean
   // 過去イベント記録用
   summary: string | null
   photos: string[]
@@ -86,6 +94,12 @@ export const DEFAULT_EVENT_FORM: EventFormData = {
   thumbnailUrl: null,
   isPaid: false,
   price: null,
+  // 出席確認関連
+  attendanceCode: null,
+  surveyUrl: null,
+  attendanceDeadline: null,
+  // 全体MTG関連
+  isRecurring: false,
   // 過去イベント記録用
   summary: null,
   photos: [],
