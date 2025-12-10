@@ -370,20 +370,29 @@ export default function AdminUsersPage() {
 
   const handleExportCSV = async () => {
     try {
-      const response = await fetch('/api/admin/users/export', {
+      // 現在のフィルター条件をクエリパラメータとして渡す
+      const params = new URLSearchParams()
+      if (statusFilter !== 'all') params.set('status', statusFilter)
+      if (membershipStatusFilter !== 'all') params.set('membershipStatus', membershipStatusFilter)
+      if (roleFilter !== 'all') params.set('role', roleFilter)
+
+      const queryString = params.toString()
+      const url = `/api/admin/users/export${queryString ? `?${queryString}` : ''}`
+
+      const response = await fetch(url, {
         credentials: 'include'
       })
       if (!response.ok) {
         throw new Error('CSVエクスポートに失敗しました')
       }
       const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
+      const blobUrl = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
-      a.href = url
+      a.href = blobUrl
       a.download = `users_export_${new Date().toISOString().slice(0, 10)}.csv`
       document.body.appendChild(a)
       a.click()
-      window.URL.revokeObjectURL(url)
+      window.URL.revokeObjectURL(blobUrl)
       document.body.removeChild(a)
     } catch (error) {
       console.error('CSV export error:', error)

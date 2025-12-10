@@ -5,6 +5,7 @@ import { getAuthenticatedUser, checkRole, RoleGroups } from '@/lib/auth/api-help
 /**
  * ユーザーデータCSVエクスポートAPI
  * 管理者がユーザー一覧をCSV形式でダウンロードできる
+ * クエリパラメータでフィルター可能
  */
 export async function GET(request: NextRequest) {
   try {
@@ -16,7 +17,13 @@ export async function GET(request: NextRequest) {
     const { error: roleError } = checkRole(authUser!.role, RoleGroups.MANAGER_AND_ABOVE)
     if (roleError) return roleError
 
-    // ユーザー一覧を取得
+    // クエリパラメータを取得
+    const { searchParams } = new URL(request.url)
+    const statusFilter = searchParams.get('status') || 'all'
+    const membershipStatusFilter = searchParams.get('membershipStatus') || 'all'
+    const roleFilter = searchParams.get('role') || 'all'
+
+    // 登録済みユーザー一覧を取得
     const users = await prisma.user.findMany({
       include: {
         subscriptions: true
@@ -25,6 +32,109 @@ export async function GET(request: NextRequest) {
         createdAt: 'desc'
       }
     })
+
+    // 仮登録ユーザー一覧を取得
+    const pendingUsers = await prisma.pendingUser.findMany({
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
+
+    // すべてのユーザーを統合
+    type CombinedUser = {
+      id: string
+      name: string
+      email: string
+      role: string
+      membershipStatus: string
+      membershipStatusChangedAt: Date | null
+      membershipStatusReason: string | null
+      createdAt: Date
+      canceledAt: Date | null
+      cancellationReason: string | null
+      delinquentSince: Date | null
+      stripeCustomerId: string | null
+      stripeSubscriptionId: string | null
+      subscriptionStatus: string | null
+      userType: 'registered' | 'pending'
+    }
+
+    const allUsers: CombinedUser[] = [
+      // 仮登録ユーザー
+      ...pendingUsers.map(pending => ({
+        id: pending.id,
+        name: pending.name,
+        email: pending.email,
+        role: 'PENDING',
+        membershipStatus: 'PENDING',
+        membershipStatusChangedAt: null,
+        membershipStatusReason: null,
+        createdAt: pending.createdAt,
+        canceledAt: null,
+        cancellationReason: null,
+        delinquentSince: null,
+        stripeCustomerId: null,
+        stripeSubscriptionId: null,
+        subscriptionStatus: null,
+        userType: 'pending' as const,
+      })),
+      // 登録済みユーザー
+      ...users.map(user => {
+        const subscription = user.subscriptions?.[0]
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          membershipStatus: user.membershipStatus,
+          membershipStatusChangedAt: user.membershipStatusChangedAt,
+          membershipStatusReason: user.membershipStatusReason,
+          createdAt: user.createdAt,
+          canceledAt: user.canceledAt,
+          cancellationReason: user.cancellationReason,
+          delinquentSince: user.delinquentSince,
+          stripeCustomerId: subscription?.stripeCustomerId || null,
+          stripeSubscriptionId: subscription?.stripeSubscriptionId || null,
+          subscriptionStatus: subscription?.status || null,
+          userType: 'registered' as const,
+        }
+      })
+    ]
+
+    // フィルター適用
+    let filteredUsers = allUsers
+
+    // 決済ステータスフィルター
+    if (statusFilter !== 'all') {
+      filteredUsers = filteredUsers.filter(user => {
+        if (statusFilter === 'pending') {
+          return user.userType === 'pending'
+        }
+        if (statusFilter === 'active') {
+          return user.subscriptionStatus === 'active'
+        }
+        if (statusFilter === 'canceled') {
+          return user.subscriptionStatus === 'canceled'
+        }
+        if (statusFilter === 'past_due') {
+          return user.subscriptionStatus === 'past_due'
+        }
+        if (statusFilter === 'unpaid') {
+          return user.subscriptionStatus === 'unpaid' || !user.subscriptionStatus
+        }
+        return true
+      })
+    }
+
+    // 会員ステータスフィルター
+    if (membershipStatusFilter !== 'all') {
+      filteredUsers = filteredUsers.filter(user => user.membershipStatus === membershipStatusFilter)
+    }
+
+    // ロールフィルター
+    if (roleFilter !== 'all') {
+      filteredUsers = filteredUsers.filter(user => user.role === roleFilter)
+    }
 
     // CSVヘッダー
     const headers = [
@@ -41,12 +151,12 @@ export async function GET(request: NextRequest) {
       '滞納開始日',
       'StripeカスタマーID',
       'StripeサブスクリプションID',
-      'サブスクリプションステータス'
+      'サブスクリプションステータス',
+      'ユーザー種別'
     ]
 
     // CSVデータを生成
-    const rows = users.map(user => {
-      const subscription = user.subscriptions?.[0]
+    const rows = filteredUsers.map(user => {
       return [
         user.id,
         user.name,
@@ -59,9 +169,10 @@ export async function GET(request: NextRequest) {
         user.canceledAt ? new Date(user.canceledAt).toISOString() : '',
         user.cancellationReason || '',
         user.delinquentSince ? new Date(user.delinquentSince).toISOString() : '',
-        subscription?.stripeCustomerId || '',
-        subscription?.stripeSubscriptionId || '',
-        subscription?.status || ''
+        user.stripeCustomerId || '',
+        user.stripeSubscriptionId || '',
+        user.subscriptionStatus || '',
+        user.userType === 'pending' ? '仮登録' : '正式登録'
       ]
     })
 
