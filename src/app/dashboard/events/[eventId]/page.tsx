@@ -26,6 +26,7 @@ import {
 } from 'lucide-react'
 import { AttendanceCodeInput } from '@/components/events/attendance-code-input'
 import { VideoSurveyAttendance } from '@/components/events/video-survey-attendance'
+import { MtgExemptionForm } from '@/components/events/mtg-exemption-form'
 
 type EventDetail = {
   id: string
@@ -61,6 +62,17 @@ type EventDetail = {
   materialsUrl: string | null
   actualParticipants: number | null
   actualLocation: string | null
+  // 定期開催（全体MTG）判定用
+  isRecurring: boolean
+  // 免除申請情報
+  exemption: {
+    id: string
+    status: 'PENDING' | 'APPROVED' | 'REJECTED'
+    reason: string
+    adminNotes: string | null
+    reviewedAt: string | null
+    createdAt: string
+  } | null
 }
 
 function EventDetailPageContent() {
@@ -519,6 +531,68 @@ function EventDetailPageContent() {
                       <p className="text-xs mt-1">{formatDate(event.attendanceCompletedAt)}</p>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* 全体MTG免除申請セクション */}
+            {event.isRecurring && event.status === 'upcoming' && user && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>全体MTG免除申請</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {event.exemption?.status === 'APPROVED' ? (
+                    <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg border border-green-200">
+                      <CheckCircle2 className="h-6 w-6 text-green-600" />
+                      <div>
+                        <p className="font-semibold text-green-800">免除が承認されました</p>
+                        <p className="text-sm text-green-700">今月の全体MTGへの参加は免除されています</p>
+                        {event.exemption.adminNotes && (
+                          <p className="text-xs text-slate-600 mt-1">管理者コメント: {event.exemption.adminNotes}</p>
+                        )}
+                      </div>
+                    </div>
+                  ) : event.exemption?.status === 'REJECTED' ? (
+                    <div className="flex items-center gap-3 p-4 bg-red-50 rounded-lg border border-red-200">
+                      <div className="flex-1">
+                        <p className="font-semibold text-red-800">免除申請が却下されました</p>
+                        <p className="text-sm text-red-700">参加コード入力または録画視聴+アンケートで出席確認を行ってください</p>
+                        {event.exemption.adminNotes && (
+                          <p className="text-xs text-slate-600 mt-1">却下理由: {event.exemption.adminNotes}</p>
+                        )}
+                      </div>
+                    </div>
+                  ) : event.exemption?.status === 'PENDING' ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                        <div className="flex-1">
+                          <p className="font-semibold text-yellow-800">免除申請を審査中です</p>
+                          <p className="text-sm text-yellow-700">管理者からの連絡をお待ちください</p>
+                        </div>
+                      </div>
+                      <MtgExemptionForm
+                        eventId={event.id}
+                        eventTitle={event.title}
+                        userName={user.name || ''}
+                        memberId={user.memberId || ''}
+                        onSuccess={() => window.location.reload()}
+                      />
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <p className="text-sm text-slate-600">
+                        やむを得ない事情（冠婚葬祭、急な家族の事情など）で参加できない場合は、事前に免除申請を行ってください。
+                      </p>
+                      <MtgExemptionForm
+                        eventId={event.id}
+                        eventTitle={event.title}
+                        userName={user.name || ''}
+                        memberId={user.memberId || ''}
+                        onSuccess={() => window.location.reload()}
+                      />
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}

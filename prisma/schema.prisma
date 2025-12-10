@@ -37,6 +37,10 @@ model User {
   fpOnboardingCompletedAt DateTime?                // FPエイド向け動画ガイダンス完了日時
   complianceTestPassed    Boolean                  @default(true) // コンプライアンステスト合格フラグ（既存ユーザーはtrue）
   complianceTestPassedAt  DateTime?                // コンプライアンステスト合格日時
+  // マネージャー紐づけ（FPエイドの担当マネージャー）
+  managerId               String?                  // 担当マネージャーのID
+  manager                 User?                    @relation("ManagerTeam", fields: [managerId], references: [id], onDelete: SetNull)
+  teamMembers             User[]                   @relation("ManagerTeam") // このマネージャーが担当するFPエイド
   // 会員管理フィールド
   membershipStatus        MembershipStatus         @default(ACTIVE) // 会員ステータス
   membershipStatusReason  String?                  // ステータス変更理由
@@ -81,6 +85,8 @@ model User {
   preInterviewResponses   PreInterviewResponse[] @relation("PreInterviewRespondent")
   // コンプライアンステスト
   complianceTestAttempts  ComplianceTestAttempt[]
+  // 全体MTG免除申請
+  mtgExemptions           MtgExemption[]
 
   @@map("users")
 }
@@ -211,6 +217,7 @@ model Event {
   updatedAt       DateTime            @updatedAt
   registrations   EventRegistration[]
   emailCampaigns  EmailCampaign[]
+  mtgExemptions   MtgExemption[]      // 免除申請
 
   @@map("events")
 }
@@ -1067,11 +1074,13 @@ model UserNotificationRead {
 
 // 相談ジャンル
 enum ConsultationType {
-  LIFE_PLAN  // ライフプラン
-  HOUSING    // 住宅
-  CAREER     // 転職
-  RENTAL     // 賃貸
-  OTHER      // その他
+  LIFE_PLAN      // ライフプラン
+  HOUSING        // 住宅
+  CAREER         // 転職
+  RENTAL         // 賃貸
+  ORDER_SUIT     // オーダースーツ作成
+  SOLAR_BATTERY  // 太陽光・蓄電池
+  OTHER          // その他
 }
 
 // 相談ステータス
@@ -1299,4 +1308,45 @@ model ComplianceTestAnswer {
   @@unique([attemptId, questionId])
   @@index([attemptId])
   @@map("compliance_test_answers")
+}
+
+// =====================
+// 全体MTG免除申請機能
+// =====================
+
+// 免除申請ステータス
+enum MtgExemptionStatus {
+  PENDING   // 申請中（審査待ち）
+  APPROVED  // 承認
+  REJECTED  // 却下
+}
+
+// 全体MTG免除申請
+// 設計方針: 同一イベントに対して重複申請があった場合は、既存申請を更新する（履歴は保持しない）
+// 理由: ユーザーが理由を修正したい場合に対応でき、管理者も最新の申請のみを確認すればよいため
+model MtgExemption {
+  id              String              @id @default(cuid())
+  userId          String
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventId         String
+  event           Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  // 申請内容
+  reason          String              @db.Text // 不参加理由（必須、20〜1000文字）
+
+  // ステータス管理
+  status          MtgExemptionStatus  @default(PENDING)
+  adminNotes      String?             @db.Text // 管理者メモ（審査時のコメント）
+  reviewedBy      String?             // 審査者（管理者ID）
+  reviewedAt      DateTime?           // 審査日時
+
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@unique([userId, eventId]) // 1ユーザー1イベントにつき1申請のみ
+  @@index([userId])
+  @@index([eventId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("mtg_exemptions")
 }

@@ -10,6 +10,8 @@ const CONSULTATION_TYPE_LABELS: Record<ConsultationType, string> = {
   HOUSING: '住宅',
   CAREER: '転職',
   RENTAL: '賃貸',
+  ORDER_SUIT: 'オーダースーツ作成',
+  SOLAR_BATTERY: '太陽光・蓄電池',
   OTHER: 'その他',
 }
 

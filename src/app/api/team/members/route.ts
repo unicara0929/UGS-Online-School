@@ -19,11 +19,100 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // 配下メンバーを取得（紹介した人）
+    // マネージャーの場合: 担当として割り当てられたFPエイドを取得
+    if (userRole === 'MANAGER') {
+      const teamMembers = await prisma.user.findMany({
+        where: {
+          managerId: userId,
+          role: 'FP',
+        },
+        include: {
+          subscriptions: {
+            select: {
+              status: true,
+              currentPeriodEnd: true,
+            },
+            orderBy: {
+              createdAt: 'desc',
+            },
+            take: 1,
+          },
+          courseProgress: {
+            where: {
+              isCompleted: true,
+            },
+            select: {
+              id: true,
+            },
+          },
+          contracts: {
+            where: {
+              status: 'ACTIVE',
+            },
+            select: {
+              id: true,
+            },
+          },
+          fpPromotionApplications: {
+            select: {
+              lpMeetingCompleted: true,
+              basicTestCompleted: true,
+              surveyCompleted: true,
+              status: true,
+              approvedAt: true,
+            },
+            orderBy: {
+              appliedAt: 'desc',
+            },
+            take: 1,
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      })
+
+      // メンバー情報をフォーマット
+      const members = teamMembers.map((member) => {
+        const subscription = member.subscriptions[0]
+        const fpApplication = member.fpPromotionApplications[0]
+
+        return {
+          id: member.id,
+          name: member.name,
+          email: member.email,
+          role: member.role,
+          createdAt: member.createdAt.toISOString(),
+          subscription: subscription
+            ? {
+                status: subscription.status,
+                currentPeriodEnd: subscription.currentPeriodEnd?.toISOString() ?? null,
+              }
+            : null,
+          stats: {
+            completedLessons: member.courseProgress.length,
+            activeContracts: member.contracts.length,
+          },
+          fpStatus: fpApplication
+            ? {
+                lpMeetingCompleted: fpApplication.lpMeetingCompleted,
+                basicTestCompleted: fpApplication.basicTestCompleted,
+                surveyCompleted: fpApplication.surveyCompleted,
+                status: fpApplication.status,
+                approvedAt: fpApplication.approvedAt?.toISOString() ?? null,
+              }
+            : null,
+        }
+      })
+
+      return NextResponse.json({ success: true, members })
+    }
+
+    // ADMINの場合: 全FPエイドを取得（従来の紹介ベースの表示も残す）
     const referrals = await prisma.referral.findMany({
       where: {
         referrerId: userId,
-        status: 'APPROVED', // 承認済みの紹介のみ
+        status: 'APPROVED',
       },
       include: {
         referred: {

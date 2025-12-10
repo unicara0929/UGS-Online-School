@@ -67,6 +67,18 @@ export async function GET(
           },
           take: 1,
         },
+        mtgExemptions: {
+          where: { userId: authUser!.id },
+          select: {
+            id: true,
+            status: true,
+            reason: true,
+            adminNotes: true,
+            reviewedAt: true,
+            createdAt: true,
+          },
+          take: 1,
+        },
       },
     })
 
@@ -103,6 +115,7 @@ export async function GET(
 
     const isRegistered = event.registrations.length > 0
     const registration = event.registrations.length > 0 ? event.registrations[0] : null
+    const exemption = event.mtgExemptions.length > 0 ? event.mtgExemptions[0] : null
 
     return NextResponse.json({
       success: true,
@@ -143,6 +156,17 @@ export async function GET(
         materialsUrl: event.materialsUrl ?? null,
         actualParticipants: event.actualParticipants ?? null,
         actualLocation: event.actualLocation ?? null,
+        // 定期開催（全体MTG）判定用
+        isRecurring: event.isRecurring,
+        // 免除申請情報
+        exemption: exemption ? {
+          id: exemption.id,
+          status: exemption.status,
+          reason: exemption.reason,
+          adminNotes: exemption.adminNotes,
+          reviewedAt: exemption.reviewedAt?.toISOString() ?? null,
+          createdAt: exemption.createdAt.toISOString(),
+        } : null,
       },
     })
   } catch (error) {

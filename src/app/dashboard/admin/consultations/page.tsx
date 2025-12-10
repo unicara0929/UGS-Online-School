@@ -23,7 +23,9 @@ import {
   Home,
   Briefcase,
   Building2,
-  HelpCircle
+  HelpCircle,
+  Shirt,
+  Sun
 } from 'lucide-react'
 
 // 相談ジャンルの設定
@@ -32,6 +34,8 @@ const CONSULTATION_TYPES: Record<string, { label: string; icon: any; color: stri
   HOUSING: { label: '住宅', icon: Home, color: 'text-green-600' },
   CAREER: { label: '転職', icon: Briefcase, color: 'text-purple-600' },
   RENTAL: { label: '賃貸', icon: Building2, color: 'text-orange-600' },
+  ORDER_SUIT: { label: 'オーダースーツ作成', icon: Shirt, color: 'text-indigo-600' },
+  SOLAR_BATTERY: { label: '太陽光・蓄電池', icon: Sun, color: 'text-yellow-600' },
   OTHER: { label: 'その他', icon: HelpCircle, color: 'text-gray-600' },
 }
 

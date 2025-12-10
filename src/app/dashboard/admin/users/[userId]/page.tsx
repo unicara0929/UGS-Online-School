@@ -8,6 +8,13 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, CreditCard, AlertCircle, UserCheck, FileText, Users, Building2, UserPlus, TrendingUp, MessageCircle } from 'lucide-react'
 import { getRoleLabel, getRoleBadgeVariant, formatDate } from '@/lib/utils/user-helpers'
 
+interface Manager {
+  id: string
+  name: string
+  email: string
+  memberId: string
+}
+
 interface UserDetail {
   // 基本情報
   id: string
@@ -82,6 +89,10 @@ interface UserDetail {
     updatedAt: string
   } | null
 
+  // 担当マネージャー情報（FPエイドの場合）
+  managerId: string | null
+  manager: Manager | null
+
   // Supabase認証情報
   supabaseAuth: {
     emailConfirmedAt: string | null
@@ -127,9 +138,13 @@ export default function UserDetailPage() {
   const [user, setUser] = useState<UserDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [managers, setManagers] = useState<Manager[]>([])
+  const [selectedManagerId, setSelectedManagerId] = useState<string>('')
+  const [savingManager, setSavingManager] = useState(false)
 
   useEffect(() => {
     fetchUserDetail()
+    fetchManagers()
   }, [userId])
 
   const fetchUserDetail = async () => {
@@ -143,10 +158,61 @@ export default function UserDetailPage() {
       }
       const data = await response.json()
       setUser(data.user)
+      setSelectedManagerId(data.user.managerId || '')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'エラーが発生しました')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchManagers = async () => {
+    try {
+      const response = await fetch('/api/admin/managers', {
+        credentials: 'include'
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setManagers(data.managers || [])
+      }
+    } catch (err) {
+      console.error('マネージャー一覧取得エラー:', err)
+    }
+  }
+
+  const handleManagerChange = async (newManagerId: string) => {
+    if (!user || user.role !== 'FP') return
+
+    setSavingManager(true)
+    try {
+      const response = await fetch(`/api/admin/users/${userId}/manager`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          managerId: newManagerId || null,
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || '更新に失敗しました')
+      }
+
+      const data = await response.json()
+      setSelectedManagerId(newManagerId)
+      setUser({
+        ...user,
+        managerId: newManagerId || null,
+        manager: data.user.manager,
+      })
+      alert(data.message)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '更新に失敗しました')
+    } finally {
+      setSavingManager(false)
     }
   }
 
@@ -461,6 +527,61 @@ export default function UserDetailPage() {
                     label="現在の期間終了日"
                     value={user.subscription.currentPeriodEnd ? formatDate(user.subscription.currentPeriodEnd) : '未設定'}
                   />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* 担当マネージャー設定 (FPエイドのみ) */}
+          {user.role === 'FP' && (
+            <Card className="shadow-xl border-slate-200 lg:col-span-2">
+              <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-slate-200">
+                <CardTitle className="flex items-center text-slate-800">
+                  <Users className="h-5 w-5 mr-2 text-green-600" />
+                  担当マネージャー設定
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      担当マネージャー
+                    </label>
+                    <select
+                      value={selectedManagerId}
+                      onChange={(e) => handleManagerChange(e.target.value)}
+                      disabled={savingManager}
+                      className="w-full max-w-md px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all shadow-sm hover:shadow-md bg-white disabled:bg-slate-100 disabled:cursor-not-allowed"
+                    >
+                      <option value="">未割り当て</option>
+                      {managers.map((manager) => (
+                        <option key={manager.id} value={manager.id}>
+                          {manager.name} ({manager.email})
+                        </option>
+                      ))}
+                    </select>
+                    {savingManager && (
+                      <p className="text-sm text-slate-500 mt-2">保存中...</p>
+                    )}
+                  </div>
+                  {user.manager && (
+                    <div className="bg-green-50 rounded-lg p-4 mt-4">
+                      <p className="text-sm font-semibold text-green-800 mb-2">現在の担当マネージャー</p>
+                      <div className="space-y-1">
+                        <p className="text-green-900">{user.manager.name}</p>
+                        <p className="text-sm text-green-700">{user.manager.email}</p>
+                        <p className="text-xs text-green-600">会員番号: {user.manager.memberId}</p>
+                      </div>
+                    </div>
+                  )}
+                  {!user.manager && (
+                    <div className="bg-amber-50 rounded-lg p-4 mt-4">
+                      <p className="text-sm text-amber-800">
+                        <AlertCircle className="h-4 w-4 inline mr-2" />
+                        このFPエイドには担当マネージャーが割り当てられていません。プルダウンから選択してください。
+                      </p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

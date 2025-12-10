@@ -52,7 +52,15 @@ export async function GET(
           },
           take: 1
         },
-        compensationBankAccount: true
+        compensationBankAccount: true,
+        manager: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            memberId: true
+          }
+        }
       }
     })
 
@@ -156,6 +164,10 @@ export async function GET(
 
       // 紹介統計（このユーザーが紹介した人数）
       referralStats,
+
+      // 担当マネージャー情報（FPエイドの場合）
+      managerId: user.managerId,
+      manager: user.manager,
 
       // Supabase認証情報
       supabaseAuth: supabaseUser ? {

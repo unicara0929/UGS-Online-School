@@ -19,7 +19,70 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // 承認済みの紹介を取得
+    // マネージャーの場合: 担当FPエイドの統計
+    if (userRole === 'MANAGER') {
+      const teamMembers = await prisma.user.findMany({
+        where: {
+          managerId: userId,
+          role: 'FP',
+        },
+        include: {
+          subscriptions: {
+            select: {
+              status: true,
+            },
+            orderBy: {
+              createdAt: 'desc',
+            },
+            take: 1,
+          },
+          courseProgress: {
+            where: {
+              isCompleted: true,
+            },
+          },
+          contracts: {
+            where: {
+              status: 'ACTIVE',
+            },
+          },
+        },
+      })
+
+      // 統計情報を計算
+      const totalMembers = teamMembers.length
+
+      const activeMembers = teamMembers.filter((member) => {
+        const subscription = member.subscriptions[0]
+        return subscription && subscription.status === 'ACTIVE'
+      }).length
+
+      const totalCompletedLessons = teamMembers.reduce((sum, member) => {
+        return sum + member.courseProgress.length
+      }, 0)
+
+      const totalActiveContracts = teamMembers.reduce((sum, member) => {
+        return sum + member.contracts.length
+      }, 0)
+
+      // 平均学習進捗
+      const avgCompletedLessons =
+        totalMembers > 0 ? Math.round(totalCompletedLessons / totalMembers) : 0
+
+      const stats = {
+        totalMembers,
+        activeMembers,
+        totalCompletedLessons,
+        avgCompletedLessons,
+        totalActiveContracts,
+        roleBreakdown: { FP: totalMembers },
+        referralTypeBreakdown: {},
+      }
+
+      return NextResponse.json({ success: true, stats })
+    }
+
+    // ADMINの場合: 従来の紹介ベースの統計
     const approvedReferrals = await prisma.referral.findMany({
       where: {
         referrerId: userId,

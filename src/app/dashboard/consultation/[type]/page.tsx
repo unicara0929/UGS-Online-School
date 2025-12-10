@@ -26,6 +26,8 @@ const TYPE_MAP: Record<string, { id: string; name: string }> = {
   'housing': { id: 'HOUSING', name: '住宅' },
   'career': { id: 'CAREER', name: '転職' },
   'rental': { id: 'RENTAL', name: '賃貸' },
+  'order-suit': { id: 'ORDER_SUIT', name: 'オーダースーツ作成' },
+  'solar-battery': { id: 'SOLAR_BATTERY', name: '太陽光・蓄電池' },
   'other': { id: 'OTHER', name: 'その他' },
 }
 

@@ -10,7 +10,9 @@ import {
   Building2,
   HelpCircle,
   ArrowRight,
-  History
+  History,
+  Shirt,
+  Sun
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -43,6 +45,20 @@ const CONSULTATION_TYPES = [
     description: '賃貸物件の相談、引っ越しなど',
     icon: Building2,
     color: 'bg-orange-500',
+  },
+  {
+    id: 'ORDER_SUIT',
+    name: 'オーダースーツ作成',
+    description: 'ビジネススーツ、フォーマルスーツのオーダーメイド',
+    icon: Shirt,
+    color: 'bg-indigo-500',
+  },
+  {
+    id: 'SOLAR_BATTERY',
+    name: '太陽光・蓄電池',
+    description: '太陽光パネル設置、蓄電池導入のご相談',
+    icon: Sun,
+    color: 'bg-yellow-500',
   },
   {
     id: 'OTHER',

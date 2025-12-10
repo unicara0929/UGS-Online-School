@@ -5,7 +5,8 @@ import { ProtectedRoute } from '@/components/auth/protected-route'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Users, TrendingUp, FileCheck, Activity } from 'lucide-react'
+import { Loader2, Users, TrendingUp, FileCheck, Activity, UserCheck } from 'lucide-react'
+import { useAuth } from '@/contexts/auth-context'
 
 interface TeamMember {
   id: string
@@ -13,8 +14,8 @@ interface TeamMember {
   email: string
   role: string
   createdAt: string
-  referralType: string
-  referralCreatedAt: string
+  referralType?: string
+  referralCreatedAt?: string
   subscription: {
     status: string
     currentPeriodEnd: string | null
@@ -23,6 +24,13 @@ interface TeamMember {
     completedLessons: number
     activeContracts: number
   }
+  fpStatus?: {
+    lpMeetingCompleted: boolean
+    basicTestCompleted: boolean
+    surveyCompleted: boolean
+    status: string
+    approvedAt: string | null
+  } | null
 }
 
 interface TeamStats {
@@ -36,10 +44,13 @@ interface TeamStats {
 }
 
 export default function TeamPage() {
+  const { user } = useAuth()
   const [members, setMembers] = useState<TeamMember[]>([])
   const [stats, setStats] = useState<TeamStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const isManager = user?.role === 'manager'
 
   useEffect(() => {
     fetchTeamData()
@@ -140,9 +151,19 @@ export default function TeamPage() {
   return (
     <ProtectedRoute requiredRoles={['manager', 'admin']}>
       <div className="min-h-screen p-6 space-y-6 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">チーム管理</h1>
-          <p className="text-slate-600 mt-1">紹介した配下メンバーの管理</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">チーム管理</h1>
+            <p className="text-slate-600 mt-1">
+              {isManager ? '担当FPエイドの管理' : '紹介した配下メンバーの管理'}
+            </p>
+          </div>
+          {isManager && stats && (
+            <div className="bg-green-100 text-green-800 px-4 py-2 rounded-lg flex items-center space-x-2">
+              <UserCheck className="h-5 w-5" />
+              <span className="font-semibold">担当FPエイド：{stats.totalMembers}名</span>
+            </div>
+          )}
         </div>
 
         {/* 統計カード */}
@@ -205,14 +226,25 @@ export default function TeamPage() {
         {/* メンバー一覧 */}
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle>メンバー一覧</CardTitle>
+            <CardTitle>
+              {isManager ? '担当FPエイド一覧' : 'メンバー一覧'}
+            </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {members.length === 0 ? (
               <div className="p-8 text-center text-slate-500">
                 <Users className="h-12 w-12 mx-auto mb-4 text-slate-400" />
-                <p>まだメンバーがいません</p>
-                <p className="text-sm mt-2">紹介リンクを共有して、メンバーを招待しましょう</p>
+                {isManager ? (
+                  <>
+                    <p className="text-lg font-medium">現在、担当しているFPエイドは登録されていません</p>
+                    <p className="text-sm mt-2">管理者によりFPエイドが割り当てられると、ここに表示されます</p>
+                  </>
+                ) : (
+                  <>
+                    <p>まだメンバーがいません</p>
+                    <p className="text-sm mt-2">紹介リンクを共有して、メンバーを招待しましょう</p>
+                  </>
+                )}
               </div>
             ) : (
               <Table>
@@ -224,7 +256,11 @@ export default function TeamPage() {
                     <TableHead>サブスク状況</TableHead>
                     <TableHead className="text-right">学習進捗</TableHead>
                     <TableHead className="text-right">契約数</TableHead>
-                    <TableHead>紹介日</TableHead>
+                    {isManager ? (
+                      <TableHead>FP承認日</TableHead>
+                    ) : (
+                      <TableHead>紹介日</TableHead>
+                    )}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -249,7 +285,15 @@ export default function TeamPage() {
                         {member.stats.activeContracts} 件
                       </TableCell>
                       <TableCell className="text-slate-600">
-                        {new Date(member.referralCreatedAt).toLocaleDateString('ja-JP')}
+                        {isManager ? (
+                          member.fpStatus?.approvedAt
+                            ? new Date(member.fpStatus.approvedAt).toLocaleDateString('ja-JP')
+                            : '-'
+                        ) : (
+                          member.referralCreatedAt
+                            ? new Date(member.referralCreatedAt).toLocaleDateString('ja-JP')
+                            : '-'
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
