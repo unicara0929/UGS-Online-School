@@ -667,12 +667,12 @@ function EventDetailPageContent() {
                     </div>
                   ) : (
                     <>
-                      {/* 参加コード入力 */}
+                      {/* 参加コード入力（イベント開催中 or 完了後） */}
                       {event.hasAttendanceCode && (
                         <>
                           {event.attendanceDeadline && new Date(event.attendanceDeadline) < new Date() ? (
                             <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                              <p className="text-sm text-slate-600">出席確認の期限が過ぎました</p>
+                              <p className="text-sm text-slate-600">参加コード入力の期限が過ぎました</p>
                             </div>
                           ) : (
                             <AttendanceCodeInput
@@ -684,15 +684,13 @@ function EventDetailPageContent() {
                         </>
                       )}
 
-                      {/* 録画視聴+アンケート */}
+                      {/* 録画視聴+アンケート（動画またはアンケートが設定されていれば表示） */}
                       {(event.vimeoUrl || event.surveyUrl) && (
                         <>
                           {event.attendanceDeadline && new Date(event.attendanceDeadline) < new Date() ? (
-                            !event.hasAttendanceCode && (
-                              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                                <p className="text-sm text-slate-600">出席確認の期限が過ぎました</p>
-                              </div>
-                            )
+                            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                              <p className="text-sm text-slate-600">動画視聴・アンケート提出の期限が過ぎました</p>
+                            </div>
                           ) : (
                             <VideoSurveyAttendance
                               eventId={event.id}
@@ -705,6 +703,15 @@ function EventDetailPageContent() {
                             />
                           )}
                         </>
+                      )}
+
+                      {/* 動画もアンケートもまだ設定されていない場合 */}
+                      {!event.vimeoUrl && !event.surveyUrl && !event.hasAttendanceCode && (
+                        <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                          <p className="text-sm text-slate-600">
+                            出席確認の準備中です。動画・アンケートが設定されるまでお待ちください。
+                          </p>
+                        </div>
                       )}
                     </>
                   )}
