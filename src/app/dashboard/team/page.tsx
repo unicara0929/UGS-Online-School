@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Loader2, Users, TrendingUp, FileCheck, Activity, UserCheck, X, Building2, Home, Car, Sun, Briefcase, Shield, HelpCircle } from 'lucide-react'
+import { Loader2, Users, TrendingUp, FileCheck, Activity, UserCheck, X, Building2, Home, Sun, Briefcase, Shield, HelpCircle } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 
 // 契約種別の定義
