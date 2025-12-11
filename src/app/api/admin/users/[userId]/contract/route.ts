@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
+import { getAuthenticatedUser, checkRole, RoleGroups } from '@/lib/auth/api-helpers'
 
 /**
  * 業務委託契約書のステータスを更新
@@ -15,9 +15,9 @@ export async function PATCH(
     const { user: authUser, error: authError } = await getAuthenticatedUser(request)
     if (authError) return authError
 
-    // 管理者チェック
-    const { isAdmin, error: adminError } = checkAdmin(authUser!.role)
-    if (!isAdmin) return adminError!
+    // 管理者権限チェック（MANAGER以上）
+    const { error: roleError } = checkRole(authUser!.role, RoleGroups.MANAGER_AND_ABOVE)
+    if (roleError) return roleError
 
     const { userId } = await context.params
     const body = await request.json()
