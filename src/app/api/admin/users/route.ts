@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
         membershipStatus: true,
         memberId: true,
         createdAt: true,
+        contractCompleted: true,
       }
     })
 
@@ -79,6 +80,7 @@ export async function GET(request: NextRequest) {
         role: prismaUser.role, // Prismaのロールが正
         membershipStatus: prismaUser.membershipStatus, // 会員ステータス
         memberId: prismaUser.memberId, // 会員番号
+        contractCompleted: prismaUser.contractCompleted, // 業務委託契約書完了
         raw_user_meta_data: {
           name: prismaUser.name, // Prismaの名前が正
           role: prismaUser.role,

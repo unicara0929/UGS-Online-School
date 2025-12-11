@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, CreditCard, AlertCircle, UserCheck, FileText, Users, Building2, UserPlus, TrendingUp, MessageCircle } from 'lucide-react'
+import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, CreditCard, AlertCircle, UserCheck, FileText, Users, Building2, UserPlus, TrendingUp, MessageCircle, FileCheck, FileX } from 'lucide-react'
 import { getRoleLabel, getRoleBadgeVariant, formatDate } from '@/lib/utils/user-helpers'
 
 interface Manager {
@@ -42,6 +42,11 @@ interface UserDetail {
   cancellationReason: string | null
   delinquentSince: string | null
   reactivatedAt: string | null
+
+  // 業務委託契約書
+  contractCompleted: boolean
+  contractCompletedAt: string | null
+  contractCompletedBy: string | null
 
   // その他
   referralCode: string | null
@@ -141,6 +146,7 @@ export default function UserDetailPage() {
   const [managers, setManagers] = useState<Manager[]>([])
   const [selectedManagerId, setSelectedManagerId] = useState<string>('')
   const [savingManager, setSavingManager] = useState(false)
+  const [savingContract, setSavingContract] = useState(false)
 
   useEffect(() => {
     fetchUserDetail()
@@ -213,6 +219,41 @@ export default function UserDetailPage() {
       alert(err instanceof Error ? err.message : '更新に失敗しました')
     } finally {
       setSavingManager(false)
+    }
+  }
+
+  const handleContractToggle = async () => {
+    if (!user) return
+
+    setSavingContract(true)
+    try {
+      const response = await fetch(`/api/admin/users/${userId}/contract`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          contractCompleted: !user.contractCompleted,
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || '更新に失敗しました')
+      }
+
+      const data = await response.json()
+      setUser({
+        ...user,
+        contractCompleted: data.user.contractCompleted,
+        contractCompletedAt: data.user.contractCompletedAt,
+      })
+      alert(`業務委託契約書を「${data.user.contractCompleted ? '完了' : '未完了'}」に更新しました`)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '更新に失敗しました')
+    } finally {
+      setSavingContract(false)
     }
   }
 
@@ -389,12 +430,49 @@ export default function UserDetailPage() {
                 />
               )}
               {user.reactivatedAt && (
-                <InfoRow 
-                  icon={<Calendar className="h-4 w-4" />} 
-                  label="再開日" 
-                  value={formatDate(user.reactivatedAt)} 
+                <InfoRow
+                  icon={<Calendar className="h-4 w-4" />}
+                  label="再開日"
+                  value={formatDate(user.reactivatedAt)}
                 />
               )}
+
+              {/* 業務委託契約書 */}
+              <div className="pt-4 border-t border-slate-200">
+                <p className="text-sm font-semibold text-slate-600 mb-3">業務委託契約書</p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    {user.contractCompleted ? (
+                      <Badge className="bg-green-100 text-green-800 border-green-200">
+                        <FileCheck className="h-3 w-3 mr-1" />
+                        完了
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-orange-100 text-orange-800 border-orange-200">
+                        <FileX className="h-3 w-3 mr-1" />
+                        未完了
+                      </Badge>
+                    )}
+                    {user.contractCompletedAt && (
+                      <span className="text-xs text-slate-500">
+                        {formatDate(user.contractCompletedAt)}
+                      </span>
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    variant={user.contractCompleted ? "outline" : "default"}
+                    onClick={handleContractToggle}
+                    disabled={savingContract}
+                    className={user.contractCompleted
+                      ? "border-orange-300 text-orange-700 hover:bg-orange-50"
+                      : "bg-green-600 hover:bg-green-700 text-white"
+                    }
+                  >
+                    {savingContract ? '処理中...' : user.contractCompleted ? '未完了に戻す' : '完了にする'}
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
 

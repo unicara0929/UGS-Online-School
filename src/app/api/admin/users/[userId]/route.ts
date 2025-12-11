@@ -149,6 +149,11 @@ export async function GET(
       delinquentSince: user.delinquentSince,
       reactivatedAt: user.reactivatedAt,
 
+      // 業務委託契約書
+      contractCompleted: user.contractCompleted,
+      contractCompletedAt: user.contractCompletedAt,
+      contractCompletedBy: user.contractCompletedBy,
+
       // その他
       referralCode: user.referralCode,
       lastLoginAt: user.lastLoginAt,

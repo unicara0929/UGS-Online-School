@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Users, UserCheck, UserX, Mail, Calendar, CreditCard, AlertCircle, Search, Filter, ArrowUpDown, Download } from 'lucide-react'
+import { Users, UserCheck, UserX, Mail, Calendar, CreditCard, AlertCircle, Search, Filter, ArrowUpDown, Download, FileCheck, FileX } from 'lucide-react'
 import { getRoleLabel, getRoleBadgeVariant, formatDate, formatCurrency } from '@/lib/utils/user-helpers'
 import { filterUsersBySearch, filterUsersByStatus, filterUsersByMembershipStatus, filterUsersByRole, sortUsers } from '@/lib/utils/filter-helpers'
 import { getSubscriptionStatus } from '@/lib/utils/subscription-helpers'
@@ -68,6 +68,7 @@ interface SupabaseUser {
   role: string
   membershipStatus?: string
   memberId?: string | null
+  contractCompleted?: boolean // 業務委託契約書完了
   raw_user_meta_data: {
     name?: string
     [key: string]: any
@@ -250,6 +251,7 @@ export default function AdminUsersPage() {
       role: string
       membershipStatus?: string
       memberId?: string
+      contractCompleted?: boolean
       createdAt: string
       lastSignIn: string | null
       subscription: SubscriptionInfo | null
@@ -265,6 +267,7 @@ export default function AdminUsersPage() {
         role: 'PENDING',
         membershipStatus: 'PENDING',
         memberId: undefined as string | undefined,
+        contractCompleted: false,
         createdAt: pending.createdAt,
         lastSignIn: null as string | null,
         subscription: null as SubscriptionInfo | null,
@@ -278,6 +281,7 @@ export default function AdminUsersPage() {
         role: user.role,
         membershipStatus: user.membershipStatus || 'ACTIVE',
         memberId: user.memberId || undefined,
+        contractCompleted: user.contractCompleted || false,
         createdAt: user.created_at,
         lastSignIn: user.last_sign_in_at,
         subscription: (subscriptions.find(sub => sub.userId === user.id) || null) as SubscriptionInfo | null,
@@ -758,6 +762,7 @@ export default function AdminUsersPage() {
                     </div>
                   </TableHead>
                   <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm">決済</TableHead>
+                  <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm">契約</TableHead>
                   <TableHead
                     className="cursor-pointer hover:bg-slate-100 transition-colors py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm"
                     onClick={() => handleSort('createdAt')}
@@ -898,11 +903,30 @@ export default function AdminUsersPage() {
                         })()
                       )}
                     </TableCell>
-                    {/* 7. 登録日 */}
+                    {/* 7. 契約 */}
+                    <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
+                      {user.type === 'pending' ? (
+                        <Badge variant="secondary" className="bg-gray-100 text-gray-500 border-gray-200 shadow-sm text-xs">
+                          <FileX className="h-3 w-3 mr-1" />
+                          -
+                        </Badge>
+                      ) : user.contractCompleted ? (
+                        <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200 shadow-sm text-xs">
+                          <FileCheck className="h-3 w-3 mr-1" />
+                          完了
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200 shadow-sm text-xs">
+                          <FileX className="h-3 w-3 mr-1" />
+                          未完了
+                        </Badge>
+                      )}
+                    </TableCell>
+                    {/* 8. 登録日 */}
                     <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
                       <div className="text-slate-600 text-xs sm:text-sm whitespace-nowrap">{formatDate(user.createdAt)}</div>
                     </TableCell>
-                    {/* 8. 最終ログイン */}
+                    {/* 9. 最終ログイン */}
                     <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
                       <div className="text-slate-600 text-xs sm:text-sm whitespace-nowrap">
                         {user.lastSignIn ? formatDate(user.lastSignIn) : '未ログイン'}

@@ -41,6 +41,10 @@ model User {
   managerId               String?                  // 担当マネージャーのID
   manager                 User?                    @relation("ManagerTeam", fields: [managerId], references: [id], onDelete: SetNull)
   teamMembers             User[]                   @relation("ManagerTeam") // このマネージャーが担当するFPエイド
+  // 業務委託契約書
+  contractCompleted       Boolean                  @default(false) // 業務委託契約書完了フラグ
+  contractCompletedAt     DateTime?                // 業務委託契約書完了日時
+  contractCompletedBy     String?                  // 契約完了をマークした管理者ID
   // 会員管理フィールド
   membershipStatus        MembershipStatus         @default(ACTIVE) // 会員ステータス
   membershipStatusReason  String?                  // ステータス変更理由
