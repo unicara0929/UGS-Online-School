@@ -229,6 +229,40 @@ export default function AdminUsersPage() {
     }
   }
 
+  /**
+   * 契約ステータスを更新
+   */
+  const updateContractStatus = async (userId: string, contractCompleted: boolean) => {
+    const targetUser = users.find(u => u.id === userId)
+    const userName = targetUser?.raw_user_meta_data?.name || targetUser?.email || 'このユーザー'
+    const newStatus = contractCompleted ? '完了' : '未完了'
+
+    if (!window.confirm(`${userName} の業務委託契約書を「${newStatus}」に変更しますか？`)) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/admin/users/${userId}/contract`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ contractCompleted }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || '契約ステータスの更新に失敗しました')
+      }
+
+      // ユーザー一覧を再取得
+      await fetchUsers()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '契約ステータスの更新に失敗しました')
+    }
+  }
+
 
   /**
    * ユーザーのサブスクリプションステータスを取得
@@ -911,15 +945,23 @@ export default function AdminUsersPage() {
                           -
                         </Badge>
                       ) : user.contractCompleted ? (
-                        <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200 shadow-sm text-xs">
+                        <button
+                          onClick={() => updateContractStatus(user.id, false)}
+                          className="inline-flex items-center px-2 py-1 rounded-md bg-green-100 text-green-800 border border-green-200 shadow-sm text-xs hover:bg-green-200 transition-colors cursor-pointer"
+                          title="クリックで未完了に変更"
+                        >
                           <FileCheck className="h-3 w-3 mr-1" />
                           完了
-                        </Badge>
+                        </button>
                       ) : (
-                        <Badge variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200 shadow-sm text-xs">
+                        <button
+                          onClick={() => updateContractStatus(user.id, true)}
+                          className="inline-flex items-center px-2 py-1 rounded-md bg-orange-100 text-orange-800 border border-orange-200 shadow-sm text-xs hover:bg-orange-200 transition-colors cursor-pointer"
+                          title="クリックで完了に変更"
+                        >
                           <FileX className="h-3 w-3 mr-1" />
                           未完了
-                        </Badge>
+                        </button>
                       )}
                     </TableCell>
                     {/* 8. 登録日 */}
