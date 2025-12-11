@@ -49,7 +49,7 @@ export function DashboardStats({ userRole }: DashboardStatsProps) {
           <Target className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-600" />
         </CardHeader>
         <CardContent className="p-3 sm:p-6 pt-0">
-          <div className="text-lg sm:text-2xl font-bold">1/3</div>
+          <div className="text-lg sm:text-2xl font-bold">0/2</div>
           <p className="text-[10px] sm:text-xs text-slate-600">FPエイド昇格</p>
         </CardContent>
       </Card>
