@@ -56,6 +56,8 @@ interface PendingUser {
   id: string
   email: string
   name: string
+  emailVerified?: boolean
+  tokenExpiresAt?: string
   createdAt: string
 }
 
@@ -113,6 +115,12 @@ export default function AdminUsersPage() {
   const [statusChangeReason, setStatusChangeReason] = useState('')
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
   const [statusUpdateResult, setStatusUpdateResult] = useState<{ success: number; failed: number; total: number } | null>(null)
+
+  // 仮登録ユーザー操作モーダル
+  const [showPendingUserModal, setShowPendingUserModal] = useState(false)
+  const [selectedPendingUser, setSelectedPendingUser] = useState<PendingUser | null>(null)
+  const [pendingUserAction, setPendingUserAction] = useState<'verify' | 'resend' | 'delete' | null>(null)
+  const [isPendingUserActionLoading, setIsPendingUserActionLoading] = useState(false)
 
   useEffect(() => {
     fetchUsers()
@@ -291,6 +299,8 @@ export default function AdminUsersPage() {
       subscription: SubscriptionInfo | null
       type: 'pending' | 'registered'
       hasSupabaseAuth?: boolean
+      emailVerified?: boolean
+      tokenExpiresAt?: string
     }
 
     const allUsers: UserItem[] = [
@@ -307,6 +317,8 @@ export default function AdminUsersPage() {
         subscription: null as SubscriptionInfo | null,
         type: 'pending' as const,
         hasSupabaseAuth: false, // 仮登録はSupabase認証なし
+        emailVerified: pending.emailVerified,
+        tokenExpiresAt: pending.tokenExpiresAt,
       })),
       ...users.map(user => ({
         id: user.id,
@@ -404,6 +416,70 @@ export default function AdminUsersPage() {
     } finally {
       setIsSending(false)
     }
+  }
+
+  /**
+   * 仮登録ユーザーの操作を実行
+   */
+  const handlePendingUserAction = async (action: 'verify' | 'resend' | 'delete') => {
+    if (!selectedPendingUser) return
+
+    setIsPendingUserActionLoading(true)
+    setPendingUserAction(action)
+
+    try {
+      let response: Response
+
+      if (action === 'delete') {
+        response = await fetch(`/api/admin/pending-users/${selectedPendingUser.id}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        })
+      } else {
+        response = await fetch(`/api/admin/pending-users/${selectedPendingUser.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ action }),
+        })
+      }
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || '操作に失敗しました')
+      }
+
+      const result = await response.json()
+
+      // 成功メッセージ
+      if (action === 'verify') {
+        alert('メール認証を完了しました')
+      } else if (action === 'resend') {
+        alert('認証メールを再送信しました')
+      } else if (action === 'delete') {
+        alert('仮登録ユーザーを削除しました')
+      }
+
+      // モーダルを閉じてデータを再取得
+      setShowPendingUserModal(false)
+      setSelectedPendingUser(null)
+      await fetchPendingUsers()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '操作に失敗しました')
+    } finally {
+      setIsPendingUserActionLoading(false)
+      setPendingUserAction(null)
+    }
+  }
+
+  /**
+   * 仮登録ユーザーをクリックしたときの処理
+   */
+  const handlePendingUserClick = (pendingUser: PendingUser) => {
+    setSelectedPendingUser(pendingUser)
+    setShowPendingUserModal(true)
   }
 
   const handleExportCSV = async () => {
@@ -860,12 +936,28 @@ export default function AdminUsersPage() {
                               {user.name}
                             </button>
                           ) : (
-                            <div className="font-medium text-slate-900 text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">{user.name}</div>
+                            <button
+                              onClick={() => handlePendingUserClick({
+                                id: user.id,
+                                email: user.email,
+                                name: user.name,
+                                emailVerified: user.emailVerified,
+                                tokenExpiresAt: user.tokenExpiresAt,
+                                createdAt: user.createdAt,
+                              })}
+                              className="font-medium text-slate-900 hover:text-orange-600 hover:underline transition-colors text-left text-xs sm:text-sm truncate block max-w-[120px] sm:max-w-none"
+                            >
+                              {user.name}
+                            </button>
                           )}
                           {user.type === 'pending' && (
-                            <Badge variant="outline" className="text-orange-600 border-orange-300 bg-orange-50 mt-1 text-xs">
+                            <Badge variant="outline" className={`mt-1 text-xs ${
+                              user.emailVerified
+                                ? 'text-green-600 border-green-300 bg-green-50'
+                                : 'text-orange-600 border-orange-300 bg-orange-50'
+                            }`}>
                               <UserX className="h-3 w-3 mr-1" />
-                              仮登録
+                              {user.emailVerified ? '認証済み' : '仮登録'}
                             </Badge>
                           )}
                           {user.type === 'registered' && user.hasSupabaseAuth === false && (
@@ -1315,6 +1407,153 @@ export default function AdminUsersPage() {
                     </div>
                   </>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 仮登録ユーザー操作モーダル */}
+        {showPendingUserModal && selectedPendingUser && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+              <div className="bg-gradient-to-r from-orange-500 to-amber-600 px-6 py-4 rounded-t-2xl">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-white flex items-center">
+                    <UserX className="h-5 w-5 mr-2" />
+                    仮登録ユーザー詳細
+                  </h2>
+                  <button
+                    onClick={() => {
+                      setShowPendingUserModal(false)
+                      setSelectedPendingUser(null)
+                    }}
+                    className="text-white hover:bg-white/20 rounded-lg p-2 transition-all"
+                  >
+                    <span className="text-2xl">&times;</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4">
+                {/* ユーザー情報 */}
+                <div className="bg-slate-50 rounded-xl p-4 space-y-3">
+                  <div>
+                    <span className="text-sm text-slate-500">名前</span>
+                    <p className="font-medium text-slate-900">{selectedPendingUser.name}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-slate-500">メールアドレス</span>
+                    <p className="font-medium text-slate-900">{selectedPendingUser.email}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-slate-500">登録日時</span>
+                    <p className="font-medium text-slate-900">{formatDate(selectedPendingUser.createdAt)}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-slate-500">メール認証</span>
+                    <p className="font-medium">
+                      {selectedPendingUser.emailVerified ? (
+                        <Badge className="bg-green-100 text-green-800 border-green-200">
+                          <UserCheck className="h-3 w-3 mr-1" />
+                          認証済み
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-orange-100 text-orange-800 border-orange-200">
+                          <Mail className="h-3 w-3 mr-1" />
+                          未認証
+                        </Badge>
+                      )}
+                    </p>
+                  </div>
+                  {selectedPendingUser.tokenExpiresAt && (
+                    <div>
+                      <span className="text-sm text-slate-500">トークン有効期限</span>
+                      <p className={`font-medium ${new Date(selectedPendingUser.tokenExpiresAt) < new Date() ? 'text-red-600' : 'text-slate-900'}`}>
+                        {formatDate(selectedPendingUser.tokenExpiresAt)}
+                        {new Date(selectedPendingUser.tokenExpiresAt) < new Date() && (
+                          <span className="ml-2 text-xs text-red-600">(期限切れ)</span>
+                        )}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* 操作ボタン */}
+                <div className="space-y-3">
+                  {!selectedPendingUser.emailVerified && (
+                    <Button
+                      onClick={() => handlePendingUserAction('verify')}
+                      disabled={isPendingUserActionLoading}
+                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                    >
+                      {isPendingUserActionLoading && pendingUserAction === 'verify' ? (
+                        <>
+                          <span className="animate-spin mr-2">⏳</span>
+                          処理中...
+                        </>
+                      ) : (
+                        <>
+                          <UserCheck className="h-4 w-4 mr-2" />
+                          手動でメール認証を完了する
+                        </>
+                      )}
+                    </Button>
+                  )}
+
+                  <Button
+                    onClick={() => handlePendingUserAction('resend')}
+                    disabled={isPendingUserActionLoading}
+                    variant="outline"
+                    className="w-full border-blue-300 text-blue-700 hover:bg-blue-50"
+                  >
+                    {isPendingUserActionLoading && pendingUserAction === 'resend' ? (
+                      <>
+                        <span className="animate-spin mr-2">⏳</span>
+                        送信中...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="h-4 w-4 mr-2" />
+                        認証メールを再送信
+                      </>
+                    )}
+                  </Button>
+
+                  <Button
+                    onClick={() => {
+                      if (window.confirm(`${selectedPendingUser.name} の仮登録を削除しますか？\n\nこの操作は取り消せません。削除後、同じメールアドレスで新規登録できるようになります。`)) {
+                        handlePendingUserAction('delete')
+                      }
+                    }}
+                    disabled={isPendingUserActionLoading}
+                    variant="outline"
+                    className="w-full border-red-300 text-red-700 hover:bg-red-50"
+                  >
+                    {isPendingUserActionLoading && pendingUserAction === 'delete' ? (
+                      <>
+                        <span className="animate-spin mr-2">⏳</span>
+                        削除中...
+                      </>
+                    ) : (
+                      <>
+                        <UserX className="h-4 w-4 mr-2" />
+                        仮登録を削除
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {/* ヒント */}
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mt-4">
+                  <p className="text-sm text-blue-800">
+                    <strong>ヒント:</strong>
+                  </p>
+                  <ul className="text-xs text-blue-700 mt-2 space-y-1 list-disc list-inside">
+                    <li>メール認証済みのユーザーは決済ページに進めます</li>
+                    <li>トークン期限切れの場合は認証メールを再送信してください</li>
+                    <li>削除すると同じメールアドレスで新規登録できます</li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>

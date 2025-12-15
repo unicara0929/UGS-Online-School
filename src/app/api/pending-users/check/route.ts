@@ -5,9 +5,7 @@ import { prisma } from '@/lib/prisma'
  * PendingUserのメール認証状態をチェック
  * GET /api/pending-users/check?email=xxx
  *
- * セキュリティ対策：
- * - ユーザーが存在しない場合も同じレスポンス形式を返す（ユーザー列挙攻撃対策）
- * - 名前などの個人情報は返さない（情報漏洩対策）
+ * 認証済みユーザーが決済に進む際に必要な情報を返す
  */
 export async function GET(request: NextRequest) {
   try {
@@ -21,25 +19,49 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // まずPendingUserを確認
     const pendingUser = await prisma.pendingUser.findUnique({
       where: { email },
       select: {
+        name: true,
         emailVerified: true,
         tokenExpiresAt: true,
       }
     })
 
-    // セキュリティ: ユーザーが存在しない場合も同じ形式で返す（列挙攻撃対策）
+    // PendingUserが存在しない場合、本登録済みユーザーを確認
     if (!pendingUser) {
+      const existingUser = await prisma.user.findUnique({
+        where: { email },
+        select: { id: true }
+      })
+
+      if (existingUser) {
+        // 本登録済みの場合
+        return NextResponse.json({
+          success: true,
+          exists: true,
+          isFullyRegistered: true,
+          emailVerified: true,
+          tokenExpired: false,
+        })
+      }
+
+      // どちらにも存在しない場合
       return NextResponse.json({
         success: true,
+        exists: false,
         emailVerified: false,
         tokenExpired: false,
       })
     }
 
+    // PendingUserが存在する場合（仮登録済み）
     return NextResponse.json({
       success: true,
+      exists: true,
+      isFullyRegistered: false,
+      name: pendingUser.name,
       emailVerified: pendingUser.emailVerified,
       tokenExpired: pendingUser.tokenExpiresAt ? pendingUser.tokenExpiresAt < new Date() : false,
     })
