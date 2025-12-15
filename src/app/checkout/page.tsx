@@ -40,7 +40,7 @@ function CheckoutContent() {
   const name = searchParams.get('name')
   const verified = searchParams.get('verified') // メール認証完了フラグ
 
-  // メールアドレス認証チェック
+  // メールアドレス認証チェック + 本登録済みチェック
   useEffect(() => {
     const checkEmailVerification = async () => {
       if (!email) {
@@ -49,33 +49,52 @@ function CheckoutContent() {
         return
       }
 
-      // URLパラメータでverified=trueがある場合は認証済みとみなす
-      if (verified === 'true') {
-        setEmailVerified(true)
-        setCheckingEmail(false)
-        return
-      }
-
       try {
-        // PendingUserのメール認証状態を確認
+        // ユーザー状態を確認（本登録済み or 仮登録）
         const res = await fetch(`/api/pending-users/check?email=${encodeURIComponent(email)}`)
         const data = await res.json()
 
-        if (res.ok && data.emailVerified) {
-          setEmailVerified(true)
+        if (res.ok) {
+          // 本登録済みユーザーの場合はログインページへリダイレクト
+          if (data.isFullyRegistered) {
+            router.push(`/already-registered?email=${encodeURIComponent(email)}`)
+            return
+          }
+
+          // 仮登録ユーザーの場合
+          if (data.exists) {
+            if (data.emailVerified || verified === 'true') {
+              setEmailVerified(true)
+            } else {
+              setError('メールアドレスの確認が完了していません。メールボックスを確認してください。')
+            }
+          } else {
+            // PendingUserが存在しない（新規登録からやり直しが必要）
+            setError('登録情報が見つかりません。新規登録からやり直してください。')
+          }
         } else {
-          setError('メールアドレスの確認が完了していません。メールボックスを確認してください。')
+          // APIエラー時はURLパラメータで判断
+          if (verified === 'true') {
+            setEmailVerified(true)
+          } else {
+            setError('メール認証状態の確認に失敗しました')
+          }
         }
       } catch (err) {
         console.error('Email verification check error:', err)
-        setError('メール認証状態の確認に失敗しました')
+        // エラー時はURLパラメータで判断
+        if (verified === 'true') {
+          setEmailVerified(true)
+        } else {
+          setError('メール認証状態の確認に失敗しました')
+        }
       } finally {
         setCheckingEmail(false)
       }
     }
 
     checkEmailVerification()
-  }, [email, verified])
+  }, [email, verified, router])
 
   // 紹介情報を取得（PendingUserから）
   useEffect(() => {
@@ -238,11 +257,25 @@ function CheckoutContent() {
         <Card className="w-full max-w-md">
           <CardContent className="pt-6">
             <div className="text-center">
-              <h2 className="text-xl font-semibold text-slate-900 mb-2">エラー</h2>
-              <p className="text-slate-600 mb-4">必要な情報が不足しています。</p>
-              <Link href="/register">
-                <Button>登録ページに戻る</Button>
-              </Link>
+              <h2 className="text-xl font-semibold text-slate-900 mb-2">情報が不足しています</h2>
+              <p className="text-slate-600 mb-2">
+                {!email && !name
+                  ? 'メールアドレスとお名前が指定されていません。'
+                  : !email
+                  ? 'メールアドレスが指定されていません。'
+                  : 'お名前が指定されていません。'}
+              </p>
+              <p className="text-sm text-slate-500 mb-4">
+                登録ページからやり直すか、認証メール内のリンクをクリックしてください。
+              </p>
+              <div className="space-y-2">
+                <Link href="/register">
+                  <Button className="w-full">新規登録ページへ</Button>
+                </Link>
+                <Link href="/verify-email-error">
+                  <Button variant="outline" className="w-full">登録状況を確認する</Button>
+                </Link>
+              </div>
             </div>
           </CardContent>
         </Card>

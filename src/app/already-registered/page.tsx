@@ -13,8 +13,10 @@ function AlreadyRegisteredContent() {
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
   const [isPending, setIsPending] = useState(false)
+  const [isFullyRegistered, setIsFullyRegistered] = useState(false)
   const [isEmailVerified, setIsEmailVerified] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isChecking, setIsChecking] = useState(true)
 
   useEffect(() => {
     const emailParam = searchParams.get('email')
@@ -22,27 +24,49 @@ function AlreadyRegisteredContent() {
 
     if (emailParam) {
       setEmail(emailParam)
-      // PendingUserの情報を取得
-      if (statusParam === 'pending') {
-        fetchPendingUserInfo(emailParam)
-      }
-    }
-
-    if (statusParam === 'pending') {
-      setIsPending(true)
+      // 常にユーザー状態を確認
+      checkUserStatus(emailParam, statusParam)
+    } else {
+      setIsChecking(false)
     }
   }, [searchParams])
 
-  const fetchPendingUserInfo = async (emailAddr: string) => {
+  const checkUserStatus = async (emailAddr: string, statusHint: string | null) => {
+    setIsChecking(true)
     try {
       const res = await fetch(`/api/pending-users/check?email=${encodeURIComponent(emailAddr)}`)
       const data = await res.json()
       if (res.ok) {
-        setName(data.name || '')
-        setIsEmailVerified(data.emailVerified || false)
+        if (data.isFullyRegistered) {
+          // 本登録済みユーザー
+          setIsFullyRegistered(true)
+          setIsPending(false)
+          setIsEmailVerified(true)
+        } else if (data.exists) {
+          // PendingUser（仮登録）
+          setIsPending(true)
+          setIsFullyRegistered(false)
+          setName(data.name || '')
+          setIsEmailVerified(data.emailVerified || false)
+        } else {
+          // どちらにも存在しない（新規登録可能）
+          setIsPending(false)
+          setIsFullyRegistered(false)
+        }
+      } else {
+        // APIエラー時はURLパラメータのヒントを使用
+        if (statusHint === 'pending') {
+          setIsPending(true)
+        }
       }
     } catch (err) {
-      console.error('Failed to fetch pending user info:', err)
+      console.error('Failed to check user status:', err)
+      // エラー時はURLパラメータのヒントを使用
+      if (statusHint === 'pending') {
+        setIsPending(true)
+      }
+    } finally {
+      setIsChecking(false)
     }
   }
 
@@ -76,18 +100,38 @@ function AlreadyRegisteredContent() {
     }
   }
 
+  // ローディング中
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center px-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-700 mx-auto mb-4"></div>
+          <p className="text-slate-600">登録状態を確認中...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center px-4">
       <div className="max-w-2xl w-full">
         <Card className="shadow-2xl border-0">
           <CardHeader className="text-center pb-6">
             <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-full flex items-center justify-center">
-                <Mail className="h-8 w-8 text-white" />
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                isFullyRegistered
+                  ? 'bg-gradient-to-br from-green-500 to-emerald-600'
+                  : 'bg-gradient-to-br from-yellow-500 to-orange-600'
+              }`}>
+                {isFullyRegistered ? (
+                  <LogIn className="h-8 w-8 text-white" />
+                ) : (
+                  <Mail className="h-8 w-8 text-white" />
+                )}
               </div>
             </div>
             <CardTitle className="text-3xl font-bold text-slate-900">
-              📧 既にご登録いただいています
+              {isFullyRegistered ? '✅ 登録完了済みです' : '📧 既にご登録いただいています'}
             </CardTitle>
             <CardDescription className="text-lg mt-2">
               {email && (
