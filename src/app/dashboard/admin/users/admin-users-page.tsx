@@ -98,6 +98,7 @@ export default function AdminUsersPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'active' | 'canceled' | 'past_due' | 'unpaid'>('all')
   const [membershipStatusFilter, setMembershipStatusFilter] = useState<'all' | 'PENDING' | 'ACTIVE' | 'PAST_DUE' | 'DELINQUENT' | 'CANCELLATION_PENDING' | 'CANCELED' | 'TERMINATED' | 'EXPIRED'>('all')
   const [roleFilter, setRoleFilter] = useState<'all' | 'MEMBER' | 'FP' | 'MANAGER' | 'ADMIN'>('all')
+  const [contractFilter, setContractFilter] = useState<'all' | 'completed' | 'incomplete'>('all')
   const [sortField, setSortField] = useState<'name' | 'email' | 'createdAt' | 'lastSignIn'>('createdAt')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
 
@@ -341,6 +342,17 @@ export default function AdminUsersPage() {
     filtered = filterUsersByStatus(filtered, statusFilter) as UserItem[]
     filtered = filterUsersByMembershipStatus(filtered, membershipStatusFilter) as UserItem[]
     filtered = filterUsersByRole(filtered, roleFilter) as UserItem[]
+
+    // 契約状況フィルター
+    if (contractFilter !== 'all') {
+      filtered = filtered.filter(user => {
+        if (user.type === 'pending') return false // 仮登録ユーザーは契約なし
+        if (contractFilter === 'completed') return user.contractCompleted === true
+        if (contractFilter === 'incomplete') return user.contractCompleted !== true
+        return true
+      })
+    }
+
     filtered = sortUsers(filtered, sortField, sortDirection) as UserItem[]
 
     return filtered
@@ -730,8 +742,8 @@ export default function AdminUsersPage() {
             </h2>
           </div>
           <div className="p-4 sm:p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              <div className="relative group sm:col-span-2 lg:col-span-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
+              <div className="relative group">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                 <input
                   type="text"
@@ -779,6 +791,16 @@ export default function AdminUsersPage() {
                 <option value="ADMIN">管理者</option>
               </select>
 
+              <select
+                value={contractFilter}
+                onChange={(e) => setContractFilter(e.target.value as any)}
+                className="px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-all duration-200"
+              >
+                <option value="all">契約書: すべて</option>
+                <option value="completed">完了</option>
+                <option value="incomplete">未完了</option>
+              </select>
+
               <Button
                 variant="outline"
                 onClick={() => {
@@ -786,6 +808,7 @@ export default function AdminUsersPage() {
                   setStatusFilter('all')
                   setMembershipStatusFilter('all')
                   setRoleFilter('all')
+                  setContractFilter('all')
                 }}
                 className="flex items-center justify-center space-x-2 bg-gradient-to-r from-slate-50 to-blue-50 hover:from-slate-100 hover:to-blue-100 border-slate-300 text-slate-700 hover:text-slate-800 shadow-sm hover:shadow-md transition-all duration-200 rounded-xl py-2.5 sm:py-3 text-sm"
               >
