@@ -123,6 +123,10 @@ export default function AdminUsersPage() {
   const [pendingUserAction, setPendingUserAction] = useState<'verify' | 'resend' | 'delete' | null>(null)
   const [isPendingUserActionLoading, setIsPendingUserActionLoading] = useState(false)
 
+  // 仮登録ユーザー一括選択・削除
+  const [selectedPendingUserIds, setSelectedPendingUserIds] = useState<Set<string>>(new Set())
+  const [isDeletingPendingUsers, setIsDeletingPendingUsers] = useState(false)
+
   useEffect(() => {
     fetchUsers()
     fetchPendingUsers()
@@ -387,6 +391,68 @@ export default function AdminUsersPage() {
     }
   }
 
+  // 仮登録ユーザーの選択ハンドラー
+  const handleSelectPendingUser = (userId: string) => {
+    const newSelected = new Set(selectedPendingUserIds)
+    if (newSelected.has(userId)) {
+      newSelected.delete(userId)
+    } else {
+      newSelected.add(userId)
+    }
+    setSelectedPendingUserIds(newSelected)
+  }
+
+  const handleSelectAllPendingUsers = (checked: boolean) => {
+    if (checked) {
+      const allPendingIds = new Set(filteredUsers.filter(u => u.type === 'pending').map(u => u.id))
+      setSelectedPendingUserIds(allPendingIds)
+    } else {
+      setSelectedPendingUserIds(new Set())
+    }
+  }
+
+  // 仮登録ユーザー一括削除
+  const handleBulkDeletePendingUsers = async () => {
+    if (selectedPendingUserIds.size === 0) return
+
+    const confirmMessage = `選択した${selectedPendingUserIds.size}件の仮登録ユーザーを削除しますか？\n\nこの操作は取り消せません。削除後、同じメールアドレスで新規登録できるようになります。`
+    if (!window.confirm(confirmMessage)) return
+
+    setIsDeletingPendingUsers(true)
+
+    try {
+      let successCount = 0
+      let failedCount = 0
+
+      for (const pendingUserId of selectedPendingUserIds) {
+        try {
+          const response = await fetch(`/api/admin/pending-users/${pendingUserId}`, {
+            method: 'DELETE',
+            credentials: 'include',
+          })
+
+          if (response.ok) {
+            successCount++
+          } else {
+            failedCount++
+          }
+        } catch (err) {
+          failedCount++
+        }
+      }
+
+      alert(`削除完了\n成功: ${successCount}件\n失敗: ${failedCount}件`)
+
+      // 選択をクリアしてデータを再取得
+      setSelectedPendingUserIds(new Set())
+      await fetchPendingUsers()
+    } catch (err) {
+      alert('削除処理中にエラーが発生しました')
+    } finally {
+      setIsDeletingPendingUsers(false)
+    }
+  }
+
   // メール送信処理
   const handleSendEmail = async () => {
     if (!emailSubject.trim() || !emailBody.trim()) {
@@ -605,6 +671,9 @@ export default function AdminUsersPage() {
 
   const isAllSelected = filteredUsers.filter(u => u.type === 'registered').length > 0 &&
     filteredUsers.filter(u => u.type === 'registered').every(u => selectedUserIds.has(u.id))
+
+  const isAllPendingSelected = filteredUsers.filter(u => u.type === 'pending').length > 0 &&
+    filteredUsers.filter(u => u.type === 'pending').every(u => selectedPendingUserIds.has(u.id))
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -836,28 +905,54 @@ export default function AdminUsersPage() {
                 <Users className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600" />
                 ユーザー一覧
               </h2>
-              {selectedUserIds.size > 0 && (
+              {(selectedUserIds.size > 0 || selectedPendingUserIds.size > 0) && (
                 <div className="flex flex-wrap gap-2">
-                  <Button
-                    onClick={() => setShowStatusModal(true)}
-                    size="sm"
-                    className="flex items-center space-x-1 sm:space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm"
-                  >
-                    <UserCheck className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">ステータス変更</span>
-                    <span className="sm:hidden">変更</span>
-                    <span>({selectedUserIds.size})</span>
-                  </Button>
-                  <Button
-                    onClick={() => setShowEmailModal(true)}
-                    size="sm"
-                    className="flex items-center space-x-1 sm:space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm"
-                  >
-                    <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">一括メール送信</span>
-                    <span className="sm:hidden">メール</span>
-                    <span>({selectedUserIds.size})</span>
-                  </Button>
+                  {selectedUserIds.size > 0 && (
+                    <>
+                      <Button
+                        onClick={() => setShowStatusModal(true)}
+                        size="sm"
+                        className="flex items-center space-x-1 sm:space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm"
+                      >
+                        <UserCheck className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="hidden sm:inline">ステータス変更</span>
+                        <span className="sm:hidden">変更</span>
+                        <span>({selectedUserIds.size})</span>
+                      </Button>
+                      <Button
+                        onClick={() => setShowEmailModal(true)}
+                        size="sm"
+                        className="flex items-center space-x-1 sm:space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm"
+                      >
+                        <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="hidden sm:inline">一括メール送信</span>
+                        <span className="sm:hidden">メール</span>
+                        <span>({selectedUserIds.size})</span>
+                      </Button>
+                    </>
+                  )}
+                  {selectedPendingUserIds.size > 0 && (
+                    <Button
+                      onClick={handleBulkDeletePendingUsers}
+                      disabled={isDeletingPendingUsers}
+                      size="sm"
+                      className="flex items-center space-x-1 sm:space-x-2 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm"
+                    >
+                      {isDeletingPendingUsers ? (
+                        <>
+                          <span className="animate-spin">⏳</span>
+                          <span>削除中...</span>
+                        </>
+                      ) : (
+                        <>
+                          <UserX className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="hidden sm:inline">仮登録を一括削除</span>
+                          <span className="sm:hidden">削除</span>
+                          <span>({selectedPendingUserIds.size})</span>
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
@@ -867,12 +962,24 @@ export default function AdminUsersPage() {
               <TableHeader>
                 <TableRow className="bg-slate-50/50 hover:bg-slate-50">
                   <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 w-10 sm:w-12">
-                    <input
-                      type="checkbox"
-                      checked={isAllSelected}
-                      onChange={(e) => handleSelectAll(e.target.checked)}
-                      className="w-4 h-4 text-blue-600 bg-white border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
-                    />
+                    <div className="flex flex-col gap-1">
+                      <input
+                        type="checkbox"
+                        checked={isAllSelected}
+                        onChange={(e) => handleSelectAll(e.target.checked)}
+                        className="w-4 h-4 text-blue-600 bg-white border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
+                        title="登録済みユーザーを全選択"
+                      />
+                      {filteredUsers.some(u => u.type === 'pending') && (
+                        <input
+                          type="checkbox"
+                          checked={isAllPendingSelected}
+                          onChange={(e) => handleSelectAllPendingUsers(e.target.checked)}
+                          className="w-4 h-4 text-orange-600 bg-white border-orange-300 rounded focus:ring-orange-500 cursor-pointer"
+                          title="仮登録ユーザーを全選択"
+                        />
+                      )}
+                    </div>
                   </TableHead>
                   <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm">会員番号</TableHead>
                   <TableHead
@@ -925,12 +1032,19 @@ export default function AdminUsersPage() {
                   >
                     {/* 1. チェックボックス */}
                     <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
-                      {user.type === 'registered' && (
+                      {user.type === 'registered' ? (
                         <input
                           type="checkbox"
                           checked={selectedUserIds.has(user.id)}
                           onChange={() => handleSelectUser(user.id)}
                           className="w-4 h-4 text-blue-600 bg-white border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
+                        />
+                      ) : (
+                        <input
+                          type="checkbox"
+                          checked={selectedPendingUserIds.has(user.id)}
+                          onChange={() => handleSelectPendingUser(user.id)}
+                          className="w-4 h-4 text-orange-600 bg-white border-orange-300 rounded focus:ring-orange-500 cursor-pointer"
                         />
                       )}
                     </TableCell>
