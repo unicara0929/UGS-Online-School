@@ -288,34 +288,34 @@ function CheckoutContent() {
       {/* ヘッダー */}
       <header className="bg-white shadow-sm border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-14 sm:h-16">
             <div className="flex items-center">
               <Link href="/lp">
-                <h1 className="text-2xl font-bold text-slate-900">Unicara Growth Salon</h1>
+                <h1 className="text-lg sm:text-2xl font-bold text-slate-900">Unicara Growth Salon</h1>
               </Link>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center">
               <Link href="/login">
-                <Button variant="outline">ログイン</Button>
+                <Button variant="outline" size="sm" className="text-xs sm:text-sm">ログイン</Button>
               </Link>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           {/* 決済情報 */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             <div>
               <Link href="/register">
-                <Button variant="ghost" size="sm" className="mb-4">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
+                <Button variant="ghost" size="sm" className="mb-2 sm:mb-4 text-xs sm:text-sm">
+                  <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                   登録ページに戻る
                 </Button>
               </Link>
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">決済情報</h1>
-              <p className="text-slate-600">Unicara Growth Salonのサブスクリプションを開始します</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">決済情報</h1>
+              <p className="text-sm sm:text-base text-slate-600">Unicara Growth Salonのサブスクリプションを開始します</p>
             </div>
 
             <Card>

@@ -53,28 +53,28 @@ export function LoginForm() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md shadow-2xl border-0">
-        <CardHeader className="text-center space-y-4 pb-8">
-          <div className="flex items-center justify-center space-x-3">
+        <CardHeader className="text-center space-y-3 sm:space-y-4 pb-6 sm:pb-8 px-4 sm:px-6">
+          <div className="flex items-center justify-center space-x-2 sm:space-x-3">
             {logoError ? (
-              <div className="w-8 h-8 rounded bg-slate-800 flex items-center justify-center">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded bg-slate-800 flex items-center justify-center flex-shrink-0">
                 <span className="text-white text-xs font-bold">UG</span>
               </div>
             ) : (
-              <Image 
-                src="/ロゴ1.jpg" 
-                alt="Unicara Growth Salon" 
-                width={32} 
-                height={32} 
-                className="object-contain"
+              <Image
+                src="/ロゴ1.jpg"
+                alt="Unicara Growth Salon"
+                width={32}
+                height={32}
+                className="object-contain w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0"
                 priority
                 onError={() => setLogoError(true)}
               />
             )}
-            <CardTitle className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
+            <CardTitle className="text-lg sm:text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
               Unicara Growth Salon
             </CardTitle>
           </div>
-          <CardDescription className="text-sm text-slate-600 pt-2">
+          <CardDescription className="text-xs sm:text-sm text-slate-600 pt-1 sm:pt-2">
             "勉強だけで終わらない"「お金の知識×稼げる力」がコンセプトのビジネスコミュニティ
           </CardDescription>
         </CardHeader>

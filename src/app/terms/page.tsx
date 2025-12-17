@@ -2,13 +2,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-slate-50 py-12">
+    <div className="min-h-screen bg-slate-50 py-6 sm:py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-3xl font-bold text-center">UGS（Unicara Growth Salon）利用規約</CardTitle>
+          <CardHeader className="px-4 sm:px-6">
+            <CardTitle className="text-xl sm:text-3xl font-bold text-center">UGS（Unicara Growth Salon）利用規約</CardTitle>
           </CardHeader>
-          <CardContent className="prose prose-slate max-w-none">
+          <CardContent className="prose prose-slate max-w-none px-4 sm:px-6 prose-sm sm:prose-base">
             <div className="space-y-8">
               <p className="text-slate-700 leading-relaxed">
                 Unicara株式会社（以下「当社」）は、UGS（Unicara Growth Salon）（以下「本サービス」）の利用規約（以下「本規約」）を定める。本サービス利用者（以下「会員」）は、本規約に同意したものとみなす。

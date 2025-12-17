@@ -29,12 +29,12 @@ export function LandingPageHeader() {
             )}
             <span className="hidden md:block text-sm font-bold text-slate-900">Unicara Growth Salon</span>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <Link href="/login">
-              <Button variant="outline">ログイン</Button>
+              <Button variant="outline" size="sm" className="text-xs sm:text-sm px-2 sm:px-4">ログイン</Button>
             </Link>
             <Link href="/register">
-              <Button>会員登録</Button>
+              <Button size="sm" className="text-xs sm:text-sm px-2 sm:px-4">会員登録</Button>
             </Link>
           </div>
         </div>

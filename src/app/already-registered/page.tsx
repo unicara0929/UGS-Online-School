@@ -121,42 +121,42 @@ function AlreadyRegisteredContent() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center px-4">
       <div className="max-w-2xl w-full">
         <Card className="shadow-2xl border-0">
-          <CardHeader className="text-center pb-6">
-            <div className="flex justify-center mb-4">
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
+          <CardHeader className="text-center pb-4 sm:pb-6 px-4 sm:px-6">
+            <div className="flex justify-center mb-3 sm:mb-4">
+              <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center ${
                 isFullyRegistered
                   ? 'bg-gradient-to-br from-green-500 to-emerald-600'
                   : 'bg-gradient-to-br from-yellow-500 to-orange-600'
               }`}>
                 {isFullyRegistered ? (
-                  <LogIn className="h-8 w-8 text-white" />
+                  <LogIn className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                 ) : (
-                  <Mail className="h-8 w-8 text-white" />
+                  <Mail className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                 )}
               </div>
             </div>
-            <CardTitle className="text-3xl font-bold text-slate-900">
+            <CardTitle className="text-xl sm:text-3xl font-bold text-slate-900">
               {isFullyRegistered ? '✅ 登録完了済みです' : '📧 既にご登録いただいています'}
             </CardTitle>
-            <CardDescription className="text-lg mt-2">
+            <CardDescription className="text-sm sm:text-lg mt-2">
               {email && (
-                <span className="font-semibold text-slate-700">{email}</span>
+                <span className="font-semibold text-slate-700 break-all">{email}</span>
               )}
               {!email && 'このメールアドレス'}は既に登録済みです
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6">
             {/* ステータス説明 */}
             {isPending ? (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 sm:p-6">
                 <div className="flex items-start">
-                  <AlertCircle className="h-6 w-6 text-yellow-600 mr-3 mt-0.5 flex-shrink-0" />
+                  <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600 mr-2 sm:mr-3 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h3 className="font-semibold text-yellow-900 mb-2">
+                    <h3 className="font-semibold text-yellow-900 mb-1 sm:mb-2 text-sm sm:text-base">
                       {isEmailVerified ? '決済が未完了です' : 'メール認証が必要です'}
                     </h3>
-                    <p className="text-sm text-yellow-800 mb-3">
+                    <p className="text-xs sm:text-sm text-yellow-800 mb-2 sm:mb-3">
                       {isEmailVerified
                         ? 'アカウントの仮登録は完了していますが、決済が完了していません。下記のボタンから決済を完了すると、すぐにサービスをご利用いただけます。'
                         : 'アカウントの仮登録は完了していますが、メール認証がまだ完了していません。メールボックスを確認するか、認証メールを再送信してください。'}
@@ -168,14 +168,14 @@ function AlreadyRegisteredContent() {
                 </div>
               </div>
             ) : (
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-6">
                 <div className="flex items-start">
-                  <AlertCircle className="h-6 w-6 text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
+                  <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 mr-2 sm:mr-3 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h3 className="font-semibold text-blue-900 mb-2">
+                    <h3 className="font-semibold text-blue-900 mb-1 sm:mb-2 text-sm sm:text-base">
                       既に本登録が完了しています
                     </h3>
-                    <p className="text-sm text-blue-800">
+                    <p className="text-xs sm:text-sm text-blue-800">
                       このメールアドレスは既に登録・決済が完了しています。
                       ログインしてサービスをご利用ください。
                     </p>
@@ -185,32 +185,32 @@ function AlreadyRegisteredContent() {
             )}
 
             {/* アクションボタン */}
-            <div className="space-y-3 pt-4">
+            <div className="space-y-2 sm:space-y-3 pt-2 sm:pt-4">
               {isPending ? (
                 <>
                   {isEmailVerified ? (
                     <Button
                       onClick={handleGoToCheckout}
                       disabled={isLoading}
-                      className="w-full h-14 text-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all"
+                      className="w-full h-12 sm:h-14 text-sm sm:text-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all"
                     >
-                      <CreditCard className="h-5 w-5 mr-2" />
+                      <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                       {isLoading ? '処理中...' : '決済を完了して本登録する'}
                     </Button>
                   ) : (
                     <Button
                       onClick={handleResendVerification}
                       disabled={isLoading}
-                      className="w-full h-14 text-lg bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 shadow-lg hover:shadow-xl transition-all"
+                      className="w-full h-12 sm:h-14 text-sm sm:text-lg bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 shadow-lg hover:shadow-xl transition-all"
                     >
-                      <Mail className="h-5 w-5 mr-2" />
+                      <Mail className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                       {isLoading ? '送信中...' : '認証メールを再送信'}
                     </Button>
                   )}
                   <Button
                     onClick={() => router.push('/login')}
                     variant="outline"
-                    className="w-full h-12"
+                    className="w-full h-10 sm:h-12 text-sm"
                   >
                     <LogIn className="h-4 w-4 mr-2" />
                     ログインする
@@ -220,13 +220,13 @@ function AlreadyRegisteredContent() {
                 <>
                   <Button
                     onClick={() => router.push('/login')}
-                    className="w-full h-14 text-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all"
+                    className="w-full h-12 sm:h-14 text-sm sm:text-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all"
                   >
-                    <LogIn className="h-5 w-5 mr-2" />
+                    <LogIn className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     ログインする
                   </Button>
                   <Link href="/forgot-password">
-                    <Button variant="link" className="w-full text-blue-600">
+                    <Button variant="link" className="w-full text-sm sm:text-base text-blue-600">
                       パスワードをお忘れの場合
                     </Button>
                   </Link>
@@ -235,11 +235,11 @@ function AlreadyRegisteredContent() {
             </div>
 
             {/* ヘルプ情報 */}
-            <div className="bg-slate-50 rounded-lg p-4 mt-6 border border-slate-200">
-              <h4 className="font-semibold text-slate-900 mb-2 text-sm">
+            <div className="bg-slate-50 rounded-lg p-3 sm:p-4 mt-4 sm:mt-6 border border-slate-200">
+              <h4 className="font-semibold text-slate-900 mb-1 sm:mb-2 text-xs sm:text-sm">
                 💡 ログインできない場合
               </h4>
-              <ul className="text-sm text-slate-600 space-y-1">
+              <ul className="text-xs sm:text-sm text-slate-600 space-y-1">
                 <li>• パスワードを忘れた場合は「パスワードをお忘れの場合」からリセットできます</li>
                 <li>• メールアドレスが間違っている可能性があります</li>
                 <li>• それでも解決しない場合は、サポートまでお問い合わせください</li>
@@ -249,7 +249,7 @@ function AlreadyRegisteredContent() {
         </Card>
 
         {/* サポート情報 */}
-        <div className="text-center mt-6 text-sm text-slate-600">
+        <div className="text-center mt-4 sm:mt-6 text-xs sm:text-sm text-slate-600">
           <p>ご不明な点がございましたら、</p>
           <a href="mailto:support@ugs.example.com" className="text-blue-600 hover:underline font-semibold">
             support@ugs.example.com

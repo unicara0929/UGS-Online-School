@@ -2,16 +2,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-slate-50 py-12">
+    <div className="min-h-screen bg-slate-50 py-6 sm:py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-3xl font-bold text-center">プライバシーポリシー</CardTitle>
-            <p className="text-center text-slate-600 mt-2">
+          <CardHeader className="px-4 sm:px-6">
+            <CardTitle className="text-xl sm:text-3xl font-bold text-center">プライバシーポリシー</CardTitle>
+            <p className="text-center text-slate-600 mt-2 text-sm sm:text-base">
               個人情報の取り扱いについて
             </p>
           </CardHeader>
-          <CardContent className="prose prose-slate max-w-none">
+          <CardContent className="prose prose-slate max-w-none px-4 sm:px-6 prose-sm sm:prose-base">
             <div className="space-y-8">
               {/* はじめに */}
               <section className="bg-blue-50 p-6 rounded-lg">

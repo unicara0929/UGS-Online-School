@@ -46,21 +46,18 @@ export function GrowthFlowSection() {
             明確なステップで、UGS会員からマネージャーまで
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 md:gap-8">
           {steps.map((step, index) => (
-            <div key={index} className="text-center">
-              <div className="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white font-bold text-lg">{step.number}</span>
+            <div key={index} className="text-center relative">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <span className="text-white font-bold text-base sm:text-lg">{step.number}</span>
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">
+              <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">
                 {step.title}
               </h3>
-              <p className="text-slate-600 text-sm">
+              <p className="text-slate-600 text-xs sm:text-sm">
                 {step.description}
               </p>
-              {index < steps.length - 1 && (
-                <div className="hidden md:block absolute top-8 left-full w-full h-0.5 bg-slate-300 transform translate-x-4"></div>
-              )}
             </div>
           ))}
         </div>
