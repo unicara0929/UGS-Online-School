@@ -21,9 +21,14 @@ function AlreadyRegisteredContent() {
   useEffect(() => {
     const emailParam = searchParams.get('email')
     const statusParam = searchParams.get('status')
+    const nameParam = searchParams.get('name')
 
     if (emailParam) {
       setEmail(emailParam)
+      // URLパラメータから名前を取得（セキュリティ上、APIからは取得しない）
+      if (nameParam) {
+        setName(nameParam)
+      }
       // 常にユーザー状態を確認
       checkUserStatus(emailParam, statusParam)
     } else {
@@ -46,7 +51,7 @@ function AlreadyRegisteredContent() {
           // PendingUser（仮登録）
           setIsPending(true)
           setIsFullyRegistered(false)
-          setName(data.name || '')
+          // セキュリティ: 名前はURLパラメータから取得済み（APIからは取得しない）
           setIsEmailVerified(data.emailVerified || false)
         } else {
           // どちらにも存在しない（新規登録可能）

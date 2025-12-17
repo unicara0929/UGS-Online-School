@@ -4,9 +4,32 @@ import crypto from 'crypto'
 import { sendEmailVerification } from '@/lib/services/email-service'
 
 /**
+ * シンプルなインメモリレート制限
+ * メールアドレスごとに最後のリクエスト時刻を記録
+ * 1分間に1回までに制限
+ */
+const rateLimitMap = new Map<string, number>()
+const RATE_LIMIT_WINDOW_MS = 60 * 1000 // 1分
+
+// 古いエントリを定期的にクリーンアップ（メモリリーク防止）
+const cleanupRateLimitMap = () => {
+  const now = Date.now()
+  for (const [key, timestamp] of rateLimitMap.entries()) {
+    if (now - timestamp > RATE_LIMIT_WINDOW_MS * 10) {
+      rateLimitMap.delete(key)
+    }
+  }
+}
+
+// 5分ごとにクリーンアップ
+setInterval(cleanupRateLimitMap, 5 * 60 * 1000)
+
+/**
  * 認証メール再送信API
  * POST /api/pending-users/resend-verification
  * Body: { email: string }
+ *
+ * セキュリティ: レート制限あり（1分間に1回まで）
  */
 export async function POST(request: NextRequest) {
   try {
@@ -18,6 +41,22 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    // レート制限チェック
+    const normalizedEmail = email.toLowerCase().trim()
+    const lastRequestTime = rateLimitMap.get(normalizedEmail)
+    const now = Date.now()
+
+    if (lastRequestTime && now - lastRequestTime < RATE_LIMIT_WINDOW_MS) {
+      const remainingSeconds = Math.ceil((RATE_LIMIT_WINDOW_MS - (now - lastRequestTime)) / 1000)
+      return NextResponse.json(
+        { error: `再送信は1分間に1回までです。${remainingSeconds}秒後にお試しください。` },
+        { status: 429 }
+      )
+    }
+
+    // レート制限の記録を更新
+    rateLimitMap.set(normalizedEmail, now)
 
     // 仮登録ユーザーを検索
     const pendingUser = await prisma.pendingUser.findUnique({

@@ -6,6 +6,8 @@ import { prisma } from '@/lib/prisma'
  * GET /api/pending-users/check?email=xxx
  *
  * 認証済みユーザーが決済に進む際に必要な情報を返す
+ *
+ * セキュリティ: ユーザー名等の個人情報は返さない（ユーザー列挙攻撃を防止）
  */
 export async function GET(request: NextRequest) {
   try {
@@ -23,7 +25,6 @@ export async function GET(request: NextRequest) {
     const pendingUser = await prisma.pendingUser.findUnique({
       where: { email },
       select: {
-        name: true,
         emailVerified: true,
         tokenExpiresAt: true,
       }
@@ -57,11 +58,11 @@ export async function GET(request: NextRequest) {
     }
 
     // PendingUserが存在する場合（仮登録済み）
+    // セキュリティ: 名前は返さない（ユーザー列挙攻撃を防止）
     return NextResponse.json({
       success: true,
       exists: true,
       isFullyRegistered: false,
-      name: pendingUser.name,
       emailVerified: pendingUser.emailVerified,
       tokenExpired: pendingUser.tokenExpiresAt ? pendingUser.tokenExpiresAt < new Date() : false,
     })
