@@ -15,6 +15,7 @@ import {
   Loader2
 } from 'lucide-react'
 import Link from 'next/link'
+import { DashboardLayout } from '@/components/layout/dashboard-layout'
 
 // ステータスの表示設定
 const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {
@@ -79,16 +80,19 @@ export default function ConsultationHistoryPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="flex justify-center items-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      <DashboardLayout>
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <DashboardLayout>
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
       <Link href="/dashboard/consultation" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6">
         <ArrowLeft className="w-4 h-4 mr-2" />
         個別相談トップに戻る
@@ -205,6 +209,7 @@ export default function ConsultationHistoryPage() {
           ))}
         </div>
       )}
-    </div>
+      </div>
+    </DashboardLayout>
   )
 }

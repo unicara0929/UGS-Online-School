@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Loader2, CheckCircle, Clock, AlertCircle, Calendar, Save, Home } from 'lucide-react'
 import { ProtectedRoute } from '@/components/auth/protected-route'
+import { DashboardLayout } from '@/components/layout/dashboard-layout'
 
 interface Question {
   id: string
@@ -276,26 +277,32 @@ function PreInterviewPageContent() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </DashboardLayout>
     )
   }
 
   if (!response) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>事前アンケート</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
-            <AlertCircle className="h-12 w-12 mx-auto mb-4" />
-            <p>現在、回答が必要な事前アンケートはありません。</p>
-            <p className="text-sm mt-2">LP面談が確定すると、こちらに事前アンケートが表示されます。</p>
-          </div>
-        </CardContent>
-      </Card>
+      <DashboardLayout>
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          <Card>
+            <CardHeader>
+              <CardTitle>事前アンケート</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8 text-muted-foreground">
+                <AlertCircle className="h-12 w-12 mx-auto mb-4" />
+                <p>現在、回答が必要な事前アンケートはありません。</p>
+                <p className="text-sm mt-2">LP面談が確定すると、こちらに事前アンケートが表示されます。</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
     )
   }
 
@@ -312,8 +319,9 @@ function PreInterviewPageContent() {
   const isOverdue = response.dueDate && new Date(response.dueDate) < new Date() && response.status !== 'COMPLETED'
 
   return (
-    <div className="space-y-6">
-      <Card>
+    <DashboardLayout>
+      <div className="container mx-auto px-4 py-8 max-w-4xl space-y-6">
+        <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -434,8 +442,9 @@ function PreInterviewPageContent() {
             </Button>
           </CardFooter>
         )}
-      </Card>
-    </div>
+        </Card>
+      </div>
+    </DashboardLayout>
   )
 }
 

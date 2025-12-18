@@ -19,6 +19,7 @@ import {
   Trash2
 } from 'lucide-react'
 import Link from 'next/link'
+import { DashboardLayout } from '@/components/layout/dashboard-layout'
 
 // 相談ジャンルのマッピング
 const TYPE_MAP: Record<string, { id: string; name: string }> = {
@@ -81,17 +82,19 @@ export default function ConsultationFormPage({ params }: { params: Promise<{ typ
   // 無効なジャンルの場合
   if (!typeInfo) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <Alert variant="destructive">
-          <AlertDescription>無効な相談ジャンルです</AlertDescription>
-        </Alert>
-        <Link href="/dashboard/consultation" className="mt-4 inline-block">
-          <Button variant="outline">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            戻る
-          </Button>
-        </Link>
-      </div>
+      <DashboardLayout>
+        <div className="container mx-auto px-4 py-8 max-w-2xl">
+          <Alert variant="destructive">
+            <AlertDescription>無効な相談ジャンルです</AlertDescription>
+          </Alert>
+          <Link href="/dashboard/consultation" className="mt-4 inline-block">
+            <Button variant="outline">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              戻る
+            </Button>
+          </Link>
+        </div>
+      </DashboardLayout>
     )
   }
 
@@ -221,8 +224,9 @@ export default function ConsultationFormPage({ params }: { params: Promise<{ typ
   // 成功画面
   if (success) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <Card>
+      <DashboardLayout>
+        <div className="container mx-auto px-4 py-8 max-w-2xl">
+          <Card>
           <CardContent className="pt-6">
             <div className="text-center">
               <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
@@ -245,13 +249,15 @@ export default function ConsultationFormPage({ params }: { params: Promise<{ typ
               </div>
             </div>
           </CardContent>
-        </Card>
-      </div>
+          </Card>
+        </div>
+      </DashboardLayout>
     )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-2xl">
+    <DashboardLayout>
+      <div className="container mx-auto px-4 py-8 max-w-2xl">
       <Link href="/dashboard/consultation" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6">
         <ArrowLeft className="w-4 h-4 mr-2" />
         ジャンル選択に戻る
@@ -475,6 +481,7 @@ export default function ConsultationFormPage({ params }: { params: Promise<{ typ
           </form>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </DashboardLayout>
   )
 }
