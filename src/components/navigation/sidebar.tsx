@@ -105,8 +105,11 @@ export function Sidebar() {
     })
   }
 
-  // パスが変更されたときに、アクティブな親項目を自動展開
+  // パスが変更されたときに、アクティブな親項目を自動展開 & サイドバーを閉じる
   useEffect(() => {
+    // モバイルでのページ遷移時にサイドバーを必ず閉じる
+    setIsOpen(false)
+
     navigation.forEach(item => {
       if (item.subItems && isSubItemActive(item)) {
         setExpandedItems(prev => new Set(prev).add(item.name))
@@ -242,8 +245,6 @@ export function Sidebar() {
                             <Link
                               key={subItem.name}
                               href={subItem.href || '#'}
-                              target="_blank"
-                              rel="noopener noreferrer"
                               className={`
                                 flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200
                                 ${isSubActive
@@ -275,8 +276,6 @@ export function Sidebar() {
                 <Link
                   key={item.name}
                   href={item.href || '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className={`
                     flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200
                     ${isActive
