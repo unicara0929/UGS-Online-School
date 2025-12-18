@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -19,6 +19,11 @@ export function Sidebar() {
   const [profileImage, setProfileImage] = useState<string | null>(null)
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
   const { badges } = useNewBadge()
+
+  // サイドバーを閉じる関数
+  const closeSidebar = useCallback(() => {
+    setIsOpen(false)
+  }, [])
 
   // パスからカテゴリへのマッピング
   const pathToBadgeKey: Record<string, keyof typeof badges> = {
@@ -105,11 +110,14 @@ export function Sidebar() {
     })
   }
 
-  // パスが変更されたときに、アクティブな親項目を自動展開 & サイドバーを閉じる
+  // パスが変更されたときにサイドバーを閉じる（別のuseEffectで確実に実行）
   useEffect(() => {
     // モバイルでのページ遷移時にサイドバーを必ず閉じる
-    setIsOpen(false)
+    closeSidebar()
+  }, [pathname, closeSidebar])
 
+  // パスが変更されたときに、アクティブな親項目を自動展開
+  useEffect(() => {
     navigation.forEach(item => {
       if (item.subItems && isSubItemActive(item)) {
         setExpandedItems(prev => new Set(prev).add(item.name))
@@ -306,13 +314,15 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* オーバーレイ（モバイル用） */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
+      {/* オーバーレイ（モバイル用） - 常にDOMに存在させてCSSで表示/非表示を切り替え */}
+      <div
+        className={`
+          fixed inset-0 bg-black z-30 md:hidden transition-opacity duration-300
+          ${isOpen ? 'opacity-50 pointer-events-auto' : 'opacity-0 pointer-events-none'}
+        `}
+        onClick={closeSidebar}
+        aria-hidden={!isOpen}
+      />
     </>
   )
 }

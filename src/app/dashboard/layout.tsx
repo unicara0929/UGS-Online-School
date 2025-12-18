@@ -9,7 +9,9 @@ export default function DashboardLayout({
   return (
     <SubscriptionGuard allowAccess={false}>
       <FPOnboardingGuard>
-        {children}
+        <div className="w-full max-w-full overflow-x-hidden">
+          {children}
+        </div>
       </FPOnboardingGuard>
     </SubscriptionGuard>
   )

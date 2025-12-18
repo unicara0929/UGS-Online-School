@@ -47,12 +47,12 @@ function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-slate-50 flex overflow-x-hidden">
       {/* サイドバー */}
       <Sidebar />
 
       {/* メインコンテンツ */}
-      <div className="flex-1 md:ml-64">
+      <div className="flex-1 md:ml-64 min-w-0 overflow-x-hidden">
         {/* ヘッダー */}
         <DashboardHeader />
 
@@ -62,8 +62,8 @@ function Dashboard() {
         {/* 新着通知バー */}
         <NotificationBar />
 
-        <main className="px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
-          <div className="space-y-6 sm:space-y-8">
+        <main className="px-3 sm:px-6 lg:px-8 py-4 sm:py-8 overflow-x-hidden">
+          <div className="space-y-6 sm:space-y-8 max-w-full">
             {/* ダッシュボード統計 */}
             <DashboardStats userRole={user?.role || 'member'} />
 

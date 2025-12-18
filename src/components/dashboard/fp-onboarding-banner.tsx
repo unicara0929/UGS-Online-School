@@ -113,17 +113,18 @@ export function FPOnboardingBanner() {
   }
 
   return (
-    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <GraduationCap className="h-5 w-5" />
-              <span className="font-medium">FPエイド昇格ステップ</span>
+    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white overflow-hidden">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="py-2 sm:py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+          {/* 上段: タイトルと進捗 */}
+          <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-4 min-w-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+              <span className="font-medium text-sm sm:text-base truncate">FPエイド昇格</span>
             </div>
 
-            {/* 進捗インジケーター */}
-            <div className="hidden sm:flex items-center gap-2">
+            {/* 進捗インジケーター - PC表示 */}
+            <div className="hidden md:flex items-center gap-2">
               <div className="flex items-center gap-1">
                 {status.managerContactConfirmed ? (
                   <CheckCircle className="h-4 w-4 text-green-300" />
@@ -152,24 +153,35 @@ export function FPOnboardingBanner() {
               </div>
             </div>
 
-            <span className="text-sm text-white/80">
-              ({completedSteps}/3 完了)
+            <span className="text-xs sm:text-sm text-white/80 flex-shrink-0">
+              ({completedSteps}/3)
             </span>
+
+            {/* 閉じるボタン - SP表示では上段右端 */}
+            <button
+              onClick={() => setIsDismissed(true)}
+              className="sm:hidden p-1 hover:bg-white/10 rounded transition-colors flex-shrink-0"
+              aria-label="閉じる"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* 下段: アクションボタン */}
+          <div className="flex items-center gap-2 flex-shrink-0">
             <Button
               variant="secondary"
               size="sm"
               onClick={handleClick}
-              className="bg-white text-blue-600 hover:bg-blue-50"
+              className="bg-white text-blue-600 hover:bg-blue-50 text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3 flex-1 sm:flex-none"
             >
-              {getNextStepName()}を始める
-              <ArrowRight className="ml-1 h-4 w-4" />
+              <span className="truncate">{getNextStepName()}</span>
+              <ArrowRight className="ml-1 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
             </Button>
+            {/* 閉じるボタン - PC表示 */}
             <button
               onClick={() => setIsDismissed(true)}
-              className="p-1 hover:bg-white/10 rounded transition-colors"
+              className="hidden sm:block p-1 hover:bg-white/10 rounded transition-colors"
               aria-label="閉じる"
             >
               <X className="h-4 w-4" />
