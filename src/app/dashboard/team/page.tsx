@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge'
 import { Loader2, Users, TrendingUp, FileCheck, Activity, UserCheck } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
+import { DashboardLayout } from '@/components/layout/dashboard-layout'
 
 interface TeamMember {
   id: string
@@ -130,12 +131,14 @@ export default function TeamPage() {
   if (isLoading) {
     return (
       <ProtectedRoute requiredRoles={['manager', 'admin']}>
-        <div className="min-h-screen p-6 flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-          <div className="text-center">
-            <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
-            <p className="text-slate-600">チーム情報を読み込み中...</p>
+        <DashboardLayout>
+          <div className="p-6 flex items-center justify-center min-h-screen">
+            <div className="text-center">
+              <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+              <p className="text-slate-600">チーム情報を読み込み中...</p>
+            </div>
           </div>
-        </div>
+        </DashboardLayout>
       </ProtectedRoute>
     )
   }
@@ -143,20 +146,23 @@ export default function TeamPage() {
   if (error) {
     return (
       <ProtectedRoute requiredRoles={['manager', 'admin']}>
-        <div className="min-h-screen p-6 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-          <Card className="border-red-200 bg-red-50">
-            <CardContent className="pt-6">
-              <p className="text-red-600">{error}</p>
-            </CardContent>
-          </Card>
-        </div>
+        <DashboardLayout>
+          <div className="p-6">
+            <Card className="border-red-200 bg-red-50">
+              <CardContent className="pt-6">
+                <p className="text-red-600">{error}</p>
+              </CardContent>
+            </Card>
+          </div>
+        </DashboardLayout>
       </ProtectedRoute>
     )
   }
 
   return (
     <ProtectedRoute requiredRoles={['manager', 'admin']}>
-      <div className="min-h-screen p-6 space-y-6 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <DashboardLayout>
+        <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-slate-900">チーム管理</h1>
@@ -314,7 +320,8 @@ export default function TeamPage() {
             )}
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </DashboardLayout>
     </ProtectedRoute>
   )
 }

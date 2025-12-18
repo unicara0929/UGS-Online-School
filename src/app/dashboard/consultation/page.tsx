@@ -15,6 +15,7 @@ import {
   Sun
 } from 'lucide-react'
 import Link from 'next/link'
+import { DashboardLayout } from '@/components/layout/dashboard-layout'
 
 // 相談ジャンルの定義
 const CONSULTATION_TYPES = [
@@ -27,22 +28,22 @@ const CONSULTATION_TYPES = [
   },
   {
     id: 'HOUSING',
-    name: '住宅',
-    description: '住宅購入、住宅ローン、不動産投資など',
+    name: '住宅相談',
+    description: '住宅購入、住宅ローン、土地探し、予算相談、物件探し',
     icon: Home,
     color: 'bg-green-500',
   },
   {
     id: 'CAREER',
-    name: '転職',
-    description: 'キャリアプラン、転職相談、副業など',
+    name: '転職相談',
+    description: 'キャリアプラン、転職相談、企業探し',
     icon: Briefcase,
     color: 'bg-purple-500',
   },
   {
     id: 'RENTAL',
-    name: '賃貸',
-    description: '賃貸物件の相談、引っ越しなど',
+    name: '賃貸相談',
+    description: '物件探し、相見積もり、引越し相談',
     icon: Building2,
     color: 'bg-orange-500',
   },
@@ -73,7 +74,8 @@ export default function ConsultationPage() {
   const router = useRouter()
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <DashboardLayout>
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-2xl font-bold">個別相談</h1>
@@ -124,6 +126,7 @@ export default function ConsultationPage() {
           <li>担当者から連絡をお待ちください</li>
         </ol>
       </div>
-    </div>
+      </div>
+    </DashboardLayout>
   )
 }

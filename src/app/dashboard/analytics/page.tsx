@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Users, DollarSign, UserX, TrendingUp, AlertCircle } from 'lucide-react'
+import { DashboardLayout } from '@/components/layout/dashboard-layout'
 
 interface SubscriptionInfo {
   id: string
@@ -85,21 +86,24 @@ export default function AnalyticsPage() {
   if (loading) {
     return (
       <ProtectedRoute requiredRoles={['manager', 'admin']}>
-        <div className="min-h-screen p-6 space-y-6 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl">
-              <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+        <DashboardLayout>
+          <div className="p-6 flex items-center justify-center min-h-screen">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl">
+                <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              </div>
+              <p className="text-slate-600">データを読み込み中...</p>
             </div>
-            <p className="text-slate-600">データを読み込み中...</p>
           </div>
-        </div>
+        </DashboardLayout>
       </ProtectedRoute>
     )
   }
 
   return (
     <ProtectedRoute requiredRoles={['manager', 'admin']}>
-      <div className="min-h-screen p-6 space-y-6 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <DashboardLayout>
+        <div className="p-6 space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">分析</h1>
           <p className="text-slate-600 mt-1">学習・決済・集客の主要KPI</p>
@@ -195,7 +199,8 @@ export default function AnalyticsPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </DashboardLayout>
     </ProtectedRoute>
   )
 }

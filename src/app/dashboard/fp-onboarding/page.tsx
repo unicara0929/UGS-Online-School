@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { authenticatedFetch } from '@/lib/utils/api-client'
 import { Play, CheckCircle, Loader2, AlertCircle } from 'lucide-react'
+import { DashboardLayout } from '@/components/layout/dashboard-layout'
 
 // Vimeo Player APIの型定義
 declare global {
@@ -211,19 +212,22 @@ export default function FPOnboardingPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-slate-600 mx-auto mb-4" />
-          <p className="text-slate-600">読み込み中...</p>
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-slate-600 mx-auto mb-4" />
+            <p className="text-slate-600">読み込み中...</p>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     )
   }
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+    <DashboardLayout>
+      <div className="py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
         <Card className="shadow-xl">
           <CardHeader>
             <CardTitle className="text-2xl flex items-center gap-2">
@@ -336,8 +340,9 @@ export default function FPOnboardingPage() {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
-    </div>
+    </DashboardLayout>
   )
 }
 

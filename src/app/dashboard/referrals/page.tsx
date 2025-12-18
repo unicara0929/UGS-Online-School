@@ -6,8 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { authenticatedFetch } from '@/lib/utils/api-client'
 import { Copy, Check, Users, Gift, TrendingUp, Loader2 } from 'lucide-react'
+import { Sidebar } from '@/components/navigation/sidebar'
+import { ProtectedRoute } from '@/components/auth/protected-route'
 
-export default function ReferralsPage() {
+function ReferralsPageContent() {
   const { user } = useAuth()
   const [referralCode, setReferralCode] = useState('')
   const [referralLink, setReferralLink] = useState('')
@@ -57,20 +59,20 @@ export default function ReferralsPage() {
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-slate-600 mx-auto mb-4" />
-          <p className="text-slate-600">読み込み中...</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
+    <div className="min-h-screen bg-slate-50 flex overflow-x-hidden">
+      <Sidebar />
+      <div className="flex-1 md:ml-64 min-w-0 overflow-x-hidden">
+        {isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin text-slate-600 mx-auto mb-4" />
+              <p className="text-slate-600">読み込み中...</p>
+            </div>
+          </div>
+        ) : (
+          <div className="py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
         {/* ヘッダー */}
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">紹介プログラム</h1>
@@ -218,7 +220,18 @@ export default function ReferralsPage() {
             </div>
           </CardContent>
         </Card>
+            </div>
+          </div>
+        )}
       </div>
     </div>
+  )
+}
+
+export default function ReferralsPage() {
+  return (
+    <ProtectedRoute>
+      <ReferralsPageContent />
+    </ProtectedRoute>
   )
 }

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { authenticatedFetch } from '@/lib/utils/api-client'
+import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import {
   Phone,
   MessageCircle,
@@ -18,7 +19,7 @@ import {
   PartyPopper
 } from 'lucide-react'
 
-export default function ManagerContactPage() {
+function ManagerContactPageContent() {
   const { user } = useAuth()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
@@ -129,12 +130,14 @@ export default function ManagerContactPage() {
 
   if (isLoading || canAccess === null) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-slate-600 mx-auto mb-4" />
-          <p className="text-slate-600">読み込み中...</p>
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-slate-600 mx-auto mb-4" />
+            <p className="text-slate-600">読み込み中...</p>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     )
   }
 
@@ -144,8 +147,9 @@ export default function ManagerContactPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto space-y-6">
+    <DashboardLayout>
+      <div className="py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-2xl mx-auto space-y-6">
         {/* お祝いバナー */}
         <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 shadow-lg">
           <CardContent className="pt-6">
@@ -309,7 +313,12 @@ export default function ManagerContactPage() {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
-    </div>
+    </DashboardLayout>
   )
+}
+
+export default function ManagerContactPage() {
+  return <ManagerContactPageContent />
 }

@@ -19,6 +19,7 @@ import {
   ChevronRight
 } from 'lucide-react'
 import { formatDate } from '@/lib/utils/format'
+import { DashboardLayout } from '@/components/layout/dashboard-layout'
 
 interface Question {
   id: string
@@ -192,12 +193,14 @@ export default function ComplianceTestPage() {
 
   if (isLoading || canAccess === null) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-slate-600 mx-auto mb-4" />
-          <p className="text-slate-600">読み込み中...</p>
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-slate-600 mx-auto mb-4" />
+            <p className="text-slate-600">読み込み中...</p>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     )
   }
 
@@ -208,33 +211,36 @@ export default function ComplianceTestPage() {
 
   if (questions.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-2xl mx-auto">
-          <Card className="shadow-xl">
-            <CardHeader>
-              <CardTitle className="text-2xl flex items-center gap-2">
-                <FileText className="h-6 w-6" />
-                コンプライアンステスト
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-center py-12">
-              <AlertCircle className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-              <p className="text-slate-600">テスト問題が設定されていません</p>
-              <p className="text-sm text-slate-500 mt-2">
-                管理者にお問い合わせください
-              </p>
-            </CardContent>
-          </Card>
+      <DashboardLayout>
+        <div className="py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-2xl mx-auto">
+            <Card className="shadow-xl">
+              <CardHeader>
+                <CardTitle className="text-2xl flex items-center gap-2">
+                  <FileText className="h-6 w-6" />
+                  コンプライアンステスト
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-center py-12">
+                <AlertCircle className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                <p className="text-slate-600">テスト問題が設定されていません</p>
+                <p className="text-sm text-slate-500 mt-2">
+                  管理者にお問い合わせください
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     )
   }
 
   // 結果画面
   if (currentStep === 'result' && results) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto space-y-6">
+      <DashboardLayout>
+        <div className="py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto space-y-6">
           {/* 結果サマリー */}
           <Card className={`shadow-xl ${results.isPassed ? 'border-green-300' : 'border-red-300'} border-2`}>
             <CardHeader className="text-center">
@@ -370,8 +376,9 @@ export default function ComplianceTestPage() {
               ))}
             </CardContent>
           </Card>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     )
   }
 
@@ -382,8 +389,9 @@ export default function ComplianceTestPage() {
     const progress = (answeredCount / questions.length) * 100
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto space-y-6">
+      <DashboardLayout>
+        <div className="py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto space-y-6">
           {/* 進捗 */}
           <Card>
             <CardContent className="py-4">
@@ -498,16 +506,18 @@ export default function ComplianceTestPage() {
               </Button>
             )}
           </div>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     )
   }
 
   // イントロ画面（既に合格済みの場合も表示）
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto space-y-6">
-        <Card className="shadow-xl">
+    <DashboardLayout>
+      <div className="py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-2xl mx-auto space-y-6">
+          <Card className="shadow-xl">
           <CardHeader>
             <CardTitle className="text-2xl flex items-center gap-2">
               <FileText className="h-6 w-6" />
@@ -618,8 +628,9 @@ export default function ComplianceTestPage() {
               </div>
             )}
           </CardContent>
-        </Card>
+          </Card>
+        </div>
       </div>
-    </div>
+    </DashboardLayout>
   )
 }
