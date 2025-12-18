@@ -10,7 +10,7 @@ const steps: Step[] = [
   {
     number: "01",
     title: "会員登録",
-    description: "Unicara Growth Salonに登録し、初回ガイダンスを視聴"
+    description: "UGS（Unicara Growth Salon）に登録し、初回ガイダンスを視聴"
   },
   {
     number: "02", 

@@ -73,7 +73,7 @@ export function DashboardHeader() {
             ) : (
               <Image
                 src="/ロゴ1.jpg"
-                alt="Unicara Growth Salon"
+                alt="UGS（Unicara Growth Salon）"
                 width={28}
                 height={28}
                 className="object-contain w-5 h-5 sm:w-7 sm:h-7 flex-shrink-0"

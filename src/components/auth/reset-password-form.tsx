@@ -266,7 +266,7 @@ export function ResetPasswordForm() {
             ) : (
               <Image 
                 src="/ロゴ1.jpg" 
-                alt="Unicara Growth Salon" 
+                alt="UGS（Unicara Growth Salon）" 
                 width={32} 
                 height={32} 
                 className="object-contain"
@@ -275,7 +275,7 @@ export function ResetPasswordForm() {
               />
             )}
             <CardTitle className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
-              Unicara Growth Salon
+              UGS（Unicara Growth Salon）
             </CardTitle>
           </div>
           <CardDescription className="text-sm text-slate-600 pt-2">
