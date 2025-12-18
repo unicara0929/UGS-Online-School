@@ -146,26 +146,9 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
     )
   }
 
+  // UGS会員には報酬管理セクションを表示しない
   if (userRole === 'member') {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <DollarSign className="h-5 w-5 mr-2" />
-            報酬管理
-          </CardTitle>
-          <CardDescription>
-            FPエイド昇格後に報酬管理機能が利用可能になります
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">
-            <DollarSign className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-            <p className="text-slate-600">FPエイドに昇格すると報酬管理機能が利用できます</p>
-          </div>
-        </CardContent>
-      </Card>
-    )
+    return null
   }
 
   return (
