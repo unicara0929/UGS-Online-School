@@ -9,6 +9,7 @@ const CATEGORY_MAP = {
   BASIC: 'income',
   PRACTICAL: 'lifestyle',
   ADVANCED: 'startup',
+  STARTUP_GUIDE: 'startup_guide',
 } as const
 
 const LEVEL_MAP = {
@@ -26,8 +27,18 @@ export async function GET(request: NextRequest) {
     const userId = authUser!.id
     const userRole = authUser!.role
 
+    // UGS会員（MEMBER）のみスタートアップガイドを表示
+    const isMember = userRole === 'MEMBER'
+
     // コース一覧を取得
     const courses = await prisma.course.findMany({
+      where: {
+        // スタートアップガイドはMEMBERのみに表示、他ロールには非表示
+        ...(isMember
+          ? {} // MEMBERは全カテゴリー表示
+          : { category: { not: 'STARTUP_GUIDE' } } // 他ロールはSTARTUP_GUIDEを除外
+        ),
+      },
       include: {
         lessons: {
           orderBy: { order: 'asc' },
@@ -51,7 +62,11 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      orderBy: { createdAt: 'asc' },
+      orderBy: [
+        { category: 'asc' }, // カテゴリー順（STARTUP_GUIDEが先頭に来るよう調整）
+        { order: 'asc' },
+        { createdAt: 'asc' },
+      ],
     })
 
     // FPエイド以上のみアクセス可能なコンテンツの制御

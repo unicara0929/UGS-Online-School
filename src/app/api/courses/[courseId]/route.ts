@@ -6,6 +6,7 @@ const CATEGORY_MAP = {
   BASIC: 'income',
   PRACTICAL: 'lifestyle',
   ADVANCED: 'startup',
+  STARTUP_GUIDE: 'startup_guide',
 } as const
 
 const LEVEL_MAP = {

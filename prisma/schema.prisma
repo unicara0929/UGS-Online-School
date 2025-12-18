@@ -347,6 +347,7 @@ enum CourseCategory {
   BASIC
   ADVANCED
   PRACTICAL
+  STARTUP_GUIDE  // スタートアップガイド（UGS会員向け）
 }
 
 enum CourseLevel {

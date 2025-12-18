@@ -464,7 +464,9 @@ function EventsPageContent() {
                       </div>
                       <div className="flex items-center text-sm text-slate-500 flex-shrink-0">
                         <Users className="h-4 w-4 mr-1" />
-                        {event.currentParticipants}/{event.maxParticipants}名
+                        {event.maxParticipants !== null && event.maxParticipants !== undefined
+                          ? `${event.currentParticipants}/${event.maxParticipants}名`
+                          : `${event.currentParticipants}名参加`}
                       </div>
                     </div>
                     <CardTitle className="text-lg">{event.title}</CardTitle>
