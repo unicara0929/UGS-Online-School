@@ -23,6 +23,11 @@ export function Sidebar() {
   // サイドバーを閉じる関数
   const closeSidebar = useCallback(() => {
     setIsOpen(false)
+    // bodyのスクロールロックを解除（念のため）
+    if (typeof document !== 'undefined') {
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+    }
   }, [])
 
   // パスからカテゴリへのマッピング
@@ -115,6 +120,28 @@ export function Sidebar() {
     // モバイルでのページ遷移時にサイドバーを必ず閉じる
     closeSidebar()
   }, [pathname, closeSidebar])
+
+  // サイドバー開閉時のbodyスクロール制御
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      if (isOpen) {
+        // サイドバーが開いているときはbodyのスクロールを無効化
+        document.body.style.overflow = 'hidden'
+      } else {
+        // サイドバーが閉じているときはスクロールを有効化
+        document.body.style.overflow = ''
+        document.body.style.position = ''
+      }
+    }
+
+    // クリーンアップ：コンポーネントがアンマウントされたときにスクロールを戻す
+    return () => {
+      if (typeof document !== 'undefined') {
+        document.body.style.overflow = ''
+        document.body.style.position = ''
+      }
+    }
+  }, [isOpen])
 
   // パスが変更されたときに、アクティブな親項目を自動展開
   useEffect(() => {
