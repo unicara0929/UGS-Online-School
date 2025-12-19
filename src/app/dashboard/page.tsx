@@ -13,6 +13,7 @@ import { UpcomingEvents } from "@/components/dashboard/upcoming-events"
 import { NotificationBar } from "@/components/NotificationBar"
 import { FPOnboardingBanner } from "@/components/dashboard/fp-onboarding-banner"
 import { ManagerDashboard } from "@/components/dashboard/manager-dashboard"
+import { FPDashboard } from "@/components/dashboard/fp-dashboard"
 import { useAuth } from "@/contexts/auth-context"
 import { Event } from "@/lib/types"
 
@@ -67,6 +68,9 @@ function Dashboard() {
           <div className="space-y-6 sm:space-y-8 max-w-full">
             {/* MGRダッシュボード（マネージャーのみ表示） */}
             {user?.role === 'manager' && <ManagerDashboard />}
+
+            {/* FPエイドダッシュボード（FPのみ表示） */}
+            {user?.role === 'fp' && <FPDashboard />}
 
             {/* ダッシュボード統計 */}
             <DashboardStats userRole={user?.role || 'member'} />
