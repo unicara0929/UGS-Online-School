@@ -512,59 +512,62 @@ function EventsPageContent() {
                       </Button>
                     </div>
 
-                    <div className="mt-2 flex flex-col sm:flex-row gap-2">
-                      {/* PENDING状態：支払い完了ボタン＋キャンセルボタン */}
-                      {event.isPaid && event.paymentStatus === 'PENDING' ? (
-                        <>
+                    {/* 必須イベント以外は申込ボタンを表示 */}
+                    {event.attendanceType !== 'required' && (
+                      <div className="mt-2 flex flex-col sm:flex-row gap-2">
+                        {/* PENDING状態：支払い完了ボタン＋キャンセルボタン */}
+                        {event.isPaid && event.paymentStatus === 'PENDING' ? (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="default"
+                              className="flex-1"
+                              disabled={isSubmitting}
+                              onClick={() => handleCheckout(event.id)}
+                            >
+                              支払いを完了する
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={isSubmitting}
+                              onClick={() => handleCancelRegistration(event.id)}
+                            >
+                              キャンセル
+                            </Button>
+                          </>
+                        ) : /* PAID状態：参加確定メッセージ */
+                        event.isPaid && event.paymentStatus === 'PAID' ? (
+                          <div className="w-full text-center py-2 text-sm text-green-600 font-medium">
+                            ✓ 参加確定（お支払い完了）
+                          </div>
+                        ) : /* 未登録 or 無料イベント */
+                        canRegisterForEvent(event) ? (
                           <Button
                             size="sm"
-                            variant="default"
+                            variant={event.isRegistered ? "outline" : "default"}
                             className="flex-1"
                             disabled={isSubmitting}
-                            onClick={() => handleCheckout(event.id)}
+                            onClick={() => handleToggleRegistration(event)}
                           >
-                            支払いを完了する
+                            {event.isRegistered
+                              ? "キャンセル"
+                              : event.isPaid
+                                ? `¥${event.price?.toLocaleString()}で申し込む`
+                                : "申し込む"
+                            }
                           </Button>
+                        ) : (
                           <Button
                             size="sm"
-                            variant="outline"
-                            disabled={isSubmitting}
-                            onClick={() => handleCancelRegistration(event.id)}
+                            disabled
+                            className="flex-1"
                           >
-                            キャンセル
+                            参加不可
                           </Button>
-                        </>
-                      ) : /* PAID状態：参加確定メッセージ */
-                      event.isPaid && event.paymentStatus === 'PAID' ? (
-                        <div className="w-full text-center py-2 text-sm text-green-600 font-medium">
-                          ✓ 参加確定（お支払い完了）
-                        </div>
-                      ) : /* 未登録 or 無料イベント */
-                      canRegisterForEvent(event) ? (
-                        <Button
-                          size="sm"
-                          variant={event.isRegistered ? "outline" : "default"}
-                          className="flex-1"
-                          disabled={isSubmitting}
-                          onClick={() => handleToggleRegistration(event)}
-                        >
-                          {event.isRegistered
-                            ? "キャンセル"
-                            : event.isPaid
-                              ? `¥${event.price?.toLocaleString()}で申し込む`
-                              : "申し込む"
-                          }
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          disabled
-                          className="flex-1"
-                        >
-                          参加不可
-                        </Button>
-                      )}
-                    </div>
+                        )}
+                      </div>
+                    )}
 
                     {event.type === 'manager-only' && user?.role !== 'manager' && user?.role !== 'admin' && (
                       <div className="mt-2 text-xs text-slate-500 bg-slate-50 p-2 rounded">
