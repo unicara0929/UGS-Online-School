@@ -52,6 +52,7 @@ function EventArchivePageContent() {
     vimeoUrl: '',
     surveyUrl: '',
     attendanceCode: '',
+    attendanceDeadline: '',
     actualParticipants: null as number | null,
     actualLocation: '',
     adminNotes: '',
@@ -78,6 +79,26 @@ function EventArchivePageContent() {
       }
 
       setEvent(foundEvent)
+      // 期限のdatetime-local形式への変換（未設定の場合は翌日23:59をデフォルト）
+      let deadlineStr = ''
+      if (foundEvent.attendanceDeadline) {
+        const d = new Date(foundEvent.attendanceDeadline)
+        const year = d.getFullYear()
+        const month = String(d.getMonth() + 1).padStart(2, '0')
+        const day = String(d.getDate()).padStart(2, '0')
+        const hours = String(d.getHours()).padStart(2, '0')
+        const minutes = String(d.getMinutes()).padStart(2, '0')
+        deadlineStr = `${year}-${month}-${day}T${hours}:${minutes}`
+      } else {
+        // デフォルト: 翌日23:59
+        const tomorrow = new Date()
+        tomorrow.setDate(tomorrow.getDate() + 1)
+        const year = tomorrow.getFullYear()
+        const month = String(tomorrow.getMonth() + 1).padStart(2, '0')
+        const day = String(tomorrow.getDate()).padStart(2, '0')
+        deadlineStr = `${year}-${month}-${day}T23:59`
+      }
+
       setFormData({
         summary: foundEvent.summary || '',
         photos: foundEvent.photos || [],
@@ -85,6 +106,7 @@ function EventArchivePageContent() {
         vimeoUrl: foundEvent.vimeoUrl || '',
         surveyUrl: foundEvent.surveyUrl || '',
         attendanceCode: foundEvent.attendanceCode || '',
+        attendanceDeadline: deadlineStr,
         actualParticipants: foundEvent.actualParticipants ?? null,
         actualLocation: foundEvent.actualLocation || '',
         adminNotes: foundEvent.adminNotes || '',
@@ -222,6 +244,7 @@ function EventArchivePageContent() {
           vimeoUrl: formData.vimeoUrl || null,
           surveyUrl: formData.surveyUrl || null,
           attendanceCode: formData.attendanceCode || null,
+          attendanceDeadline: formData.attendanceDeadline || null,
           actualParticipants: formData.actualParticipants,
           actualLocation: formData.actualLocation || null,
           adminNotes: formData.adminNotes || null,
@@ -483,6 +506,23 @@ function EventArchivePageContent() {
                       />
                       <p className="text-xs text-slate-500 mt-1">
                         録画視聴後に回答するアンケート。録画視聴+アンケート回答で出席完了となります。
+                      </p>
+                    </div>
+
+                    {/* 視聴期限 */}
+                    <div>
+                      <label className={FORM_LABEL_CLASS}>
+                        <Calendar className="h-4 w-4 inline mr-1" />
+                        視聴・回答期限
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={formData.attendanceDeadline}
+                        onChange={(e) => setFormData(prev => ({ ...prev, attendanceDeadline: e.target.value }))}
+                        className={FORM_INPUT_CLASS}
+                      />
+                      <p className="text-xs text-slate-500 mt-1">
+                        この期限まで動画視聴・アンケート回答で出席扱いになります。期限を過ぎるとFPエイド側で「期限切れ」と表示されます。
                       </p>
                     </div>
                   </div>
