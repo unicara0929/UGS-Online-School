@@ -259,6 +259,21 @@ export function EventCard({ event, onEdit, onDelete, onMtgComplete, isSubmitting
 
         {/* ボタン */}
         <div className="mt-4 space-y-2">
+          {/* 参加者管理ボタン（過去イベントでも表示） */}
+          <Button
+            size="sm"
+            variant="outline"
+            className="w-full"
+            onClick={() => router.push(
+              event.isRecurring
+                ? `/dashboard/admin/events/${event.id}/mtg`
+                : `/dashboard/admin/events/${event.id}`
+            )}
+          >
+            <Users className="h-4 w-4 mr-2" />
+            {event.isRecurring ? 'FPエイド参加状況' : '参加者を管理'}
+          </Button>
+
           {showArchiveInfo ? (
             <Button
               size="sm"
@@ -271,19 +286,6 @@ export function EventCard({ event, onEdit, onDelete, onMtgComplete, isSubmitting
             </Button>
           ) : (
             <>
-              <Button
-                size="sm"
-                variant="outline"
-                className="w-full"
-                onClick={() => router.push(
-                  event.isRecurring
-                    ? `/dashboard/admin/events/${event.id}/mtg`
-                    : `/dashboard/admin/events/${event.id}`
-                )}
-              >
-                <Users className="h-4 w-4 mr-2" />
-                {event.isRecurring ? 'FPエイド参加状況' : '参加者を管理'}
-              </Button>
               {/* 完了設定ボタンを表示（開催予定のイベントのみ） */}
               {event.status === 'upcoming' && onMtgComplete && (
                 <Button
