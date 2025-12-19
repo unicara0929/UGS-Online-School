@@ -424,16 +424,19 @@ function EventDetailPageContent() {
                       <div className="font-medium">{event.location}</div>
                     </div>
                   </div>
-                  <div className="flex items-center text-slate-600">
-                    <Users className="h-5 w-5 mr-3 text-slate-400" />
-                    <div>
-                      <div className="text-sm text-slate-500">参加者</div>
-                      <div className="font-medium">
-                        {event.currentParticipants}
-                        {event.maxParticipants && `/${event.maxParticipants}`}名
+                  {/* 全体MTGの場合は参加者数を非表示 */}
+                  {!event.isRecurring && (
+                    <div className="flex items-center text-slate-600">
+                      <Users className="h-5 w-5 mr-3 text-slate-400" />
+                      <div>
+                        <div className="text-sm text-slate-500">参加者</div>
+                        <div className="font-medium">
+                          {event.currentParticipants}
+                          {event.maxParticipants && `/${event.maxParticipants}`}名
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* 参加登録ボタン */}

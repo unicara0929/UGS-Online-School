@@ -6,7 +6,7 @@ const rateLimitMap = new Map<string, { count: number; lastReset: number }>()
 
 // Rate Limit設定
 const RATE_LIMIT_WINDOW = 60 * 1000 // 1分
-const MAX_REQUESTS_PER_WINDOW = 100 // 1分あたり100リクエスト
+const MAX_REQUESTS_PER_WINDOW = 300 // 1分あたり300リクエスト
 
 // 認証関連のエンドポイント（より厳しい制限）
 const AUTH_ENDPOINTS = [
