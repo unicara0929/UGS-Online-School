@@ -41,42 +41,42 @@ export interface NavItem {
 }
 
 export const navigation: NavItem[] = [
-  { name: 'ダッシュボード', href: '/dashboard', icon: Home, roles: ['member', 'fp', 'manager', 'admin'] },
+  { name: 'ダッシュボード', href: '/dashboard', icon: Home, roles: ['member', 'fp', 'manager'] },
   {
     name: 'コンテンツ',
     icon: FolderOpen,
-    roles: ['member', 'fp', 'manager', 'admin'],
+    roles: ['member', 'fp', 'manager'],
     subItems: [
-      { name: '教育コンテンツ', href: '/dashboard/courses', icon: BookOpen, roles: ['member', 'fp', 'manager', 'admin'] },
-      { name: '資料コンテンツ', href: '/dashboard/materials', icon: FileText, roles: ['member', 'fp', 'manager', 'admin'] },
+      { name: '教育コンテンツ', href: '/dashboard/courses', icon: BookOpen, roles: ['member', 'fp', 'manager'] },
+      { name: '資料コンテンツ', href: '/dashboard/materials', icon: FileText, roles: ['member', 'fp', 'manager'] },
     ]
   },
-  { name: '報酬管理', href: '/dashboard/compensation', icon: DollarSign, roles: ['fp', 'manager', 'admin'] },
+  { name: '報酬管理', href: '/dashboard/compensation', icon: DollarSign, roles: ['fp', 'manager'] },
   { name: 'インボイス申請フォーム', externalUrl: 'https://forms.gle/dkBGExfEuVhKppyk7', icon: Receipt, roles: ['fp'] },
-  { name: '紹介管理', href: '/dashboard/referrals', icon: UserPlus, roles: ['member', 'fp', 'manager', 'admin'] },
-  { name: '契約管理', href: '/dashboard/contracts', icon: FileText, roles: ['fp', 'manager', 'admin'] },
-  { name: '通知', href: '/dashboard/notifications', icon: Bell, roles: ['member', 'fp', 'manager', 'admin'] },
+  { name: '紹介管理', href: '/dashboard/referrals', icon: UserPlus, roles: ['member', 'fp', 'manager'] },
+  { name: '契約管理', href: '/dashboard/contracts', icon: FileText, roles: ['fp', 'manager'] },
+  { name: '通知', href: '/dashboard/notifications', icon: Bell, roles: ['member', 'fp', 'manager'] },
   { name: '昇格管理', href: '/dashboard/promotion', icon: Award, roles: ['member', 'fp'] },
   { name: 'LP面談予約', href: '/dashboard/lp-meeting/request', icon: MessageSquare, roles: ['member'] },
   // FP向けLP面談管理は廃止（面談者が社内スタッフに変更、管理者画面で管理）
-  { name: 'イベント', href: '/dashboard/events', icon: Calendar, roles: ['member', 'fp', 'manager', 'admin'] },
-  { name: '個別相談', href: '/dashboard/consultation', icon: UserRound, roles: ['member', 'fp', 'manager', 'admin'] },
+  { name: 'イベント', href: '/dashboard/events', icon: Calendar, roles: ['member', 'fp', 'manager'] },
+  { name: '個別相談', href: '/dashboard/consultation', icon: UserRound, roles: ['member', 'fp', 'manager'] },
   {
     name: '名刺注文',
     icon: CreditCard,
-    roles: ['fp', 'manager', 'admin'],
+    roles: ['fp', 'manager'],
     subItems: [
-      { name: '名刺を注文する', href: '/dashboard/business-card/order', icon: CreditCard, roles: ['fp', 'manager', 'admin'] },
-      { name: '注文履歴', href: '/dashboard/business-card/history', icon: FileText, roles: ['fp', 'manager', 'admin'] },
+      { name: '名刺を注文する', href: '/dashboard/business-card/order', icon: CreditCard, roles: ['fp', 'manager'] },
+      { name: '注文履歴', href: '/dashboard/business-card/history', icon: FileText, roles: ['fp', 'manager'] },
     ]
   },
   {
     name: 'サポート',
     icon: HelpCircle,
-    roles: ['member', 'fp', 'manager', 'admin'],
+    roles: ['member', 'fp', 'manager'],
     subItems: [
-      { name: 'よくある質問', href: '/dashboard/support/faq', icon: HelpCircle, roles: ['member', 'fp', 'manager', 'admin'] },
-      { name: 'お問い合わせ', href: '/dashboard/support/contact', icon: Send, roles: ['member', 'fp', 'manager', 'admin'] },
+      { name: 'よくある質問', href: '/dashboard/support/faq', icon: HelpCircle, roles: ['member', 'fp', 'manager'] },
+      { name: 'お問い合わせ', href: '/dashboard/support/contact', icon: Send, roles: ['member', 'fp', 'manager'] },
     ]
   },
   // ========== 管理者専用メニュー ==========
