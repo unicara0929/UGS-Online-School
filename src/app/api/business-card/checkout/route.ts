@@ -53,11 +53,12 @@ export async function POST(request: NextRequest) {
     if (!displayNameKana?.trim()) errors.push('フリガナを入力してください')
     if (!phoneNumber?.trim()) errors.push('電話番号を入力してください')
     if (!email?.trim()) errors.push('メールアドレスを入力してください')
+    if (!cardAddress?.trim()) errors.push('住所を入力してください')
     if (!deliveryMethod || !['PICKUP', 'SHIPPING'].includes(deliveryMethod)) {
       errors.push('受取方法を選択してください')
     }
 
-    // 郵送の場合は住所必須
+    // 郵送の場合は郵送先住所必須
     if (deliveryMethod === 'SHIPPING') {
       if (!postalCode?.trim()) errors.push('郵便番号を入力してください')
       if (!prefecture?.trim()) errors.push('都道府県を入力してください')

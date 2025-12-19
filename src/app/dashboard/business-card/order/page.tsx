@@ -208,8 +208,11 @@ function BusinessCardOrderContent() {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errors.email = 'メールアドレスの形式が正しくありません'
     }
+    if (!formData.cardAddress.trim()) {
+      errors.cardAddress = '住所を入力してください'
+    }
 
-    // 郵送の場合のみ住所を必須チェック
+    // 郵送の場合のみ郵送先住所を必須チェック
     if (formData.deliveryMethod === 'SHIPPING') {
       if (!formData.postalCode.trim()) {
         errors.postalCode = '郵便番号を入力してください'
@@ -661,44 +664,39 @@ function BusinessCardOrderContent() {
 
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
-                        住所
+                        住所 <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         value={formData.cardAddress}
                         onChange={(e) => handleInputChange('cardAddress', e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 ${
+                          validationErrors.cardAddress ? 'border-red-300' : 'border-slate-300'
+                        }`}
                         placeholder="例：愛知県名古屋市中区栄1-2-3"
                       />
-                      <p className="text-xs text-slate-500 mt-1">名刺に記載する住所（任意）</p>
+                      {validationErrors.cardAddress && (
+                        <p className="text-sm text-red-600 mt-1">{validationErrors.cardAddress}</p>
+                      )}
+                      <p className="text-xs text-slate-500 mt-1">名刺に記載する住所</p>
                     </div>
 
                   </CardContent>
                 </Card>
 
-                {/* 郵送先住所（郵送の場合のみ必須） */}
+                {/* 郵送先住所（郵送の場合のみ表示） */}
+                {formData.deliveryMethod === 'SHIPPING' && (
                 <Card>
                   <CardHeader>
                     <CardTitle>
                       郵送先住所
-                      {formData.deliveryMethod === 'SHIPPING' ? (
-                        <span className="text-red-500 text-sm ml-2">（必須）</span>
-                      ) : (
-                        <span className="text-slate-400 text-sm ml-2">（任意）</span>
-                      )}
+                      <span className="text-red-500 text-sm ml-2">（必須）</span>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {formData.deliveryMethod === 'PICKUP' && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                        <p className="text-sm text-blue-800">
-                          UGS本社での手渡し受け取りを選択されています。郵送先住所の入力は任意です。
-                        </p>
-                      </div>
-                    )}
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
-                        郵便番号 {formData.deliveryMethod === 'SHIPPING' && <span className="text-red-500">*</span>}
+                        郵便番号 <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -716,7 +714,7 @@ function BusinessCardOrderContent() {
 
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
-                        都道府県 {formData.deliveryMethod === 'SHIPPING' && <span className="text-red-500">*</span>}
+                        都道府県 <span className="text-red-500">*</span>
                       </label>
                       <select
                         value={formData.prefecture}
@@ -737,7 +735,7 @@ function BusinessCardOrderContent() {
 
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
-                        市区町村 {formData.deliveryMethod === 'SHIPPING' && <span className="text-red-500">*</span>}
+                        市区町村 <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -755,7 +753,7 @@ function BusinessCardOrderContent() {
 
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
-                        番地 {formData.deliveryMethod === 'SHIPPING' && <span className="text-red-500">*</span>}
+                        番地 <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -785,6 +783,7 @@ function BusinessCardOrderContent() {
                     </div>
                   </CardContent>
                 </Card>
+                )}
 
                 {/* 料金表示 */}
                 <Card className="bg-slate-900 text-white">
@@ -851,12 +850,10 @@ function BusinessCardOrderContent() {
                           <dt className="text-sm text-slate-500">メールアドレス</dt>
                           <dd className="font-medium">{formData.email}</dd>
                         </div>
-                        {formData.cardAddress && (
-                          <div className="md:col-span-2">
-                            <dt className="text-sm text-slate-500">住所</dt>
-                            <dd className="font-medium">{formData.cardAddress}</dd>
-                          </div>
-                        )}
+                        <div className="md:col-span-2">
+                          <dt className="text-sm text-slate-500">住所</dt>
+                          <dd className="font-medium">{formData.cardAddress}</dd>
+                        </div>
                       </dl>
                     </div>
 
