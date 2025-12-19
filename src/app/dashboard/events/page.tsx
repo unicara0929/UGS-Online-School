@@ -581,8 +581,8 @@ function EventsPageContent() {
                       </div>
                     )}
 
-                    {/* 出席確認セクション */}
-                    {event.isRegistered && !event.attendanceCompletedAt && (
+                    {/* 出席確認セクション（登録済み or 動画/アンケートがある場合） */}
+                    {(event.isRegistered || event.vimeoUrl || event.surveyUrl) && !event.attendanceCompletedAt && (
                       <div className="mt-4 space-y-4">
                         {/* 参加コード入力 */}
                         {event.hasAttendanceCode && (
