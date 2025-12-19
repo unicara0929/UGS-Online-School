@@ -26,12 +26,14 @@ import {
   Briefcase,
   TrendingUp,
   AlertTriangle,
-  Scale
+  Scale,
+  Receipt
 } from 'lucide-react'
 
 export interface NavItem {
   name: string
   href?: string
+  externalUrl?: string // 外部リンク用
   icon: React.ComponentType<{ className?: string }>
   roles: string[]
   badge?: string
@@ -50,6 +52,7 @@ export const navigation: NavItem[] = [
     ]
   },
   { name: '報酬管理', href: '/dashboard/compensation', icon: DollarSign, roles: ['fp', 'manager', 'admin'] },
+  { name: 'インボイス申請フォーム', externalUrl: 'https://forms.gle/dkBGExfEuVhKppyk7', icon: Receipt, roles: ['fp'] },
   { name: '紹介管理', href: '/dashboard/referrals', icon: UserPlus, roles: ['member', 'fp', 'manager', 'admin'] },
   { name: '契約管理', href: '/dashboard/contracts', icon: FileText, roles: ['fp', 'manager', 'admin'] },
   { name: '通知', href: '/dashboard/notifications', icon: Bell, roles: ['member', 'fp', 'manager', 'admin'] },

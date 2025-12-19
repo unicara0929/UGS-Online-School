@@ -309,6 +309,25 @@ export function Sidebar() {
 
               // 通常の項目（子項目なし）
               const itemBadgeCount = getBadgeCount(item.href)
+
+              // 外部リンクの場合
+              if (item.externalUrl) {
+                return (
+                  <a
+                    key={item.name}
+                    href={item.externalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 text-slate-600 hover:bg-primary-50 hover:text-primary-900"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <item.icon className="h-5 w-5 mr-3 flex-shrink-0 text-slate-500" />
+                    <span className="flex-1 truncate">{item.name}</span>
+                  </a>
+                )
+              }
+
+              // 内部リンクの場合
               return (
                 <Link
                   key={item.name}
