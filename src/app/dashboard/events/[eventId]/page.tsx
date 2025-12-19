@@ -657,7 +657,21 @@ function EventDetailPageContent() {
             {event.isRegistered && !event.attendanceCompletedAt && (
               <Card id="attendance-section">
                 <CardHeader>
-                  <CardTitle>出席確認</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>出席確認</CardTitle>
+                    {/* 期限表示 */}
+                    {event.attendanceDeadline && (
+                      <div className={`text-sm px-3 py-1 rounded-full ${
+                        new Date(event.attendanceDeadline) < new Date()
+                          ? 'bg-red-100 text-red-700'
+                          : 'bg-blue-100 text-blue-700'
+                      }`}>
+                        <Clock className="inline h-3.5 w-3.5 mr-1" />
+                        期限: {format(new Date(event.attendanceDeadline), 'M月d日(E) HH:mm', { locale: ja })}
+                        {new Date(event.attendanceDeadline) < new Date() && ' (期限切れ)'}
+                      </div>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* 免除申請中・承認済みの場合のメッセージ */}

@@ -101,12 +101,17 @@ export async function GET(request: NextRequest) {
             OR: [
               // 開催予定のイベント
               { status: 'UPCOMING' },
-              // 全体MTG（isRecurring=true）で完了済み、かつ視聴期限内のイベント
+              // 全体MTG（isRecurring=true）で完了済み、かつ視聴期限内または期限未設定のイベント
               {
                 AND: [
                   { isRecurring: true },
                   { status: 'COMPLETED' },
-                  { attendanceDeadline: { gte: now } },
+                  {
+                    OR: [
+                      { attendanceDeadline: { gte: now } }, // 期限内
+                      { attendanceDeadline: null },         // 期限未設定（無期限扱い）
+                    ],
+                  },
                 ],
               },
             ],

@@ -1,10 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Loader2, Users, Video, FileText, Link, Calendar, Clock, MapPin, Key } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+
+// 当月末23:59をデフォルト期限として取得
+function getDefaultDeadline(): string {
+  const now = new Date()
+  // 当月の最終日を取得
+  const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+  lastDayOfMonth.setHours(23, 59, 0, 0)
+  // datetime-local形式に変換 (YYYY-MM-DDTHH:mm)
+  const year = lastDayOfMonth.getFullYear()
+  const month = String(lastDayOfMonth.getMonth() + 1).padStart(2, '0')
+  const day = String(lastDayOfMonth.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}T23:59`
+}
 
 interface MtgFormData {
   title: string
@@ -36,6 +49,14 @@ export function MtgEventForm({
   onCancel,
   isSubmitting
 }: MtgEventFormProps) {
+  // 完了設定モードの場合、デフォルト期限を当月末に設定
+  const defaultDeadline = useMemo(() => {
+    if (mode === 'complete' && !initialData?.attendanceDeadline) {
+      return getDefaultDeadline()
+    }
+    return initialData?.attendanceDeadline || ''
+  }, [mode, initialData?.attendanceDeadline])
+
   const [formData, setFormData] = useState<MtgFormData>({
     title: initialData?.title || '',
     description: initialData?.description || '',
@@ -47,7 +68,7 @@ export function MtgEventForm({
     vimeoUrl: initialData?.vimeoUrl || '',
     surveyUrl: initialData?.surveyUrl || '',
     materialsUrl: initialData?.materialsUrl || '',
-    attendanceDeadline: initialData?.attendanceDeadline || '',
+    attendanceDeadline: defaultDeadline,
   })
 
   const inputClassName = 'w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
