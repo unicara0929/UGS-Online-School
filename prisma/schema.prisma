@@ -985,10 +985,17 @@ model BusinessCardOrder {
   displayNameKana   String                      // 氏名フリガナ
   phoneNumber       String                      // 電話番号
   email             String                      // メールアドレス
-  cardAddress       String?                     // 名刺記載用住所（任意）
+  // 名刺記載住所
+  cardPostalCode    String?                     // 名刺記載用郵便番号
+  cardPrefecture    String?                     // 名刺記載用都道府県
+  cardCity          String?                     // 名刺記載用市区町村
+  cardAddressLine1  String?                     // 名刺記載用番地
+  cardAddressLine2  String?                     // 名刺記載用建物名・部屋番号
+  cardAddress       String?                     // 旧フィールド（後方互換用）
   // 受取方法
   deliveryMethod    BusinessCardDeliveryMethod  // 受取方法（PICKUP: 本社手渡し / SHIPPING: 郵送）
-  // 郵送先住所（郵送の場合必須、手渡しの場合は任意）
+  shippingAddressSameAsCard Boolean             @default(true) // 郵送先住所が名刺記載住所と同じか
+  // 郵送先住所（郵送で別の住所の場合必須）
   postalCode        String?                     // 郵便番号
   prefecture        String?                     // 都道府県
   city              String?                     // 市区町村

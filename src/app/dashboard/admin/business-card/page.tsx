@@ -42,8 +42,16 @@ interface Order {
   displayNameKana: string
   phoneNumber: string
   email: string
-  cardAddress: string | null
+  // 名刺記載住所
+  cardPostalCode: string | null
+  cardPrefecture: string | null
+  cardCity: string | null
+  cardAddressLine1: string | null
+  cardAddressLine2: string | null
+  cardAddress: string | null // 旧フィールド（後方互換用）
   deliveryMethod: 'PICKUP' | 'SHIPPING'
+  shippingAddressSameAsCard: boolean
+  // 郵送先住所
   postalCode: string | null
   prefecture: string | null
   city: string | null
@@ -937,10 +945,23 @@ function OrderManagement() {
                             <div><dt className="inline text-slate-400">フリガナ: </dt><dd className="inline">{order.displayNameKana}</dd></div>
                             <div><dt className="inline text-slate-400">電話番号: </dt><dd className="inline">{order.phoneNumber}</dd></div>
                             <div><dt className="inline text-slate-400">メール: </dt><dd className="inline">{order.email}</dd></div>
-                            {order.cardAddress && (
-                              <div><dt className="inline text-slate-400">住所: </dt><dd className="inline">{order.cardAddress}</dd></div>
-                            )}
                           </dl>
+                        </div>
+
+                        {/* 名刺記載住所 */}
+                        <div>
+                          <h4 className="font-medium text-slate-700 mb-2">名刺記載住所</h4>
+                          {order.cardPostalCode ? (
+                            <p className="text-slate-600">
+                              〒{order.cardPostalCode}<br />
+                              {order.cardPrefecture}{order.cardCity}{order.cardAddressLine1}
+                              {order.cardAddressLine2 && <><br />{order.cardAddressLine2}</>}
+                            </p>
+                          ) : order.cardAddress ? (
+                            <p className="text-slate-600">{order.cardAddress}</p>
+                          ) : (
+                            <p className="text-slate-400">-</p>
+                          )}
                         </div>
 
                         {/* 受取方法 */}
@@ -959,14 +980,20 @@ function OrderManagement() {
                               </span>
                             )}
                           </p>
-                          {order.deliveryMethod === 'SHIPPING' && order.postalCode && (
+                          {order.deliveryMethod === 'SHIPPING' && (
                             <div className="mt-2">
                               <p className="text-sm text-slate-500 mb-1">郵送先:</p>
-                              <p className="text-slate-600">
-                                〒{order.postalCode}<br />
-                                {order.prefecture}{order.city}{order.addressLine1}
-                                {order.addressLine2 && <><br />{order.addressLine2}</>}
-                              </p>
+                              {order.shippingAddressSameAsCard ? (
+                                <p className="text-slate-600">名刺記載住所と同じ</p>
+                              ) : order.postalCode ? (
+                                <p className="text-slate-600">
+                                  〒{order.postalCode}<br />
+                                  {order.prefecture}{order.city}{order.addressLine1}
+                                  {order.addressLine2 && <><br />{order.addressLine2}</>}
+                                </p>
+                              ) : (
+                                <p className="text-slate-400">-</p>
+                              )}
                             </div>
                           )}
                           <p className="mt-2 text-sm">

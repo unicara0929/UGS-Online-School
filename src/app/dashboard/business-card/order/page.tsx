@@ -27,8 +27,15 @@ interface FormData {
   phoneNumber: string
   email: string
   // 名刺記載用住所
-  cardAddress: string
+  cardPostalCode: string
+  cardPrefecture: string
+  cardCity: string
+  cardAddressLine1: string
+  cardAddressLine2: string
   deliveryMethod: DeliveryMethod
+  // 郵送先住所の選択
+  shippingAddressSameAsCard: boolean
+  // 郵送先住所（別の場合）
   postalCode: string
   prefecture: string
   city: string
@@ -76,8 +83,15 @@ function BusinessCardOrderContent() {
     displayNameKana: '',
     phoneNumber: '',
     email: '',
-    cardAddress: '',
+    // 名刺記載用住所
+    cardPostalCode: '',
+    cardPrefecture: '',
+    cardCity: '',
+    cardAddressLine1: '',
+    cardAddressLine2: '',
     deliveryMethod: 'SHIPPING', // デフォルトは郵送
+    shippingAddressSameAsCard: true, // デフォルトは名刺記載住所と同じ
+    // 郵送先住所
     postalCode: '',
     prefecture: '',
     city: '',
@@ -176,7 +190,7 @@ function BusinessCardOrderContent() {
     }
   }, [fetchDesigns, searchParams])
 
-  const handleInputChange = (field: keyof FormData, value: string | number) => {
+  const handleInputChange = (field: keyof FormData, value: string | number | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
     // エラーをクリア
     if (validationErrors[field]) {
@@ -208,12 +222,19 @@ function BusinessCardOrderContent() {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errors.email = 'メールアドレスの形式が正しくありません'
     }
-    if (!formData.cardAddress.trim()) {
-      errors.cardAddress = '住所を入力してください'
-    }
 
-    // 郵送の場合のみ郵送先住所を必須チェック
-    if (formData.deliveryMethod === 'SHIPPING') {
+    // 名刺記載住所のバリデーション
+    if (!formData.cardPostalCode.trim()) {
+      errors.cardPostalCode = '郵便番号を入力してください'
+    } else if (!/^\d{3}-?\d{4}$/.test(formData.cardPostalCode)) {
+      errors.cardPostalCode = '郵便番号の形式が正しくありません（例: 123-4567）'
+    }
+    if (!formData.cardPrefecture) errors.cardPrefecture = '都道府県を選択してください'
+    if (!formData.cardCity.trim()) errors.cardCity = '市区町村を入力してください'
+    if (!formData.cardAddressLine1.trim()) errors.cardAddressLine1 = '番地を入力してください'
+
+    // 郵送の場合で、別の住所を指定する場合のみ郵送先住所を必須チェック
+    if (formData.deliveryMethod === 'SHIPPING' && !formData.shippingAddressSameAsCard) {
       if (!formData.postalCode.trim()) {
         errors.postalCode = '郵便番号を入力してください'
       } else if (!/^\d{3}-?\d{4}$/.test(formData.postalCode)) {
@@ -662,34 +683,14 @@ function BusinessCardOrderContent() {
                       )}
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
-                        住所 <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.cardAddress}
-                        onChange={(e) => handleInputChange('cardAddress', e.target.value)}
-                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 ${
-                          validationErrors.cardAddress ? 'border-red-300' : 'border-slate-300'
-                        }`}
-                        placeholder="例：愛知県名古屋市中区栄1-2-3"
-                      />
-                      {validationErrors.cardAddress && (
-                        <p className="text-sm text-red-600 mt-1">{validationErrors.cardAddress}</p>
-                      )}
-                      <p className="text-xs text-slate-500 mt-1">名刺に記載する住所</p>
-                    </div>
-
                   </CardContent>
                 </Card>
 
-                {/* 郵送先住所（郵送の場合のみ表示） */}
-                {formData.deliveryMethod === 'SHIPPING' && (
+                {/* 名刺記載住所 */}
                 <Card>
                   <CardHeader>
                     <CardTitle>
-                      郵送先住所
+                      名刺記載住所
                       <span className="text-red-500 text-sm ml-2">（必須）</span>
                     </CardTitle>
                   </CardHeader>
@@ -700,15 +701,15 @@ function BusinessCardOrderContent() {
                       </label>
                       <input
                         type="text"
-                        value={formData.postalCode}
-                        onChange={(e) => handleInputChange('postalCode', e.target.value)}
+                        value={formData.cardPostalCode}
+                        onChange={(e) => handleInputChange('cardPostalCode', e.target.value)}
                         className={`w-full max-w-xs px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 ${
-                          validationErrors.postalCode ? 'border-red-300' : 'border-slate-300'
+                          validationErrors.cardPostalCode ? 'border-red-300' : 'border-slate-300'
                         }`}
                         placeholder="123-4567"
                       />
-                      {validationErrors.postalCode && (
-                        <p className="text-sm text-red-600 mt-1">{validationErrors.postalCode}</p>
+                      {validationErrors.cardPostalCode && (
+                        <p className="text-sm text-red-600 mt-1">{validationErrors.cardPostalCode}</p>
                       )}
                     </div>
 
@@ -717,10 +718,10 @@ function BusinessCardOrderContent() {
                         都道府県 <span className="text-red-500">*</span>
                       </label>
                       <select
-                        value={formData.prefecture}
-                        onChange={(e) => handleInputChange('prefecture', e.target.value)}
+                        value={formData.cardPrefecture}
+                        onChange={(e) => handleInputChange('cardPrefecture', e.target.value)}
                         className={`w-full max-w-xs px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 ${
-                          validationErrors.prefecture ? 'border-red-300' : 'border-slate-300'
+                          validationErrors.cardPrefecture ? 'border-red-300' : 'border-slate-300'
                         }`}
                       >
                         <option value="">選択してください</option>
@@ -728,8 +729,8 @@ function BusinessCardOrderContent() {
                           <option key={pref} value={pref}>{pref}</option>
                         ))}
                       </select>
-                      {validationErrors.prefecture && (
-                        <p className="text-sm text-red-600 mt-1">{validationErrors.prefecture}</p>
+                      {validationErrors.cardPrefecture && (
+                        <p className="text-sm text-red-600 mt-1">{validationErrors.cardPrefecture}</p>
                       )}
                     </div>
 
@@ -739,15 +740,15 @@ function BusinessCardOrderContent() {
                       </label>
                       <input
                         type="text"
-                        value={formData.city}
-                        onChange={(e) => handleInputChange('city', e.target.value)}
+                        value={formData.cardCity}
+                        onChange={(e) => handleInputChange('cardCity', e.target.value)}
                         className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 ${
-                          validationErrors.city ? 'border-red-300' : 'border-slate-300'
+                          validationErrors.cardCity ? 'border-red-300' : 'border-slate-300'
                         }`}
                         placeholder="名古屋市中区"
                       />
-                      {validationErrors.city && (
-                        <p className="text-sm text-red-600 mt-1">{validationErrors.city}</p>
+                      {validationErrors.cardCity && (
+                        <p className="text-sm text-red-600 mt-1">{validationErrors.cardCity}</p>
                       )}
                     </div>
 
@@ -757,15 +758,15 @@ function BusinessCardOrderContent() {
                       </label>
                       <input
                         type="text"
-                        value={formData.addressLine1}
-                        onChange={(e) => handleInputChange('addressLine1', e.target.value)}
+                        value={formData.cardAddressLine1}
+                        onChange={(e) => handleInputChange('cardAddressLine1', e.target.value)}
                         className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 ${
-                          validationErrors.addressLine1 ? 'border-red-300' : 'border-slate-300'
+                          validationErrors.cardAddressLine1 ? 'border-red-300' : 'border-slate-300'
                         }`}
                         placeholder="栄1-2-3"
                       />
-                      {validationErrors.addressLine1 && (
-                        <p className="text-sm text-red-600 mt-1">{validationErrors.addressLine1}</p>
+                      {validationErrors.cardAddressLine1 && (
+                        <p className="text-sm text-red-600 mt-1">{validationErrors.cardAddressLine1}</p>
                       )}
                     </div>
 
@@ -775,12 +776,149 @@ function BusinessCardOrderContent() {
                       </label>
                       <input
                         type="text"
-                        value={formData.addressLine2}
-                        onChange={(e) => handleInputChange('addressLine2', e.target.value)}
+                        value={formData.cardAddressLine2}
+                        onChange={(e) => handleInputChange('cardAddressLine2', e.target.value)}
                         className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
                         placeholder="○○ビル 101号室"
                       />
                     </div>
+                  </CardContent>
+                </Card>
+
+                {/* 郵送先住所（郵送の場合のみ表示） */}
+                {formData.deliveryMethod === 'SHIPPING' && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>郵送先住所</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* 名刺記載住所と同じかどうかの選択 */}
+                    <div className="space-y-3">
+                      <label
+                        className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                          formData.shippingAddressSameAsCard
+                            ? 'border-slate-900 bg-slate-50'
+                            : 'border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="shippingAddressChoice"
+                          checked={formData.shippingAddressSameAsCard}
+                          onChange={() => handleInputChange('shippingAddressSameAsCard', true)}
+                        />
+                        <span className="font-medium">名刺記載住所と同じ</span>
+                      </label>
+
+                      <label
+                        className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                          !formData.shippingAddressSameAsCard
+                            ? 'border-slate-900 bg-slate-50'
+                            : 'border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="shippingAddressChoice"
+                          checked={!formData.shippingAddressSameAsCard}
+                          onChange={() => handleInputChange('shippingAddressSameAsCard', false)}
+                        />
+                        <span className="font-medium">別の住所を指定</span>
+                      </label>
+                    </div>
+
+                    {/* 別の住所を指定する場合のみ入力フォームを表示 */}
+                    {!formData.shippingAddressSameAsCard && (
+                      <div className="space-y-4 pt-4 border-t">
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-1">
+                            郵便番号 <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.postalCode}
+                            onChange={(e) => handleInputChange('postalCode', e.target.value)}
+                            className={`w-full max-w-xs px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 ${
+                              validationErrors.postalCode ? 'border-red-300' : 'border-slate-300'
+                            }`}
+                            placeholder="123-4567"
+                          />
+                          {validationErrors.postalCode && (
+                            <p className="text-sm text-red-600 mt-1">{validationErrors.postalCode}</p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-1">
+                            都道府県 <span className="text-red-500">*</span>
+                          </label>
+                          <select
+                            value={formData.prefecture}
+                            onChange={(e) => handleInputChange('prefecture', e.target.value)}
+                            className={`w-full max-w-xs px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 ${
+                              validationErrors.prefecture ? 'border-red-300' : 'border-slate-300'
+                            }`}
+                          >
+                            <option value="">選択してください</option>
+                            {PREFECTURES.map((pref) => (
+                              <option key={pref} value={pref}>{pref}</option>
+                            ))}
+                          </select>
+                          {validationErrors.prefecture && (
+                            <p className="text-sm text-red-600 mt-1">{validationErrors.prefecture}</p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-1">
+                            市区町村 <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.city}
+                            onChange={(e) => handleInputChange('city', e.target.value)}
+                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 ${
+                              validationErrors.city ? 'border-red-300' : 'border-slate-300'
+                            }`}
+                            placeholder="名古屋市中区"
+                          />
+                          {validationErrors.city && (
+                            <p className="text-sm text-red-600 mt-1">{validationErrors.city}</p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-1">
+                            番地 <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.addressLine1}
+                            onChange={(e) => handleInputChange('addressLine1', e.target.value)}
+                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 ${
+                              validationErrors.addressLine1 ? 'border-red-300' : 'border-slate-300'
+                            }`}
+                            placeholder="栄1-2-3"
+                          />
+                          {validationErrors.addressLine1 && (
+                            <p className="text-sm text-red-600 mt-1">{validationErrors.addressLine1}</p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-1">
+                            建物名・部屋番号
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.addressLine2}
+                            onChange={(e) => handleInputChange('addressLine2', e.target.value)}
+                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                            placeholder="○○ビル 101号室"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
                 )}
@@ -850,21 +988,30 @@ function BusinessCardOrderContent() {
                           <dt className="text-sm text-slate-500">メールアドレス</dt>
                           <dd className="font-medium">{formData.email}</dd>
                         </div>
-                        <div className="md:col-span-2">
-                          <dt className="text-sm text-slate-500">住所</dt>
-                          <dd className="font-medium">{formData.cardAddress}</dd>
-                        </div>
                       </dl>
                     </div>
 
-                    {formData.deliveryMethod === 'SHIPPING' && formData.postalCode && (
+                    <div className="border-t pt-4">
+                      <h3 className="text-sm font-medium text-slate-500 mb-2">名刺記載住所</h3>
+                      <p className="font-medium">
+                        〒{formData.cardPostalCode}<br />
+                        {formData.cardPrefecture}{formData.cardCity}{formData.cardAddressLine1}
+                        {formData.cardAddressLine2 && <><br />{formData.cardAddressLine2}</>}
+                      </p>
+                    </div>
+
+                    {formData.deliveryMethod === 'SHIPPING' && (
                       <div className="border-t pt-4">
                         <h3 className="text-sm font-medium text-slate-500 mb-2">郵送先住所</h3>
-                        <p className="font-medium">
-                          〒{formData.postalCode}<br />
-                          {formData.prefecture}{formData.city}{formData.addressLine1}
-                          {formData.addressLine2 && <><br />{formData.addressLine2}</>}
-                        </p>
+                        {formData.shippingAddressSameAsCard ? (
+                          <p className="font-medium text-slate-600">名刺記載住所と同じ</p>
+                        ) : (
+                          <p className="font-medium">
+                            〒{formData.postalCode}<br />
+                            {formData.prefecture}{formData.city}{formData.addressLine1}
+                            {formData.addressLine2 && <><br />{formData.addressLine2}</>}
+                          </p>
+                        )}
                       </div>
                     )}
 

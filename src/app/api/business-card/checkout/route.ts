@@ -34,8 +34,15 @@ export async function POST(request: NextRequest) {
       displayNameKana,
       phoneNumber,
       email,
-      cardAddress,
+      // 名刺記載住所
+      cardPostalCode,
+      cardPrefecture,
+      cardCity,
+      cardAddressLine1,
+      cardAddressLine2,
       deliveryMethod,
+      shippingAddressSameAsCard,
+      // 郵送先住所
       postalCode,
       prefecture,
       city,
@@ -53,17 +60,22 @@ export async function POST(request: NextRequest) {
     if (!displayNameKana?.trim()) errors.push('フリガナを入力してください')
     if (!phoneNumber?.trim()) errors.push('電話番号を入力してください')
     if (!email?.trim()) errors.push('メールアドレスを入力してください')
-    if (!cardAddress?.trim()) errors.push('住所を入力してください')
     if (!deliveryMethod || !['PICKUP', 'SHIPPING'].includes(deliveryMethod)) {
       errors.push('受取方法を選択してください')
     }
 
-    // 郵送の場合は郵送先住所必須
-    if (deliveryMethod === 'SHIPPING') {
-      if (!postalCode?.trim()) errors.push('郵便番号を入力してください')
-      if (!prefecture?.trim()) errors.push('都道府県を入力してください')
-      if (!city?.trim()) errors.push('市区町村を入力してください')
-      if (!addressLine1?.trim()) errors.push('番地を入力してください')
+    // 名刺記載住所のバリデーション
+    if (!cardPostalCode?.trim()) errors.push('名刺記載住所の郵便番号を入力してください')
+    if (!cardPrefecture?.trim()) errors.push('名刺記載住所の都道府県を選択してください')
+    if (!cardCity?.trim()) errors.push('名刺記載住所の市区町村を入力してください')
+    if (!cardAddressLine1?.trim()) errors.push('名刺記載住所の番地を入力してください')
+
+    // 郵送の場合で、別の住所を指定する場合は郵送先住所必須
+    if (deliveryMethod === 'SHIPPING' && !shippingAddressSameAsCard) {
+      if (!postalCode?.trim()) errors.push('郵送先の郵便番号を入力してください')
+      if (!prefecture?.trim()) errors.push('郵送先の都道府県を選択してください')
+      if (!city?.trim()) errors.push('郵送先の市区町村を入力してください')
+      if (!addressLine1?.trim()) errors.push('郵送先の番地を入力してください')
     }
 
     // フォーマットチェック
@@ -73,8 +85,11 @@ export async function POST(request: NextRequest) {
     if (phoneNumber && !/^[\d-]+$/.test(phoneNumber)) {
       errors.push('電話番号の形式が正しくありません')
     }
-    if (postalCode && deliveryMethod === 'SHIPPING' && !/^\d{3}-?\d{4}$/.test(postalCode)) {
-      errors.push('郵便番号の形式が正しくありません（例: 123-4567）')
+    if (cardPostalCode && !/^\d{3}-?\d{4}$/.test(cardPostalCode)) {
+      errors.push('名刺記載住所の郵便番号の形式が正しくありません（例: 123-4567）')
+    }
+    if (postalCode && !shippingAddressSameAsCard && !/^\d{3}-?\d{4}$/.test(postalCode)) {
+      errors.push('郵送先の郵便番号の形式が正しくありません（例: 123-4567）')
     }
     if (displayNameKana && !/^[\u30A0-\u30FF\u3000\s]+$/.test(displayNameKana)) {
       errors.push('フリガナはカタカナで入力してください')
@@ -117,13 +132,20 @@ export async function POST(request: NextRequest) {
         displayNameKana: displayNameKana.trim(),
         phoneNumber: phoneNumber.trim(),
         email: email.trim(),
-        cardAddress: cardAddress?.trim() || null,
+        // 名刺記載住所
+        cardPostalCode: cardPostalCode?.trim() || null,
+        cardPrefecture: cardPrefecture?.trim() || null,
+        cardCity: cardCity?.trim() || null,
+        cardAddressLine1: cardAddressLine1?.trim() || null,
+        cardAddressLine2: cardAddressLine2?.trim() || null,
         deliveryMethod: deliveryMethod as 'PICKUP' | 'SHIPPING',
-        postalCode: postalCode?.trim() || null,
-        prefecture: prefecture?.trim() || null,
-        city: city?.trim() || null,
-        addressLine1: addressLine1?.trim() || null,
-        addressLine2: addressLine2?.trim() || null,
+        shippingAddressSameAsCard: shippingAddressSameAsCard ?? true,
+        // 郵送先住所（別の住所を指定した場合のみ）
+        postalCode: !shippingAddressSameAsCard ? postalCode?.trim() || null : null,
+        prefecture: !shippingAddressSameAsCard ? prefecture?.trim() || null : null,
+        city: !shippingAddressSameAsCard ? city?.trim() || null : null,
+        addressLine1: !shippingAddressSameAsCard ? addressLine1?.trim() || null : null,
+        addressLine2: !shippingAddressSameAsCard ? addressLine2?.trim() || null : null,
         quantity: quantity || 100,
         notes: notes?.trim() || null,
         status: 'PENDING',
