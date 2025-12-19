@@ -115,7 +115,14 @@ export async function PUT(
     if (vimeoUrl !== undefined) updateData.vimeoUrl = vimeoUrl || null
     if (surveyUrl !== undefined) updateData.surveyUrl = surveyUrl || null
     if (attendanceDeadline !== undefined) {
-      updateData.attendanceDeadline = attendanceDeadline ? new Date(attendanceDeadline) : null
+      if (attendanceDeadline) {
+        // datetime-localの値はタイムゾーンなしなので、JSTとして解釈する
+        // 例: "2024-12-20T23:59" -> JST 2024-12-20 23:59
+        const deadlineDate = new Date(attendanceDeadline + '+09:00')
+        updateData.attendanceDeadline = deadlineDate
+      } else {
+        updateData.attendanceDeadline = null
+      }
     }
 
     // 定期開催関連
