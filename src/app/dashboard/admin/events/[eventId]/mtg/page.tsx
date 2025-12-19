@@ -193,6 +193,14 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
     }
   }
 
+  const formatDateTime = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'M/d HH:mm', { locale: ja })
+    } catch {
+      return dateString
+    }
+  }
+
   const getStatusBadge = (status: string, statusLabel: string) => {
     switch (status) {
       case 'attended_code':
@@ -653,7 +661,7 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                                 <CheckCircle className="h-4 w-4 text-green-600" />
                                 {participant.surveyCompletedAt && (
                                   <span className="text-slate-500">
-                                    {formatDate(participant.surveyCompletedAt)}
+                                    {formatDateTime(participant.surveyCompletedAt)}
                                   </span>
                                 )}
                               </div>
