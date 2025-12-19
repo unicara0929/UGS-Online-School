@@ -239,9 +239,21 @@ function AdminEventsPageContent() {
 
     setIsSubmitting(true)
     try {
+      // 完了設定時は元のイベントデータを保持し、必要なフィールドのみ更新
       const success = await updateEvent(completingMtgEvent.id, {
-        ...editForm.formData,
+        title: completingMtgEvent.title,
+        description: completingMtgEvent.description,
+        date: completingMtgEvent.date,
+        time: completingMtgEvent.time,
+        type: completingMtgEvent.type,
+        targetRoles: completingMtgEvent.targetRoles,
+        attendanceType: completingMtgEvent.attendanceType,
+        venueType: completingMtgEvent.venueType,
+        location: completingMtgEvent.location,
+        maxParticipants: completingMtgEvent.maxParticipants,
         status: 'completed',
+        thumbnailUrl: completingMtgEvent.thumbnailUrl,
+        isRecurring: completingMtgEvent.isRecurring,
         vimeoUrl: data.vimeoUrl,
         surveyUrl: data.surveyUrl,
         materialsUrl: data.materialsUrl,
