@@ -213,7 +213,8 @@ model Event {
   attendanceCode  String?             // 参加コード（アルファベット）- オフライン/ライブ参加者用
   vimeoUrl        String?             // Vimeo録画URL - 後日視聴用
   surveyUrl       String?             // アンケートURL - 録画視聴者用
-  attendanceDeadline DateTime?        // 出席完了期限（イベント終了後24時間など）
+  applicationDeadline DateTime?       // 参加申込期限（参加する/不参加/欠席申請の期限）
+  attendanceDeadline DateTime?        // 動画視聴+アンケート期限（出席完了期限）
   // 定期開催イベント関連
   isRecurring     Boolean             @default(false) // 定期開催イベントかどうか
   recurrencePattern String?           // 繰り返しパターン（例: "monthly-first-sunday"）

@@ -7,20 +7,25 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { useAuth } from "@/contexts/auth-context"
 import { formatCurrency } from "@/lib/utils"
-import { 
-  CheckCircle, 
-  XCircle, 
+import {
+  CheckCircle,
+  XCircle,
   Award,
   TrendingUp,
   Users,
-  FileText,
+  UserPlus,
   Loader2
 } from "lucide-react"
 
 interface PromotionEligibility {
   isEligible: boolean
   conditions: {
-    compensationAverage?: {
+    salesTotal?: {
+      current: number
+      target: number
+      met: boolean
+    }
+    insuredCount?: {
       current: number
       target: number
       met: boolean
@@ -35,7 +40,6 @@ interface PromotionEligibility {
       target: number
       met: boolean
     }
-    contractAchieved?: boolean
   }
 }
 
@@ -130,57 +134,96 @@ export function ManagerPromotion() {
             マネージャー昇格条件
           </CardTitle>
           <CardDescription>
-            マネージャーに昇格するために必要な条件
+            マネージャーに昇格するために必要な条件（過去6ヶ月間）
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            {/* 報酬実績 */}
-            {conditions.compensationAverage && (
+            {/* ① 売上実績 */}
+            {conditions.salesTotal && (
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">報酬実績（直近6ヶ月平均）</span>
+                  <span className="text-sm font-medium flex items-center">
+                    <TrendingUp className="h-4 w-4 mr-2 text-slate-500" />
+                    売上合計（過去6ヶ月）
+                  </span>
                   <span className="text-sm">
-                    {formatCurrency(conditions.compensationAverage.current)} / {formatCurrency(conditions.compensationAverage.target)}
+                    {formatCurrency(conditions.salesTotal.current)} / {formatCurrency(conditions.salesTotal.target)}
                   </span>
                 </div>
-                <Progress 
+                <Progress
                   value={
-                    conditions.compensationAverage.target > 0
-                      ? (conditions.compensationAverage.current / conditions.compensationAverage.target) * 100
+                    conditions.salesTotal.target > 0
+                      ? Math.min(100, (conditions.salesTotal.current / conditions.salesTotal.target) * 100)
                       : 0
-                  } 
-                  className="h-2" 
+                  }
+                  className="h-2"
                 />
                 <div className="flex items-center mt-2">
-                  {conditions.compensationAverage.met ? (
+                  {conditions.salesTotal.met ? (
                     <CheckCircle className="h-4 w-4 text-green-600 mr-1" />
                   ) : (
                     <XCircle className="h-4 w-4 text-red-600 mr-1" />
                   )}
-                  <Badge variant={conditions.compensationAverage.met ? "default" : "secondary"}>
-                    {conditions.compensationAverage.met ? "達成" : "未達成"}
+                  <Badge variant={conditions.salesTotal.met ? "default" : "secondary"}>
+                    {conditions.salesTotal.met ? "達成" : "未達成"}
                   </Badge>
                 </div>
               </div>
             )}
 
-            {/* UGS会員紹介 */}
+            {/* ② 被保険者数 */}
+            {conditions.insuredCount && (
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-medium flex items-center">
+                    <Users className="h-4 w-4 mr-2 text-slate-500" />
+                    被保険者数（累計）
+                  </span>
+                  <span className="text-sm">
+                    {conditions.insuredCount.current} / {conditions.insuredCount.target}名
+                  </span>
+                </div>
+                <Progress
+                  value={
+                    conditions.insuredCount.target > 0
+                      ? Math.min(100, (conditions.insuredCount.current / conditions.insuredCount.target) * 100)
+                      : 0
+                  }
+                  className="h-2"
+                />
+                <div className="flex items-center mt-2">
+                  {conditions.insuredCount.met ? (
+                    <CheckCircle className="h-4 w-4 text-green-600 mr-1" />
+                  ) : (
+                    <XCircle className="h-4 w-4 text-red-600 mr-1" />
+                  )}
+                  <Badge variant={conditions.insuredCount.met ? "default" : "secondary"}>
+                    {conditions.insuredCount.met ? "達成" : "未達成"}
+                  </Badge>
+                </div>
+              </div>
+            )}
+
+            {/* ③ UGS会員紹介 */}
             {conditions.memberReferrals && (
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">UGS会員紹介（6ヶ月間）</span>
+                  <span className="text-sm font-medium flex items-center">
+                    <UserPlus className="h-4 w-4 mr-2 text-slate-500" />
+                    UGS会員紹介（6ヶ月以内、登録維持中）
+                  </span>
                   <span className="text-sm">
                     {conditions.memberReferrals.current} / {conditions.memberReferrals.target}名
                   </span>
                 </div>
-                <Progress 
+                <Progress
                   value={
                     conditions.memberReferrals.target > 0
-                      ? (conditions.memberReferrals.current / conditions.memberReferrals.target) * 100
+                      ? Math.min(100, (conditions.memberReferrals.current / conditions.memberReferrals.target) * 100)
                       : 0
-                  } 
-                  className="h-2" 
+                  }
+                  className="h-2"
                 />
                 <div className="flex items-center mt-2">
                   {conditions.memberReferrals.met ? (
@@ -195,22 +238,25 @@ export function ManagerPromotion() {
               </div>
             )}
 
-            {/* FPエイド紹介 */}
+            {/* ④ FPエイド輩出 */}
             {conditions.fpReferrals && (
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">FPエイド紹介（6ヶ月間）</span>
+                  <span className="text-sm font-medium flex items-center">
+                    <Award className="h-4 w-4 mr-2 text-slate-500" />
+                    FPエイド輩出（6ヶ月以内、職位維持中）
+                  </span>
                   <span className="text-sm">
                     {conditions.fpReferrals.current} / {conditions.fpReferrals.target}名
                   </span>
                 </div>
-                <Progress 
+                <Progress
                   value={
                     conditions.fpReferrals.target > 0
-                      ? (conditions.fpReferrals.current / conditions.fpReferrals.target) * 100
+                      ? Math.min(100, (conditions.fpReferrals.current / conditions.fpReferrals.target) * 100)
                       : 0
-                  } 
-                  className="h-2" 
+                  }
+                  className="h-2"
                 />
                 <div className="flex items-center mt-2">
                   {conditions.fpReferrals.met ? (
@@ -221,25 +267,6 @@ export function ManagerPromotion() {
                   <Badge variant={conditions.fpReferrals.met ? "default" : "secondary"}>
                     {conditions.fpReferrals.met ? "達成" : "未達成"}
                   </Badge>
-                </div>
-              </div>
-            )}
-
-            {/* 契約実績 */}
-            {conditions.contractAchieved !== undefined && (
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">契約実績（直20被保）</span>
-                  <div className="flex items-center">
-                    {conditions.contractAchieved ? (
-                      <CheckCircle className="h-4 w-4 text-green-600 mr-1" />
-                    ) : (
-                      <XCircle className="h-4 w-4 text-red-600 mr-1" />
-                    )}
-                    <Badge variant={conditions.contractAchieved ? "default" : "secondary"}>
-                      {conditions.contractAchieved ? "達成" : "未達成"}
-                    </Badge>
-                  </div>
                 </div>
               </div>
             )}
@@ -275,4 +302,3 @@ export function ManagerPromotion() {
     </div>
   )
 }
-

@@ -145,6 +145,7 @@ export async function GET(
         paymentStatus: registration?.paymentStatus ?? null,
         // 出席確認関連
         hasAttendanceCode: !!event.attendanceCode,
+        applicationDeadline: event.applicationDeadline?.toISOString() ?? null,
         attendanceDeadline: event.attendanceDeadline?.toISOString() ?? null,
         vimeoUrl: event.vimeoUrl ?? null,
         surveyUrl: event.surveyUrl ?? null,

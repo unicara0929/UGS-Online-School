@@ -198,6 +198,7 @@ function AdminEventsPageContent() {
     location: string
     maxParticipants: number | null
     attendanceCode: string
+    applicationDeadline: string
   }) => {
     setIsSubmitting(true)
     try {
@@ -209,6 +210,7 @@ function AdminEventsPageContent() {
         location: data.location,
         maxParticipants: data.maxParticipants,
         attendanceCode: data.attendanceCode || null,
+        applicationDeadline: data.applicationDeadline || null,
         status: 'upcoming',
         isRecurring: true, // 全体MTGフラグ
         targetRoles: ['all'],

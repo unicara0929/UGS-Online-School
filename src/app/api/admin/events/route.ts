@@ -100,6 +100,7 @@ export async function GET(request: NextRequest) {
         attendanceCode: event.attendanceCode ?? null,
         vimeoUrl: event.vimeoUrl ?? null,
         surveyUrl: event.surveyUrl ?? null,
+        applicationDeadline: event.applicationDeadline?.toISOString() ?? null,
         attendanceDeadline: event.attendanceDeadline?.toISOString() ?? null,
         // 全体MTGフラグ
         isRecurring: event.isRecurring ?? false,
@@ -196,6 +197,7 @@ export async function POST(request: NextRequest) {
       attendanceCode,
       vimeoUrl,
       surveyUrl,
+      applicationDeadline,
       attendanceDeadline,
       // 定期開催関連
       isRecurring = false,
@@ -251,7 +253,8 @@ export async function POST(request: NextRequest) {
         attendanceCode: attendanceCode || null,
         vimeoUrl: vimeoUrl || null,
         surveyUrl: surveyUrl || null,
-        attendanceDeadline: attendanceDeadline ? new Date(attendanceDeadline) : null,
+        applicationDeadline: applicationDeadline ? new Date(applicationDeadline + '+09:00') : null,
+        attendanceDeadline: attendanceDeadline ? new Date(attendanceDeadline + '+09:00') : null,
         // 定期開催関連
         isRecurring,
         recurrencePattern: recurrencePattern || null,

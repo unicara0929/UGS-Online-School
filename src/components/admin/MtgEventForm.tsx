@@ -19,6 +19,16 @@ function getDefaultDeadline(): string {
   return `${year}-${month}-${day}T23:59`
 }
 
+// 指定日の23:59をデフォルト期限として取得
+function getDefaultApplicationDeadline(eventDate: string): string {
+  if (!eventDate) return ''
+  const date = new Date(eventDate)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}T23:59`
+}
+
 interface MtgFormData {
   title: string
   description: string
@@ -27,11 +37,12 @@ interface MtgFormData {
   location: string
   maxParticipants: number | null
   attendanceCode: string
+  applicationDeadline: string // 参加申込期限
   // 完了後に設定する項目
   vimeoUrl: string
   surveyUrl: string
   materialsUrl: string
-  attendanceDeadline: string
+  attendanceDeadline: string // 動画視聴+アンケート期限
 }
 
 interface MtgEventFormProps {
@@ -65,11 +76,21 @@ export function MtgEventForm({
     location: initialData?.location || 'オンライン（Zoom）',
     maxParticipants: initialData?.maxParticipants ?? null,
     attendanceCode: initialData?.attendanceCode || '',
+    applicationDeadline: initialData?.applicationDeadline || '',
     vimeoUrl: initialData?.vimeoUrl || '',
     surveyUrl: initialData?.surveyUrl || '',
     materialsUrl: initialData?.materialsUrl || '',
     attendanceDeadline: defaultDeadline,
   })
+
+  // 開催日が変更されたら参加申込期限を自動設定（未設定の場合のみ）
+  const handleDateChange = (newDate: string) => {
+    const updates: Partial<MtgFormData> = { date: newDate }
+    if (!formData.applicationDeadline && newDate) {
+      updates.applicationDeadline = getDefaultApplicationDeadline(newDate)
+    }
+    setFormData({ ...formData, ...updates })
+  }
 
   const inputClassName = 'w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
 
@@ -141,7 +162,7 @@ export function MtgEventForm({
                 <input
                   type="date"
                   value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  onChange={(e) => handleDateChange(e.target.value)}
                   className={inputClassName}
                 />
               </div>
@@ -222,6 +243,23 @@ export function MtgEventForm({
                   </Button>
                 </div>
                 <p className="text-xs text-slate-500 mt-1">当日参加者が入力するコード</p>
+              </div>
+
+              {/* 参加申込期限 */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <Calendar className="inline h-4 w-4 mr-1" />
+                  参加申込期限
+                </label>
+                <input
+                  type="datetime-local"
+                  value={formData.applicationDeadline}
+                  onChange={(e) => setFormData({ ...formData, applicationDeadline: e.target.value })}
+                  className={inputClassName}
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  この期限を過ぎると「参加する」「不参加」「欠席申請」ができなくなります（デフォルト: 開催日当日23:59）
+                </p>
               </div>
             </div>
           </>

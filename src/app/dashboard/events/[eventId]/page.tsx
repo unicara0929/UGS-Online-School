@@ -49,6 +49,7 @@ type EventDetail = {
   paymentStatus: string | null
   // 出席確認関連
   hasAttendanceCode: boolean
+  applicationDeadline: string | null
   attendanceDeadline: string | null
   vimeoUrl: string | null
   surveyUrl: string | null
@@ -460,45 +461,66 @@ function EventDetailPageContent() {
                         </div>
                       ) : event.participationIntent === 'UNDECIDED' ? (
                         /* 参加意思未回答の場合 - 3択から選択させる */
-                        <div className="space-y-4">
-                          <p className="text-sm font-medium text-slate-700 text-center">
-                            全体MTGへの参加方法を選択してください
-                          </p>
-                          <div className="grid grid-cols-1 gap-3">
-                            {/* 参加する */}
-                            <Button
-                              size="lg"
-                              className="h-auto py-4 bg-green-600 hover:bg-green-700 flex flex-col items-center w-full"
-                              onClick={() => handleParticipationIntent('WILL_ATTEND')}
-                              disabled={isSubmitting}
-                            >
-                              <span className="font-bold text-lg">① 参加する</span>
-                              <span className="text-xs opacity-90 mt-1">当日参加コードを入力して出席</span>
-                            </Button>
-                            {/* 不参加（動画視聴） */}
-                            <Button
-                              size="lg"
-                              variant="outline"
-                              className="h-auto py-4 border-2 border-blue-300 text-blue-700 hover:bg-blue-50 flex flex-col items-center w-full"
-                              onClick={() => handleParticipationIntent('WILL_NOT_ATTEND')}
-                              disabled={isSubmitting}
-                            >
-                              <span className="font-bold text-lg">② 不参加（動画視聴で出席）</span>
-                              <span className="text-xs opacity-70 mt-1">動画視聴+アンケート回答で出席扱い</span>
-                            </Button>
-                            {/* 免除申請 */}
-                            <Button
-                              size="lg"
-                              variant="outline"
-                              className="h-auto py-4 border-2 border-purple-300 text-purple-700 hover:bg-purple-50 flex flex-col items-center w-full"
-                              onClick={() => document.getElementById('exemption-section')?.scrollIntoView({ behavior: 'smooth' })}
-                              disabled={isSubmitting}
-                            >
-                              <span className="font-bold text-lg">③ 免除申請をする</span>
-                              <span className="text-xs opacity-70 mt-1">やむを得ない事情がある場合</span>
-                            </Button>
-                          </div>
-                        </div>
+                        (() => {
+                          const isApplicationExpired = event.applicationDeadline ? new Date(event.applicationDeadline) < new Date() : false
+                          return (
+                            <div className="space-y-4">
+                              {isApplicationExpired ? (
+                                <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-center">
+                                  <p className="text-red-700 font-medium">参加申込の期限が過ぎました</p>
+                                  <p className="text-sm text-red-600 mt-1">
+                                    期限: {format(new Date(event.applicationDeadline!), 'M月d日(E) HH:mm', { locale: ja })}
+                                  </p>
+                                </div>
+                              ) : (
+                                <>
+                                  <p className="text-sm font-medium text-slate-700 text-center">
+                                    全体MTGへの参加方法を選択してください
+                                  </p>
+                                  {event.applicationDeadline && (
+                                    <p className="text-xs text-center text-orange-600">
+                                      申込期限: {format(new Date(event.applicationDeadline), 'M月d日(E) HH:mm', { locale: ja })}
+                                    </p>
+                                  )}
+                                </>
+                              )}
+                              <div className="grid grid-cols-1 gap-3">
+                                {/* 参加する */}
+                                <Button
+                                  size="lg"
+                                  className="h-auto py-4 bg-green-600 hover:bg-green-700 flex flex-col items-center w-full disabled:opacity-50"
+                                  onClick={() => handleParticipationIntent('WILL_ATTEND')}
+                                  disabled={isSubmitting || isApplicationExpired}
+                                >
+                                  <span className="font-bold text-lg">① 参加する</span>
+                                  <span className="text-xs opacity-90 mt-1">当日参加コードを入力して出席</span>
+                                </Button>
+                                {/* 不参加（動画視聴） */}
+                                <Button
+                                  size="lg"
+                                  variant="outline"
+                                  className="h-auto py-4 border-2 border-blue-300 text-blue-700 hover:bg-blue-50 flex flex-col items-center w-full disabled:opacity-50"
+                                  onClick={() => handleParticipationIntent('WILL_NOT_ATTEND')}
+                                  disabled={isSubmitting || isApplicationExpired}
+                                >
+                                  <span className="font-bold text-lg">② 不参加（動画視聴で出席）</span>
+                                  <span className="text-xs opacity-70 mt-1">動画視聴+アンケート回答で出席扱い</span>
+                                </Button>
+                                {/* 免除申請 */}
+                                <Button
+                                  size="lg"
+                                  variant="outline"
+                                  className="h-auto py-4 border-2 border-purple-300 text-purple-700 hover:bg-purple-50 flex flex-col items-center w-full disabled:opacity-50"
+                                  onClick={() => document.getElementById('exemption-section')?.scrollIntoView({ behavior: 'smooth' })}
+                                  disabled={isSubmitting || isApplicationExpired}
+                                >
+                                  <span className="font-bold text-lg">③ 免除申請をする</span>
+                                  <span className="text-xs opacity-70 mt-1">やむを得ない事情がある場合</span>
+                                </Button>
+                              </div>
+                            </div>
+                          )
+                        })()
                       ) : event.participationIntent === 'WILL_ATTEND' ? (
                         /* 参加予定の場合 */
                         <div className="space-y-4">
