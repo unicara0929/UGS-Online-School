@@ -245,9 +245,11 @@ function EventsPageContent() {
     if (event.type === 'manager-only' && user?.role !== 'manager' && user?.role !== 'admin') {
       return false
     }
-    if (event.maxParticipants !== null && event.maxParticipants !== undefined) {
+    // 定員が設定されている場合（0より大きい場合）のみチェック
+    if (event.maxParticipants !== null && event.maxParticipants !== undefined && event.maxParticipants > 0) {
       return event.currentParticipants < event.maxParticipants
     }
+    // 定員未設定・0の場合は無制限
     return true
   }
 
@@ -464,7 +466,7 @@ function EventsPageContent() {
                       </div>
                       <div className="flex items-center text-sm text-slate-500 flex-shrink-0">
                         <Users className="h-4 w-4 mr-1" />
-                        {event.maxParticipants !== null && event.maxParticipants !== undefined
+                        {event.maxParticipants !== null && event.maxParticipants !== undefined && event.maxParticipants > 0
                           ? `${event.currentParticipants}/${event.maxParticipants}名`
                           : `${event.currentParticipants}名参加`}
                       </div>
@@ -570,7 +572,7 @@ function EventsPageContent() {
                       </div>
                     )}
 
-                    {event.maxParticipants !== null && event.maxParticipants !== undefined && (
+                    {event.maxParticipants !== null && event.maxParticipants !== undefined && event.maxParticipants > 0 && (
                       <div className="mt-2 text-xs text-slate-500">
                         定員: {event.currentParticipants}/{event.maxParticipants}名
                       </div>
