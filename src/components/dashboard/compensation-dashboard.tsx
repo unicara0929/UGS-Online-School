@@ -205,16 +205,16 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
         <Card>
           <CardHeader className="p-4 sm:p-6">
             <CardTitle className="text-base sm:text-lg">ロール別累計報酬</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">FPエイド時代とマネージャー時代の報酬内訳</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">FPエイド期間とMGR期間の報酬内訳</CardDescription>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               <div className="p-3 sm:p-4 bg-blue-50 rounded-lg">
-                <p className="text-xs sm:text-sm text-blue-600 font-medium">FPエイド時代</p>
+                <p className="text-xs sm:text-sm text-blue-600 font-medium">FPエイド期間</p>
                 <p className="text-lg sm:text-xl font-bold text-blue-900">{formatCurrency(stats.totalByRole.FP)}</p>
               </div>
               <div className="p-3 sm:p-4 bg-purple-50 rounded-lg">
-                <p className="text-xs sm:text-sm text-purple-600 font-medium">マネージャー時代</p>
+                <p className="text-xs sm:text-sm text-purple-600 font-medium">MGR期間</p>
                 <p className="text-lg sm:text-xl font-bold text-purple-900">{formatCurrency(stats.totalByRole.MANAGER)}</p>
               </div>
               <div className="p-3 sm:p-4 bg-slate-100 rounded-lg">
@@ -254,7 +254,7 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
                   onClick={() => setRoleFilter('FP')}
                   className={`text-xs sm:text-sm ${roleFilter === 'FP' ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
                 >
-                  FPエイド時代
+                  FPエイド期間
                 </Button>
                 <Button
                   variant={roleFilter === 'MANAGER' ? 'default' : 'outline'}
@@ -262,7 +262,7 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
                   onClick={() => setRoleFilter('MANAGER')}
                   className={`text-xs sm:text-sm ${roleFilter === 'MANAGER' ? 'bg-purple-600 hover:bg-purple-700' : ''}`}
                 >
-                  マネージャー時代
+                  MGR期間
                 </Button>
               </div>
             </div>
