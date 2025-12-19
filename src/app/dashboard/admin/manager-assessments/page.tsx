@@ -63,8 +63,8 @@ function ManagerAssessmentsPageContent() {
   const [loading, setLoading] = useState(true)
   const [executing, setExecuting] = useState(false)
   const [confirming, setConfirming] = useState<string | null>(null)
-  const [selectedYear, setSelectedYear] = useState<string>('')
-  const [selectedHalf, setSelectedHalf] = useState<string>('')
+  const [selectedYear, setSelectedYear] = useState<string>('all')
+  const [selectedHalf, setSelectedHalf] = useState<string>('all')
   const [statusCounts, setStatusCounts] = useState<{ [key: string]: number }>({})
   const [showExecuteDialog, setShowExecuteDialog] = useState(false)
 
@@ -76,8 +76,8 @@ function ManagerAssessmentsPageContent() {
     setLoading(true)
     try {
       const params = new URLSearchParams()
-      if (selectedYear) params.set('year', selectedYear)
-      if (selectedHalf) params.set('half', selectedHalf)
+      if (selectedYear && selectedYear !== 'all') params.set('year', selectedYear)
+      if (selectedHalf && selectedHalf !== 'all') params.set('half', selectedHalf)
 
       const res = await fetch(`/api/admin/manager-assessments?${params}`)
       const data = await res.json()
@@ -97,7 +97,7 @@ function ManagerAssessmentsPageContent() {
     setExecuting(true)
     try {
       const body: any = {}
-      if (selectedYear && selectedHalf) {
+      if (selectedYear && selectedYear !== 'all' && selectedHalf && selectedHalf !== 'all') {
         body.year = parseInt(selectedYear)
         body.half = parseInt(selectedHalf)
       }
@@ -241,7 +241,7 @@ function ManagerAssessmentsPageContent() {
                   <SelectValue placeholder="年" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">全期間</SelectItem>
+                  <SelectItem value="all">全期間</SelectItem>
                   {years.map(y => (
                     <SelectItem key={y} value={String(y)}>{y}年</SelectItem>
                   ))}
@@ -252,7 +252,7 @@ function ManagerAssessmentsPageContent() {
                   <SelectValue placeholder="期" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">全期</SelectItem>
+                  <SelectItem value="all">全期</SelectItem>
                   <SelectItem value="1">上期（1-6月）</SelectItem>
                   <SelectItem value="2">下期（7-12月）</SelectItem>
                 </SelectContent>

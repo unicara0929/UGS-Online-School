@@ -72,7 +72,7 @@ function ManagerSalesPageContent() {
   const [salesData, setSalesData] = useState<SalesRecord[]>([])
   const [monthlyTotals, setMonthlyTotals] = useState<MonthlyTotal[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedMonth, setSelectedMonth] = useState<string>('')
+  const [selectedMonth, setSelectedMonth] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
@@ -91,7 +91,7 @@ function ManagerSalesPageContent() {
     setLoading(true)
     try {
       const params = new URLSearchParams()
-      if (selectedMonth) params.set('month', selectedMonth)
+      if (selectedMonth && selectedMonth !== 'all') params.set('month', selectedMonth)
 
       const res = await fetch(`/api/admin/manager-sales?${params}`)
       const data = await res.json()
@@ -286,7 +286,7 @@ UGS0000002,2025-01,1200000,12`
                         className={`p-3 border rounded-lg cursor-pointer transition-colors ${
                           selectedMonth === m.month ? 'bg-primary/10 border-primary' : 'hover:bg-muted/50'
                         }`}
-                        onClick={() => setSelectedMonth(selectedMonth === m.month ? '' : m.month)}
+                        onClick={() => setSelectedMonth(selectedMonth === m.month ? 'all' : m.month)}
                       >
                         <p className="text-sm text-muted-foreground">{m.month}</p>
                         <p className="text-lg font-bold">{formatCurrency(m.totalSales)}</p>
@@ -318,7 +318,7 @@ UGS0000002,2025-01,1200000,12`
                       <SelectValue placeholder="月を選択" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">全期間</SelectItem>
+                      <SelectItem value="all">全期間</SelectItem>
                       {monthlyTotals.map(m => (
                         <SelectItem key={m.month} value={m.month}>{m.month}</SelectItem>
                       ))}
