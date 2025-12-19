@@ -12,6 +12,7 @@ import { DashboardStats } from "@/components/dashboard/dashboard-stats"
 import { UpcomingEvents } from "@/components/dashboard/upcoming-events"
 import { NotificationBar } from "@/components/NotificationBar"
 import { FPOnboardingBanner } from "@/components/dashboard/fp-onboarding-banner"
+import { ManagerDashboard } from "@/components/dashboard/manager-dashboard"
 import { useAuth } from "@/contexts/auth-context"
 import { Event } from "@/lib/types"
 
@@ -64,6 +65,9 @@ function Dashboard() {
 
         <main className="px-3 sm:px-6 lg:px-8 py-4 sm:py-8 overflow-x-hidden">
           <div className="space-y-6 sm:space-y-8 max-w-full">
+            {/* MGRダッシュボード（マネージャーのみ表示） */}
+            {user?.role === 'manager' && <ManagerDashboard />}
+
             {/* ダッシュボード統計 */}
             <DashboardStats userRole={user?.role || 'member'} />
 

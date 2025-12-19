@@ -23,7 +23,10 @@ import {
   ClipboardList,
   ShieldCheck,
   Wrench,
-  Briefcase
+  Briefcase,
+  TrendingUp,
+  AlertTriangle,
+  Scale
 } from 'lucide-react'
 
 export interface NavItem {
@@ -121,6 +124,16 @@ export const navigation: NavItem[] = [
       { name: 'お問い合わせ管理', href: '/dashboard/admin/contacts', icon: Inbox, roles: ['admin'] },
       { name: '個別相談管理', href: '/dashboard/admin/consultations', icon: UserRound, roles: ['admin'] },
       { name: 'FAQ管理', href: '/dashboard/admin/faq', icon: HelpCircle, roles: ['admin'] },
+    ]
+  },
+  {
+    name: 'MGR管理',
+    icon: Scale,
+    roles: ['admin'],
+    subItems: [
+      { name: 'MGR売上管理', href: '/dashboard/admin/manager-sales', icon: TrendingUp, roles: ['admin'] },
+      { name: '半期査定管理', href: '/dashboard/admin/manager-assessments', icon: Scale, roles: ['admin'] },
+      { name: '降格候補一覧', href: '/dashboard/admin/demotion-candidates', icon: AlertTriangle, roles: ['admin'] },
     ]
   },
   {
