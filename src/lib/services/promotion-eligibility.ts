@@ -234,12 +234,13 @@ async function getManagerSalesTotal(userId: string, months: number): Promise<{
  */
 async function getActiveReferrals(userId: string, type: 'MEMBER' | 'FP', since: Date): Promise<number> {
   // 紹介テーブルから該当ユーザーの紹介一覧を取得
+  // APPROVED（承認済み）またはREWARDED（報酬支払い済み）をカウント
   const referrals = await prisma.referral.findMany({
     where: {
       referrerId: userId,
       referralType: type,
       createdAt: { gte: since },
-      status: 'REWARDED' // 報酬支払い済み = 承認された紹介
+      status: { in: ['APPROVED', 'REWARDED'] }
     },
     select: {
       referredId: true,
