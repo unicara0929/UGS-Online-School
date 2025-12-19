@@ -74,7 +74,7 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: https: blob:",
               "font-src 'self' data:",
               "connect-src 'self' https://*.supabase.co https://api.stripe.com",
-              "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
+              "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://player.vimeo.com https://vimeo.com",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",
