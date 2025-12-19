@@ -288,8 +288,8 @@ export function EventCard({ event, onEdit, onDelete, onMtgComplete, isSubmitting
                 <Users className="h-4 w-4 mr-2" />
                 {event.isRecurring ? 'FPエイド参加状況' : '参加者を管理'}
               </Button>
-              {/* 全体MTGの場合、完了設定ボタンを表示 */}
-              {event.isRecurring && event.status === 'upcoming' && onMtgComplete && (
+              {/* 完了設定ボタンを表示（開催予定のイベントのみ） */}
+              {event.status === 'upcoming' && onMtgComplete && (
                 <Button
                   size="sm"
                   className="w-full bg-blue-600 hover:bg-blue-700"

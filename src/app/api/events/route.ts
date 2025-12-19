@@ -101,11 +101,16 @@ export async function GET(request: NextRequest) {
             OR: [
               // 開催予定のイベント
               { status: 'UPCOMING' },
-              // 全体MTG（isRecurring=true）で完了済み、かつ視聴期限内または期限未設定のイベント
+              // 完了済みイベントで動画またはアンケートが設定されている、かつ視聴期限内または期限未設定
               {
                 AND: [
-                  { isRecurring: true },
                   { status: 'COMPLETED' },
+                  {
+                    OR: [
+                      { vimeoUrl: { not: null } },
+                      { surveyUrl: { not: null } },
+                    ],
+                  },
                   {
                     OR: [
                       { attendanceDeadline: { gte: now } }, // 期限内
