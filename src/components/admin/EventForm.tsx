@@ -271,6 +271,24 @@ export function EventForm({
               ))}
             </select>
           </div>
+
+          {/* 参加申込期限（全体MTGの場合のみ） */}
+          {formData.isRecurring && (
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                参加申込期限
+              </label>
+              <input
+                type="datetime-local"
+                value={formData.applicationDeadline || ''}
+                onChange={(e) => onFormChange({ ...formData, applicationDeadline: e.target.value || null })}
+                className={inputClassName}
+              />
+              <p className="text-xs text-slate-500 mt-1">
+                この期限を過ぎると「参加する」「欠席申請」ができなくなります
+              </p>
+            </div>
+          )}
         </div>
 
         {/* ボタン */}

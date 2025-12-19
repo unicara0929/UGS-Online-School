@@ -51,6 +51,7 @@ export interface AdminEventItem {
   attendanceDeadline: string | null
   // 全体MTG関連
   isRecurring: boolean
+  applicationDeadline: string | null
   // 過去イベント記録用
   summary: string | null
   photos: string[]
@@ -82,6 +83,7 @@ export interface EventFormData {
   attendanceDeadline: string | null
   // 全体MTG関連
   isRecurring: boolean
+  applicationDeadline: string | null
   // 過去イベント記録用
   summary: string | null
   photos: string[]
@@ -114,6 +116,7 @@ export const DEFAULT_EVENT_FORM: EventFormData = {
   attendanceDeadline: null,
   // 全体MTG関連
   isRecurring: false,
+  applicationDeadline: null,
   // 過去イベント記録用
   summary: null,
   photos: [],

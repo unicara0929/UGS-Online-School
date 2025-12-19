@@ -122,6 +122,7 @@ export function useEventForm(): UseEventFormReturn {
       surveyUrl: event.surveyUrl ?? null,
       attendanceDeadline: event.attendanceDeadline ?? null,
       isRecurring: event.isRecurring ?? false,
+      applicationDeadline: event.applicationDeadline ?? null,
     })
     setThumbnailPreview(event.thumbnailUrl)
     setThumbnailFile(null)

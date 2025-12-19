@@ -72,6 +72,7 @@ export async function PUT(
       // 定期開催関連
       isRecurring,
       recurrencePattern,
+      applicationDeadline,
       // 過去イベント記録用
       summary,
       photos,
@@ -128,6 +129,15 @@ export async function PUT(
     // 定期開催関連
     if (isRecurring !== undefined) updateData.isRecurring = isRecurring
     if (recurrencePattern !== undefined) updateData.recurrencePattern = recurrencePattern || null
+    if (applicationDeadline !== undefined) {
+      if (applicationDeadline) {
+        // datetime-localの値はタイムゾーンなしなので、JSTとして解釈する
+        const deadlineDate = new Date(applicationDeadline + '+09:00')
+        updateData.applicationDeadline = deadlineDate
+      } else {
+        updateData.applicationDeadline = null
+      }
+    }
 
     // 過去イベント記録用
     if (summary !== undefined) updateData.summary = summary || null
@@ -222,6 +232,7 @@ export async function PUT(
         // 定期開催関連
         isRecurring: updatedEvent.isRecurring,
         recurrencePattern: updatedEvent.recurrencePattern ?? null,
+        applicationDeadline: updatedEvent.applicationDeadline?.toISOString() ?? null,
         // 過去イベント記録用
         summary: updatedEvent.summary ?? null,
         photos: updatedEvent.photos ?? [],
