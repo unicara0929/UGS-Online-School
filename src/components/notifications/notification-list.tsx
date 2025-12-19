@@ -1,16 +1,19 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
 import {
   Bell,
   CheckCircle,
   AlertCircle,
   Info,
   Loader2,
-  CheckCheck
+  CheckCheck,
+  Search,
+  X
 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { formatDateTime } from "@/lib/utils/format"
@@ -35,8 +38,19 @@ export function NotificationList() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [isMarkingAllRead, setIsMarkingAllRead] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const { markCategoryViewed, fetchBadgeStatus } = useNewBadge()
   const hasMarkedViewed = useRef(false)
+
+  // 検索フィルタリング
+  const filteredNotifications = useMemo(() => {
+    if (!searchQuery.trim()) return notifications
+    const query = searchQuery.toLowerCase()
+    return notifications.filter(n =>
+      n.title.toLowerCase().includes(query) ||
+      n.message.toLowerCase().includes(query)
+    )
+  }, [notifications, searchQuery])
 
   // ページを開いたときにカテゴリを閲覧済みとしてマーク
   useEffect(() => {
@@ -150,13 +164,13 @@ export function NotificationList() {
     )
   }
 
-  const unreadNotifications = notifications.filter(n => !n.isRead)
-  const readNotifications = notifications.filter(n => n.isRead)
+  const unreadNotifications = filteredNotifications.filter(n => !n.isRead)
+  const readNotifications = filteredNotifications.filter(n => n.isRead)
 
   return (
     <div className="space-y-6">
       {/* ヘッダー */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-900">通知</h2>
           <p className="text-slate-600 mt-1">
@@ -168,6 +182,7 @@ export function NotificationList() {
             onClick={markAllAsRead}
             disabled={isMarkingAllRead}
             variant="outline"
+            className="self-start sm:self-auto"
           >
             {isMarkingAllRead ? (
               <>
@@ -183,6 +198,35 @@ export function NotificationList() {
           </Button>
         )}
       </div>
+
+      {/* 検索バー */}
+      {notifications.length > 0 && (
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Input
+            type="text"
+            placeholder="通知を検索..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 pr-10"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* 検索結果表示 */}
+      {searchQuery && (
+        <p className="text-sm text-slate-600">
+          「{searchQuery}」の検索結果: {filteredNotifications.length}件
+        </p>
+      )}
 
       {/* 未読通知 */}
       {unreadNotifications.length > 0 && (
@@ -272,6 +316,26 @@ export function NotificationList() {
             </Card>
           ))}
         </div>
+      )}
+
+      {/* 検索結果が0件の場合 */}
+      {searchQuery && filteredNotifications.length === 0 && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center py-8">
+              <Search className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+              <p className="text-slate-600">「{searchQuery}」に一致する通知はありません</p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSearchQuery('')}
+                className="mt-4"
+              >
+                検索をクリア
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* 通知がない場合 */}
