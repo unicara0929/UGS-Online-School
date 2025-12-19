@@ -396,22 +396,38 @@ function BusinessCardOrderContent() {
                             <div className="flex gap-2 mb-3">
                               {design.previewUrl && (
                                 <div className="flex-1">
-                                  <img
-                                    src={design.previewUrl}
-                                    alt={`${design.name} 表面`}
-                                    className="w-full aspect-[91/55] object-contain rounded border border-slate-200 bg-slate-50"
-                                  />
-                                  <p className="text-xs text-slate-400 text-center mt-1">表面</p>
+                                  <a
+                                    href={design.previewUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="block hover:opacity-80 transition-opacity"
+                                  >
+                                    <img
+                                      src={design.previewUrl}
+                                      alt={`${design.name} 表面`}
+                                      className="w-full aspect-[91/55] object-contain rounded border border-slate-200 bg-slate-50"
+                                    />
+                                  </a>
+                                  <p className="text-xs text-slate-400 text-center mt-1">表面（クリックで拡大）</p>
                                 </div>
                               )}
                               {design.previewUrlBack && (
                                 <div className="flex-1">
-                                  <img
-                                    src={design.previewUrlBack}
-                                    alt={`${design.name} 裏面`}
-                                    className="w-full aspect-[91/55] object-contain rounded border border-slate-200 bg-slate-50"
-                                  />
-                                  <p className="text-xs text-slate-400 text-center mt-1">裏面</p>
+                                  <a
+                                    href={design.previewUrlBack}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="block hover:opacity-80 transition-opacity"
+                                  >
+                                    <img
+                                      src={design.previewUrlBack}
+                                      alt={`${design.name} 裏面`}
+                                      className="w-full aspect-[91/55] object-contain rounded border border-slate-200 bg-slate-50"
+                                    />
+                                  </a>
+                                  <p className="text-xs text-slate-400 text-center mt-1">裏面（クリックで拡大）</p>
                                 </div>
                               )}
                               {!design.previewUrl && !design.previewUrlBack && (
