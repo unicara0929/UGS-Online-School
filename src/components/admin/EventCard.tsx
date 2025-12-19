@@ -125,10 +125,6 @@ export function EventCard({ event, onEdit, onDelete, onMtgComplete, isSubmitting
             {renderVenueIcon()}
             {getLocationDisplay()}
           </div>
-          <div className="flex items-center text-sm text-slate-600">
-            <Users className="h-4 w-4 mr-2" />
-            {event.currentParticipants}/{event.maxParticipants ?? '∞'}名
-          </div>
           <div className="text-xs text-slate-500">
             ステータス: {getEventStatusLabel(event.status)}
           </div>
