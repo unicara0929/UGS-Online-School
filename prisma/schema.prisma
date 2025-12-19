@@ -91,6 +91,14 @@ model User {
   complianceTestAttempts  ComplianceTestAttempt[]
   // 全体MTG免除申請
   mtgExemptions           MtgExemption[]
+  // MGR（マネージャー）関連
+  managerRangeId          String?                  // 現在のMGRレンジID
+  managerRange            ManagerRange?            @relation(fields: [managerRangeId], references: [id], onDelete: SetNull)
+  managerPromotedAt       DateTime?                // MGR昇格日時
+  assessmentExemptUntil   DateTime?                // 査定免除期限（昇格後4ヶ月）
+  managerDemotedAt        DateTime?                // MGR降格日時（再昇格条件の起算日）
+  managerMonthlySales     ManagerMonthlySales[]    // 月次売上データ
+  managerAssessments      ManagerAssessment[]      // 半期査定結果
 
   @@map("users")
 }
@@ -245,10 +253,20 @@ model EventRegistration {
   attendanceMethod       AttendanceMethod?   // 出席方法: コード入力 or 録画視聴+アンケート
   attendanceCompletedAt  DateTime?           // 出席完了日時
   videoWatched           Boolean             @default(false) // 録画視聴済みかどうか
+  videoCompletedAt       DateTime?           // 動画視聴完了日時
   surveyCompleted        Boolean             @default(false) // アンケート回答済みかどうか
+  surveyCompletedAt      DateTime?           // アンケート提出日時
   // 全体MTG参加意思（事前回答）
   participationIntent    ParticipationIntent @default(UNDECIDED) // 参加意思
   participationIntentAt  DateTime?           // 参加意思回答日時
+  // FPエイド維持判定用
+  isOverdue              Boolean             @default(false) // 期限超過フラグ
+  gmInterviewCompleted   Boolean             @default(false) // GM面談完了フラグ
+  gmInterviewCompletedAt DateTime?           // GM面談完了日時
+  gmInterviewCompletedBy String?             // GM面談担当者ID
+  finalApproval          FinalApprovalStatus? // 最終承認（維持/降格）
+  finalApprovalAt        DateTime?           // 最終承認日時
+  finalApprovalBy        String?             // 最終承認者ID
   createdAt              DateTime            @default(now())
   updatedAt              DateTime            @default(now()) @updatedAt
   event                  Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
@@ -323,6 +341,12 @@ enum ParticipationIntent {
   UNDECIDED     // 未回答
   WILL_ATTEND   // 参加する
   WILL_NOT_ATTEND // 参加しない（動画視聴予定）
+}
+
+// FPエイド維持判定の最終承認ステータス
+enum FinalApprovalStatus {
+  MAINTAINED    // 維持
+  DEMOTED       // 降格
 }
 
 enum SubscriptionStatus {
@@ -1371,4 +1395,84 @@ model MtgExemption {
   @@index([status])
   @@index([createdAt])
   @@map("mtg_exemptions")
+}
+
+// =====================
+// MGR（FPエイドマネージャー）管理機能
+// =====================
+
+// MGRレンジ査定ステータス
+enum ManagerAssessmentStatus {
+  PENDING    // 査定待ち
+  CONFIRMED  // 確定
+  DEMOTED    // 降格処理済み
+}
+
+// MGRレンジマスタ
+model ManagerRange {
+  id                  String   @id @default(cuid())
+  rangeNumber         Int      @unique // 1, 2, 3
+  name                String   // "レンジ1", "レンジ2", "レンジ3"
+  minHalfYearlySales  Int      // 昇級条件売上（円）
+  maintainSales       Int      // 維持条件売上（円）
+  isActive            Boolean  @default(true) // 有効フラグ
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  users               User[]   // このレンジのMGR一覧
+  previousAssessments ManagerAssessment[] @relation("PreviousRange")
+  newAssessments      ManagerAssessment[] @relation("NewRange")
+
+  @@index([rangeNumber])
+  @@map("manager_ranges")
+}
+
+// MGR月次売上・被保険者数（CSVインポートデータ）
+model ManagerMonthlySales {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  month         String   // YYYY-MM 形式
+  salesAmount   Int      // 売上金額（円）
+  insuredCount  Int      // 被保険者数
+  isLocked      Boolean  @default(false) // ロック済み（確定後は変更不可）
+  importedBy    String?  // インポートした管理者ID
+  importedAt    DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId, month])
+  @@index([userId])
+  @@index([month])
+  @@map("manager_monthly_sales")
+}
+
+// MGR半期査定結果
+model ManagerAssessment {
+  id                  String   @id @default(cuid())
+  userId              String
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  periodYear          Int      // 年（2025等）
+  periodHalf          Int      // 1（上期: 1-6月）or 2（下期: 7-12月）
+  totalSales          Int      // 期間売上合計（円）
+  totalInsuredCount   Int      // 期間被保険者数合計
+  previousRangeId     String?  // 前期レンジID
+  previousRange       ManagerRange? @relation("PreviousRange", fields: [previousRangeId], references: [id], onDelete: SetNull)
+  newRangeId          String?  // 新レンジID（査定後）
+  newRange            ManagerRange? @relation("NewRange", fields: [newRangeId], references: [id], onDelete: SetNull)
+  isExempt            Boolean  @default(false) // 査定免除中（昇格後4ヶ月以内）
+  isDemotionCandidate Boolean  @default(false) // 降格候補（120万円未満）
+  status              ManagerAssessmentStatus @default(PENDING)
+  confirmedBy         String?  // 確定した管理者ID
+  confirmedAt         DateTime? // 確定日時
+  notes               String?  @db.Text // メモ
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([userId, periodYear, periodHalf])
+  @@index([userId])
+  @@index([periodYear, periodHalf])
+  @@index([status])
+  @@index([isDemotionCandidate])
+  @@map("manager_assessments")
 }

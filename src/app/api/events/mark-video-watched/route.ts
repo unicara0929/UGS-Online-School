@@ -46,13 +46,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 期限チェック
-    if (event.attendanceDeadline && new Date() > new Date(event.attendanceDeadline)) {
-      return NextResponse.json(
-        { success: false, error: '出席完了期限を過ぎています' },
-        { status: 400 }
-      )
-    }
+    // 期限超過チェック（ブロックせず、フラグのみ設定）
+    const isOverdue = event.attendanceDeadline ? new Date() > new Date(event.attendanceDeadline) : false
 
     // イベント登録を確認
     const registration = await prisma.eventRegistration.findUnique({
@@ -72,6 +67,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 録画視聴済みとして記録
+    const now = new Date()
     const updatedRegistration = await prisma.eventRegistration.update({
       where: {
         userId_eventId: {
@@ -81,6 +77,9 @@ export async function POST(request: NextRequest) {
       },
       data: {
         videoWatched: true,
+        videoCompletedAt: now,
+        // 期限超過の場合、フラグを設定
+        ...(isOverdue && { isOverdue: true }),
       },
     })
 

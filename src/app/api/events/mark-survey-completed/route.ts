@@ -46,13 +46,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 期限チェック
-    if (event.attendanceDeadline && new Date() > new Date(event.attendanceDeadline)) {
-      return NextResponse.json(
-        { success: false, error: '出席完了期限を過ぎています' },
-        { status: 400 }
-      )
-    }
+    // 期限超過チェック（ブロックせず、フラグのみ設定）
+    const isOverdue = event.attendanceDeadline ? new Date() > new Date(event.attendanceDeadline) : false
 
     // イベント登録を確認
     const registration = await prisma.eventRegistration.findUnique({
@@ -71,7 +66,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // アンケート回答済みとして記録
+    // 動画視聴完了チェック（アンケートは動画視聴完了後のみ可能）
+    if (!registration.videoWatched) {
+      return NextResponse.json(
+        { success: false, error: '先に動画を最後まで視聴してください' },
+        { status: 400 }
+      )
+    }
+
     const updatedRegistration = await prisma.eventRegistration.update({
       where: {
         userId_eventId: {
@@ -81,6 +83,9 @@ export async function POST(request: NextRequest) {
       },
       data: {
         surveyCompleted: true,
+        surveyCompletedAt: new Date(),
+        // 期限超過の場合、フラグを設定
+        ...(isOverdue && { isOverdue: true }),
       },
     })
 

@@ -78,6 +78,23 @@ export async function PUT(request: NextRequest) {
         data: updateData
       })
 
+      // RoleChangeHistoryに記録
+      const admin = await prisma.user.findUnique({
+        where: { id: authUser!.id },
+        select: { name: true }
+      })
+
+      await prisma.roleChangeHistory.create({
+        data: {
+          userId,
+          fromRole: currentRole,
+          toRole: prismaRole,
+          reason: isDowngradeToMember ? '管理者による降格' : isUpgradeToFP ? '管理者によるFP昇格' : '管理者によるロール変更',
+          changedBy: authUser!.id,
+          changedByName: admin?.name ?? '管理者',
+        }
+      })
+
       // FPエイド/マネージャーからメンバーに降格する場合は昇格申請データをリセット
       if (isDowngradeToMember) {
         // FPPromotionApplicationを削除（存在する場合）

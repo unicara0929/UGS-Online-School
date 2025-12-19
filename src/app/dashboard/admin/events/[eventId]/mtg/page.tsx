@@ -23,7 +23,11 @@ import {
   AlertCircle,
   Key,
   Link as LinkIcon,
-  Calendar
+  Calendar,
+  CreditCard,
+  UserCheck,
+  UserX,
+  MessageSquare
 } from 'lucide-react'
 
 interface MtgParticipant {
@@ -33,8 +37,11 @@ interface MtgParticipant {
   memberId: string | null
   status: 'not_responded' | 'registered' | 'exempted' | 'attended_code' | 'attended_video' | 'video_incomplete'
   statusLabel: string
+  registrationId: string | null
   isRegistered: boolean
   registeredAt: string | null
+  // 月額費決済ステータス
+  paymentStatus: 'paid' | 'unpaid' | 'unknown'
   // 参加意思
   participationIntent: 'UNDECIDED' | 'WILL_ATTEND' | 'WILL_NOT_ATTEND'
   participationIntentAt: string | null
@@ -42,8 +49,18 @@ interface MtgParticipant {
   attendanceMethod: string | null
   attendanceCompletedAt: string | null
   videoWatched: boolean
+  videoCompletedAt: string | null
   surveyCompleted: boolean
+  surveyCompletedAt: string | null
+  // 期限超過・GM面談・最終承認
+  isOverdue: boolean
+  gmInterviewCompleted: boolean
+  gmInterviewCompletedAt: string | null
+  finalApproval: 'MAINTAINED' | 'DEMOTED' | null
+  finalApprovalAt: string | null
+  // 免除申請
   hasExemption: boolean
+  exemptionId: string | null
   exemptionStatus: string | null
   exemptionReason: string | null
 }
@@ -78,6 +95,14 @@ interface Summary {
   // その他
   videoIncomplete: number
   notResponded: number
+  // FPエイド維持判定用
+  overdue: number
+  needGmInterview: number
+  maintained: number
+  demoted: number
+  // 決済状況
+  paymentPaid: number
+  paymentUnpaid: number
 }
 
 function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: string }> }) {
@@ -93,6 +118,49 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
   useEffect(() => {
     fetchData()
   }, [eventId])
+
+  // GM面談完了をマーク
+  const handleGmInterview = async (registrationId: string) => {
+    try {
+      const response = await fetch(`/api/admin/mtg-registrations/${registrationId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ action: 'gm_interview' }),
+      })
+      const data = await response.json()
+      if (response.ok && data.success) {
+        fetchData() // リロード
+      } else {
+        alert(data.error || 'GM面談の記録に失敗しました')
+      }
+    } catch (err) {
+      console.error('Error marking GM interview:', err)
+      alert('GM面談の記録中にエラーが発生しました')
+    }
+  }
+
+  // 最終承認を設定
+  const handleFinalApproval = async (registrationId: string, approval: 'MAINTAINED' | 'DEMOTED' | '') => {
+    if (!approval) return // 未設定の場合は何もしない
+    try {
+      const response = await fetch(`/api/admin/mtg-registrations/${registrationId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ action: 'final_approval', finalApproval: approval }),
+      })
+      const data = await response.json()
+      if (response.ok && data.success) {
+        fetchData() // リロード
+      } else {
+        alert(data.error || '最終承認の設定に失敗しました')
+      }
+    } catch (err) {
+      console.error('Error setting final approval:', err)
+      alert('最終承認の設定中にエラーが発生しました')
+    }
+  }
 
   const fetchData = async () => {
     try {
@@ -151,6 +219,12 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
     if (filter === 'exempted') return p.status === 'exempted'
     if (filter === 'incomplete') return p.status === 'video_incomplete'
     if (filter === 'not_responded') return p.status === 'not_responded'
+    // 新規フィルター
+    if (filter === 'overdue') return p.isOverdue
+    if (filter === 'need_gm') return p.isOverdue && !p.gmInterviewCompleted
+    if (filter === 'maintained') return p.finalApproval === 'MAINTAINED'
+    if (filter === 'demoted') return p.finalApproval === 'DEMOTED'
+    if (filter === 'unpaid') return p.paymentStatus === 'unpaid'
     return true
   })
 
@@ -399,7 +473,7 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                   <CardTitle>FPエイド参加状況</CardTitle>
                   <CardDescription>全FPエイドの出席状況を確認できます</CardDescription>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button
                     variant={filter === 'all' ? 'default' : 'outline'}
                     size="sm"
@@ -435,6 +509,38 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                   >
                     未対応
                   </Button>
+                  <Button
+                    variant={filter === 'overdue' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFilter('overdue')}
+                    className={filter === 'overdue' ? '' : 'text-orange-600 border-orange-300'}
+                  >
+                    期限超過
+                  </Button>
+                  <Button
+                    variant={filter === 'need_gm' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFilter('need_gm')}
+                    className={filter === 'need_gm' ? '' : 'text-red-600 border-red-300'}
+                  >
+                    GM面談なし
+                  </Button>
+                  <Button
+                    variant={filter === 'demoted' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFilter('demoted')}
+                    className={filter === 'demoted' ? '' : 'text-red-600 border-red-300'}
+                  >
+                    降格予定
+                  </Button>
+                  <Button
+                    variant={filter === 'maintained' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFilter('maintained')}
+                    className={filter === 'maintained' ? '' : 'text-green-600 border-green-300'}
+                  >
+                    維持
+                  </Button>
                 </div>
               </div>
             </CardHeader>
@@ -444,17 +550,20 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                   <TableRow className="bg-slate-50">
                     <TableHead>会員番号</TableHead>
                     <TableHead>名前</TableHead>
-                    <TableHead>選択ステータス</TableHead>
+                    <TableHead>月額費</TableHead>
+                    <TableHead>選択</TableHead>
                     <TableHead>正式参加</TableHead>
-                    <TableHead>動画視聴</TableHead>
+                    <TableHead>動画</TableHead>
                     <TableHead>アンケート</TableHead>
-                    <TableHead>免除申請</TableHead>
+                    <TableHead>免除</TableHead>
+                    <TableHead>GM面談</TableHead>
+                    <TableHead>最終承認</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredParticipants.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-slate-500">
+                      <TableCell colSpan={10} className="text-center py-8 text-slate-500">
                         該当するFPエイドがいません
                       </TableCell>
                     </TableRow>
@@ -495,11 +604,28 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                       const officialStatus = isOfficiallyAttended()
 
                       return (
-                        <TableRow key={participant.userId} className="hover:bg-slate-50">
+                        <TableRow key={participant.userId} className={`hover:bg-slate-50 ${participant.isOverdue ? 'bg-orange-50' : ''}`}>
                           <TableCell className="font-mono text-sm">
                             {participant.memberId || '-'}
                           </TableCell>
-                          <TableCell className="font-medium">{participant.name || '名前未設定'}</TableCell>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center gap-1">
+                              {participant.name || '名前未設定'}
+                              {participant.isOverdue && (
+                                <Badge className="bg-orange-500 text-xs">期限超過</Badge>
+                              )}
+                            </div>
+                          </TableCell>
+                          {/* 月額費決済 */}
+                          <TableCell>
+                            {participant.paymentStatus === 'paid' ? (
+                              <Badge className="bg-green-100 text-green-700 border-green-300">済</Badge>
+                            ) : participant.paymentStatus === 'unpaid' ? (
+                              <Badge className="bg-red-100 text-red-700 border-red-300">未</Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-slate-400">-</Badge>
+                            )}
+                          </TableCell>
                           <TableCell>
                             {getIntentBadge()}
                           </TableCell>
@@ -520,35 +646,73 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                               <XCircle className="h-5 w-5 text-slate-300" />
                             )}
                           </TableCell>
-                          <TableCell>
+                          {/* アンケート提出日時 */}
+                          <TableCell className="text-xs">
                             {participant.surveyCompleted ? (
-                              <CheckCircle className="h-5 w-5 text-green-600" />
+                              <div className="flex items-center gap-1">
+                                <CheckCircle className="h-4 w-4 text-green-600" />
+                                {participant.surveyCompletedAt && (
+                                  <span className="text-slate-500">
+                                    {formatDate(participant.surveyCompletedAt)}
+                                  </span>
+                                )}
+                              </div>
                             ) : (
                               <XCircle className="h-5 w-5 text-slate-300" />
                             )}
                           </TableCell>
-                          <TableCell className="text-sm max-w-xs">
+                          {/* 免除申請 */}
+                          <TableCell className="text-sm">
                             {participant.hasExemption ? (
-                              <div className="space-y-1">
-                                <Badge
+                              <Badge
+                                variant="outline"
+                                className={
+                                  participant.exemptionStatus === 'APPROVED'
+                                    ? 'bg-green-50 text-green-700 border-green-300'
+                                    : participant.exemptionStatus === 'REJECTED'
+                                    ? 'bg-red-50 text-red-700 border-red-300'
+                                    : 'bg-yellow-50 text-yellow-700 border-yellow-300'
+                                }
+                              >
+                                {participant.exemptionStatus === 'APPROVED' ? '承認' :
+                                 participant.exemptionStatus === 'REJECTED' ? '却下' : '審査中'}
+                              </Badge>
+                            ) : (
+                              <span className="text-slate-400">-</span>
+                            )}
+                          </TableCell>
+                          {/* GM面談 */}
+                          <TableCell>
+                            {participant.isOverdue ? (
+                              participant.gmInterviewCompleted ? (
+                                <Badge className="bg-green-100 text-green-700 border-green-300">済</Badge>
+                              ) : (
+                                <Button
+                                  size="sm"
                                   variant="outline"
-                                  className={
-                                    participant.exemptionStatus === 'APPROVED'
-                                      ? 'bg-green-50 text-green-700 border-green-300'
-                                      : participant.exemptionStatus === 'REJECTED'
-                                      ? 'bg-red-50 text-red-700 border-red-300'
-                                      : 'bg-yellow-50 text-yellow-700 border-yellow-300'
-                                  }
+                                  className="text-xs h-7 text-orange-600 border-orange-300 hover:bg-orange-50"
+                                  onClick={() => handleGmInterview(participant.registrationId!)}
+                                  disabled={!participant.registrationId}
                                 >
-                                  {participant.exemptionStatus === 'APPROVED' ? '承認' :
-                                   participant.exemptionStatus === 'REJECTED' ? '却下' : '未処理'}
-                                </Badge>
-                                {participant.exemptionReason && (
-                                  <p className="text-xs text-slate-500 truncate" title={participant.exemptionReason}>
-                                    {participant.exemptionReason}
-                                  </p>
-                                )}
-                              </div>
+                                  面談済
+                                </Button>
+                              )
+                            ) : (
+                              <span className="text-slate-400">-</span>
+                            )}
+                          </TableCell>
+                          {/* 最終承認 */}
+                          <TableCell>
+                            {participant.registrationId ? (
+                              <select
+                                className="text-xs border rounded px-2 py-1"
+                                value={participant.finalApproval || ''}
+                                onChange={(e) => handleFinalApproval(participant.registrationId!, e.target.value as 'MAINTAINED' | 'DEMOTED' | '')}
+                              >
+                                <option value="">未設定</option>
+                                <option value="MAINTAINED">維持</option>
+                                <option value="DEMOTED">降格</option>
+                              </select>
                             ) : (
                               <span className="text-slate-400">-</span>
                             )}

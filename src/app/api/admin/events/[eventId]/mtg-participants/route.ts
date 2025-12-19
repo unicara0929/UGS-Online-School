@@ -53,7 +53,7 @@ export async function GET(
       )
     }
 
-    // 全FPエイドを取得
+    // 全FPエイドを取得（サブスクリプション情報も含む）
     const fpUsers = await prisma.user.findMany({
       where: {
         role: 'FP',
@@ -63,6 +63,13 @@ export async function GET(
         name: true,
         email: true,
         memberId: true,
+        subscriptions: {
+          select: {
+            status: true,
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
       },
       orderBy: { name: 'asc' }
     })
@@ -71,14 +78,22 @@ export async function GET(
     const registrations = await prisma.eventRegistration.findMany({
       where: { eventId },
       select: {
+        id: true,
         userId: true,
         paymentStatus: true,
         attendanceMethod: true,
         attendanceCompletedAt: true,
         videoWatched: true,
+        videoCompletedAt: true,
         surveyCompleted: true,
+        surveyCompletedAt: true,
         participationIntent: true,
         participationIntentAt: true,
+        isOverdue: true,
+        gmInterviewCompleted: true,
+        gmInterviewCompletedAt: true,
+        finalApproval: true,
+        finalApprovalAt: true,
         createdAt: true,
       }
     })
@@ -87,6 +102,7 @@ export async function GET(
     const exemptions = await prisma.mtgExemption.findMany({
       where: { eventId },
       select: {
+        id: true,
         userId: true,
         reason: true,
         status: true,
@@ -131,6 +147,13 @@ export async function GET(
         statusLabel = '未対応'
       }
 
+      // 月額費決済ステータスを判定
+      const subscription = user.subscriptions[0]
+      let paymentStatus: 'paid' | 'unpaid' | 'unknown' = 'unknown'
+      if (subscription) {
+        paymentStatus = subscription.status === 'ACTIVE' ? 'paid' : 'unpaid'
+      }
+
       return {
         userId: user.id,
         name: user.name,
@@ -139,8 +162,11 @@ export async function GET(
         status,
         statusLabel,
         // 登録情報
+        registrationId: registration?.id ?? null,
         isRegistered: !!registration,
         registeredAt: registration?.createdAt?.toISOString() ?? null,
+        // 月額費決済ステータス
+        paymentStatus,
         // 参加意思
         participationIntent: registration?.participationIntent ?? 'UNDECIDED',
         participationIntentAt: registration?.participationIntentAt?.toISOString() ?? null,
@@ -148,9 +174,18 @@ export async function GET(
         attendanceMethod: registration?.attendanceMethod ?? null,
         attendanceCompletedAt: registration?.attendanceCompletedAt?.toISOString() ?? null,
         videoWatched: registration?.videoWatched ?? false,
+        videoCompletedAt: registration?.videoCompletedAt?.toISOString() ?? null,
         surveyCompleted: registration?.surveyCompleted ?? false,
+        surveyCompletedAt: registration?.surveyCompletedAt?.toISOString() ?? null,
+        // 期限超過・GM面談・最終承認
+        isOverdue: registration?.isOverdue ?? false,
+        gmInterviewCompleted: registration?.gmInterviewCompleted ?? false,
+        gmInterviewCompletedAt: registration?.gmInterviewCompletedAt?.toISOString() ?? null,
+        finalApproval: registration?.finalApproval ?? null,
+        finalApprovalAt: registration?.finalApprovalAt?.toISOString() ?? null,
         // 免除申請
         hasExemption: !!exemption,
+        exemptionId: exemption?.id ?? null,
         exemptionStatus: exemption?.status ?? null,
         exemptionReason: exemption?.reason ?? null,
       }
@@ -180,6 +215,14 @@ export async function GET(
       // その他
       videoIncomplete: participants.filter(p => p.status === 'video_incomplete').length,
       notResponded: participants.filter(p => p.status === 'not_responded').length,
+      // FPエイド維持判定用
+      overdue: participants.filter(p => p.isOverdue).length,
+      needGmInterview: participants.filter(p => p.isOverdue && !p.gmInterviewCompleted).length,
+      maintained: participants.filter(p => p.finalApproval === 'MAINTAINED').length,
+      demoted: participants.filter(p => p.finalApproval === 'DEMOTED').length,
+      // 決済状況
+      paymentPaid: participants.filter(p => p.paymentStatus === 'paid').length,
+      paymentUnpaid: participants.filter(p => p.paymentStatus === 'unpaid').length,
     }
 
     return NextResponse.json({

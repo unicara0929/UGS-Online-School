@@ -210,15 +210,13 @@ export async function POST(request: NextRequest) {
         },
       })
     } else {
-      // 新規申請を作成（自動承認）
+      // 新規申請を作成（審査待ち）
       exemption = await prisma.mtgExemption.create({
         data: {
           userId: authUser!.id,
           eventId,
           reason: trimmedReason,
-          status: 'APPROVED', // 自動承認
-          reviewedAt: new Date(),
-          adminNotes: '自動承認',
+          status: 'PENDING', // 管理者による審査待ち
         },
         include: {
           event: {
@@ -234,7 +232,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: existingExemption ? '免除申請を更新しました' : '免除申請が承認されました',
+      message: existingExemption ? '免除申請を更新しました' : '免除申請を受け付けました。管理者による審査をお待ちください。',
       exemption,
       isUpdate: !!existingExemption,
     })
