@@ -108,26 +108,6 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
     }
   }
 
-  // 昇格条件のモックデータ（これは別のAPIで取得するべき）
-  const promotionConditions = {
-    compensationAverage: {
-      current: stats?.recentAverage || 0,
-      target: 70000,
-      progress: stats?.recentAverage ? Math.min(100, Math.round((stats.recentAverage / 70000) * 100)) : 0
-    },
-    memberReferrals: {
-      current: 6,
-      target: 8,
-      progress: 75
-    },
-    fpReferrals: {
-      current: 2,
-      target: 4,
-      progress: 50
-    },
-    contractAchieved: false
-  }
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -388,79 +368,7 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
         </Card>
       )}
 
-      {/* マネージャー昇格条件 */}
-      {userRole === 'fp' && (
-        <Card>
-          <CardHeader className="p-4 sm:p-6">
-            <CardTitle className="flex items-center text-base sm:text-lg">
-              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-              マネージャー昇格条件
-            </CardTitle>
-            <CardDescription className="text-xs sm:text-sm">
-              昇格に必要な条件の進捗状況
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-4 sm:p-6 pt-0">
-            <div className="space-y-3 sm:space-y-4">
-              <div>
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 mb-2">
-                  <span className="text-xs sm:text-sm font-medium">報酬実績（直近6ヶ月平均）</span>
-                  <span className="text-xs sm:text-sm text-slate-600">{formatCurrency(promotionConditions.compensationAverage.current)} / {formatCurrency(promotionConditions.compensationAverage.target)}</span>
-                </div>
-                <Progress value={promotionConditions.compensationAverage.progress} className="h-2" />
-                <Badge variant={promotionConditions.compensationAverage.progress >= 100 ? "success" : "secondary"} className="mt-1 text-xs">
-                  {promotionConditions.compensationAverage.progress >= 100 ? "達成" : "未達成"}
-                </Badge>
-              </div>
-
-              <div>
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 mb-2">
-                  <span className="text-xs sm:text-sm font-medium">UGS会員紹介（6ヶ月間）</span>
-                  <span className="text-xs sm:text-sm text-slate-600">{promotionConditions.memberReferrals.current} / {promotionConditions.memberReferrals.target}名</span>
-                </div>
-                <Progress value={promotionConditions.memberReferrals.progress} className="h-2" />
-                <Badge variant={promotionConditions.memberReferrals.progress >= 100 ? "success" : "secondary"} className="mt-1 text-xs">
-                  {promotionConditions.memberReferrals.progress >= 100 ? "達成" : "未達成"}
-                </Badge>
-              </div>
-
-              <div>
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 mb-2">
-                  <span className="text-xs sm:text-sm font-medium">FPエイド紹介（6ヶ月間）</span>
-                  <span className="text-xs sm:text-sm text-slate-600">{promotionConditions.fpReferrals.current} / {promotionConditions.fpReferrals.target}名</span>
-                </div>
-                <Progress value={promotionConditions.fpReferrals.progress} className="h-2" />
-                <Badge variant={promotionConditions.fpReferrals.progress >= 100 ? "success" : "secondary"} className="mt-1 text-xs">
-                  {promotionConditions.fpReferrals.progress >= 100 ? "達成" : "未達成"}
-                </Badge>
-              </div>
-
-              <div>
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 mb-2">
-                  <span className="text-xs sm:text-sm font-medium">契約実績（直20被保）</span>
-                  <Badge variant={promotionConditions.contractAchieved ? "success" : "secondary"} className="text-xs w-fit">
-                    {promotionConditions.contractAchieved ? "達成" : "未達成"}
-                  </Badge>
-                </div>
-              </div>
-
-              <div className="pt-3 sm:pt-4">
-                <Button
-                  className="w-full text-sm"
-                  disabled={!(
-                    promotionConditions.compensationAverage.progress >= 100 &&
-                    promotionConditions.memberReferrals.progress >= 100 &&
-                    promotionConditions.fpReferrals.progress >= 100 &&
-                    promotionConditions.contractAchieved
-                  )}
-                >
-                  面接申請
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* マネージャー昇格条件 - FPDashboardに統合したため削除 */}
     </div>
   )
 }
