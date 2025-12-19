@@ -42,6 +42,7 @@ interface Order {
   displayNameKana: string
   phoneNumber: string
   email: string
+  cardAddress: string | null
   deliveryMethod: 'PICKUP' | 'SHIPPING'
   postalCode: string | null
   prefecture: string | null
@@ -936,6 +937,9 @@ function OrderManagement() {
                             <div><dt className="inline text-slate-400">フリガナ: </dt><dd className="inline">{order.displayNameKana}</dd></div>
                             <div><dt className="inline text-slate-400">電話番号: </dt><dd className="inline">{order.phoneNumber}</dd></div>
                             <div><dt className="inline text-slate-400">メール: </dt><dd className="inline">{order.email}</dd></div>
+                            {order.cardAddress && (
+                              <div><dt className="inline text-slate-400">住所: </dt><dd className="inline">{order.cardAddress}</dd></div>
+                            )}
                           </dl>
                         </div>
 

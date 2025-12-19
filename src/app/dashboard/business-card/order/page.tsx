@@ -26,6 +26,8 @@ interface FormData {
   displayNameKana: string
   phoneNumber: string
   email: string
+  // 名刺記載用住所
+  cardAddress: string
   deliveryMethod: DeliveryMethod
   postalCode: string
   prefecture: string
@@ -74,6 +76,7 @@ function BusinessCardOrderContent() {
     displayNameKana: '',
     phoneNumber: '',
     email: '',
+    cardAddress: '',
     deliveryMethod: 'SHIPPING', // デフォルトは郵送
     postalCode: '',
     prefecture: '',
@@ -640,6 +643,20 @@ function BusinessCardOrderContent() {
                       )}
                     </div>
 
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        住所
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.cardAddress}
+                        onChange={(e) => handleInputChange('cardAddress', e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                        placeholder="例：愛知県名古屋市中区栄1-2-3"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">名刺に記載する住所（任意）</p>
+                    </div>
+
                   </CardContent>
                 </Card>
 
@@ -818,6 +835,12 @@ function BusinessCardOrderContent() {
                           <dt className="text-sm text-slate-500">メールアドレス</dt>
                           <dd className="font-medium">{formData.email}</dd>
                         </div>
+                        {formData.cardAddress && (
+                          <div className="md:col-span-2">
+                            <dt className="text-sm text-slate-500">住所</dt>
+                            <dd className="font-medium">{formData.cardAddress}</dd>
+                          </div>
+                        )}
                       </dl>
                     </div>
 

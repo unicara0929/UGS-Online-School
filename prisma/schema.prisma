@@ -985,6 +985,7 @@ model BusinessCardOrder {
   displayNameKana   String                      // 氏名フリガナ
   phoneNumber       String                      // 電話番号
   email             String                      // メールアドレス
+  cardAddress       String?                     // 名刺記載用住所（任意）
   // 受取方法
   deliveryMethod    BusinessCardDeliveryMethod  // 受取方法（PICKUP: 本社手渡し / SHIPPING: 郵送）
   // 郵送先住所（郵送の場合必須、手渡しの場合は任意）
