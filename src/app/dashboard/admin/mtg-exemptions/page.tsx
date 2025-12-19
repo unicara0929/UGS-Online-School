@@ -208,7 +208,7 @@ function MtgExemptionsPageContent() {
       <Sidebar />
 
       <div className="flex-1 md:ml-64">
-        <PageHeader title="全体MTG免除申請管理" />
+        <PageHeader title="全体MTG欠席申請管理" />
 
         <main className="px-4 sm:px-6 lg:px-8 py-8">
           <div className="space-y-6 max-w-7xl mx-auto">
@@ -289,7 +289,7 @@ function MtgExemptionsPageContent() {
             {/* 申請一覧 */}
             <Card>
               <CardHeader>
-                <CardTitle>免除申請一覧</CardTitle>
+                <CardTitle>欠席申請一覧</CardTitle>
               </CardHeader>
               <CardContent>
                 {isLoading ? (
@@ -300,7 +300,7 @@ function MtgExemptionsPageContent() {
                   <div className="text-center py-12 text-red-600">{error}</div>
                 ) : exemptions.length === 0 ? (
                   <div className="text-center py-12 text-slate-500">
-                    免除申請がありません
+                    欠席申請がありません
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
@@ -394,13 +394,13 @@ function MtgExemptionsPageContent() {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>
-              {reviewAction === 'APPROVED' ? '免除申請を承認' : '免除申請を却下'}
+              {reviewAction === 'APPROVED' ? '欠席申請を承認' : '欠席申請を却下'}
             </DialogTitle>
             <DialogDescription>
               {selectedExemption && (
                 <>
                   <strong>{selectedExemption.user.name}</strong>さんの
-                  <strong>{selectedExemption.event.title}</strong>への免除申請を
+                  <strong>{selectedExemption.event.title}</strong>への欠席申請を
                   {reviewAction === 'APPROVED' ? '承認' : '却下'}します。
                 </>
               )}

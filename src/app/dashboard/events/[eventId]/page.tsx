@@ -68,7 +68,7 @@ type EventDetail = {
   // 参加意思（全体MTG用）
   participationIntent: 'UNDECIDED' | 'WILL_ATTEND' | 'WILL_NOT_ATTEND'
   participationIntentAt: string | null
-  // 免除申請情報
+  // 欠席申請情報
   exemption: {
     id: string
     status: 'PENDING' | 'APPROVED' | 'REJECTED'
@@ -506,7 +506,7 @@ function EventDetailPageContent() {
                                   <span className="font-bold text-lg">② 不参加（動画視聴で出席）</span>
                                   <span className="text-xs opacity-70 mt-1">動画視聴+アンケート回答で出席扱い</span>
                                 </Button>
-                                {/* 免除申請 */}
+                                {/* 欠席申請 */}
                                 <Button
                                   size="lg"
                                   variant="outline"
@@ -514,7 +514,7 @@ function EventDetailPageContent() {
                                   onClick={() => document.getElementById('exemption-section')?.scrollIntoView({ behavior: 'smooth' })}
                                   disabled={isSubmitting || isApplicationExpired}
                                 >
-                                  <span className="font-bold text-lg">③ 免除申請をする</span>
+                                  <span className="font-bold text-lg">③ 欠席申請をする</span>
                                   <span className="text-xs opacity-70 mt-1">やむを得ない事情がある場合</span>
                                 </Button>
                               </div>
@@ -562,7 +562,7 @@ function EventDetailPageContent() {
                               className="flex-1 text-purple-600"
                               onClick={() => document.getElementById('exemption-section')?.scrollIntoView({ behavior: 'smooth' })}
                             >
-                              免除申請
+                              欠席申請
                             </Button>
                           </div>
                         </div>
@@ -601,14 +601,14 @@ function EventDetailPageContent() {
                               className="flex-1 text-purple-600"
                               onClick={() => document.getElementById('exemption-section')?.scrollIntoView({ behavior: 'smooth' })}
                             >
-                              免除申請
+                              欠席申請
                             </Button>
                           </div>
                         </div>
                       )}
                       {event.exemption?.status === 'PENDING' && (
                         <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg text-center">
-                          <p className="text-sm text-green-800">✓ 免除申請が承認されました</p>
+                          <p className="text-sm text-green-800">✓ 欠席申請が承認されました</p>
                         </div>
                       )}
                     </div>
@@ -696,10 +696,10 @@ function EventDetailPageContent() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* 免除申請中・承認済みの場合のメッセージ */}
+                  {/* 欠席申請中・承認済みの場合のメッセージ */}
                   {event.isRecurring && event.exemption?.status === 'APPROVED' ? (
                     <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                      <p className="text-sm text-purple-700">免除が承認されています。出席確認は不要です。</p>
+                      <p className="text-sm text-purple-700">欠席申請が承認されています。出席確認は不要です。</p>
                     </div>
                   ) : (
                     <>
@@ -775,18 +775,18 @@ function EventDetailPageContent() {
               </Card>
             )}
 
-            {/* 全体MTG免除申請セクション */}
+            {/* 全体MTG欠席申請セクション */}
             {event.isRecurring && user && !event.attendanceCompletedAt && (
               <Card id="exemption-section">
                 <CardHeader>
-                  <CardTitle>全体MTG免除申請</CardTitle>
+                  <CardTitle>全体MTG欠席申請</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {event.exemption?.status === 'APPROVED' ? (
                     <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg border border-green-200">
                       <CheckCircle2 className="h-6 w-6 text-green-600" />
                       <div>
-                        <p className="font-semibold text-green-800">免除が承認されました</p>
+                        <p className="font-semibold text-green-800">欠席申請が承認されました</p>
                         <p className="text-sm text-green-700">今月の全体MTGへの参加は免除されています</p>
                         {event.exemption.adminNotes && (
                           <p className="text-xs text-slate-600 mt-1">管理者コメント: {event.exemption.adminNotes}</p>
@@ -796,7 +796,7 @@ function EventDetailPageContent() {
                   ) : event.exemption?.status === 'REJECTED' ? (
                     <div className="flex items-center gap-3 p-4 bg-red-50 rounded-lg border border-red-200">
                       <div className="flex-1">
-                        <p className="font-semibold text-red-800">免除申請が却下されました</p>
+                        <p className="font-semibold text-red-800">欠席申請が却下されました</p>
                         <p className="text-sm text-red-700">参加コード入力または録画視聴+アンケートで出席確認を行ってください</p>
                         {event.exemption.adminNotes && (
                           <p className="text-xs text-slate-600 mt-1">却下理由: {event.exemption.adminNotes}</p>
@@ -807,7 +807,7 @@ function EventDetailPageContent() {
                     <div className="space-y-3">
                       <div className="flex items-center gap-3 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
                         <div className="flex-1">
-                          <p className="font-semibold text-yellow-800">免除申請を審査中です</p>
+                          <p className="font-semibold text-yellow-800">欠席申請を審査中です</p>
                           <p className="text-sm text-yellow-700">管理者からの連絡をお待ちください</p>
                         </div>
                       </div>
@@ -822,7 +822,7 @@ function EventDetailPageContent() {
                   ) : (
                     <div className="space-y-3">
                       <p className="text-sm text-slate-600">
-                        やむを得ない事情（冠婚葬祭、急な家族の事情など）で参加できない場合は、事前に免除申請を行ってください。
+                        やむを得ない事情（冠婚葬祭、急な家族の事情など）で参加できない場合は、事前に欠席申請を行ってください。
                       </p>
                       <MtgExemptionForm
                         eventId={event.id}

@@ -98,7 +98,7 @@ export async function GET(
       }
     })
 
-    // 免除申請を取得
+    // 欠席申請を取得
     const exemptions = await prisma.mtgExemption.findMany({
       where: { eventId },
       select: {
@@ -110,9 +110,13 @@ export async function GET(
       }
     })
 
-    // 登録情報と免除申請をマップ化
+    // 登録情報と欠席申請をマップ化
     const registrationMap = new Map(registrations.map(r => [r.userId, r]))
     const exemptionMap = new Map(exemptions.map(e => [e.userId, e]))
+
+    // 視聴期限を過ぎているかの判定用
+    const now = new Date()
+    const deadlineDate = event.attendanceDeadline ? new Date(event.attendanceDeadline) : null
 
     // 各FPエイドのステータスを計算
     const participants = fpUsers.map(user => {
@@ -124,10 +128,10 @@ export async function GET(
 
       if (exemption && exemption.status === 'APPROVED') {
         status = 'exempted'
-        statusLabel = '免除承認済み'
+        statusLabel = '欠席承認済み'
       } else if (exemption && exemption.status === 'PENDING') {
         status = 'exempted'
-        statusLabel = '免除申請中'
+        statusLabel = '欠席申請中'
       } else if (registration?.attendanceCompletedAt) {
         if (registration.attendanceMethod === 'CODE') {
           status = 'attended_code'
@@ -178,12 +182,21 @@ export async function GET(
         surveyCompleted: registration?.surveyCompleted ?? false,
         surveyCompletedAt: registration?.surveyCompletedAt?.toISOString() ?? null,
         // 期限超過・GM面談・最終承認
-        isOverdue: registration?.isOverdue ?? false,
+        // 期限超過の判定: 視聴期限を過ぎていて、かつ正式参加が完了していない場合
+        isOverdue: (() => {
+          // 正式参加完了済み（コード入力、動画+アンケート完了、欠席承認）の場合は期限超過にならない
+          if (status === 'attended_code' || status === 'attended_video') return false
+          if (exemption && exemption.status === 'APPROVED') return false
+          // 視聴期限が設定されていて、期限を過ぎている場合は期限超過
+          if (deadlineDate && now > deadlineDate) return true
+          // DBに保存された値も参照（手動フラグ用）
+          return registration?.isOverdue ?? false
+        })(),
         gmInterviewCompleted: registration?.gmInterviewCompleted ?? false,
         gmInterviewCompletedAt: registration?.gmInterviewCompletedAt?.toISOString() ?? null,
         finalApproval: registration?.finalApproval ?? null,
         finalApprovalAt: registration?.finalApprovalAt?.toISOString() ?? null,
-        // 免除申請
+        // 欠席申請
         hasExemption: !!exemption,
         exemptionId: exemption?.id ?? null,
         exemptionStatus: exemption?.status ?? null,

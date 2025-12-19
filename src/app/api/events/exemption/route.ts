@@ -3,13 +3,13 @@ import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
 
 /**
- * 全体MTG免除申請API
+ * 全体MTG欠席申請API
  *
  * POST: 新規申請 or 既存申請の更新
  * GET: 自分の申請一覧を取得
  */
 
-// 免除申請を取得
+// 欠席申請を取得
 export async function GET(request: NextRequest) {
   try {
     // 認証チェック
@@ -71,13 +71,13 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('[GET_EXEMPTION_ERROR]', error)
     return NextResponse.json(
-      { success: false, error: '免除申請の取得に失敗しました' },
+      { success: false, error: '欠席申請の取得に失敗しました' },
       { status: 500 }
     )
   }
 }
 
-// 免除申請を作成/更新
+// 欠席申請を作成/更新
 export async function POST(request: NextRequest) {
   try {
     // 認証チェック
@@ -102,11 +102,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 文字数チェック（20〜1000文字）
+    // 文字数チェック（10〜1000文字）
     const trimmedReason = reason.trim()
-    if (trimmedReason.length < 20) {
+    if (trimmedReason.length < 10) {
       return NextResponse.json(
-        { success: false, error: '不参加理由は20文字以上で入力してください' },
+        { success: false, error: '不参加理由は10文字以上で入力してください' },
         { status: 400 }
       )
     }
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
     const now = new Date()
     if (event.date < now) {
       return NextResponse.json(
-        { success: false, error: 'イベント開始後は免除申請できません' },
+        { success: false, error: 'イベント開始後は欠席申請できません' },
         { status: 400 }
       )
     }
@@ -180,8 +180,8 @@ export async function POST(request: NextRequest) {
           {
             success: false,
             error: existingExemption.status === 'APPROVED'
-              ? '既に免除が承認されています'
-              : '既に免除申請が却下されています。管理者にお問い合わせください'
+              ? '既に欠席申請が承認されています'
+              : '既に欠席申請が却下されています。管理者にお問い合わせください'
           },
           { status: 400 }
         )
@@ -232,14 +232,14 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: existingExemption ? '免除申請を更新しました' : '免除申請を受け付けました。管理者による審査をお待ちください。',
+      message: existingExemption ? '欠席申請を更新しました' : '欠席申請を受け付けました。管理者による審査をお待ちください。',
       exemption,
       isUpdate: !!existingExemption,
     })
   } catch (error) {
     console.error('[POST_EXEMPTION_ERROR]', error)
     return NextResponse.json(
-      { success: false, error: '免除申請の送信に失敗しました' },
+      { success: false, error: '欠席申請の送信に失敗しました' },
       { status: 500 }
     )
   }

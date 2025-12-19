@@ -130,7 +130,7 @@ export function MtgEventForm({
         </div>
         <CardDescription>
           {mode === 'create'
-            ? '全体MTGを作成します。参加者は免除申請や参加コード入力、動画視聴で出席確認ができます。'
+            ? '全体MTGを作成します。参加者は欠席申請や参加コード入力、動画視聴で出席確認ができます。'
             : '動画・資料・アンケートを設定して、参加できなかった方が後日視聴できるようにします。'
           }
         </CardDescription>

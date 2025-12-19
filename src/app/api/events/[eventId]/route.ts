@@ -164,7 +164,7 @@ export async function GET(
         // 参加意思（全体MTG用）
         participationIntent: registration?.participationIntent ?? 'UNDECIDED',
         participationIntentAt: registration?.participationIntentAt?.toISOString() ?? null,
-        // 免除申請情報
+        // 欠席申請情報
         exemption: exemption ? {
           id: exemption.id,
           status: exemption.status,

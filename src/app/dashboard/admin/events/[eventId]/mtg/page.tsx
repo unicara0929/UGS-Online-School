@@ -58,7 +58,7 @@ interface MtgParticipant {
   gmInterviewCompletedAt: string | null
   finalApproval: 'MAINTAINED' | 'DEMOTED' | null
   finalApprovalAt: string | null
-  // 免除申請
+  // 欠席申請
   hasExemption: boolean
   exemptionId: string | null
   exemptionStatus: string | null
@@ -120,14 +120,28 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
   }, [eventId])
 
   // GM面談完了をマーク
-  const handleGmInterview = async (registrationId: string) => {
+  const handleGmInterview = async (registrationId: string | null, userId: string) => {
     try {
-      const response = await fetch(`/api/admin/mtg-registrations/${registrationId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ action: 'gm_interview' }),
-      })
+      let response: Response
+
+      if (registrationId) {
+        // 既存のregistrationがある場合
+        response = await fetch(`/api/admin/mtg-registrations/${registrationId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ action: 'gm_interview' }),
+        })
+      } else {
+        // registrationがない場合は新規作成
+        response = await fetch('/api/admin/mtg-registrations/create-for-overdue', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ userId, eventId, markGmInterview: true }),
+        })
+      }
+
       const data = await response.json()
       if (response.ok && data.success) {
         fetchData() // リロード
@@ -141,10 +155,28 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
   }
 
   // 最終承認を設定
-  const handleFinalApproval = async (registrationId: string, approval: 'MAINTAINED' | 'DEMOTED' | '') => {
+  const handleFinalApproval = async (registrationId: string | null, userId: string, approval: 'MAINTAINED' | 'DEMOTED' | '') => {
     if (!approval) return // 未設定の場合は何もしない
     try {
-      const response = await fetch(`/api/admin/mtg-registrations/${registrationId}`, {
+      let regId = registrationId
+
+      // registrationがない場合は先に作成
+      if (!regId) {
+        const createRes = await fetch('/api/admin/mtg-registrations/create-for-overdue', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ userId, eventId }),
+        })
+        const createData = await createRes.json()
+        if (!createRes.ok || !createData.success) {
+          alert(createData.error || '登録の作成に失敗しました')
+          return
+        }
+        regId = createData.registration.id
+      }
+
+      const response = await fetch(`/api/admin/mtg-registrations/${regId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -451,7 +483,7 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                   <CardContent className="pt-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs text-purple-700">③ 免除申請</p>
+                        <p className="text-xs text-purple-700">③ 欠席申請</p>
                         <p className="text-2xl font-bold text-purple-700">{summary.exemptionRequested}</p>
                       </div>
                       <FileText className="h-8 w-8 text-purple-400" />
@@ -577,11 +609,11 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                     </TableRow>
                   ) : (
                     filteredParticipants.map((participant) => {
-                      // 選択ステータスのバッジ（参加/不参加/免除申請/未回答）
+                      // 選択ステータスのバッジ（参加/不参加/欠席申請/未回答）
                       const getIntentBadge = () => {
-                        // 免除申請がある場合は免除申請を優先表示
+                        // 欠席申請がある場合は欠席申請を優先表示
                         if (participant.hasExemption) {
-                          return <Badge className="bg-purple-600 text-xs">免除申請</Badge>
+                          return <Badge className="bg-purple-600 text-xs">欠席申請</Badge>
                         }
                         switch (participant.participationIntent) {
                           case 'WILL_ATTEND':
@@ -699,8 +731,7 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                                   size="sm"
                                   variant="outline"
                                   className="text-xs h-7 text-orange-600 border-orange-300 hover:bg-orange-50"
-                                  onClick={() => handleGmInterview(participant.registrationId!)}
-                                  disabled={!participant.registrationId}
+                                  onClick={() => handleGmInterview(participant.registrationId, participant.userId)}
                                 >
                                   面談済
                                 </Button>
@@ -711,11 +742,11 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                           </TableCell>
                           {/* 最終承認 */}
                           <TableCell>
-                            {participant.registrationId ? (
+                            {participant.isOverdue ? (
                               <select
                                 className="text-xs border rounded px-2 py-1"
                                 value={participant.finalApproval || ''}
-                                onChange={(e) => handleFinalApproval(participant.registrationId!, e.target.value as 'MAINTAINED' | 'DEMOTED' | '')}
+                                onChange={(e) => handleFinalApproval(participant.registrationId, participant.userId, e.target.value as 'MAINTAINED' | 'DEMOTED' | '')}
                               >
                                 <option value="">未設定</option>
                                 <option value="MAINTAINED">維持</option>

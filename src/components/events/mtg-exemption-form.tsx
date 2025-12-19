@@ -81,8 +81,8 @@ export function MtgExemptionForm({
 
     // バリデーション
     const trimmedReason = reason.trim()
-    if (trimmedReason.length < 20) {
-      setMessage({ type: 'error', text: '不参加理由は20文字以上で入力してください' })
+    if (trimmedReason.length < 10) {
+      setMessage({ type: 'error', text: '不参加理由は10文字以上で入力してください' })
       return
     }
     if (trimmedReason.length > 1000) {
@@ -168,7 +168,7 @@ export function MtgExemptionForm({
             )}
             <div>
               <p className={`font-semibold ${existingExemption.status === 'APPROVED' ? 'text-green-800' : 'text-red-800'}`}>
-                {existingExemption.status === 'APPROVED' ? '免除が承認されました' : '免除申請が却下されました'}
+                {existingExemption.status === 'APPROVED' ? '欠席申請が承認されました' : '欠席申請が却下されました'}
               </p>
               {existingExemption.adminNotes && (
                 <p className="text-sm mt-1 text-slate-600">管理者コメント: {existingExemption.adminNotes}</p>
@@ -185,14 +185,14 @@ export function MtgExemptionForm({
       <DialogTrigger asChild>
         <Button variant="outline" className="w-full">
           <FileX className="h-4 w-4 mr-2" />
-          {existingExemption ? '免除申請を編集' : '全体MTG免除申請'}
+          {existingExemption ? '欠席申請を編集' : '全体MTG欠席申請'}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>全体MTG免除申請</DialogTitle>
+          <DialogTitle>全体MTG欠席申請</DialogTitle>
           <DialogDescription>
-            やむを得ない事情で参加できない場合、事前に免除申請を行ってください。
+            やむを得ない事情で参加できない場合、事前に欠席申請を行ってください。
             承認された場合、参加条件を満たしたものとみなします。
           </DialogDescription>
         </DialogHeader>
@@ -244,8 +244,8 @@ export function MtgExemptionForm({
                 disabled={isSubmitting}
               />
               <div className="flex justify-between text-xs text-slate-500">
-                <span>20文字以上、1000文字以内</span>
-                <span className={reason.length < 20 || reason.length > 1000 ? 'text-red-500' : ''}>
+                <span>10文字以上、1000文字以内</span>
+                <span className={reason.length < 10 || reason.length > 1000 ? 'text-red-500' : ''}>
                   {reason.length}/1000
                 </span>
               </div>
@@ -255,7 +255,7 @@ export function MtgExemptionForm({
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription className="text-xs">
-                免除申請は管理者による審査があります。承認された場合のみ、不参加でも降格の対象になりません。
+                欠席申請は管理者による審査があります。承認された場合のみ、不参加でも降格の対象になりません。
                 虚偽の申請は厳正に対処されます。
               </AlertDescription>
             </Alert>
@@ -277,7 +277,7 @@ export function MtgExemptionForm({
             <Button
               type="submit"
               className="w-full"
-              disabled={isSubmitting || reason.trim().length < 20}
+              disabled={isSubmitting || reason.trim().length < 10}
             >
               {isSubmitting ? (
                 <>
@@ -287,7 +287,7 @@ export function MtgExemptionForm({
               ) : existingExemption ? (
                 '申請内容を更新'
               ) : (
-                '免除を申請する'
+                '欠席を申請する'
               )}
             </Button>
           </form>

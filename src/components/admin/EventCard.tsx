@@ -195,13 +195,13 @@ export function EventCard({ event, onEdit, onDelete, onMtgComplete, isSubmitting
                       case 'attended_video':
                         return <Badge className="bg-blue-600 text-[10px] px-1.5 py-0">動画完了</Badge>
                       case 'exempted':
-                        // 免除の詳細状態を表示
+                        // 欠席申請の詳細状態を表示
                         if (registration.exemptionStatus === 'APPROVED') {
-                          return <Badge className="bg-purple-600 text-[10px] px-1.5 py-0">免除承認</Badge>
+                          return <Badge className="bg-purple-600 text-[10px] px-1.5 py-0">欠席承認</Badge>
                         } else if (registration.exemptionStatus === 'PENDING') {
-                          return <Badge className="bg-yellow-600 text-[10px] px-1.5 py-0">免除申請中</Badge>
+                          return <Badge className="bg-yellow-600 text-[10px] px-1.5 py-0">欠席申請中</Badge>
                         }
-                        return <Badge className="bg-purple-600 text-[10px] px-1.5 py-0">免除</Badge>
+                        return <Badge className="bg-purple-600 text-[10px] px-1.5 py-0">欠席</Badge>
                       case 'video_incomplete':
                         return <Badge className="bg-orange-600 text-[10px] px-1.5 py-0">対応中</Badge>
                       case 'registered':
@@ -213,7 +213,7 @@ export function EventCard({ event, onEdit, onDelete, onMtgComplete, isSubmitting
 
                   // 出席完了しているかどうか
                   const isAttendanceCompleted = registration.status === 'attended_code' || registration.status === 'attended_video'
-                  // 免除されているかどうか
+                  // 欠席承認されているかどうか
                   const isExempted = registration.status === 'exempted' && registration.exemptionStatus === 'APPROVED'
 
                   return (
@@ -223,14 +223,14 @@ export function EventCard({ event, onEdit, onDelete, onMtgComplete, isSubmitting
                         <span className="font-medium truncate">{registration.userName || '名前未設定'}</span>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        {/* 動画・アンケート状況（出席完了・免除以外の人のみ表示） */}
+                        {/* 動画・アンケート状況（出席完了・欠席承認以外の人のみ表示） */}
                         {!isAttendanceCompleted && !isExempted && (
                           <div className="flex items-center gap-1">
                             <Video className={`h-3 w-3 ${registration.videoWatched ? 'text-green-600' : 'text-slate-300'}`} />
                             <FileText className={`h-3 w-3 ${registration.surveyCompleted ? 'text-green-600' : 'text-slate-300'}`} />
                           </div>
                         )}
-                        {/* 免除申請がある場合のアイコン表示（未承認） */}
+                        {/* 欠席申請がある場合のアイコン表示（未承認） */}
                         {registration.hasExemption && registration.exemptionStatus === 'PENDING' && (
                           <AlertCircle className="h-3 w-3 text-yellow-600" />
                         )}

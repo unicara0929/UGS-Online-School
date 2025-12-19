@@ -22,7 +22,7 @@ export interface EventRegistration {
   // ステータス
   status: ParticipantStatus
   statusLabel: string
-  // 免除申請
+  // 欠席申請
   hasExemption: boolean
   exemptionStatus: string | null
   exemptionReason: string | null
