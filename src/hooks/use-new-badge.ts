@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useAuth } from '@/contexts/auth-context'
 
 interface BadgeStatus {
   events: number
@@ -10,6 +11,7 @@ interface BadgeStatus {
 }
 
 export function useNewBadge() {
+  const { user } = useAuth()
   const [badges, setBadges] = useState<BadgeStatus>({
     events: 0,
     courses: 0,
@@ -18,7 +20,16 @@ export function useNewBadge() {
   })
   const [isLoading, setIsLoading] = useState(true)
 
+  // 管理者はバッジ不要
+  const isAdmin = user?.role === 'admin'
+
   const fetchBadgeStatus = useCallback(async () => {
+    // 管理者の場合はスキップ
+    if (isAdmin) {
+      setIsLoading(false)
+      return
+    }
+
     try {
       const response = await fetch('/api/new-badge/status', {
         credentials: 'include',
@@ -38,7 +49,7 @@ export function useNewBadge() {
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [isAdmin])
 
   // カテゴリを閲覧済みとしてマーク
   const markCategoryViewed = useCallback(async (category: 'EVENTS' | 'COURSES' | 'MATERIALS' | 'NOTIFICATIONS') => {
