@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
+import { checkManagerPromotionEligibility } from '@/lib/services/promotion-eligibility'
 
 export async function GET(request: NextRequest) {
   try {
@@ -72,38 +73,68 @@ export async function GET(request: NextRequest) {
         },
       })
 
-      // メンバー情報をフォーマット
-      const members = teamMembers.map((member) => {
-        const subscription = member.subscriptions[0]
-        const fpApplication = member.fpPromotionApplications[0]
+      // メンバー情報をフォーマット（昇格進捗を並列で取得）
+      const members = await Promise.all(
+        teamMembers.map(async (member) => {
+          const subscription = member.subscriptions[0]
+          const fpApplication = member.fpPromotionApplications[0]
 
-        return {
-          id: member.id,
-          name: member.name,
-          email: member.email,
-          role: member.role,
-          createdAt: member.createdAt.toISOString(),
-          subscription: subscription
-            ? {
-                status: subscription.status,
-                currentPeriodEnd: subscription.currentPeriodEnd?.toISOString() ?? null,
-              }
-            : null,
-          stats: {
-            completedLessons: member.courseProgress.length,
-            activeContracts: member.contracts.length,
-          },
-          fpStatus: fpApplication
-            ? {
-                lpMeetingCompleted: fpApplication.lpMeetingCompleted,
-                basicTestCompleted: fpApplication.basicTestCompleted,
-                surveyCompleted: fpApplication.surveyCompleted,
-                status: fpApplication.status,
-                approvedAt: fpApplication.approvedAt?.toISOString() ?? null,
-              }
-            : null,
-        }
-      })
+          // MGR昇格条件の進捗を取得
+          let promotionProgress = null
+          try {
+            const eligibility = await checkManagerPromotionEligibility(member.id)
+            const conditions = eligibility.conditions
+            const metCount = [
+              conditions.salesTotal.met,
+              conditions.insuredCount.met,
+              conditions.memberReferrals.met,
+              conditions.fpReferrals.met,
+            ].filter(Boolean).length
+
+            promotionProgress = {
+              isEligible: eligibility.isEligible,
+              metCount,
+              totalConditions: 4,
+              conditions: {
+                salesTotal: conditions.salesTotal,
+                insuredCount: conditions.insuredCount,
+                memberReferrals: conditions.memberReferrals,
+                fpReferrals: conditions.fpReferrals,
+              },
+            }
+          } catch (error) {
+            console.error(`Failed to get promotion eligibility for ${member.id}:`, error)
+          }
+
+          return {
+            id: member.id,
+            name: member.name,
+            email: member.email,
+            role: member.role,
+            createdAt: member.createdAt.toISOString(),
+            subscription: subscription
+              ? {
+                  status: subscription.status,
+                  currentPeriodEnd: subscription.currentPeriodEnd?.toISOString() ?? null,
+                }
+              : null,
+            stats: {
+              completedLessons: member.courseProgress.length,
+              activeContracts: member.contracts.length,
+            },
+            fpStatus: fpApplication
+              ? {
+                  lpMeetingCompleted: fpApplication.lpMeetingCompleted,
+                  basicTestCompleted: fpApplication.basicTestCompleted,
+                  surveyCompleted: fpApplication.surveyCompleted,
+                  status: fpApplication.status,
+                  approvedAt: fpApplication.approvedAt?.toISOString() ?? null,
+                }
+              : null,
+            promotionProgress,
+          }
+        })
+      )
 
       return NextResponse.json({ success: true, members })
     }

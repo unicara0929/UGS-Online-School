@@ -6,7 +6,7 @@ import { ProtectedRoute } from '@/components/auth/protected-route'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Users, TrendingUp, FileCheck, Activity, UserCheck } from 'lucide-react'
+import { Loader2, Users, TrendingUp, FileCheck, Activity, UserCheck, ChevronRight, CheckCircle, Target } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 
@@ -32,6 +32,17 @@ interface TeamMember {
     surveyCompleted: boolean
     status: string
     approvedAt: string | null
+  } | null
+  promotionProgress?: {
+    isEligible: boolean
+    metCount: number
+    totalConditions: number
+    conditions: {
+      salesTotal: { current: number; target: number; met: boolean }
+      insuredCount: { current: number; target: number; met: boolean }
+      memberReferrals: { current: number; target: number; met: boolean }
+      fpReferrals: { current: number; target: number; met: boolean }
+    }
   } | null
 }
 
@@ -92,6 +103,40 @@ export default function TeamPage() {
 
   const handleContractClick = (member: TeamMember) => {
     router.push(`/dashboard/team/contracts/${member.id}`)
+  }
+
+  const handleMemberClick = (member: TeamMember) => {
+    router.push(`/dashboard/team/members/${member.id}`)
+  }
+
+  // 昇格進捗のプログレスバーを描画
+  const renderPromotionProgress = (progress: TeamMember['promotionProgress']) => {
+    if (!progress) return <span className="text-slate-400">-</span>
+
+    if (progress.isEligible) {
+      return (
+        <div className="flex items-center gap-2">
+          <CheckCircle className="h-4 w-4 text-green-600" />
+          <span className="text-green-700 font-medium text-sm">昇格可能</span>
+        </div>
+      )
+    }
+
+    const percentage = (progress.metCount / progress.totalConditions) * 100
+
+    return (
+      <div className="flex items-center gap-2">
+        <div className="w-20 h-2 bg-slate-200 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-blue-500 rounded-full transition-all"
+            style={{ width: `${percentage}%` }}
+          />
+        </div>
+        <span className="text-sm text-slate-600 whitespace-nowrap">
+          {progress.metCount}/{progress.totalConditions}
+        </span>
+      </div>
+    )
   }
 
   const getRoleLabel = (role: string) => {
@@ -265,6 +310,7 @@ export default function TeamPage() {
                     <TableHead>名前</TableHead>
                     <TableHead>メール</TableHead>
                     <TableHead>ロール</TableHead>
+                    {isManager && <TableHead>MGR昇格進捗</TableHead>}
                     <TableHead>サブスク状況</TableHead>
                     <TableHead className="text-right">学習進捗</TableHead>
                     <TableHead className="text-right">契約数</TableHead>
@@ -273,11 +319,12 @@ export default function TeamPage() {
                     ) : (
                       <TableHead>紹介日</TableHead>
                     )}
+                    {isManager && <TableHead></TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {members.map((member) => (
-                    <TableRow key={member.id}>
+                    <TableRow key={member.id} className={isManager ? "hover:bg-slate-50 cursor-pointer" : ""} onClick={isManager ? () => handleMemberClick(member) : undefined}>
                       <TableCell className="font-medium">{member.name}</TableCell>
                       <TableCell className="text-slate-600">{member.email}</TableCell>
                       <TableCell>
@@ -285,6 +332,11 @@ export default function TeamPage() {
                           {getRoleLabel(member.role)}
                         </Badge>
                       </TableCell>
+                      {isManager && (
+                        <TableCell>
+                          {renderPromotionProgress(member.promotionProgress)}
+                        </TableCell>
+                      )}
                       <TableCell>
                         <Badge className={getSubscriptionBadgeColor(member.subscription)}>
                           {getSubscriptionStatus(member.subscription)}
@@ -295,7 +347,7 @@ export default function TeamPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <button
-                          onClick={() => handleContractClick(member)}
+                          onClick={(e) => { e.stopPropagation(); handleContractClick(member); }}
                           className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer font-medium"
                           title="クリックして契約詳細を表示"
                         >
@@ -313,6 +365,11 @@ export default function TeamPage() {
                             : '-'
                         )}
                       </TableCell>
+                      {isManager && (
+                        <TableCell>
+                          <ChevronRight className="h-4 w-4 text-slate-400" />
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>
