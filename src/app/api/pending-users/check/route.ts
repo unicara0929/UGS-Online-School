@@ -7,7 +7,9 @@ import { prisma } from '@/lib/prisma'
  *
  * 認証済みユーザーが決済に進む際に必要な情報を返す
  *
- * セキュリティ: ユーザー名等の個人情報は返さない（ユーザー列挙攻撃を防止）
+ * セキュリティ:
+ * - 認証済み仮登録ユーザーには名前を返す（決済導線に必要）
+ * - 未認証ユーザーには名前を返さない（メール認証完了まで本人確認ができないため）
  */
 export async function GET(request: NextRequest) {
   try {
@@ -25,6 +27,7 @@ export async function GET(request: NextRequest) {
     const pendingUser = await prisma.pendingUser.findUnique({
       where: { email },
       select: {
+        name: true,
         emailVerified: true,
         tokenExpiresAt: true,
       }
@@ -58,13 +61,15 @@ export async function GET(request: NextRequest) {
     }
 
     // PendingUserが存在する場合（仮登録済み）
-    // セキュリティ: 名前は返さない（ユーザー列挙攻撃を防止）
+    // セキュリティ: 認証済みユーザーにのみ名前を返す（決済導線に必要）
     return NextResponse.json({
       success: true,
       exists: true,
       isFullyRegistered: false,
       emailVerified: pendingUser.emailVerified,
       tokenExpired: pendingUser.tokenExpiresAt ? pendingUser.tokenExpiresAt < new Date() : false,
+      // 認証済みユーザーにのみ名前を返す
+      name: pendingUser.emailVerified ? pendingUser.name : undefined,
     })
   } catch (error) {
     console.error('Check pending user error:', error)

@@ -51,8 +51,11 @@ function AlreadyRegisteredContent() {
           // PendingUser（仮登録）
           setIsPending(true)
           setIsFullyRegistered(false)
-          // セキュリティ: 名前はURLパラメータから取得済み（APIからは取得しない）
           setIsEmailVerified(data.emailVerified || false)
+          // 認証済みユーザーの場合、APIから名前を取得
+          if (data.emailVerified && data.name) {
+            setName(data.name)
+          }
         } else {
           // どちらにも存在しない（新規登録可能）
           setIsPending(false)
