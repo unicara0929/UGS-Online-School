@@ -22,8 +22,8 @@ interface Course {
   id: string
   title: string
   description: string | null
-  category: 'BASIC' | 'ADVANCED' | 'PRACTICAL'
-  level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED'
+  category: 'MONEY_LITERACY' | 'PRACTICAL_SKILL' | 'STARTUP_SUPPORT' | 'STARTUP_GUIDE'
+  level: 'BASIC' | 'ADVANCED'
   isLocked: boolean
   isPublished: boolean
   order: number
@@ -34,18 +34,18 @@ interface Course {
 
 const getCategoryLabel = (category: string) => {
   const labels: Record<string, string> = {
-    BASIC: '基礎編',
-    ADVANCED: '応用編',
-    PRACTICAL: '実践編'
+    MONEY_LITERACY: '所得を増やすマネーリテラシー全般',
+    PRACTICAL_SKILL: '実践スキル',
+    STARTUP_SUPPORT: 'スタートアップ支援',
+    STARTUP_GUIDE: 'はじめに'
   }
   return labels[category] || category
 }
 
 const getLevelLabel = (level: string) => {
   const labels: Record<string, string> = {
-    BEGINNER: '初級',
-    INTERMEDIATE: '中級',
-    ADVANCED: '上級'
+    BASIC: '基礎編',
+    ADVANCED: '応用編'
   }
   return labels[level] || level
 }

@@ -10,13 +10,13 @@ async function main() {
   await prisma.lesson.deleteMany({})
   await prisma.course.deleteMany({})
 
-  // コース1: 所得を増やす
+  // コース1: 所得を増やすマネーリテラシー全般 - 基礎編
   const course1 = await prisma.course.create({
     data: {
       title: '所得を増やす',
       description: 'マネーリテラシー全般 - 知識をつけて、稼ぐ力を育てる',
-      category: 'BASIC',
-      level: 'BEGINNER',
+      category: 'MONEY_LITERACY',
+      level: 'BASIC',
       isLocked: false,
       lessons: {
         create: [
@@ -81,13 +81,13 @@ async function main() {
     },
   })
 
-  // コース2: 生き方を豊かにする
+  // コース2: 実践スキル - 基礎編
   const course2 = await prisma.course.create({
     data: {
       title: '生き方を豊かにする',
       description: '金融・経済を正しく理解し、お金を「怖いもの」から「使いこなす力」へ',
-      category: 'PRACTICAL',
-      level: 'BEGINNER',
+      category: 'PRACTICAL_SKILL',
+      level: 'BASIC',
       isLocked: false,
       lessons: {
         create: [
@@ -145,13 +145,13 @@ async function main() {
     },
   })
 
-  // コース3: スタートアップ支援（FPエイド以上限定）
+  // コース3: スタートアップ支援（FPエイド以上限定）- 基礎編
   const course3 = await prisma.course.create({
     data: {
       title: 'スタートアップ支援',
       description: 'ゼロから事業を立ち上げるために必要な知識・仕組みを学ぶ',
-      category: 'ADVANCED',
-      level: 'ADVANCED',
+      category: 'STARTUP_SUPPORT',
+      level: 'BASIC',
       isLocked: true, // FPエイド以上のみアクセス可能
       lessons: {
         create: [

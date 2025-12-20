@@ -23,8 +23,8 @@ interface Course {
   id: string
   title: string
   description: string | null
-  category: 'BASIC' | 'ADVANCED' | 'PRACTICAL'
-  level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED'
+  category: 'MONEY_LITERACY' | 'PRACTICAL_SKILL' | 'STARTUP_SUPPORT' | 'STARTUP_GUIDE'
+  level: 'BASIC' | 'ADVANCED'
   isLocked: boolean
   isPublished: boolean
   order: number
@@ -56,8 +56,8 @@ export default function EditCoursePage() {
   const [courseForm, setCourseForm] = useState({
     title: '',
     description: '',
-    category: 'BASIC' as 'BASIC' | 'ADVANCED' | 'PRACTICAL',
-    level: 'BEGINNER' as 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED',
+    category: 'MONEY_LITERACY' as 'MONEY_LITERACY' | 'PRACTICAL_SKILL' | 'STARTUP_SUPPORT' | 'STARTUP_GUIDE',
+    level: 'BASIC' as 'BASIC' | 'ADVANCED',
     isLocked: false,
     isPublished: true,
     order: 0
@@ -346,7 +346,7 @@ export default function EditCoursePage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label htmlFor="category" className="block text-sm font-semibold text-slate-700 mb-2">
-                    カテゴリ <span className="text-red-500">*</span>
+                    大カテゴリー <span className="text-red-500">*</span>
                   </label>
                   <select
                     id="category"
@@ -355,15 +355,16 @@ export default function EditCoursePage() {
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   >
-                    <option value="BASIC">基礎編</option>
-                    <option value="PRACTICAL">実践編</option>
-                    <option value="ADVANCED">応用編</option>
+                    <option value="MONEY_LITERACY">所得を増やすマネーリテラシー全般</option>
+                    <option value="PRACTICAL_SKILL">実践スキル</option>
+                    <option value="STARTUP_SUPPORT">スタートアップ支援</option>
+                    <option value="STARTUP_GUIDE">はじめに</option>
                   </select>
                 </div>
 
                 <div>
                   <label htmlFor="level" className="block text-sm font-semibold text-slate-700 mb-2">
-                    レベル <span className="text-red-500">*</span>
+                    編 <span className="text-red-500">*</span>
                   </label>
                   <select
                     id="level"
@@ -372,9 +373,8 @@ export default function EditCoursePage() {
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   >
-                    <option value="BEGINNER">初級</option>
-                    <option value="INTERMEDIATE">中級</option>
-                    <option value="ADVANCED">上級</option>
+                    <option value="BASIC">基礎編</option>
+                    <option value="ADVANCED">応用編</option>
                   </select>
                 </div>
 

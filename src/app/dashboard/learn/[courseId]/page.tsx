@@ -41,8 +41,8 @@ interface Course {
   id: string
   title: string
   description: string
-  category: 'income' | 'lifestyle' | 'startup'
-  level: 'basic' | 'advanced'
+  category: 'MONEY_LITERACY' | 'PRACTICAL_SKILL' | 'STARTUP_SUPPORT' | 'STARTUP_GUIDE'
+  level: 'BASIC' | 'ADVANCED'
   lessons: Lesson[]
   progress: number
 }
@@ -60,112 +60,6 @@ declare global {
     }
   }
 }
-
-// モックデータは削除され、APIから取得するようになりました
-const COURSES_OLD: Course[] = [
-  {
-    id: "1",
-    title: "所得を増やす",
-    description: "マネーリテラシー全般 - 知識をつけて、稼ぐ力を育てる",
-    category: "income",
-    level: "basic",
-    progress: 25,
-    lessons: [
-      {
-        id: "1-1",
-        title: "お金の基本概念",
-        description: "お金の本質と価値について学ぶ",
-        duration: 15,
-        isCompleted: true,
-        order: 1,
-        content: "お金は単なる紙切れや数字ではありません。お金は価値の交換手段であり、時間と労力の対価です。このレッスンでは、お金の本質的な意味と、現代社会におけるお金の役割について詳しく学びます。",
-        videoUrl: "https://example.com/video1",
-        vimeoId: "1135031850", // テスト用動画ID
-        materials: ["お金の歴史.pdf", "価値の概念.pdf"]
-      },
-      {
-        id: "1-2",
-        title: "収入の種類と特徴",
-        description: "給与、事業収入、投資収入の違い",
-        duration: 20,
-        isCompleted: true,
-        order: 2,
-        content: "収入には様々な種類があります。給与所得、事業所得、投資所得など、それぞれに特徴があります。このレッスンでは、各収入の種類とその特徴、税務上の取り扱いについて学びます。",
-        videoUrl: "https://example.com/video2",
-        vimeoId: "1135031850", // テスト用動画ID
-        materials: ["収入の種類一覧.pdf", "税務ガイド.pdf"]
-      },
-      {
-        id: "1-3",
-        title: "税金の基礎知識",
-        description: "所得税、住民税の仕組み",
-        duration: 25,
-        isCompleted: false,
-        order: 3,
-        content: "税金は社会の基盤を支える重要な制度です。所得税、住民税、消費税など、様々な税金の仕組みを理解することで、適切な税務管理ができるようになります。",
-        videoUrl: "https://example.com/video3",
-        vimeoId: "1135031850", // テスト用動画ID
-        materials: ["税金の基礎.pdf", "計算例.pdf"]
-      },
-      {
-        id: "1-4",
-        title: "社会保険制度",
-        description: "健康保険、年金制度の理解",
-        duration: 18,
-        isCompleted: false,
-        order: 4,
-        content: "社会保険制度は、私たちの生活を支える重要なセーフティネットです。健康保険、年金保険、雇用保険、労災保険、介護保険の5つの制度について詳しく学びます。",
-        videoUrl: "https://example.com/video4",
-        vimeoId: "1135031850", // テスト用動画ID
-        materials: ["社会保険制度ガイド.pdf"]
-      }
-    ]
-  },
-  {
-    id: "2",
-    title: "生き方を豊かにする",
-    description: "金融・経済を正しく理解し、お金を「怖いもの」から「使いこなす力」へ",
-    category: "lifestyle",
-    level: "basic",
-    progress: 0,
-    lessons: [
-      {
-        id: "2-1",
-        title: "金融リテラシー基礎",
-        description: "金融の基本概念",
-        duration: 20,
-        isCompleted: false,
-        order: 1,
-        content: "金融リテラシーとは、金融に関する知識と判断力のことです。このレッスンでは、金融の基本概念から始めて、日常生活で必要な金融知識を身につけます。",
-        videoUrl: "https://example.com/video5",
-        vimeoId: "1135031850", // テスト用動画ID
-        materials: ["金融リテラシー基礎.pdf"]
-      }
-    ]
-  },
-  {
-    id: "3",
-    title: "スタートアップ支援",
-    description: "ゼロから事業を立ち上げるために必要な知識・仕組みを学ぶ",
-    category: "startup",
-    level: "basic",
-    progress: 0,
-    lessons: [
-      {
-        id: "3-1",
-        title: "起業の基礎知識",
-        description: "起業に必要な基本知識",
-        duration: 30,
-        isCompleted: false,
-        order: 1,
-        content: "起業は夢を現実にする第一歩です。このレッスンでは、起業に必要な基本的な知識と心構えについて学びます。",
-        videoUrl: "https://example.com/video6",
-        vimeoId: "1135031850", // テスト用動画ID
-        materials: ["起業ガイド.pdf"]
-      }
-    ]
-  }
-]
 
 function LearningPage() {
   const { user, logout } = useAuth()
@@ -388,27 +282,28 @@ function LearningPage() {
 
   const getCategoryLabel = (category: string) => {
     switch (category) {
-      case 'income': return '所得を増やす'
-      case 'lifestyle': return '生き方を豊かにする'
-      case 'startup': return 'スタートアップ支援'
+      case 'MONEY_LITERACY': return '所得を増やすマネーリテラシー全般'
+      case 'PRACTICAL_SKILL': return '実践スキル'
+      case 'STARTUP_SUPPORT': return 'スタートアップ支援'
+      case 'STARTUP_GUIDE': return 'はじめに'
       default: return category
     }
   }
 
   const getLevelLabel = (level: string) => {
     switch (level) {
-      case 'basic': return '基礎編'
-      case 'intermediate': return '実践編'
-      case 'advanced': return '応用編'
+      case 'BASIC': return '基礎編'
+      case 'ADVANCED': return '応用編'
       default: return level
     }
   }
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'income': return 'bg-green-100 text-green-800'
-      case 'lifestyle': return 'bg-blue-100 text-blue-800'
-      case 'startup': return 'bg-purple-100 text-purple-800'
+      case 'MONEY_LITERACY': return 'bg-green-100 text-green-800'
+      case 'PRACTICAL_SKILL': return 'bg-blue-100 text-blue-800'
+      case 'STARTUP_SUPPORT': return 'bg-purple-100 text-purple-800'
+      case 'STARTUP_GUIDE': return 'bg-amber-100 text-amber-800'
       default: return 'bg-slate-100 text-slate-800'
     }
   }

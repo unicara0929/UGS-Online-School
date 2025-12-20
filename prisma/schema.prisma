@@ -369,16 +369,15 @@ enum MembershipStatus {
 }
 
 enum CourseCategory {
-  BASIC
-  ADVANCED
-  PRACTICAL
-  STARTUP_GUIDE  // スタートアップガイド（UGS会員向け）
+  MONEY_LITERACY    // 所得を増やすマネーリテラシー全般
+  PRACTICAL_SKILL   // 実践スキル
+  STARTUP_SUPPORT   // スタートアップ支援
+  STARTUP_GUIDE     // はじめに（UGS会員向け）
 }
 
 enum CourseLevel {
-  BEGINNER
-  INTERMEDIATE
-  ADVANCED
+  BASIC     // 基礎編
+  ADVANCED  // 応用編
 }
 
 enum CompensationStatus {

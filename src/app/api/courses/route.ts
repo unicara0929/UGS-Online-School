@@ -5,19 +5,6 @@ import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
 // NEW判定の日数
 const NEW_BADGE_DAYS = 7
 
-const CATEGORY_MAP = {
-  BASIC: 'income',
-  PRACTICAL: 'lifestyle',
-  ADVANCED: 'startup',
-  STARTUP_GUIDE: 'startup_guide',
-} as const
-
-const LEVEL_MAP = {
-  BEGINNER: 'basic',
-  INTERMEDIATE: 'intermediate',
-  ADVANCED: 'advanced',
-} as const
-
 export async function GET(request: NextRequest) {
   try {
     // 認証チェック
@@ -111,8 +98,8 @@ export async function GET(request: NextRequest) {
         id: course.id,
         title: course.title,
         description: course.description ?? '',
-        category: CATEGORY_MAP[course.category] ?? 'income',
-        level: LEVEL_MAP[course.level] ?? 'basic',
+        category: course.category,
+        level: course.level,
         lessons,
         isLocked: course.isLocked && !canAccessFPContent,
         progress,

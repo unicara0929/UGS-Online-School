@@ -24,8 +24,8 @@ interface Course {
   id: string
   title: string
   description: string
-  category: 'income' | 'lifestyle' | 'startup' | 'startup_guide'
-  level: 'basic' | 'advanced' | 'intermediate'
+  category: 'MONEY_LITERACY' | 'PRACTICAL_SKILL' | 'STARTUP_SUPPORT' | 'STARTUP_GUIDE'
+  level: 'BASIC' | 'ADVANCED'
   lessons: Lesson[]
   isLocked: boolean
   progress: number
@@ -106,36 +106,35 @@ export function CourseList() {
 
   const getCategoryLabel = (category: string) => {
     switch (category) {
-      case 'income': return '所得を増やす'
-      case 'lifestyle': return '生き方を豊かにする'
-      case 'startup': return 'スタートアップ支援'
-      case 'startup_guide': return 'はじめに'
+      case 'MONEY_LITERACY': return '所得を増やすマネーリテラシー全般'
+      case 'PRACTICAL_SKILL': return '実践スキル'
+      case 'STARTUP_SUPPORT': return 'スタートアップ支援'
+      case 'STARTUP_GUIDE': return 'はじめに'
       default: return category
     }
   }
 
   const getLevelLabel = (level: string) => {
     switch (level) {
-      case 'basic': return '基礎編'
-      case 'intermediate': return '実践編'
-      case 'advanced': return '応用編'
+      case 'BASIC': return '基礎編'
+      case 'ADVANCED': return '応用編'
       default: return level
     }
   }
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'income': return 'bg-green-100 text-green-800'
-      case 'lifestyle': return 'bg-blue-100 text-blue-800'
-      case 'startup': return 'bg-purple-100 text-purple-800'
-      case 'startup_guide': return 'bg-amber-100 text-amber-800'
+      case 'MONEY_LITERACY': return 'bg-green-100 text-green-800'
+      case 'PRACTICAL_SKILL': return 'bg-blue-100 text-blue-800'
+      case 'STARTUP_SUPPORT': return 'bg-purple-100 text-purple-800'
+      case 'STARTUP_GUIDE': return 'bg-amber-100 text-amber-800'
       default: return 'bg-slate-100 text-slate-800'
     }
   }
 
   // スタートアップガイドコースと通常コースを分離
-  const startupGuideCourses = courses.filter(course => course.category === 'startup_guide')
-  const regularCourses = courses.filter(course => course.category !== 'startup_guide')
+  const startupGuideCourses = courses.filter(course => course.category === 'STARTUP_GUIDE')
+  const regularCourses = courses.filter(course => course.category !== 'STARTUP_GUIDE')
 
   // コースカードをレンダリングする共通関数
   const renderCourseCard = (course: Course) => (
@@ -226,7 +225,7 @@ export function CourseList() {
           {/* ロック理由 */}
           {course.isLocked && (
             <div className="text-xs text-slate-500 bg-slate-50 p-2 rounded">
-              {course.category === 'startup' && !canAccessFPContent() &&
+              {course.category === 'STARTUP_SUPPORT' && !canAccessFPContent() &&
                 "FPエイド昇格後に利用可能"
               }
             </div>
