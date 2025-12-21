@@ -212,13 +212,13 @@ export async function PATCH(
       try {
         const resend = getResend()
         await resend.emails.send({
-          from: 'Unicara Growth Salon <inc@unicara.jp>',
+          from: 'UGS <inc@unicara.jp>',
           to: existingConsultation.user.email,
-          subject: `【Unicara Growth Salon】${typeLabel}相談の対応が完了しました`,
+          subject: `【UGS】${typeLabel}相談の対応が完了しました`,
           html: `
             <p>${existingConsultation.user.name} 様</p>
             <br>
-            <p>いつもUnicara Growth Salonをご利用いただきありがとうございます。</p>
+            <p>いつもUGSをご利用いただきありがとうございます。</p>
             <br>
             <p>ご依頼いただきました「${typeLabel}相談」への対応が完了しましたので、お知らせいたします。</p>
             <br>
@@ -232,7 +232,7 @@ export async function PATCH(
             <br>
             <p>ご不明な点がございましたら、お気軽にお問い合わせください。</p>
             <br>
-            <p>今後ともUnicara Growth Salonをよろしくお願いいたします。</p>
+            <p>今後ともUGSをよろしくお願いいたします。</p>
           `
         })
       } catch (emailError) {

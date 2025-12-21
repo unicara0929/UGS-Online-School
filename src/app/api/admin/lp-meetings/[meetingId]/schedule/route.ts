@@ -146,7 +146,7 @@ export async function POST(
         const resend = getResend()
         try {
           await resend.emails.send({
-            from: 'Unicara Growth Salon <inc@unicara.jp>',
+            from: 'UGS <inc@unicara.jp>',
             to: updatedMeeting.member.email,
             subject: '【LP面談】事前アンケートのお願い',
             html: `
@@ -189,14 +189,14 @@ export async function POST(
                           meetingPlatform === 'TEAMS' ? 'Microsoft Teams' : 'その他'
 
       console.log('[メール送信] パラメータ:', {
-        from: 'Unicara Growth Salon <inc@unicara.jp>',
+        from: 'UGS <inc@unicara.jp>',
         to: counselorEmail,
         subject: `【LP面談依頼】${updatedMeeting.member.name}様の面談が確定しました`,
         hasApiKey: !!process.env.RESEND_API_KEY
       })
 
       const result = await resend.emails.send({
-        from: 'Unicara Growth Salon <inc@unicara.jp>',
+        from: 'UGS <inc@unicara.jp>',
         to: counselorEmail,
         subject: `【LP面談依頼】${updatedMeeting.member.name}様の面談が確定しました`,
         html: `

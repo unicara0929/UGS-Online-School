@@ -66,9 +66,9 @@ export default function ManualPage() {
       content: (
         <div className="space-y-6">
           <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
-            <h4 className="font-semibold text-primary-900 mb-2">UGS（Unicara Growth Salon）とは</h4>
+            <h4 className="font-semibold text-primary-900 mb-2">UGS（UGS）とは</h4>
             <p className="text-primary-800">
-              UGS（Unicara Growth Salon）は、"勉強だけで終わらない"「お金の知識×稼げる力」がコンセプトのビジネスコミュニティです。
+              UGS（UGS）は、"勉強だけで終わらない"「お金の知識×稼げる力」がコンセプトのビジネスコミュニティです。
               教育コンテンツで金融知識を学び、FPエイドとして活動することで収益を得ることができます。
             </p>
           </div>
@@ -904,7 +904,7 @@ export default function ManualPage() {
                 <ArrowLeft className="h-5 w-5" />
               </Link>
               <div>
-                <h1 className="text-xl font-bold text-slate-900">UGS（Unicara Growth Salon）ユーザーマニュアル</h1>
+                <h1 className="text-xl font-bold text-slate-900">UGS（UGS）ユーザーマニュアル</h1>
                 <p className="text-sm text-slate-500">動作確認ガイド</p>
               </div>
             </div>

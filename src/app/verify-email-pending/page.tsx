@@ -62,7 +62,7 @@ function VerifyEmailPendingContent() {
                 <div>
                   <p className="font-medium text-sm sm:text-base">メールボックスを確認</p>
                   <p className="text-xs sm:text-sm text-slate-600">
-                    「【UGS（Unicara Growth Salon）】メールアドレスの確認」という件名のメールを探してください
+                    「【UGS（UGS）】メールアドレスの確認」という件名のメールを探してください
                   </p>
                 </div>
               </div>

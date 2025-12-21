@@ -10,7 +10,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Unicara Growth Salon",
+  title: "UGS",
   description: "\"勉強だけで終わらない\" 「お金の知識×稼げる力」がコンセプトのビジネスコミュニティ",
 };
 
