@@ -92,7 +92,14 @@ export async function GET(request: NextRequest) {
           // ロールによるフィルタリング
           {
             OR: [
-              { targetRoles: { has: 'ALL' } }, // 全員対象のイベント
+              // 全員対象イベント（ただし全体MTGはMEMBER除外）
+              {
+                AND: [
+                  { targetRoles: { has: 'ALL' } },
+                  // 全体MTG（isRecurring=true）はMEMBER以外のみ表示
+                  ...(userRole === 'MEMBER' ? [{ isRecurring: { not: true } }] : []),
+                ],
+              },
               { targetRoles: { has: userTargetRole } }, // ユーザーのロールに一致するイベント
             ],
           },
