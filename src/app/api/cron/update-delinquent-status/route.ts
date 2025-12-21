@@ -210,7 +210,7 @@ async function sendPreInterviewReminders() {
         // メール通知を送信
         try {
           await resend.emails.send({
-            from: 'UGS（UGS） <inc@unicara.jp>',
+            from: 'UGS <inc@unicara.jp>',
             to: response.respondent.email,
             subject: isUrgent
               ? '【重要】LP面談・事前アンケート未提出のお知らせ'

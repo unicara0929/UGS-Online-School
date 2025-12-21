@@ -15,7 +15,7 @@ export function HeroSection() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center text-white">
             <p className="uppercase tracking-widest text-sm mb-4 text-slate-200">"勉強だけで終わらない"</p>
-            <h1 className="text-4xl md:text-6xl font-extrabold mb-6">UGS（UGS）</h1>
+            <h1 className="text-4xl md:text-6xl font-extrabold mb-6">UGS</h1>
             <p className="text-lg md:text-xl text-slate-200 mb-10 max-w-3xl mx-auto">
               100を超える教育コンテンツで「お金の知識×稼げる力」を身につける
             </p>

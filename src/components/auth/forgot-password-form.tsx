@@ -79,7 +79,7 @@ export function ForgotPasswordForm() {
             ) : (
               <Image
                 src="/ロゴ1.jpg"
-                alt="UGS（UGS）"
+                alt="UGS"
                 width={32}
                 height={32}
                 className="object-contain w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0"
@@ -88,7 +88,7 @@ export function ForgotPasswordForm() {
               />
             )}
             <CardTitle className="text-lg sm:text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
-              UGS（UGS）
+              UGS
             </CardTitle>
           </div>
           <CardDescription className="text-xs sm:text-sm text-slate-600 pt-1 sm:pt-2">

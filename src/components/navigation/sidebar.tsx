@@ -181,7 +181,7 @@ export function Sidebar() {
               ) : (
                 <Image 
                   src="/ロゴ1.jpg" 
-                  alt="UGS（UGS）" 
+                  alt="UGS" 
                   width={28} 
                   height={28} 
                   className="object-contain"
@@ -189,7 +189,7 @@ export function Sidebar() {
                   onError={() => setLogoError(true)} 
                 />
               )}
-              <span className="text-sm font-bold text-slate-900 tracking-tight">UGS（UGS）</span>
+              <span className="text-sm font-bold text-slate-900 tracking-tight">UGS</span>
             </div>
           </div>
 
@@ -358,7 +358,7 @@ export function Sidebar() {
           {/* フッター */}
           <div className="p-4 border-t border-slate-200">
             <p className="text-xs text-slate-500 text-center">
-              UGS（UGS）v1.0
+              UGSv1.0
             </p>
           </div>
         </div>
