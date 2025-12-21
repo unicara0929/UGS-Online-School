@@ -6,6 +6,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import {
   ArrowLeft,
   Save,
   Plus,
@@ -16,7 +33,8 @@ import {
   PlayCircle,
   AlertCircle,
   FileText,
-  Clock
+  Clock,
+  GripVertical
 } from 'lucide-react'
 
 interface Course {
@@ -42,6 +60,119 @@ interface Lesson {
   isPublished: boolean
 }
 
+// ドラッグ可能なレッスンカード
+function SortableLessonCard({
+  lesson,
+  onEdit,
+  onDelete,
+  onTogglePublish,
+}: {
+  lesson: Lesson
+  onEdit: (lesson: Lesson) => void
+  onDelete: (id: string, title: string) => void
+  onTogglePublish: (id: string, status: boolean) => void
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: lesson.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  return (
+    <Card
+      ref={setNodeRef}
+      style={style}
+      className={`hover:shadow-md transition-shadow ${isDragging ? 'shadow-lg ring-2 ring-blue-500' : ''}`}
+    >
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start flex-1">
+            {/* ドラッグハンドル */}
+            <div
+              {...attributes}
+              {...listeners}
+              className="cursor-grab active:cursor-grabbing p-2 -ml-2 mr-2 text-slate-400 hover:text-slate-600"
+            >
+              <GripVertical className="h-5 w-5" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center space-x-3 mb-2">
+                <span className="text-sm text-slate-400 font-mono">{lesson.order}.</span>
+                <h4 className="font-semibold text-slate-900">{lesson.title}</h4>
+                {!lesson.isPublished && (
+                  <Badge variant="secondary" className="text-xs">
+                    <EyeOff className="h-3 w-3 mr-1" />
+                    非公開
+                  </Badge>
+                )}
+              </div>
+              {lesson.description && (
+                <p className="text-sm text-slate-600 mb-2 ml-8">{lesson.description}</p>
+              )}
+              <div className="flex items-center space-x-4 text-sm text-slate-500 ml-8">
+                <span className="flex items-center">
+                  <Clock className="h-3 w-3 mr-1" />
+                  {Math.floor(lesson.duration / 60)}分{lesson.duration % 60}秒
+                </span>
+                {lesson.videoUrl && (
+                  <span className="flex items-center">
+                    <PlayCircle className="h-3 w-3 mr-1" />
+                    動画あり
+                  </span>
+                )}
+                {lesson.pdfUrl && (
+                  <span className="flex items-center">
+                    <FileText className="h-3 w-3 mr-1" />
+                    PDFあり
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2 ml-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onTogglePublish(lesson.id, lesson.isPublished)}
+            >
+              {lesson.isPublished ? (
+                <><Eye className="h-3 w-3 mr-1" />公開</>
+              ) : (
+                <><EyeOff className="h-3 w-3 mr-1" />非公開</>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onEdit(lesson)}
+            >
+              <Edit className="h-3 w-3 mr-1" />
+              編集
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => onDelete(lesson.id, lesson.title)}
+            >
+              <Trash2 className="h-3 w-3 mr-1" />
+              削除
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 export default function EditCoursePage() {
   const params = useParams()
   const router = useRouter()
@@ -51,6 +182,7 @@ export default function EditCoursePage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [reordering, setReordering] = useState(false)
 
   // コース編集用のフォームデータ
   const [courseForm, setCourseForm] = useState({
@@ -75,6 +207,14 @@ export default function EditCoursePage() {
     pdfUrl: '',
     isPublished: true
   })
+
+  // ドラッグ&ドロップ用センサー
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
 
   useEffect(() => {
     fetchCourse()
@@ -108,6 +248,44 @@ export default function EditCoursePage() {
       setError(err instanceof Error ? err.message : 'エラーが発生しました')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event
+
+    if (!over || active.id === over.id || !course) return
+
+    const oldIndex = course.lessons.findIndex((l) => l.id === active.id)
+    const newIndex = course.lessons.findIndex((l) => l.id === over.id)
+
+    const newLessons = arrayMove(course.lessons, oldIndex, newIndex).map((lesson, index) => ({
+      ...lesson,
+      order: index + 1
+    }))
+
+    // 楽観的更新
+    setCourse({ ...course, lessons: newLessons })
+
+    // サーバーに保存
+    setReordering(true)
+    try {
+      const response = await fetch(`/api/admin/courses/${courseId}/lessons/reorder`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ lessonIds: newLessons.map(l => l.id) })
+      })
+
+      if (!response.ok) {
+        throw new Error('並び替えの保存に失敗しました')
+      }
+    } catch (err) {
+      // エラー時は元に戻す
+      fetchCourse()
+      alert(err instanceof Error ? err.message : '並び替えに失敗しました')
+    } finally {
+      setReordering(false)
     }
   }
 
@@ -351,7 +529,7 @@ export default function EditCoursePage() {
                   <select
                     id="category"
                     value={courseForm.category}
-                    onChange={(e) => setCourseForm({ ...courseForm, category: e.target.value as any })}
+                    onChange={(e) => setCourseForm({ ...courseForm, category: e.target.value as Course['category'] })}
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   >
@@ -369,7 +547,7 @@ export default function EditCoursePage() {
                   <select
                     id="level"
                     value={courseForm.level}
-                    onChange={(e) => setCourseForm({ ...courseForm, level: e.target.value as any })}
+                    onChange={(e) => setCourseForm({ ...courseForm, level: e.target.value as Course['level'] })}
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   >
@@ -443,7 +621,10 @@ export default function EditCoursePage() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-2xl">レッスン管理</CardTitle>
-                <CardDescription>このコースのレッスンを管理します</CardDescription>
+                <CardDescription>
+                  ドラッグ&ドロップで並び替えできます
+                  {reordering && <span className="ml-2 text-blue-600">保存中...</span>}
+                </CardDescription>
               </div>
               <Button
                 onClick={handleAddLesson}
@@ -465,78 +646,28 @@ export default function EditCoursePage() {
                 </Button>
               </div>
             ) : (
-              <div className="space-y-4">
-                {course.lessons.map((lesson) => (
-                  <Card key={lesson.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h4 className="font-semibold text-slate-900">{lesson.title}</h4>
-                            {!lesson.isPublished && (
-                              <Badge variant="secondary" className="text-xs">
-                                <EyeOff className="h-3 w-3 mr-1" />
-                                非公開
-                              </Badge>
-                            )}
-                          </div>
-                          {lesson.description && (
-                            <p className="text-sm text-slate-600 mb-2">{lesson.description}</p>
-                          )}
-                          <div className="flex items-center space-x-4 text-sm text-slate-500">
-                            <span className="flex items-center">
-                              <Clock className="h-3 w-3 mr-1" />
-                              {Math.floor(lesson.duration / 60)}分{lesson.duration % 60}秒
-                            </span>
-                            <span>並び順: {lesson.order}</span>
-                            {lesson.videoUrl && (
-                              <span className="flex items-center">
-                                <PlayCircle className="h-3 w-3 mr-1" />
-                                動画あり
-                              </span>
-                            )}
-                            {lesson.pdfUrl && (
-                              <span className="flex items-center">
-                                <FileText className="h-3 w-3 mr-1" />
-                                PDFあり
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2 ml-4">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleToggleLessonPublish(lesson.id, lesson.isPublished)}
-                          >
-                            {lesson.isPublished ? (
-                              <><Eye className="h-3 w-3 mr-1" />公開</>
-                            ) : (
-                              <><EyeOff className="h-3 w-3 mr-1" />非公開</>
-                            )}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditLesson(lesson)}
-                          >
-                            <Edit className="h-3 w-3 mr-1" />
-                            編集
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDeleteLesson(lesson.id, lesson.title)}
-                          >
-                            <Trash2 className="h-3 w-3 mr-1" />
-                            削除
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={course.lessons.map(l => l.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-3">
+                    {course.lessons.map((lesson) => (
+                      <SortableLessonCard
+                        key={lesson.id}
+                        lesson={lesson}
+                        onEdit={handleEditLesson}
+                        onDelete={handleDeleteLesson}
+                        onTogglePublish={handleToggleLessonPublish}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
             )}
           </CardContent>
         </Card>
