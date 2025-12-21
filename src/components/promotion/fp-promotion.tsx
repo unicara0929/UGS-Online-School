@@ -199,26 +199,9 @@ export function FPPromotion() {
     conditions.surveyCompleted
   ].filter(Boolean).length
 
+  // FPエイド以上のロールには何も表示しない
   if (user?.role !== 'member') {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Award className="h-5 w-5 mr-2" />
-            FPエイド昇格
-          </CardTitle>
-          <CardDescription>
-            既にFPエイド以上に昇格済みです
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-4">
-            <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-2" />
-            <p className="text-slate-600">おめでとうございます！FPエイドに昇格済みです。</p>
-          </div>
-        </CardContent>
-      </Card>
-    )
+    return null
   }
 
   if (isLoading) {
