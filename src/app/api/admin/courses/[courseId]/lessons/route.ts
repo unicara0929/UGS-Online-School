@@ -1,35 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser, checkRole, RoleGroups } from '@/lib/auth/api-helpers'
-
-/**
- * Vimeo URLからVideo IDを抽出するヘルパー関数
- * @param urlOrId VimeoのURLまたはVideo ID
- * @returns Video ID（数値文字列）またはnull
- */
-function extractVimeoVideoId(urlOrId: string): string | null {
-  if (!urlOrId) return null
-
-  // 既に数値のみの場合はそのまま返す
-  if (/^\d+$/.test(urlOrId)) {
-    return urlOrId
-  }
-
-  // Vimeo URLからVideo IDを抽出
-  const patterns = [
-    /vimeo\.com\/(\d+)/,
-    /player\.vimeo\.com\/video\/(\d+)/,
-  ]
-
-  for (const pattern of patterns) {
-    const match = urlOrId.match(pattern)
-    if (match && match[1]) {
-      return match[1]
-    }
-  }
-
-  return null
-}
+import { extractVimeoVideoId, fetchVimeoVideoInfo, normalizeVimeoUrl } from '@/lib/vimeo'
 
 /**
  * 管理者用レッスン作成API
@@ -60,15 +32,10 @@ export async function POST(
       )
     }
 
-    if (duration === undefined || duration < 0) {
-      return NextResponse.json(
-        { error: '有効な動画時間（秒）を入力してください' },
-        { status: 400 }
-      )
-    }
+    // Vimeo URLまたはIDのバリデーションと動画時間の自動取得
+    let processedVideoUrl: string | null = null
+    let finalDuration = duration
 
-    // Vimeo URLまたはIDのバリデーション
-    let processedVideoUrl = videoUrl
     if (videoUrl) {
       const videoId = extractVimeoVideoId(videoUrl)
       if (!videoId) {
@@ -78,7 +45,25 @@ export async function POST(
         )
       }
       // 正規化されたVimeo URLを保存
-      processedVideoUrl = `https://player.vimeo.com/video/${videoId}`
+      processedVideoUrl = normalizeVimeoUrl(videoUrl)
+
+      // duration が指定されていない場合、Vimeo APIから自動取得
+      if (finalDuration === undefined || finalDuration === 0) {
+        const videoInfo = await fetchVimeoVideoInfo(videoId)
+        if (videoInfo) {
+          finalDuration = videoInfo.duration
+          console.log('[ADMIN_LESSONS] Auto-fetched duration from Vimeo:', finalDuration)
+        } else {
+          // Vimeoから取得できない場合はデフォルト値を設定
+          finalDuration = 0
+          console.warn('[ADMIN_LESSONS] Could not fetch duration from Vimeo, using default')
+        }
+      }
+    }
+
+    // duration がまだ undefined の場合はデフォルト値を設定
+    if (finalDuration === undefined) {
+      finalDuration = 0
     }
 
     // コースの存在確認
@@ -99,9 +84,9 @@ export async function POST(
         courseId,
         title,
         description: description || null,
-        duration,
+        duration: finalDuration,
         order: order || 0,
-        videoUrl: processedVideoUrl || null,
+        videoUrl: processedVideoUrl,
         pdfUrl: pdfUrl || null,
         isPublished: isPublished !== false // デフォルトはtrue
       }

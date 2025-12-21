@@ -384,9 +384,13 @@ export function CourseList() {
     </Card>
   )
 
+  // UGS会員（member）は「はじめに」を先頭に表示、他のロールは除外
+  const isMember = user?.role === 'member'
+  const visibleCategories = isMember ? CATEGORIES_FOR_MEMBER : CATEGORIES_FOR_OTHERS
+
   // カテゴリー選択時の表示
   if (selectedCategory) {
-    const categoryInfo = CATEGORIES.find(c => c.key === selectedCategory)!
+    const categoryInfo = visibleCategories.find(c => c.key === selectedCategory)!
     const categoryCourses = getCoursesForCategory(selectedCategory)
 
     return (
@@ -421,10 +425,6 @@ export function CourseList() {
       </div>
     )
   }
-
-  // UGS会員（member）は「はじめに」を先頭に表示、他のロールは除外
-  const isMember = user?.role === 'member'
-  const visibleCategories = isMember ? CATEGORIES_FOR_MEMBER : CATEGORIES_FOR_OTHERS
 
   // カテゴリー一覧表示
   return (

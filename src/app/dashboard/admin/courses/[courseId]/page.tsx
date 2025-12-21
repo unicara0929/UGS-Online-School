@@ -619,7 +619,8 @@ export default function EditCoursePage() {
                   <div className="grid grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="duration" className="block text-sm font-semibold text-slate-700 mb-2">
-                        動画時間（秒） <span className="text-red-500">*</span>
+                        動画時間（秒）
+                        <span className="text-xs text-slate-400 ml-2">※Vimeo URL入力時は自動取得</span>
                       </label>
                       <input
                         id="duration"
@@ -628,10 +629,12 @@ export default function EditCoursePage() {
                         onChange={(e) => setLessonForm({ ...lessonForm, duration: parseInt(e.target.value) || 0 })}
                         className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         min="0"
-                        required
+                        placeholder="0で自動取得"
                       />
                       <p className="text-sm text-slate-500 mt-1">
-                        {Math.floor(lessonForm.duration / 60)}分{lessonForm.duration % 60}秒
+                        {lessonForm.duration > 0
+                          ? `${Math.floor(lessonForm.duration / 60)}分${lessonForm.duration % 60}秒`
+                          : 'Vimeo URLから自動取得されます'}
                       </p>
                     </div>
 

@@ -1,35 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser, checkRole, RoleGroups } from '@/lib/auth/api-helpers'
-
-/**
- * Vimeo URLからVideo IDを抽出するヘルパー関数
- * @param urlOrId VimeoのURLまたはVideo ID
- * @returns Video ID（数値文字列）またはnull
- */
-function extractVimeoVideoId(urlOrId: string): string | null {
-  if (!urlOrId) return null
-
-  // 既に数値のみの場合はそのまま返す
-  if (/^\d+$/.test(urlOrId)) {
-    return urlOrId
-  }
-
-  // Vimeo URLからVideo IDを抽出
-  const patterns = [
-    /vimeo\.com\/(\d+)/,
-    /player\.vimeo\.com\/video\/(\d+)/,
-  ]
-
-  for (const pattern of patterns) {
-    const match = urlOrId.match(pattern)
-    if (match && match[1]) {
-      return match[1]
-    }
-  }
-
-  return null
-}
+import { extractVimeoVideoId, fetchVimeoVideoInfo, normalizeVimeoUrl } from '@/lib/vimeo'
 
 /**
  * 管理者用レッスン更新API
@@ -67,7 +39,7 @@ export async function PUT(
     }
 
     // 更新データを準備
-    const updateData: any = {}
+    const updateData: Record<string, unknown> = {}
     if (title !== undefined) updateData.title = title
     if (description !== undefined) updateData.description = description
     if (duration !== undefined) updateData.duration = duration
@@ -75,7 +47,7 @@ export async function PUT(
     if (pdfUrl !== undefined) updateData.pdfUrl = pdfUrl
     if (isPublished !== undefined) updateData.isPublished = isPublished
 
-    // Vimeo URLの処理
+    // Vimeo URLの処理と動画時間の自動取得
     if (videoUrl !== undefined) {
       if (videoUrl) {
         const videoId = extractVimeoVideoId(videoUrl)
@@ -86,7 +58,16 @@ export async function PUT(
           )
         }
         // 正規化されたVimeo URLを保存
-        updateData.videoUrl = `https://player.vimeo.com/video/${videoId}`
+        updateData.videoUrl = normalizeVimeoUrl(videoUrl)
+
+        // duration が指定されていない場合、または0の場合、Vimeo APIから自動取得
+        if (duration === undefined || duration === 0) {
+          const videoInfo = await fetchVimeoVideoInfo(videoId)
+          if (videoInfo) {
+            updateData.duration = videoInfo.duration
+            console.log('[ADMIN_LESSONS] Auto-fetched duration from Vimeo:', videoInfo.duration)
+          }
+        }
       } else {
         updateData.videoUrl = null
       }
