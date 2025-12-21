@@ -13,9 +13,14 @@ import {
   CheckCircle,
   Clock,
   FileText,
-  Video,
   Loader2,
-  Sparkles
+  Sparkles,
+  ChevronRight,
+  ArrowLeft,
+  DollarSign,
+  Briefcase,
+  Rocket,
+  GraduationCap
 } from "lucide-react"
 import Link from "next/link"
 import { useNewBadge } from "@/hooks/use-new-badge"
@@ -42,12 +47,64 @@ interface Lesson {
   order: number
 }
 
+type CategoryType = 'MONEY_LITERACY' | 'PRACTICAL_SKILL' | 'STARTUP_SUPPORT' | 'STARTUP_GUIDE'
+
+interface CategoryInfo {
+  key: CategoryType
+  label: string
+  description: string
+  icon: React.ReactNode
+  bgColor: string
+  borderColor: string
+  iconBg: string
+}
+
+const CATEGORIES: CategoryInfo[] = [
+  {
+    key: 'MONEY_LITERACY',
+    label: '所得を増やすマネーリテラシー全般',
+    description: 'お金の知識を身につけ、資産形成の基礎を学ぶ',
+    icon: <DollarSign className="h-6 w-6 text-white" />,
+    bgColor: 'from-green-50 to-emerald-50',
+    borderColor: 'border-green-200',
+    iconBg: 'from-green-400 to-emerald-500',
+  },
+  {
+    key: 'PRACTICAL_SKILL',
+    label: '実践スキル',
+    description: '営業・ビジネススキルを実践的に学ぶ',
+    icon: <Briefcase className="h-6 w-6 text-white" />,
+    bgColor: 'from-blue-50 to-indigo-50',
+    borderColor: 'border-blue-200',
+    iconBg: 'from-blue-400 to-indigo-500',
+  },
+  {
+    key: 'STARTUP_SUPPORT',
+    label: 'スタートアップ支援',
+    description: '起業・独立に必要な知識とスキルを習得',
+    icon: <Rocket className="h-6 w-6 text-white" />,
+    bgColor: 'from-purple-50 to-violet-50',
+    borderColor: 'border-purple-200',
+    iconBg: 'from-purple-400 to-violet-500',
+  },
+  {
+    key: 'STARTUP_GUIDE',
+    label: 'はじめに',
+    description: 'アプリの使い方・UGSの考え方',
+    icon: <GraduationCap className="h-6 w-6 text-white" />,
+    bgColor: 'from-amber-50 to-orange-50',
+    borderColor: 'border-amber-200',
+    iconBg: 'from-amber-400 to-orange-500',
+  },
+]
+
 export function CourseList() {
   const { user, canAccessFPContent } = useAuth()
   const [courses, setCourses] = useState<Course[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const { markCategoryViewed, recordContentView } = useNewBadge()
+  const [selectedCategory, setSelectedCategory] = useState<CategoryType | null>(null)
+  const { markCategoryViewed } = useNewBadge()
   const hasMarkedViewed = useRef(false)
 
   // ページを開いたときにカテゴリを閲覧済みとしてマーク
@@ -103,17 +160,6 @@ export function CourseList() {
     )
   }
 
-
-  const getCategoryLabel = (category: string) => {
-    switch (category) {
-      case 'MONEY_LITERACY': return '所得を増やすマネーリテラシー全般'
-      case 'PRACTICAL_SKILL': return '実践スキル'
-      case 'STARTUP_SUPPORT': return 'スタートアップ支援'
-      case 'STARTUP_GUIDE': return 'はじめに'
-      default: return category
-    }
-  }
-
   const getLevelLabel = (level: string) => {
     switch (level) {
       case 'BASIC': return '基礎編'
@@ -122,37 +168,113 @@ export function CourseList() {
     }
   }
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'MONEY_LITERACY': return 'bg-green-100 text-green-800'
-      case 'PRACTICAL_SKILL': return 'bg-blue-100 text-blue-800'
-      case 'STARTUP_SUPPORT': return 'bg-purple-100 text-purple-800'
-      case 'STARTUP_GUIDE': return 'bg-amber-100 text-amber-800'
+  const getLevelColor = (level: string) => {
+    switch (level) {
+      case 'BASIC': return 'bg-blue-100 text-blue-800'
+      case 'ADVANCED': return 'bg-orange-100 text-orange-800'
       default: return 'bg-slate-100 text-slate-800'
     }
   }
 
-  // スタートアップガイドコースと通常コースを分離
-  const startupGuideCourses = courses.filter(course => course.category === 'STARTUP_GUIDE')
-  const regularCourses = courses.filter(course => course.category !== 'STARTUP_GUIDE')
+  // カテゴリーごとのコース数とレッスン数を計算
+  const getCategoryStats = (category: CategoryType) => {
+    const categoryCourses = courses.filter(c => c.category === category)
+    const totalLessons = categoryCourses.reduce((sum, c) => sum + c.lessons.length, 0)
+    const completedLessons = categoryCourses.reduce(
+      (sum, c) => sum + c.lessons.filter(l => l.isCompleted).length, 0
+    )
+    const progress = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0
+    const isLocked = categoryCourses.every(c => c.isLocked)
+    return { courseCount: categoryCourses.length, totalLessons, completedLessons, progress, isLocked }
+  }
 
-  // コースカードをレンダリングする共通関数
+  // 選択されたカテゴリーのコースを取得
+  const getCoursesForCategory = (category: CategoryType) => {
+    return courses.filter(c => c.category === category)
+  }
+
+  // カテゴリーカードをレンダリング
+  const renderCategoryCard = (categoryInfo: CategoryInfo) => {
+    const stats = getCategoryStats(categoryInfo.key)
+    const hasNewContent = courses.some(c => c.category === categoryInfo.key && c.isNew)
+
+    return (
+      <Card
+        key={categoryInfo.key}
+        className={`hover:shadow-xl transition-all duration-300 cursor-pointer bg-gradient-to-r ${categoryInfo.bgColor} ${categoryInfo.borderColor} border-2`}
+        onClick={() => !stats.isLocked && setSelectedCategory(categoryInfo.key)}
+      >
+        <CardHeader className="p-4 sm:p-6">
+          <div className="flex items-start justify-between">
+            <div className={`flex items-center justify-center w-12 h-12 bg-gradient-to-br ${categoryInfo.iconBg} rounded-xl shadow-md`}>
+              {categoryInfo.icon}
+            </div>
+            <div className="flex items-center gap-2">
+              {hasNewContent && (
+                <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 animate-pulse text-xs">
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  NEW
+                </Badge>
+              )}
+              {stats.isLocked && (
+                <Badge variant="secondary" className="text-xs">
+                  <Lock className="h-3 w-3 mr-1" />
+                  ロック中
+                </Badge>
+              )}
+            </div>
+          </div>
+          <CardTitle className="text-lg sm:text-xl mt-4">{categoryInfo.label}</CardTitle>
+          <CardDescription className="text-sm">{categoryInfo.description}</CardDescription>
+        </CardHeader>
+        <CardContent className="p-4 sm:p-6 pt-0">
+          <div className="space-y-3">
+            {/* 進捗状況 */}
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-xs sm:text-sm font-medium">進捗</span>
+                <span className="text-xs sm:text-sm text-slate-600">
+                  {stats.completedLessons}/{stats.totalLessons} レッスン ({stats.progress}%)
+                </span>
+              </div>
+              <Progress value={stats.progress} className="h-2" />
+            </div>
+
+            {/* コース数表示 */}
+            <div className="flex items-center justify-between text-sm text-slate-600">
+              <span>{stats.courseCount}コース</span>
+              {!stats.isLocked && (
+                <span className="flex items-center text-blue-600 font-medium">
+                  詳細を見る
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </span>
+              )}
+            </div>
+
+            {/* ロック理由 */}
+            {stats.isLocked && (
+              <div className="text-xs text-slate-500 bg-white/50 p-2 rounded">
+                FPエイド昇格後に利用可能
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // コースカードをレンダリング（基礎編/応用編）
   const renderCourseCard = (course: Course) => (
     <Card key={course.id} className="hover:shadow-xl transition-all duration-300">
       <CardHeader className="p-4 sm:p-6">
         <div className="flex flex-wrap items-center gap-2 mb-2">
-          <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-            {course.isNew && (
-              <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 animate-pulse text-xs">
-                <Sparkles className="h-3 w-3 mr-1" />
-                NEW
-              </Badge>
-            )}
-            <Badge className={`${getCategoryColor(course.category)} text-xs`}>
-              {getCategoryLabel(course.category)}
+          {course.isNew && (
+            <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 animate-pulse text-xs">
+              <Sparkles className="h-3 w-3 mr-1" />
+              NEW
             </Badge>
-          </div>
-          <Badge variant="outline" className="text-xs">
+          )}
+          <Badge className={`${getLevelColor(course.level)} text-xs`}>
             {getLevelLabel(course.level)}
           </Badge>
         </div>
@@ -172,10 +294,12 @@ export function CourseList() {
 
           {/* レッスン一覧 */}
           <div className="space-y-2">
-            <h4 className="text-xs sm:text-sm font-medium text-slate-700">レッスン一覧</h4>
-            <div className="max-h-28 sm:max-h-32 overflow-y-auto space-y-1">
+            <h4 className="text-xs sm:text-sm font-medium text-slate-700">
+              コンテンツ一覧（{course.lessons.length}本）
+            </h4>
+            <div className="max-h-40 sm:max-h-48 overflow-y-auto space-y-1">
               {course.lessons.map(lesson => (
-                <div key={lesson.id} className="flex items-center justify-between text-xs">
+                <div key={lesson.id} className="flex items-center justify-between text-xs bg-slate-50 p-2 rounded">
                   <div className="flex items-center flex-1 min-w-0">
                     {lesson.isCompleted ? (
                       <CheckCircle className="h-3 w-3 text-green-500 mr-1.5 sm:mr-2 flex-shrink-0" />
@@ -186,7 +310,7 @@ export function CourseList() {
                   </div>
                   <div className="flex items-center text-slate-500 ml-2 flex-shrink-0">
                     <Clock className="h-3 w-3 mr-1" />
-                    <span>{lesson.duration}分</span>
+                    <span>{Math.round(lesson.duration / 60)}分</span>
                   </div>
                 </div>
               ))}
@@ -215,19 +339,12 @@ export function CourseList() {
                 </Button>
               </Link>
             )}
-            {!course.isLocked && (
-              <Button variant="outline" size="sm">
-                <FileText className="h-4 w-4" />
-              </Button>
-            )}
           </div>
 
           {/* ロック理由 */}
           {course.isLocked && (
             <div className="text-xs text-slate-500 bg-slate-50 p-2 rounded">
-              {course.category === 'STARTUP_SUPPORT' && !canAccessFPContent() &&
-                "FPエイド昇格後に利用可能"
-              }
+              FPエイド昇格後に利用可能
             </div>
           )}
         </div>
@@ -235,37 +352,53 @@ export function CourseList() {
     </Card>
   )
 
+  // カテゴリー選択時の表示
+  if (selectedCategory) {
+    const categoryInfo = CATEGORIES.find(c => c.key === selectedCategory)!
+    const categoryCourses = getCoursesForCategory(selectedCategory)
+
+    return (
+      <div className="space-y-6">
+        {/* 戻るボタン */}
+        <Button
+          variant="ghost"
+          onClick={() => setSelectedCategory(null)}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          カテゴリー一覧に戻る
+        </Button>
+
+        {/* カテゴリーヘッダー */}
+        <div className="flex items-center gap-4">
+          <div className={`flex items-center justify-center w-12 h-12 bg-gradient-to-br ${categoryInfo.iconBg} rounded-xl shadow-md`}>
+            {categoryInfo.icon}
+          </div>
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900">{categoryInfo.label}</h2>
+            <p className="text-sm text-slate-500">{categoryInfo.description}</p>
+          </div>
+        </div>
+
+        {/* コース一覧（基礎編/応用編） */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          {categoryCourses
+            .sort((a, b) => (a.level === 'BASIC' ? -1 : 1))
+            .map(renderCourseCard)}
+        </div>
+      </div>
+    )
+  }
+
+  // カテゴリー一覧表示
   return (
     <div className="space-y-8">
-      {/* スタートアップガイドセクション（UGS会員のみ表示） */}
-      {startupGuideCourses.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl shadow-md">
-              <BookOpen className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h2 className="text-lg sm:text-xl font-bold text-slate-900">はじめに（スタートアップ）</h2>
-              <p className="text-xs sm:text-sm text-slate-500">アプリの使い方・UGSの考え方</p>
-            </div>
-          </div>
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4 sm:p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-              {startupGuideCourses.map(renderCourseCard)}
-            </div>
-          </div>
-        </div>
-      )}
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg sm:text-2xl font-bold text-slate-900">教育コンテンツ</h2>
+      </div>
 
-      {/* 通常の教育コンテンツセクション */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg sm:text-2xl font-bold text-slate-900">教育コンテンツ一覧</h2>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-          {regularCourses.map(renderCourseCard)}
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        {CATEGORIES.map(renderCategoryCard)}
       </div>
     </div>
   )
