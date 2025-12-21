@@ -27,7 +27,7 @@ export function LandingPageHeader() {
                 style={{ width: '28px', height: '28px' }}
               />
             )}
-            <span className="hidden md:block text-sm font-bold text-slate-900">UGS</span>
+            <span className="hidden md:block text-sm font-bold text-slate-900">(UGS)Unicara Growth Salon</span>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-3">
             <Link href="/login">
