@@ -390,8 +390,8 @@ export function CourseList() {
     )
   }
 
-  // UGS会員（MEMBER）のみ「はじめに」カテゴリーを表示
-  const isMember = user?.role === 'MEMBER'
+  // UGS会員（member）のみ「はじめに」カテゴリーを表示
+  const isMember = user?.role === 'member'
   const visibleCategories = isMember
     ? CATEGORIES
     : CATEGORIES.filter(c => c.key !== 'STARTUP_GUIDE')
