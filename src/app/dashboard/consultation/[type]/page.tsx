@@ -49,6 +49,7 @@ export default function ConsultationFormPage({ params }: { params: Promise<{ typ
   const [phoneError, setPhoneError] = useState('')
   const [content, setContent] = useState('')
   const [preferredContact, setPreferredContact] = useState('EMAIL')
+  const [lineId, setLineId] = useState('')
   const [preferredDates, setPreferredDates] = useState<string[]>([''])
   const [attachment, setAttachment] = useState<{ url: string; name: string } | null>(null)
   const [uploading, setUploading] = useState(false)
@@ -185,6 +186,12 @@ export default function ConsultationFormPage({ params }: { params: Promise<{ typ
       return
     }
 
+    // LINEを選択した場合はLINE IDが必須
+    if (preferredContact === 'LINE' && !lineId.trim()) {
+      setError('LINE IDを入力してください')
+      return
+    }
+
     const validDates = preferredDates.filter(d => d)
     if (validDates.length === 0) {
       setError('希望日時を1つ以上選択してください')
@@ -202,6 +209,7 @@ export default function ConsultationFormPage({ params }: { params: Promise<{ typ
           phoneNumber,
           content,
           preferredContact,
+          lineId: preferredContact === 'LINE' ? lineId.trim() : null,
           preferredDates: validDates,
           attachmentUrl: attachment?.url,
           attachmentName: attachment?.name,
@@ -348,7 +356,12 @@ export default function ConsultationFormPage({ params }: { params: Promise<{ typ
               <Label>希望連絡方法 <span className="text-red-500">*</span></Label>
               <RadioGroup
                 value={preferredContact}
-                onValueChange={setPreferredContact}
+                onValueChange={(value) => {
+                  setPreferredContact(value)
+                  if (value !== 'LINE') {
+                    setLineId('')
+                  }
+                }}
                 className="flex gap-6"
               >
                 <div className="flex items-center space-x-2">
@@ -365,6 +378,21 @@ export default function ConsultationFormPage({ params }: { params: Promise<{ typ
                 </div>
               </RadioGroup>
             </div>
+
+            {/* LINE ID（LINEを選択した場合のみ表示） */}
+            {preferredContact === 'LINE' && (
+              <div className="space-y-2">
+                <Label htmlFor="lineId">LINE ID <span className="text-red-500">*</span></Label>
+                <Input
+                  id="lineId"
+                  value={lineId}
+                  onChange={(e) => setLineId(e.target.value)}
+                  placeholder="例: your_line_id"
+                  required
+                />
+                <p className="text-xs text-slate-500">LINEアプリの設定 → プロフィール → LINE IDで確認できます</p>
+              </div>
+            )}
 
             {/* 希望日時 */}
             <div className="space-y-2">

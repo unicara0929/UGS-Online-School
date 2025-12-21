@@ -69,6 +69,7 @@ interface Consultation {
   phoneNumber: string
   content: string
   preferredContact: string
+  lineId: string | null
   preferredDates: string[]
   attachmentUrl: string | null
   attachmentName: string | null
@@ -317,6 +318,14 @@ function ConsultationDetailContent({ params }: { params: Promise<{ id: string }>
                     <ContactIcon className="h-4 w-4 text-slate-600" />
                     <span className="font-medium">{contactMethod?.label}</span>
                   </div>
+                  {/* LINE IDを表示（LINEの場合のみ） */}
+                  {consultation.preferredContact === 'LINE' && consultation.lineId && (
+                    <div className="mt-2 p-2 bg-green-50 rounded-lg border border-green-200">
+                      <p className="text-sm text-green-700">
+                        <span className="font-medium">LINE ID:</span> {consultation.lineId}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* 希望日時 */}

@@ -1162,6 +1162,7 @@ model Consultation {
   phoneNumber       String              // 電話番号（編集可）
   content           String              @db.Text // 相談内容
   preferredContact  ContactMethod       // 希望連絡方法
+  lineId            String?             // LINE ID（希望連絡方法がLINEの場合）
   preferredDates    DateTime[]          // 希望日時（複数）
   attachmentUrl     String?             // 添付ファイルURL
   attachmentName    String?             // 添付ファイル名

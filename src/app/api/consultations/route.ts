@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     if (authError) return authError
 
     const body = await request.json()
-    const { type, phoneNumber, content, preferredContact, preferredDates, attachmentUrl, attachmentName } = body
+    const { type, phoneNumber, content, preferredContact, lineId, preferredDates, attachmentUrl, attachmentName } = body
 
     // バリデーション
     if (!type || !phoneNumber || !content || !preferredContact || !preferredDates || preferredDates.length === 0) {
@@ -85,6 +85,7 @@ export async function POST(request: NextRequest) {
         phoneNumber,
         content,
         preferredContact: preferredContact as ContactMethod,
+        lineId: preferredContact === 'LINE' ? lineId : null,
         preferredDates: parsedDates,
         attachmentUrl,
         attachmentName,

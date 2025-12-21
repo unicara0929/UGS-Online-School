@@ -85,6 +85,7 @@ export async function GET(
         phoneNumber: consultation.phoneNumber,
         content: consultation.content,
         preferredContact: consultation.preferredContact,
+        lineId: consultation.lineId,
         preferredDates: consultation.preferredDates,
         attachmentUrl: consultation.attachmentUrl,
         attachmentName: consultation.attachmentName,
