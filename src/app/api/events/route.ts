@@ -108,7 +108,8 @@ export async function GET(request: NextRequest) {
             OR: [
               // 開催予定のイベント
               { status: 'UPCOMING' },
-              // 完了済みイベントで動画またはアンケートが設定されている、かつ視聴期限内または期限未設定
+              // 完了済みイベントで動画またはアンケートが設定されている
+              // 視聴期限チェックはフロントエンドで行う（出席完了していないユーザーには期限切れでも表示する必要があるため）
               {
                 AND: [
                   { status: 'COMPLETED' },
@@ -116,12 +117,6 @@ export async function GET(request: NextRequest) {
                     OR: [
                       { vimeoUrl: { not: null } },
                       { surveyUrl: { not: null } },
-                    ],
-                  },
-                  {
-                    OR: [
-                      { attendanceDeadline: { gte: now } }, // 期限内
-                      { attendanceDeadline: null },         // 期限未設定（無期限扱い）
                     ],
                   },
                 ],
