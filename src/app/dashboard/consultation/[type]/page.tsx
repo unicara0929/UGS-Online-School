@@ -390,7 +390,6 @@ export default function ConsultationFormPage({ params }: { params: Promise<{ typ
                   placeholder="例: your_line_id"
                   required
                 />
-                <p className="text-xs text-slate-500">LINEアプリの設定 → プロフィール → LINE IDで確認できます</p>
               </div>
             )}
 
