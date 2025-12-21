@@ -59,7 +59,17 @@ interface CategoryInfo {
   iconBg: string
 }
 
-const CATEGORIES: CategoryInfo[] = [
+// UGS会員用カテゴリー（はじめにが先頭）
+const CATEGORIES_FOR_MEMBER: CategoryInfo[] = [
+  {
+    key: 'STARTUP_GUIDE',
+    label: 'はじめに',
+    description: 'アプリの使い方・UGSの考え方',
+    icon: <GraduationCap className="h-6 w-6 text-white" />,
+    bgColor: 'from-amber-50 to-orange-50',
+    borderColor: 'border-amber-200',
+    iconBg: 'from-amber-400 to-orange-500',
+  },
   {
     key: 'MONEY_LITERACY',
     label: '所得を増やすマネーリテラシー全般',
@@ -87,14 +97,36 @@ const CATEGORIES: CategoryInfo[] = [
     borderColor: 'border-purple-200',
     iconBg: 'from-purple-400 to-violet-500',
   },
+]
+
+// FP/MGR/ADMIN用カテゴリー（はじめに除外）
+const CATEGORIES_FOR_OTHERS: CategoryInfo[] = [
   {
-    key: 'STARTUP_GUIDE',
-    label: 'はじめに',
-    description: 'アプリの使い方・UGSの考え方',
-    icon: <GraduationCap className="h-6 w-6 text-white" />,
-    bgColor: 'from-amber-50 to-orange-50',
-    borderColor: 'border-amber-200',
-    iconBg: 'from-amber-400 to-orange-500',
+    key: 'MONEY_LITERACY',
+    label: '所得を増やすマネーリテラシー全般',
+    description: 'お金の知識を身につけ、資産形成の基礎を学ぶ',
+    icon: <DollarSign className="h-6 w-6 text-white" />,
+    bgColor: 'from-green-50 to-emerald-50',
+    borderColor: 'border-green-200',
+    iconBg: 'from-green-400 to-emerald-500',
+  },
+  {
+    key: 'PRACTICAL_SKILL',
+    label: '実践スキル',
+    description: '営業・ビジネススキルを実践的に学ぶ',
+    icon: <Briefcase className="h-6 w-6 text-white" />,
+    bgColor: 'from-blue-50 to-indigo-50',
+    borderColor: 'border-blue-200',
+    iconBg: 'from-blue-400 to-indigo-500',
+  },
+  {
+    key: 'STARTUP_SUPPORT',
+    label: 'スタートアップ支援',
+    description: '起業・独立に必要な知識とスキルを習得',
+    icon: <Rocket className="h-6 w-6 text-white" />,
+    bgColor: 'from-purple-50 to-violet-50',
+    borderColor: 'border-purple-200',
+    iconBg: 'from-purple-400 to-violet-500',
   },
 ]
 
@@ -390,11 +422,9 @@ export function CourseList() {
     )
   }
 
-  // UGS会員（member）のみ「はじめに」カテゴリーを表示
+  // UGS会員（member）は「はじめに」を先頭に表示、他のロールは除外
   const isMember = user?.role === 'member'
-  const visibleCategories = isMember
-    ? CATEGORIES
-    : CATEGORIES.filter(c => c.key !== 'STARTUP_GUIDE')
+  const visibleCategories = isMember ? CATEGORIES_FOR_MEMBER : CATEGORIES_FOR_OTHERS
 
   // カテゴリー一覧表示
   return (
