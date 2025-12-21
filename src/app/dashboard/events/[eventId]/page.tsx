@@ -784,13 +784,13 @@ function EventDetailPageContent() {
                           <p className="text-sm text-yellow-700">管理者からの連絡をお待ちください</p>
                         </div>
                       </div>
-                      <MtgExemptionForm
-                        eventId={event.id}
-                        eventTitle={event.title}
-                        userName={user.name || ''}
-                        memberId={user.memberId || ''}
-                        onSuccess={() => window.location.reload()}
-                      />
+                    </div>
+                  ) : event.applicationDeadline && new Date(event.applicationDeadline) < new Date() ? (
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                      <p className="text-red-700 font-medium">参加申込の期限が過ぎたため、欠席申請はできません</p>
+                      <p className="text-sm text-red-600 mt-1">
+                        期限: {format(new Date(event.applicationDeadline), 'M月d日(E) HH:mm', { locale: ja })}
+                      </p>
                     </div>
                   ) : (
                     <div className="space-y-3">
