@@ -595,7 +595,6 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                     <TableHead>正式参加</TableHead>
                     <TableHead>動画</TableHead>
                     <TableHead>アンケート</TableHead>
-                    <TableHead>免除</TableHead>
                     <TableHead>GM面談</TableHead>
                     <TableHead>最終承認</TableHead>
                   </TableRow>
@@ -603,7 +602,7 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                 <TableBody>
                   {filteredParticipants.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={10} className="text-center py-8 text-slate-500">
+                      <TableCell colSpan={9} className="text-center py-8 text-slate-500">
                         該当するFPエイドがいません
                       </TableCell>
                     </TableRow>
@@ -699,26 +698,6 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                               </div>
                             ) : (
                               <XCircle className="h-5 w-5 text-slate-300" />
-                            )}
-                          </TableCell>
-                          {/* 免除申請 */}
-                          <TableCell className="text-sm">
-                            {participant.hasExemption ? (
-                              <Badge
-                                variant="outline"
-                                className={
-                                  participant.exemptionStatus === 'APPROVED'
-                                    ? 'bg-green-50 text-green-700 border-green-300'
-                                    : participant.exemptionStatus === 'REJECTED'
-                                    ? 'bg-red-50 text-red-700 border-red-300'
-                                    : 'bg-yellow-50 text-yellow-700 border-yellow-300'
-                                }
-                              >
-                                {participant.exemptionStatus === 'APPROVED' ? '承認' :
-                                 participant.exemptionStatus === 'REJECTED' ? '却下' : '審査中'}
-                              </Badge>
-                            ) : (
-                              <span className="text-slate-400">-</span>
                             )}
                           </TableCell>
                           {/* GM面談 */}
