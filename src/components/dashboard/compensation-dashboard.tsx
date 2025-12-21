@@ -175,7 +175,7 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0">
             <div className="text-xl sm:text-2xl font-bold">{formatCurrency(stats?.total || 0)}</div>
-            <p className="text-xs text-slate-600">生涯報酬合計</p>
+            <p className="text-xs text-slate-600">累計受取報酬</p>
           </CardContent>
         </Card>
       </div>
@@ -198,7 +198,7 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
                 <p className="text-lg sm:text-xl font-bold text-purple-900">{formatCurrency(stats.totalByRole.MANAGER)}</p>
               </div>
               <div className="p-3 sm:p-4 bg-slate-100 rounded-lg">
-                <p className="text-xs sm:text-sm text-slate-600 font-medium">生涯報酬合計</p>
+                <p className="text-xs sm:text-sm text-slate-600 font-medium">累計受取報酬</p>
                 <p className="text-lg sm:text-xl font-bold text-slate-900">{formatCurrency(stats.total)}</p>
               </div>
             </div>
