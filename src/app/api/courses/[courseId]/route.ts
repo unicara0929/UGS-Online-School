@@ -65,8 +65,18 @@ export async function GET(
     // レスポンス用にフォーマット
     const lessons = course.lessons.map((lesson) => {
       const progress = progressMap.get(lesson.id)
-      // Vimeo IDを抽出（URLから）
-      const vimeoId = lesson.videoUrl?.match(/vimeo\.com\/(\d+)/)?.[1] || null
+      // Vimeo IDを抽出（URLまたは数値のみの場合）
+      let vimeoId: string | null = null
+      if (lesson.videoUrl) {
+        // 数値のみの場合はそのまま使用
+        if (/^\d+$/.test(lesson.videoUrl.trim())) {
+          vimeoId = lesson.videoUrl.trim()
+        } else {
+          // URLからVimeo IDを抽出（vimeo.com/123456 または player.vimeo.com/video/123456 形式に対応）
+          const match = lesson.videoUrl.match(/(?:vimeo\.com\/|player\.vimeo\.com\/video\/)(\d+)/)
+          vimeoId = match?.[1] || null
+        }
+      }
 
       return {
         id: lesson.id,
