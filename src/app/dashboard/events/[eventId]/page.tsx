@@ -503,8 +503,8 @@ function EventDetailPageContent() {
                                   size="lg"
                                   variant="outline"
                                   className="h-auto py-4 border-2 border-purple-300 text-purple-700 hover:bg-purple-50 flex flex-col items-center w-full disabled:opacity-50"
-                                  onClick={async () => {
-                                    await handleParticipationIntent('WILL_NOT_ATTEND')
+                                  onClick={() => {
+                                    document.getElementById('exemption-section')?.scrollIntoView({ behavior: 'smooth' })
                                   }}
                                   disabled={isSubmitting || isApplicationExpired}
                                 >

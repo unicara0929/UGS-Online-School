@@ -306,9 +306,12 @@ export function CourseList() {
               NEW
             </Badge>
           )}
-          <Badge className={`${getLevelColor(course.level)} text-xs`}>
-            {getLevelLabel(course.level)}
-          </Badge>
+          {/* はじめにカテゴリのコースはレベルバッジを表示しない */}
+          {course.category !== 'STARTUP_GUIDE' && (
+            <Badge className={`${getLevelColor(course.level)} text-xs`}>
+              {getLevelLabel(course.level)}
+            </Badge>
+          )}
         </div>
         <CardTitle className="text-base sm:text-lg line-clamp-2">{course.title}</CardTitle>
         <CardDescription className="text-sm line-clamp-2">{course.description}</CardDescription>

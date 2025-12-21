@@ -401,9 +401,12 @@ function LearningPage() {
                     <Badge className={`${getCategoryColor(course.category)} text-[10px] sm:text-xs`}>
                       {getCategoryLabel(course.category)}
                     </Badge>
-                    <Badge variant="outline" className="text-[10px] sm:text-xs">
-                      {getLevelLabel(course.level)}
-                    </Badge>
+                    {/* はじめにカテゴリのコースはレベルバッジを表示しない */}
+                    {course.category !== 'STARTUP_GUIDE' && (
+                      <Badge variant="outline" className="text-[10px] sm:text-xs">
+                        {getLevelLabel(course.level)}
+                      </Badge>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent className="p-3 sm:p-4 pt-0">
