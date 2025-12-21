@@ -390,6 +390,12 @@ export function CourseList() {
     )
   }
 
+  // UGS会員（MEMBER）のみ「はじめに」カテゴリーを表示
+  const isMember = user?.role === 'MEMBER'
+  const visibleCategories = isMember
+    ? CATEGORIES
+    : CATEGORIES.filter(c => c.key !== 'STARTUP_GUIDE')
+
   // カテゴリー一覧表示
   return (
     <div className="space-y-8">
@@ -398,7 +404,7 @@ export function CourseList() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-        {CATEGORIES.map(renderCategoryCard)}
+        {visibleCategories.map(renderCategoryCard)}
       </div>
     </div>
   )
