@@ -780,8 +780,8 @@ function EventDetailPageContent() {
                     <div className="space-y-3">
                       <div className="flex items-center gap-3 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
                         <div className="flex-1">
-                          <p className="font-semibold text-yellow-800">欠席申請を審査中です</p>
-                          <p className="text-sm text-yellow-700">管理者からの連絡をお待ちください</p>
+                          <p className="font-semibold text-yellow-800">欠席申請を受け付けました</p>
+                          <p className="text-sm text-yellow-700">全体MTG終了後に、動画およびアンケートをアップロードいたしますので、ご視聴のうえご回答をお願いいたします。</p>
                         </div>
                       </div>
                     </div>
