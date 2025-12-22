@@ -565,18 +565,18 @@ function LearningPage() {
             </div>
 
             {/* レッスン一覧（サムネイルグリッド形式） */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center">
-                  <BookOpen className="h-5 w-5 mr-2" />
+            <div className="overflow-hidden">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+                <h2 className="text-base sm:text-xl font-bold text-slate-900 flex items-center">
+                  <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 mr-2 flex-shrink-0" />
                   レッスン一覧
                 </h2>
-                <div className="flex items-center space-x-2">
-                  <Badge className={`${getCategoryColor(course.category)} text-xs`}>
+                <div className="flex items-center gap-1 sm:space-x-2 flex-wrap">
+                  <Badge className={`${getCategoryColor(course.category)} text-[10px] sm:text-xs`}>
                     {getCategoryLabel(course.category)}
                   </Badge>
                   {course.category !== 'STARTUP_GUIDE' && (
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-[10px] sm:text-xs">
                       {getLevelLabel(course.level)}
                     </Badge>
                   )}
@@ -624,12 +624,12 @@ function LearningPage() {
 
                         {/* 再生アイコンオーバーレイ */}
                         <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-colors">
-                          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${
+                          <div className={`w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${
                             index === currentLessonIndex
                               ? 'bg-blue-500 scale-100'
                               : 'bg-white/90 scale-0 group-hover:scale-100'
                           }`}>
-                            <Play className={`h-5 w-5 sm:h-6 sm:w-6 ${
+                            <Play className={`h-4 w-4 sm:h-6 sm:w-6 ${
                               index === currentLessonIndex ? 'text-white' : 'text-slate-700'
                             } ml-0.5`} />
                           </div>
@@ -637,19 +637,19 @@ function LearningPage() {
 
                         {/* 完了バッジ */}
                         {lesson.isCompleted && (
-                          <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1">
-                            <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <div className="absolute top-1 right-1 sm:top-2 sm:right-2 bg-green-500 text-white rounded-full p-0.5 sm:p-1">
+                            <CheckCircle className="h-2.5 w-2.5 sm:h-4 sm:w-4" />
                           </div>
                         )}
 
                         {/* 再生時間 */}
-                        <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-1.5 py-0.5 rounded">
+                        <div className="absolute bottom-1 right-1 sm:bottom-2 sm:right-2 bg-black/80 text-white text-[10px] sm:text-xs px-1 sm:px-1.5 py-0.5 rounded">
                           {Math.floor(lesson.duration / 60)}:{(lesson.duration % 60).toString().padStart(2, '0')}
                         </div>
 
                         {/* 現在再生中インジケーター */}
                         {index === currentLessonIndex && (
-                          <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-0.5 rounded font-medium">
+                          <div className="absolute top-1 left-1 sm:top-2 sm:left-2 bg-blue-500 text-white text-[10px] sm:text-xs px-1 sm:px-2 py-0.5 rounded font-medium">
                             再生中
                           </div>
                         )}
