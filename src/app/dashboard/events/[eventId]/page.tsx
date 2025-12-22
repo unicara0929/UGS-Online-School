@@ -27,6 +27,7 @@ import {
 import { AttendanceCodeInput } from '@/components/events/attendance-code-input'
 import { VideoSurveyAttendance } from '@/components/events/video-survey-attendance'
 import { MtgExemptionForm } from '@/components/events/mtg-exemption-form'
+import { InternalSurvey } from '@/components/events/internal-survey'
 
 type EventDetail = {
   id: string
@@ -53,6 +54,7 @@ type EventDetail = {
   attendanceDeadline: string | null
   vimeoUrl: string | null
   surveyUrl: string | null
+  hasInternalSurvey: boolean  // 内部アンケートが設定されているか
   attendanceMethod: 'CODE' | 'VIDEO_SURVEY' | null
   attendanceCompletedAt: string | null
   videoWatched: boolean
@@ -694,22 +696,62 @@ function EventDetailPageContent() {
                       )}
 
                       {/* 録画視聴+アンケート（動画またはアンケートが設定されていれば表示） */}
-                      {(event.vimeoUrl || event.surveyUrl) && (
+                      {(event.vimeoUrl || event.surveyUrl || event.hasInternalSurvey) && (
                         <>
                           {event.attendanceDeadline && new Date(event.attendanceDeadline) < new Date() ? (
                             <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
                               <p className="text-sm text-slate-600">動画視聴・アンケート提出の期限が過ぎました</p>
                             </div>
                           ) : (
-                            <VideoSurveyAttendance
-                              eventId={event.id}
-                              eventTitle={event.title}
-                              vimeoUrl={event.vimeoUrl}
-                              surveyUrl={event.surveyUrl}
-                              videoWatched={event.videoWatched}
-                              surveyCompleted={event.surveyCompleted}
-                              onSuccess={() => window.location.reload()}
-                            />
+                            <>
+                              {/* 外部アンケートURL（従来方式）の場合 */}
+                              {event.surveyUrl && !event.hasInternalSurvey && (
+                                <VideoSurveyAttendance
+                                  eventId={event.id}
+                                  eventTitle={event.title}
+                                  vimeoUrl={event.vimeoUrl}
+                                  surveyUrl={event.surveyUrl}
+                                  videoWatched={event.videoWatched}
+                                  surveyCompleted={event.surveyCompleted}
+                                  onSuccess={() => window.location.reload()}
+                                />
+                              )}
+                              {/* 内部アンケート（新方式）の場合 */}
+                              {event.hasInternalSurvey && (
+                                <div className="space-y-4">
+                                  {/* 動画視聴コンポーネント（内部アンケートの場合、VideoSurveyAttendanceから動画部分のみ使用） */}
+                                  {event.vimeoUrl && (
+                                    <VideoSurveyAttendance
+                                      eventId={event.id}
+                                      eventTitle={event.title}
+                                      vimeoUrl={event.vimeoUrl}
+                                      surveyUrl={null}
+                                      videoWatched={event.videoWatched}
+                                      surveyCompleted={event.surveyCompleted}
+                                      onSuccess={() => window.location.reload()}
+                                    />
+                                  )}
+                                  {/* 内部アンケートコンポーネント */}
+                                  <InternalSurvey
+                                    eventId={event.id}
+                                    videoWatched={event.videoWatched}
+                                    onSurveyComplete={() => window.location.reload()}
+                                  />
+                                </div>
+                              )}
+                              {/* 動画のみ（アンケートなし）の場合 */}
+                              {event.vimeoUrl && !event.surveyUrl && !event.hasInternalSurvey && (
+                                <VideoSurveyAttendance
+                                  eventId={event.id}
+                                  eventTitle={event.title}
+                                  vimeoUrl={event.vimeoUrl}
+                                  surveyUrl={null}
+                                  videoWatched={event.videoWatched}
+                                  surveyCompleted={event.surveyCompleted}
+                                  onSuccess={() => window.location.reload()}
+                                />
+                              )}
+                            </>
                           )}
                         </>
                       )}

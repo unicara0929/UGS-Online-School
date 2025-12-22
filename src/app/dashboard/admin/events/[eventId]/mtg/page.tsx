@@ -27,8 +27,10 @@ import {
   CreditCard,
   UserCheck,
   UserX,
-  MessageSquare
+  MessageSquare,
+  Settings
 } from 'lucide-react'
+import Link from 'next/link'
 
 interface MtgParticipant {
   userId: string
@@ -338,6 +340,12 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                 </p>
               </div>
             </div>
+            <Link href={`/dashboard/admin/events/${eventId}/survey`}>
+              <Button variant="outline" size="sm">
+                <Settings className="h-4 w-4 mr-2" />
+                アンケート設定
+              </Button>
+            </Link>
           </div>
 
           {/* イベント情報カード */}

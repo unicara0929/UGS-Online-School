@@ -20,7 +20,9 @@ import {
   Calendar,
   Clock,
   MapPin,
+  FileText,
 } from 'lucide-react'
+import Link from 'next/link'
 
 type Participant = {
   id: string
@@ -278,11 +280,19 @@ function EventDetailPageContent() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-2xl">{event.title}</CardTitle>
-                    {event.isPaid && (
-                      <Badge variant="outline" className="bg-amber-50 border-amber-300 text-amber-700">
-                        ¥{event.price?.toLocaleString()}
-                      </Badge>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <Link href={`/dashboard/admin/events/${eventId}/survey`}>
+                        <Button variant="outline" size="sm">
+                          <FileText className="h-4 w-4 mr-2" />
+                          アンケート設定
+                        </Button>
+                      </Link>
+                      {event.isPaid && (
+                        <Badge variant="outline" className="bg-amber-50 border-amber-300 text-amber-700">
+                          ¥{event.price?.toLocaleString()}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>

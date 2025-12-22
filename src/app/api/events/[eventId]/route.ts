@@ -81,6 +81,13 @@ export async function GET(
           },
           take: 1,
         },
+        // 内部アンケートの存在確認
+        eventSurvey: {
+          select: {
+            id: true,
+            isActive: true,
+          },
+        },
       },
     })
 
@@ -149,6 +156,7 @@ export async function GET(
         attendanceDeadline: event.attendanceDeadline?.toISOString() ?? null,
         vimeoUrl: event.vimeoUrl ?? null,
         surveyUrl: event.surveyUrl ?? null,
+        hasInternalSurvey: !!(event.eventSurvey && event.eventSurvey.isActive), // 内部アンケートが設定されているか
         attendanceMethod: registration?.attendanceMethod ?? null,
         attendanceCompletedAt: registration?.attendanceCompletedAt?.toISOString() ?? null,
         videoWatched: registration?.videoWatched ?? false,

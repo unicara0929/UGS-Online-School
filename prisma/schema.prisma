@@ -99,6 +99,7 @@ model User {
   managerDemotedAt        DateTime?                // MGR降格日時（再昇格条件の起算日）
   managerMonthlySales     ManagerMonthlySales[]    // 月次売上データ
   managerAssessments      ManagerAssessment[]      // 半期査定結果
+  eventSurveyResponses    EventSurveyResponse[]    // イベントアンケート回答
 
   @@map("users")
 }
@@ -231,6 +232,7 @@ model Event {
   registrations   EventRegistration[]
   emailCampaigns  EmailCampaign[]
   mtgExemptions   MtgExemption[]      // 免除申請
+  eventSurvey     EventSurvey?        // イベントアンケート
 
   @@map("events")
 }
@@ -1404,6 +1406,105 @@ model MtgExemption {
   @@index([status])
   @@index([createdAt])
   @@map("mtg_exemptions")
+}
+
+// =====================
+// イベント（MTG）アンケート機能
+// =====================
+
+// イベントアンケートの質問タイプ
+enum EventSurveyQuestionType {
+  TEXT          // 短いテキスト
+  TEXTAREA      // 長いテキスト（感想など）
+  SELECT        // 単一選択
+  MULTI_SELECT  // 複数選択
+  RADIO         // ラジオボタン
+  RATING        // 5段階評価
+}
+
+// イベントアンケートテンプレート（イベントごとに設定）
+model EventSurvey {
+  id          String   @id @default(cuid())
+  eventId     String   @unique  // 1イベント1アンケート
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  title       String   // アンケートタイトル（例: "第12回 全体MTGアンケート"）
+  description String?  @db.Text // 説明文
+
+  isActive    Boolean  @default(true) // 有効/無効
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  questions   EventSurveyQuestion[]
+  responses   EventSurveyResponse[]
+
+  @@index([eventId])
+  @@map("event_surveys")
+}
+
+// アンケート質問項目
+model EventSurveyQuestion {
+  id          String   @id @default(cuid())
+  surveyId    String
+  survey      EventSurvey @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+
+  order       Int      // 表示順（1, 2, 3...）
+  question    String   // 質問文
+  description String?  // 補足説明（任意）
+
+  type        EventSurveyQuestionType  // 質問タイプ
+  options     Json?    // 選択肢 ["選択肢1", "選択肢2", ...]（SELECT/MULTI_SELECT/RADIO用）
+
+  required    Boolean  @default(false) // 必須かどうか
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  answers     EventSurveyAnswer[]
+
+  @@index([surveyId, order])
+  @@map("event_survey_questions")
+}
+
+// ユーザーのアンケート回答（1ユーザー1イベントにつき1つ）
+model EventSurveyResponse {
+  id          String   @id @default(cuid())
+  surveyId    String
+  survey      EventSurvey @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  submittedAt DateTime @default(now()) // 回答完了日時（自動タイムスタンプ）
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  answers     EventSurveyAnswer[]
+
+  @@unique([surveyId, userId]) // 1ユーザー1アンケートにつき1回答のみ
+  @@index([surveyId])
+  @@index([userId])
+  @@map("event_survey_responses")
+}
+
+// 個別の回答内容
+model EventSurveyAnswer {
+  id          String   @id @default(cuid())
+  responseId  String
+  response    EventSurveyResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
+
+  questionId  String
+  question    EventSurveyQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  value       Json     // 回答値（TEXT: "回答文", SELECT: "選択肢1", MULTI_SELECT: ["A", "B"], RATING: 5）
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([responseId, questionId]) // 1回答につき1質問1回答のみ
+  @@index([responseId])
+  @@index([questionId])
+  @@map("event_survey_answers")
 }
 
 // =====================
