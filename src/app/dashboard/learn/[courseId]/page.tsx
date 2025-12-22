@@ -548,12 +548,12 @@ function LearningPage() {
                           {currentLesson.isCompleted ? (
                             <>
                               <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
-                              完了済み
+                              視聴済み
                             </>
                           ) : (
                             <>
                               <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
-                              レッスンを完了
+                              視聴済みにする
                             </>
                           )}
                         </Button>
