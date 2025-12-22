@@ -388,68 +388,9 @@ function LearningPage() {
         </header>
 
         <main className="px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4">
-            {/* レッスン一覧サイドバー */}
-            <div className="lg:col-span-3 order-2 lg:order-1">
-              <Card>
-                <CardHeader className="p-3 sm:p-4 pb-2 sm:pb-3">
-                  <CardTitle className="flex items-center text-xs sm:text-sm">
-                    <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
-                    レッスン一覧
-                  </CardTitle>
-                  <div className="flex items-center space-x-1 flex-wrap gap-1">
-                    <Badge className={`${getCategoryColor(course.category)} text-[10px] sm:text-xs`}>
-                      {getCategoryLabel(course.category)}
-                    </Badge>
-                    {/* はじめにカテゴリのコースはレベルバッジを表示しない */}
-                    {course.category !== 'STARTUP_GUIDE' && (
-                      <Badge variant="outline" className="text-[10px] sm:text-xs">
-                        {getLevelLabel(course.level)}
-                      </Badge>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent className="p-3 sm:p-4 pt-0">
-                  <div className="space-y-0.5">
-                    {course.lessons.map((lesson, index) => (
-                      <div
-                        key={lesson.id}
-                        className={`p-1.5 sm:p-2 rounded cursor-pointer transition-colors ${
-                          index === currentLessonIndex
-                            ? 'bg-slate-700 text-white'
-                            : lesson.isCompleted
-                            ? 'bg-green-50 text-green-800 hover:bg-green-100'
-                            : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
-                        }`}
-                        onClick={() => {
-                          setCurrentLessonIndex(index)
-                          setLessonProgress(0)
-                          setIsPlaying(false)
-                        }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center min-w-0 flex-1">
-                            {lesson.isCompleted ? (
-                              <CheckCircle className="h-3 w-3 mr-1.5 text-green-500 flex-shrink-0" />
-                            ) : (
-                              <div className="h-3 w-3 border border-slate-300 rounded-full mr-1.5 flex-shrink-0" />
-                            )}
-                            <span className="text-[10px] sm:text-xs font-medium truncate">{lesson.title}</span>
-                          </div>
-                          <div className="flex items-center text-[10px] sm:text-xs ml-1.5 flex-shrink-0">
-                            <Clock className="h-2.5 w-2.5 mr-0.5" />
-                            <span>{lesson.duration}分</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
+          <div className="space-y-6">
             {/* メイン学習エリア */}
-            <div className="lg:col-span-9 order-1 lg:order-2">
+            <div>
               {currentLesson && (
                 <div className="space-y-3 sm:space-y-4">
                   {/* レッスンヘッダー */}
@@ -621,6 +562,120 @@ function LearningPage() {
                   </Card>
                 </div>
               )}
+            </div>
+
+            {/* レッスン一覧（サムネイルグリッド形式） */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center">
+                  <BookOpen className="h-5 w-5 mr-2" />
+                  レッスン一覧
+                </h2>
+                <div className="flex items-center space-x-2">
+                  <Badge className={`${getCategoryColor(course.category)} text-xs`}>
+                    {getCategoryLabel(course.category)}
+                  </Badge>
+                  {course.category !== 'STARTUP_GUIDE' && (
+                    <Badge variant="outline" className="text-xs">
+                      {getLevelLabel(course.level)}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              {/* サムネイルグリッド */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+                {course.lessons.map((lesson, index) => {
+                  // Vimeoサムネイル URL（vumbnail.comを使用）
+                  const thumbnailUrl = lesson.vimeoId
+                    ? `https://vumbnail.com/${lesson.vimeoId}.jpg`
+                    : null
+
+                  return (
+                    <div
+                      key={lesson.id}
+                      onClick={() => {
+                        setCurrentLessonIndex(index)
+                        setLessonProgress(0)
+                        setIsPlaying(false)
+                        // 動画エリアにスクロール
+                        window.scrollTo({ top: 0, behavior: 'smooth' })
+                      }}
+                      className={`cursor-pointer group transition-all duration-200 ${
+                        index === currentLessonIndex
+                          ? 'ring-2 ring-blue-500 ring-offset-2 rounded-lg'
+                          : ''
+                      }`}
+                    >
+                      {/* サムネイル */}
+                      <div className="relative aspect-video rounded-lg overflow-hidden bg-slate-200">
+                        {thumbnailUrl ? (
+                          <img
+                            src={thumbnailUrl}
+                            alt={lesson.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-700 to-slate-800">
+                            <Video className="h-8 w-8 text-slate-400" />
+                          </div>
+                        )}
+
+                        {/* 再生アイコンオーバーレイ */}
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-colors">
+                          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${
+                            index === currentLessonIndex
+                              ? 'bg-blue-500 scale-100'
+                              : 'bg-white/90 scale-0 group-hover:scale-100'
+                          }`}>
+                            <Play className={`h-5 w-5 sm:h-6 sm:w-6 ${
+                              index === currentLessonIndex ? 'text-white' : 'text-slate-700'
+                            } ml-0.5`} />
+                          </div>
+                        </div>
+
+                        {/* 完了バッジ */}
+                        {lesson.isCompleted && (
+                          <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1">
+                            <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </div>
+                        )}
+
+                        {/* 再生時間 */}
+                        <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-1.5 py-0.5 rounded">
+                          {Math.floor(lesson.duration / 60)}:{(lesson.duration % 60).toString().padStart(2, '0')}
+                        </div>
+
+                        {/* 現在再生中インジケーター */}
+                        {index === currentLessonIndex && (
+                          <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-0.5 rounded font-medium">
+                            再生中
+                          </div>
+                        )}
+                      </div>
+
+                      {/* タイトル */}
+                      <div className="mt-2">
+                        <h3 className={`text-xs sm:text-sm font-medium line-clamp-2 ${
+                          index === currentLessonIndex
+                            ? 'text-blue-600'
+                            : lesson.isCompleted
+                            ? 'text-green-700'
+                            : 'text-slate-800'
+                        }`}>
+                          {lesson.order}. {lesson.title}
+                        </h3>
+                        {lesson.description && (
+                          <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 line-clamp-1">
+                            {lesson.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           </div>
         </main>
