@@ -297,8 +297,8 @@ export function CourseList() {
 
   // コースカードをレンダリング（基礎編/応用編）
   const renderCourseCard = (course: Course) => (
-    <Card key={course.id} className="hover:shadow-xl transition-all duration-300">
-      <CardHeader className="p-4 sm:p-6">
+    <Card key={course.id} className="hover:shadow-xl transition-all duration-300 overflow-hidden">
+      <CardHeader className="p-3 sm:p-6">
         <div className="flex flex-wrap items-center gap-2 mb-2">
           {course.isNew && (
             <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 animate-pulse text-xs">
@@ -313,10 +313,10 @@ export function CourseList() {
             </Badge>
           )}
         </div>
-        <CardTitle className="text-base sm:text-lg line-clamp-2">{course.title}</CardTitle>
-        <CardDescription className="text-sm line-clamp-2">{course.description}</CardDescription>
+        <CardTitle className="text-sm sm:text-lg line-clamp-2">{course.title}</CardTitle>
+        <CardDescription className="text-xs sm:text-sm line-clamp-2">{course.description}</CardDescription>
       </CardHeader>
-      <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
+      <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
         <div className="space-y-3 sm:space-y-4">
           {/* 進捗状況 */}
           <div>
@@ -332,19 +332,19 @@ export function CourseList() {
             <h4 className="text-xs sm:text-sm font-medium text-slate-700">
               コンテンツ一覧（{course.lessons.length}本）
             </h4>
-            <div className="max-h-40 sm:max-h-48 overflow-y-auto space-y-1">
+            <div className="max-h-32 sm:max-h-48 overflow-y-auto space-y-1">
               {course.lessons.map(lesson => (
-                <div key={lesson.id} className="flex items-center justify-between text-xs bg-slate-50 p-2 rounded">
-                  <div className="flex items-center flex-1 min-w-0">
+                <div key={lesson.id} className="flex items-center text-[10px] sm:text-xs bg-slate-50 p-1.5 sm:p-2 rounded">
+                  <div className="flex items-center flex-1 min-w-0 overflow-hidden">
                     {lesson.isCompleted ? (
-                      <CheckCircle className="h-3 w-3 text-green-500 mr-1.5 sm:mr-2 flex-shrink-0" />
+                      <CheckCircle className="h-3 w-3 text-green-500 mr-1 sm:mr-2 flex-shrink-0" />
                     ) : (
-                      <div className="h-3 w-3 border border-slate-300 rounded-full mr-1.5 sm:mr-2 flex-shrink-0" />
+                      <div className="h-3 w-3 border border-slate-300 rounded-full mr-1 sm:mr-2 flex-shrink-0" />
                     )}
                     <span className="truncate">{lesson.title}</span>
                   </div>
-                  <div className="flex items-center text-slate-500 ml-2 flex-shrink-0">
-                    <Clock className="h-3 w-3 mr-1" />
+                  <div className="flex items-center text-slate-500 ml-1 sm:ml-2 flex-shrink-0">
+                    <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5" />
                     <span>{Math.round(lesson.duration / 60)}分</span>
                   </div>
                 </div>
@@ -409,13 +409,13 @@ export function CourseList() {
         </Button>
 
         {/* カテゴリーヘッダー */}
-        <div className="flex items-center gap-4">
-          <div className={`flex items-center justify-center w-12 h-12 bg-gradient-to-br ${categoryInfo.iconBg} rounded-xl shadow-md`}>
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br ${categoryInfo.iconBg} rounded-xl shadow-md flex-shrink-0`}>
             {categoryInfo.icon}
           </div>
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900">{categoryInfo.label}</h2>
-            <p className="text-sm text-slate-500">{categoryInfo.description}</p>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-base sm:text-2xl font-bold text-slate-900 truncate">{categoryInfo.label}</h2>
+            <p className="text-xs sm:text-sm text-slate-500 line-clamp-1">{categoryInfo.description}</p>
           </div>
         </div>
 
