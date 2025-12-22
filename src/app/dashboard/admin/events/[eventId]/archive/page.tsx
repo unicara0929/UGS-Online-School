@@ -19,7 +19,9 @@ import {
   Image as ImageIcon,
   Link2,
   MessageSquare,
+  Settings,
 } from 'lucide-react'
+import Link from 'next/link'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import { Sidebar } from '@/components/navigation/sidebar'
 import { PageHeader } from '@/components/dashboard/page-header'
@@ -50,7 +52,6 @@ function EventArchivePageContent() {
     photos: [] as string[],
     materialsUrl: '',
     vimeoUrl: '',
-    surveyUrl: '',
     attendanceCode: '',
     attendanceDeadline: '',
     actualParticipants: null as number | null,
@@ -104,7 +105,6 @@ function EventArchivePageContent() {
         photos: foundEvent.photos || [],
         materialsUrl: foundEvent.materialsUrl || '',
         vimeoUrl: foundEvent.vimeoUrl || '',
-        surveyUrl: foundEvent.surveyUrl || '',
         attendanceCode: foundEvent.attendanceCode || '',
         attendanceDeadline: deadlineStr,
         actualParticipants: foundEvent.actualParticipants ?? null,
@@ -242,7 +242,6 @@ function EventArchivePageContent() {
           photos: formData.photos,
           materialsUrl: formData.materialsUrl || null,
           vimeoUrl: formData.vimeoUrl || null,
-          surveyUrl: formData.surveyUrl || null,
           attendanceCode: formData.attendanceCode || null,
           attendanceDeadline: formData.attendanceDeadline || null,
           actualParticipants: formData.actualParticipants,
@@ -491,22 +490,22 @@ function EventArchivePageContent() {
                       </p>
                     </div>
 
-                    {/* アンケートURL */}
-                    <div>
-                      <label className={FORM_LABEL_CLASS}>
-                        <Link2 className="h-4 w-4 inline mr-1" />
-                        アンケートURL（Google Forms等）
-                      </label>
-                      <input
-                        type="url"
-                        value={formData.surveyUrl}
-                        onChange={(e) => setFormData(prev => ({ ...prev, surveyUrl: e.target.value }))}
-                        className={FORM_INPUT_CLASS}
-                        placeholder="https://forms.google.com/..."
-                      />
-                      <p className="text-xs text-slate-500 mt-1">
-                        録画視聴後に回答するアンケート。録画視聴+アンケート回答で出席完了となります。
-                      </p>
+                    {/* アンケート設定 */}
+                    <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-purple-900">アンケート設定</p>
+                          <p className="text-xs text-purple-700 mt-1">
+                            アンケートはアプリ内で作成・管理できます。録画視聴+アンケート回答で出席完了となります。
+                          </p>
+                        </div>
+                        <Link href={`/dashboard/admin/events/${eventId}/survey`}>
+                          <Button variant="outline" size="sm" className="border-purple-300 text-purple-700 hover:bg-purple-100">
+                            <Settings className="h-4 w-4 mr-2" />
+                            アンケート設定
+                          </Button>
+                        </Link>
+                      </div>
                     </div>
 
                     {/* 視聴期限 */}
