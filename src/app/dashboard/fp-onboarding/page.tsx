@@ -99,7 +99,7 @@ export default function FPOnboardingPage() {
 
   // Vimeo Player APIスクリプトを読み込む（1回のみ）
   useEffect(() => {
-    if (!vimeoId || hasCompleted) return
+    if (!vimeoId) return
 
     // 既にスクリプトが読み込まれているかチェック
     const existingScript = document.querySelector('script[src="https://player.vimeo.com/api/player.js"]')
@@ -113,25 +113,43 @@ export default function FPOnboardingPage() {
 
       script.onload = () => {
         console.log('Vimeo Player API script loaded successfully')
+        // スクリプト読み込み完了後、iframeが既にある場合はPlayerを初期化
+        if (iframeRef.current && !hasCompleted) {
+          handleIframeLoad()
+        }
       }
 
       script.onerror = () => {
         console.error('Failed to load Vimeo Player API script')
-        setError('動画プレイヤーの読み込みに失敗しました')
+        // CSPエラーの場合は動画自体は視聴可能なのでエラー表示しない
+        // setError('動画プレイヤーの読み込みに失敗しました')
+        console.warn('Vimeo Player API failed to load - video playback still works via iframe')
       }
     }
-  }, [vimeoId, hasCompleted])
+  }, [vimeoId])
 
   // iframeがロードされたときにVimeo Playerを初期化
   const handleIframeLoad = useCallback(() => {
-    if (!iframeRef.current || hasCompleted) {
-      console.log('Skipping Player initialization - iframe not ready or already completed')
+    if (!iframeRef.current) {
+      console.log('Skipping Player initialization - iframe not ready')
+      return
+    }
+
+    if (hasCompleted) {
+      console.log('Already completed - skipping Player initialization')
       return
     }
 
     // @ts-ignore - Vimeo Player APIはグローバルに読み込まれる
     if (!window.Vimeo) {
-      console.warn('Vimeo Player API not loaded yet, will retry on next iframe load')
+      console.warn('Vimeo Player API not loaded yet - video playback still works via iframe')
+      // APIが読み込まれていなくても動画は視聴可能なのでエラーは表示しない
+      return
+    }
+
+    // 既にプレイヤーが初期化されている場合はスキップ
+    if (vimeoPlayer) {
+      console.log('Player already initialized')
       return
     }
 
@@ -164,9 +182,10 @@ export default function FPOnboardingPage() {
       console.log('✓ Vimeo Player initialized successfully')
     } catch (err) {
       console.error('Error initializing Vimeo Player:', err)
-      setError('動画プレイヤーの初期化に失敗しました')
+      // 初期化に失敗しても動画自体は視聴可能なのでエラーは表示しない
+      console.warn('Player initialization failed - video playback still works via iframe')
     }
-  }, [hasCompleted, handleComplete])
+  }, [hasCompleted, handleComplete, vimeoPlayer])
 
   // クリーンアップ
   useEffect(() => {
