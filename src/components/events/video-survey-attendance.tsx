@@ -101,10 +101,11 @@ export function VideoSurveyAttendance({
       setVideoWatched(true)
       setMessage({ type: 'success', text: '動画視聴が完了しました！アンケートに回答してください。' })
 
-      if (data.attendanceCompleted && onSuccess) {
+      // 動画視聴完了時は常にページをリロードして内部アンケートを表示
+      if (onSuccess) {
         setTimeout(() => {
           onSuccess()
-        }, 2000)
+        }, 1500)
       }
     } catch (error) {
       console.error('Failed to mark video watched:', error)
