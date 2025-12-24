@@ -76,9 +76,11 @@ export function FPPromotion() {
       if (response.ok) {
         const data = await response.json()
         if (data.application) {
+          // appliedAtがnullの場合は未申請（条件達成中だが申請前）
+          const hasActuallyApplied = data.application.appliedAt !== null
           setApplicationStatus({
-            hasApplication: true,
-            status: data.application.status,
+            hasApplication: hasActuallyApplied,
+            status: hasActuallyApplied ? data.application.status : null,
             appliedAt: data.application.appliedAt,
             approvedAt: data.application.approvedAt
           })

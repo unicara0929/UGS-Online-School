@@ -159,6 +159,7 @@ export async function POST(request: NextRequest) {
     })
 
     // 合格した場合、FPPromotionApplicationのbasicTestCompletedを更新
+    // 注意: 新規作成時はappliedAt=nullにすることで「条件達成中だが未申請」の状態を区別する
     if (isPassed) {
       try {
         await prisma.fPPromotionApplication.update({
@@ -173,7 +174,8 @@ export async function POST(request: NextRequest) {
           await prisma.fPPromotionApplication.create({
             data: {
               userId,
-              basicTestCompleted: true
+              basicTestCompleted: true,
+              appliedAt: null  // 明示的にnullを設定（未申請状態）
             }
           })
         }

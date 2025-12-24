@@ -126,6 +126,7 @@ export async function POST(request: NextRequest) {
     })
 
     // FPPromotionApplicationのsurveyCompletedを更新
+    // 注意: 新規作成時はappliedAt=nullにすることで「条件達成中だが未申請」の状態を区別する
     try {
       await prisma.fPPromotionApplication.update({
         where: { userId },
@@ -139,7 +140,8 @@ export async function POST(request: NextRequest) {
         await prisma.fPPromotionApplication.create({
           data: {
             userId,
-            surveyCompleted: true
+            surveyCompleted: true,
+            appliedAt: null  // 明示的にnullを設定（未申請状態）
           }
         })
       }

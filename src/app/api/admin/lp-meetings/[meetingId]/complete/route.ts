@@ -68,6 +68,8 @@ export async function POST(
     })
 
     // FPPromotionApplicationのlpMeetingCompletedをtrueに更新（存在しない場合は作成）
+    // 注意: 新規作成時はstatus=PENDINGがデフォルトだが、appliedAt=nullにすることで
+    // 「条件達成中だが未申請」の状態を区別する
     try {
       await prisma.fPPromotionApplication.update({
         where: { userId: meeting.memberId },
@@ -79,7 +81,8 @@ export async function POST(
         await prisma.fPPromotionApplication.create({
           data: {
             userId: meeting.memberId,
-            lpMeetingCompleted: true
+            lpMeetingCompleted: true,
+            appliedAt: null  // 明示的にnullを設定（未申請状態）
           }
         })
       }

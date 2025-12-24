@@ -470,7 +470,7 @@ model FPPromotionApplication {
   contractAgreedAt      DateTime? // 契約書同意日時
   promotionEmailSent    Boolean                      @default(false) // 昇格通知メール送信済みフラグ
   promotionEmailSentAt  DateTime? // 昇格通知メール送信日時
-  appliedAt             DateTime                     @default(now())
+  appliedAt             DateTime?                    // 申請日時（nullの場合は未申請）
   approvedAt            DateTime?
   completedAt           DateTime?
   createdAt             DateTime                     @default(now())
