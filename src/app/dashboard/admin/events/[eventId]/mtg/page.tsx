@@ -710,38 +710,30 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                           </TableCell>
                           {/* GM面談 */}
                           <TableCell>
-                            {participant.isOverdue ? (
-                              participant.gmInterviewCompleted ? (
-                                <Badge className="bg-green-100 text-green-700 border-green-300">済</Badge>
-                              ) : (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="text-xs h-7 text-orange-600 border-orange-300 hover:bg-orange-50"
-                                  onClick={() => handleGmInterview(participant.registrationId, participant.userId)}
-                                >
-                                  面談済
-                                </Button>
-                              )
+                            {participant.gmInterviewCompleted ? (
+                              <Badge className="bg-green-100 text-green-700 border-green-300">済</Badge>
                             ) : (
-                              <span className="text-slate-400">-</span>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-xs h-7 text-orange-600 border-orange-300 hover:bg-orange-50"
+                                onClick={() => handleGmInterview(participant.registrationId, participant.userId)}
+                              >
+                                面談済
+                              </Button>
                             )}
                           </TableCell>
                           {/* 最終承認 */}
                           <TableCell>
-                            {participant.isOverdue ? (
-                              <select
-                                className="text-xs border rounded px-2 py-1"
-                                value={participant.finalApproval || ''}
-                                onChange={(e) => handleFinalApproval(participant.registrationId, participant.userId, e.target.value as 'MAINTAINED' | 'DEMOTED' | '')}
-                              >
-                                <option value="">未設定</option>
-                                <option value="MAINTAINED">維持</option>
-                                <option value="DEMOTED">降格</option>
-                              </select>
-                            ) : (
-                              <span className="text-slate-400">-</span>
-                            )}
+                            <select
+                              className="text-xs border rounded px-2 py-1"
+                              value={participant.finalApproval || ''}
+                              onChange={(e) => handleFinalApproval(participant.registrationId, participant.userId, e.target.value as 'MAINTAINED' | 'DEMOTED' | '')}
+                            >
+                              <option value="">未設定</option>
+                              <option value="MAINTAINED">維持</option>
+                              <option value="DEMOTED">降格</option>
+                            </select>
                           </TableCell>
                         </TableRow>
                       )
