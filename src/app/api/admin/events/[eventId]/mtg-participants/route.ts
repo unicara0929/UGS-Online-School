@@ -126,13 +126,8 @@ export async function GET(
       let status: 'not_responded' | 'registered' | 'exempted' | 'attended_code' | 'attended_video' | 'video_incomplete'
       let statusLabel: string
 
-      if (exemption && exemption.status === 'APPROVED') {
-        status = 'exempted'
-        statusLabel = '欠席承認済み'
-      } else if (exemption && exemption.status === 'PENDING') {
-        status = 'exempted'
-        statusLabel = '欠席申請中'
-      } else if (registration?.attendanceCompletedAt) {
+      // 出席完了を最優先でチェック（欠席申請していても動画+アンケート完了なら正式参加）
+      if (registration?.attendanceCompletedAt) {
         if (registration.attendanceMethod === 'CODE') {
           status = 'attended_code'
           statusLabel = '参加コード出席'
@@ -140,9 +135,18 @@ export async function GET(
           status = 'attended_video'
           statusLabel = '動画視聴出席'
         }
+      } else if (exemption && exemption.status === 'APPROVED') {
+        // 欠席申請が承認された場合は免除扱い
+        status = 'exempted'
+        statusLabel = '欠席承認済み'
       } else if (registration?.videoWatched || registration?.surveyCompleted) {
+        // 動画またはアンケートのどちらかのみ完了
         status = 'video_incomplete'
         statusLabel = '動画/アンケート途中'
+      } else if (exemption && exemption.status === 'PENDING') {
+        // 欠席申請中（まだ動画・アンケート未対応）
+        status = 'exempted'
+        statusLabel = '欠席申請中'
       } else if (registration) {
         status = 'registered'
         statusLabel = '参加登録済み'
