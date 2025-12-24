@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Users, UserCheck, UserX, Mail, Calendar, CreditCard, AlertCircle, Search, Filter, ArrowUpDown, Download, FileCheck, FileX } from 'lucide-react'
+import { Users, UserCheck, UserX, Mail, Calendar, CreditCard, AlertCircle, Search, Filter, ArrowUpDown, Download, FileCheck, FileX, UserPlus, Eye, EyeOff } from 'lucide-react'
 import { getRoleLabel, getRoleBadgeVariant, formatDate, formatCurrency } from '@/lib/utils/user-helpers'
 import { filterUsersBySearch, filterUsersByStatus, filterUsersByMembershipStatus, filterUsersByRole, sortUsers } from '@/lib/utils/filter-helpers'
 import { getSubscriptionStatus } from '@/lib/utils/subscription-helpers'
@@ -120,9 +120,19 @@ export default function AdminUsersPage() {
   // 仮登録ユーザー操作モーダル
   const [showPendingUserModal, setShowPendingUserModal] = useState(false)
   const [selectedPendingUser, setSelectedPendingUser] = useState<PendingUser | null>(null)
-  const [pendingUserAction, setPendingUserAction] = useState<'verify' | 'resend' | 'delete' | 'complete' | null>(null)
+  const [pendingUserAction, setPendingUserAction] = useState<'verify' | 'resend' | 'delete' | null>(null)
   const [isPendingUserActionLoading, setIsPendingUserActionLoading] = useState(false)
-  const [completeRegistrationRole, setCompleteRegistrationRole] = useState<string>('MEMBER')
+
+  // ユーザー作成モーダル
+  const [showCreateUserModal, setShowCreateUserModal] = useState(false)
+  const [createUserForm, setCreateUserForm] = useState({
+    email: '',
+    password: '',
+    name: '',
+    role: 'MEMBER',
+  })
+  const [isCreatingUser, setIsCreatingUser] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   // 仮登録ユーザー一括選択・削除
   const [selectedPendingUserIds, setSelectedPendingUserIds] = useState<Set<string>>(new Set())
@@ -500,7 +510,7 @@ export default function AdminUsersPage() {
   /**
    * 仮登録ユーザーの操作を実行
    */
-  const handlePendingUserAction = async (action: 'verify' | 'resend' | 'delete' | 'complete') => {
+  const handlePendingUserAction = async (action: 'verify' | 'resend' | 'delete') => {
     if (!selectedPendingUser) return
 
     setIsPendingUserActionLoading(true)
@@ -513,19 +523,6 @@ export default function AdminUsersPage() {
         response = await fetch(`/api/admin/pending-users/${selectedPendingUser.id}`, {
           method: 'DELETE',
           credentials: 'include',
-        })
-      } else if (action === 'complete') {
-        // 決済スキップで本登録完了
-        response = await fetch('/api/admin/users/complete-registration', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify({
-            pendingUserId: selectedPendingUser.id,
-            initialRole: completeRegistrationRole,
-          }),
         })
       } else {
         response = await fetch(`/api/admin/pending-users/${selectedPendingUser.id}`, {
@@ -543,8 +540,6 @@ export default function AdminUsersPage() {
         throw new Error(data.error || '操作に失敗しました')
       }
 
-      const result = await response.json()
-
       // 成功メッセージ
       if (action === 'verify') {
         alert('メール認証を完了しました')
@@ -552,21 +547,66 @@ export default function AdminUsersPage() {
         alert('認証メールを再送信しました')
       } else if (action === 'delete') {
         alert('仮登録ユーザーを削除しました')
-      } else if (action === 'complete') {
-        alert(result.message || '本登録が完了しました')
       }
 
       // モーダルを閉じてデータを再取得
       setShowPendingUserModal(false)
       setSelectedPendingUser(null)
-      setCompleteRegistrationRole('MEMBER')
       await fetchPendingUsers()
-      await fetchUsers()
     } catch (err) {
       alert(err instanceof Error ? err.message : '操作に失敗しました')
     } finally {
       setIsPendingUserActionLoading(false)
       setPendingUserAction(null)
+    }
+  }
+
+  /**
+   * ユーザーを直接作成
+   */
+  const handleCreateUser = async () => {
+    if (!createUserForm.email || !createUserForm.password || !createUserForm.name) {
+      alert('メールアドレス、パスワード、名前を入力してください')
+      return
+    }
+
+    if (createUserForm.password.length < 6) {
+      alert('パスワードは6文字以上で設定してください')
+      return
+    }
+
+    setIsCreatingUser(true)
+
+    try {
+      const response = await fetch('/api/admin/users/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(createUserForm),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'ユーザーの作成に失敗しました')
+      }
+
+      alert(`ユーザーを作成しました！\n\n会員番号: ${data.user.memberId}\nメール: ${data.user.email}\nロール: ${getRoleLabel(data.user.role)}\n\nメールアドレスとパスワードを本人に共有してください。`)
+
+      // フォームをリセットしてモーダルを閉じる
+      setCreateUserForm({ email: '', password: '', name: '', role: 'MEMBER' })
+      setShowCreateUserModal(false)
+      setShowPassword(false)
+
+      // ユーザー一覧を再取得
+      await fetchUsers()
+      await fetchStats()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'ユーザーの作成に失敗しました')
+    } finally {
+      setIsCreatingUser(false)
     }
   }
 
@@ -719,15 +759,25 @@ export default function AdminUsersPage() {
                 </div>
               </div>
             </div>
-            <div className="mt-4 sm:mt-6 flex space-x-3 sm:space-x-6">
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 sm:p-3">
-                <div className="text-xs sm:text-sm text-blue-200">正式登録</div>
-                <div className="text-lg sm:text-xl font-semibold text-white">{users.length}名</div>
-              </div>
+            <div className="mt-4 sm:mt-6 flex items-center justify-between">
+              <div className="flex space-x-3 sm:space-x-6">
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 sm:p-3">
+                  <div className="text-xs sm:text-sm text-blue-200">正式登録</div>
+                  <div className="text-lg sm:text-xl font-semibold text-white">{users.length}名</div>
+                </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 sm:p-3">
                 <div className="text-xs sm:text-sm text-blue-200">仮登録</div>
                 <div className="text-lg sm:text-xl font-semibold text-white">{pendingUsers.length}名</div>
               </div>
+              </div>
+              {/* ユーザー作成ボタン */}
+              <Button
+                onClick={() => setShowCreateUserModal(true)}
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30 shadow-lg"
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                ユーザー作成
+              </Button>
             </div>
           </div>
         </div>
@@ -1633,56 +1683,6 @@ export default function AdminUsersPage() {
                   )}
                 </div>
 
-                {/* 本登録を完了（決済スキップ）セクション */}
-                {selectedPendingUser.emailVerified && (
-                  <div className="bg-green-50 border border-green-200 rounded-xl p-4 space-y-3">
-                    <h3 className="font-semibold text-green-800 flex items-center">
-                      <UserCheck className="h-4 w-4 mr-2" />
-                      本登録を完了（決済スキップ）
-                    </h3>
-                    <p className="text-xs text-green-700">
-                      決済なしで本登録を完了します。内部スタッフの登録に使用してください。
-                    </p>
-                    <div>
-                      <label className="block text-sm font-medium text-green-800 mb-1">
-                        初期ロール
-                      </label>
-                      <select
-                        value={completeRegistrationRole}
-                        onChange={(e) => setCompleteRegistrationRole(e.target.value)}
-                        className="w-full px-3 py-2 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-sm"
-                        disabled={isPendingUserActionLoading}
-                      >
-                        <option value="MEMBER">メンバー</option>
-                        <option value="FP">FPエイド</option>
-                        <option value="MANAGER">マネージャー</option>
-                        <option value="ADMIN">管理者</option>
-                      </select>
-                    </div>
-                    <Button
-                      onClick={() => {
-                        if (window.confirm(`${selectedPendingUser.name} を「${getRoleLabel(completeRegistrationRole)}」として本登録しますか？\n\n決済なしで本登録が完了します。パスワード設定メールが送信されます。`)) {
-                          handlePendingUserAction('complete')
-                        }
-                      }}
-                      disabled={isPendingUserActionLoading}
-                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
-                    >
-                      {isPendingUserActionLoading && pendingUserAction === 'complete' ? (
-                        <>
-                          <span className="animate-spin mr-2">⏳</span>
-                          処理中...
-                        </>
-                      ) : (
-                        <>
-                          <UserCheck className="h-4 w-4 mr-2" />
-                          本登録を完了する
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                )}
-
                 {/* 操作ボタン */}
                 <div className="space-y-3">
                   {!selectedPendingUser.emailVerified && (
@@ -1757,8 +1757,148 @@ export default function AdminUsersPage() {
                     <li>メール認証済みのユーザーは決済ページに進めます</li>
                     <li>トークン期限切れの場合は認証メールを再送信してください</li>
                     <li>削除すると同じメールアドレスで新規登録できます</li>
-                    <li><strong>内部スタッフ:</strong> メール認証後「本登録を完了」で決済なしで登録できます</li>
+                    <li><strong>内部スタッフ:</strong> 「ユーザー作成」ボタンで直接登録できます</li>
                   </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ユーザー作成モーダル */}
+        {showCreateUserModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+              <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4 rounded-t-2xl">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-white flex items-center">
+                    <UserPlus className="h-5 w-5 mr-2" />
+                    ユーザー作成
+                  </h2>
+                  <button
+                    onClick={() => {
+                      setShowCreateUserModal(false)
+                      setCreateUserForm({ email: '', password: '', name: '', role: 'MEMBER' })
+                      setShowPassword(false)
+                    }}
+                    className="text-white hover:bg-white/20 rounded-lg p-2 transition-all"
+                  >
+                    <span className="text-2xl">&times;</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                  <p className="text-sm text-green-800">
+                    内部スタッフ用のユーザーを直接作成します。作成後、メールアドレスとパスワードを本人に共有してください。
+                  </p>
+                </div>
+
+                {/* 名前 */}
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    名前 <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={createUserForm.name}
+                    onChange={(e) => setCreateUserForm({ ...createUserForm, name: e.target.value })}
+                    placeholder="例: 山田 太郎"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    disabled={isCreatingUser}
+                  />
+                </div>
+
+                {/* メールアドレス */}
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    メールアドレス <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    value={createUserForm.email}
+                    onChange={(e) => setCreateUserForm({ ...createUserForm, email: e.target.value })}
+                    placeholder="例: example@email.com"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    disabled={isCreatingUser}
+                  />
+                </div>
+
+                {/* パスワード */}
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    パスワード <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={createUserForm.password}
+                      onChange={(e) => setCreateUserForm({ ...createUserForm, password: e.target.value })}
+                      placeholder="6文字以上"
+                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent pr-12"
+                      disabled={isCreatingUser}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                    >
+                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">本人に共有するため、覚えやすいパスワードを設定してください</p>
+                </div>
+
+                {/* ロール */}
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    ロール
+                  </label>
+                  <select
+                    value={createUserForm.role}
+                    onChange={(e) => setCreateUserForm({ ...createUserForm, role: e.target.value })}
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                    disabled={isCreatingUser}
+                  >
+                    <option value="MEMBER">UGS会員（メンバー）</option>
+                    <option value="FP">FPエイド</option>
+                    <option value="MANAGER">マネージャー</option>
+                    <option value="ADMIN">管理者</option>
+                  </select>
+                </div>
+
+                {/* ボタン */}
+                <div className="flex space-x-3 pt-4">
+                  <Button
+                    onClick={() => {
+                      setShowCreateUserModal(false)
+                      setCreateUserForm({ email: '', password: '', name: '', role: 'MEMBER' })
+                      setShowPassword(false)
+                    }}
+                    variant="outline"
+                    className="flex-1"
+                    disabled={isCreatingUser}
+                  >
+                    キャンセル
+                  </Button>
+                  <Button
+                    onClick={handleCreateUser}
+                    className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                    disabled={isCreatingUser || !createUserForm.email || !createUserForm.password || !createUserForm.name}
+                  >
+                    {isCreatingUser ? (
+                      <>
+                        <span className="animate-spin mr-2">⏳</span>
+                        作成中...
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        ユーザーを作成
+                      </>
+                    )}
+                  </Button>
                 </div>
               </div>
             </div>
