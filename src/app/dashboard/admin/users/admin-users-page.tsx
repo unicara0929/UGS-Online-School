@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Users, UserCheck, UserX, Mail, Calendar, CreditCard, AlertCircle, Search, Filter, ArrowUpDown, Download, FileCheck, FileX, UserPlus, Eye, EyeOff, Trash2 } from 'lucide-react'
+import { Users, UserCheck, UserX, Mail, Calendar, CreditCard, AlertCircle, Search, Filter, ArrowUpDown, Download, FileCheck, FileX, UserPlus, Eye, EyeOff, Trash2, Upload, CheckCircle, XCircle } from 'lucide-react'
 import { getRoleLabel, getRoleBadgeVariant, formatDate, formatCurrency } from '@/lib/utils/user-helpers'
 import { filterUsersBySearch, filterUsersByStatus, filterUsersByMembershipStatus, filterUsersByRole, sortUsers } from '@/lib/utils/filter-helpers'
 import { getSubscriptionStatus } from '@/lib/utils/subscription-helpers'
@@ -140,6 +140,15 @@ export default function AdminUsersPage() {
 
   // 本登録ユーザー削除
   const [isDeletingUser, setIsDeletingUser] = useState<string | null>(null)
+
+  // ユーザー一括作成モーダル
+  const [showBulkCreateModal, setShowBulkCreateModal] = useState(false)
+  const [bulkCreateData, setBulkCreateData] = useState('')
+  const [isBulkCreating, setIsBulkCreating] = useState(false)
+  const [bulkCreateResult, setBulkCreateResult] = useState<{
+    summary: { total: number; success: number; failed: number }
+    results: { email: string; success: boolean; memberId?: string; error?: string }[]
+  } | null>(null)
 
   useEffect(() => {
     fetchUsers()
@@ -656,6 +665,66 @@ export default function AdminUsersPage() {
   }
 
   /**
+   * ユーザーを一括作成
+   */
+  const handleBulkCreateUsers = async () => {
+    if (!bulkCreateData.trim()) {
+      alert('CSVデータを入力してください')
+      return
+    }
+
+    setIsBulkCreating(true)
+    setBulkCreateResult(null)
+
+    try {
+      // CSVをパース（形式: メールアドレス,パスワード,名前,ロール）
+      const lines = bulkCreateData.trim().split('\n')
+      const users = lines.map(line => {
+        const parts = line.split(',').map(s => s.trim())
+        return {
+          email: parts[0] || '',
+          password: parts[1] || '',
+          name: parts[2] || '',
+          role: parts[3]?.toUpperCase() || 'MEMBER',
+        }
+      }).filter(u => u.email) // 空行を除外
+
+      if (users.length === 0) {
+        alert('有効なユーザーデータがありません')
+        setIsBulkCreating(false)
+        return
+      }
+
+      const response = await fetch('/api/admin/users/bulk-create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ users }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'ユーザーの一括作成に失敗しました')
+      }
+
+      setBulkCreateResult(data)
+
+      // 成功した場合はユーザー一覧を再取得
+      if (data.summary.success > 0) {
+        await fetchUsers()
+        await fetchStats()
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'ユーザーの一括作成に失敗しました')
+    } finally {
+      setIsBulkCreating(false)
+    }
+  }
+
+  /**
    * 仮登録ユーザーをクリックしたときの処理
    */
   const handlePendingUserClick = (pendingUser: PendingUser) => {
@@ -816,13 +885,23 @@ export default function AdminUsersPage() {
               </div>
               </div>
               {/* ユーザー作成ボタン */}
-              <Button
-                onClick={() => setShowCreateUserModal(true)}
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30 shadow-lg"
-              >
-                <UserPlus className="h-4 w-4 mr-2" />
-                ユーザー作成
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => setShowBulkCreateModal(true)}
+                  variant="outline"
+                  className="bg-white/10 hover:bg-white/20 text-white border-white/30"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  一括作成
+                </Button>
+                <Button
+                  onClick={() => setShowCreateUserModal(true)}
+                  className="bg-white/20 hover:bg-white/30 text-white border-white/30 shadow-lg"
+                >
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  ユーザー作成
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -1971,6 +2050,189 @@ export default function AdminUsersPage() {
                     )}
                   </Button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ユーザー一括作成モーダル */}
+        {showBulkCreateModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 rounded-t-2xl">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-white flex items-center">
+                    <Upload className="h-5 w-5 mr-2" />
+                    ユーザー一括作成
+                  </h2>
+                  <button
+                    onClick={() => {
+                      setShowBulkCreateModal(false)
+                      setBulkCreateData('')
+                      setBulkCreateResult(null)
+                    }}
+                    className="text-white/80 hover:text-white"
+                    disabled={isBulkCreating}
+                  >
+                    <XCircle className="h-6 w-6" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4">
+                {!bulkCreateResult ? (
+                  <>
+                    {/* 入力フォーマットの説明 */}
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <h3 className="font-semibold text-blue-800 mb-2">入力形式（CSV形式）</h3>
+                      <p className="text-sm text-blue-700 mb-2">
+                        1行に1ユーザー、カンマ区切りで入力してください。
+                      </p>
+                      <code className="block bg-blue-100 p-2 rounded text-xs text-blue-800 mb-2">
+                        メールアドレス,パスワード,名前,ロール
+                      </code>
+                      <p className="text-xs text-blue-600">
+                        ロール: MEMBER（UGS会員）, FP（FPエイド）, MANAGER（マネージャー）, ADMIN（管理者）<br />
+                        ※ロールを省略するとMEMBERになります
+                      </p>
+                    </div>
+
+                    {/* サンプル */}
+                    <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                      <h3 className="font-semibold text-slate-700 mb-2">入力例</h3>
+                      <pre className="text-xs text-slate-600 whitespace-pre-wrap">
+{`user1@example.com,password123,山田太郎,MEMBER
+user2@example.com,password456,鈴木花子,FP
+user3@example.com,password789,佐藤一郎`}
+                      </pre>
+                    </div>
+
+                    {/* CSV入力エリア */}
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        ユーザーデータ（最大100件）
+                      </label>
+                      <textarea
+                        value={bulkCreateData}
+                        onChange={(e) => setBulkCreateData(e.target.value)}
+                        className="w-full h-48 px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm"
+                        placeholder="メールアドレス,パスワード,名前,ロール"
+                        disabled={isBulkCreating}
+                      />
+                    </div>
+
+                    {/* ボタン */}
+                    <div className="flex space-x-3 pt-4">
+                      <Button
+                        onClick={() => {
+                          setShowBulkCreateModal(false)
+                          setBulkCreateData('')
+                          setBulkCreateResult(null)
+                        }}
+                        variant="outline"
+                        className="flex-1"
+                        disabled={isBulkCreating}
+                      >
+                        キャンセル
+                      </Button>
+                      <Button
+                        onClick={handleBulkCreateUsers}
+                        className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
+                        disabled={isBulkCreating || !bulkCreateData.trim()}
+                      >
+                        {isBulkCreating ? (
+                          <>
+                            <span className="animate-spin mr-2">⏳</span>
+                            作成中...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-4 w-4 mr-2" />
+                            一括作成を実行
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* 結果表示 */}
+                    <div className="space-y-4">
+                      {/* サマリー */}
+                      <div className="bg-slate-50 rounded-lg p-4">
+                        <h3 className="font-semibold text-slate-800 mb-3">作成結果</h3>
+                        <div className="grid grid-cols-3 gap-4 text-center">
+                          <div className="bg-white rounded-lg p-3 border">
+                            <div className="text-2xl font-bold text-slate-700">{bulkCreateResult.summary.total}</div>
+                            <div className="text-sm text-slate-500">合計</div>
+                          </div>
+                          <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                            <div className="text-2xl font-bold text-green-600">{bulkCreateResult.summary.success}</div>
+                            <div className="text-sm text-green-600">成功</div>
+                          </div>
+                          <div className="bg-red-50 rounded-lg p-3 border border-red-200">
+                            <div className="text-2xl font-bold text-red-600">{bulkCreateResult.summary.failed}</div>
+                            <div className="text-sm text-red-600">失敗</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 詳細結果 */}
+                      <div className="max-h-64 overflow-y-auto border rounded-lg">
+                        <table className="w-full text-sm">
+                          <thead className="bg-slate-100 sticky top-0">
+                            <tr>
+                              <th className="px-4 py-2 text-left">メール</th>
+                              <th className="px-4 py-2 text-left">結果</th>
+                              <th className="px-4 py-2 text-left">会員番号/エラー</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {bulkCreateResult.results.map((result, index) => (
+                              <tr key={index} className="border-t">
+                                <td className="px-4 py-2 font-mono text-xs">{result.email}</td>
+                                <td className="px-4 py-2">
+                                  {result.success ? (
+                                    <span className="inline-flex items-center text-green-600">
+                                      <CheckCircle className="h-4 w-4 mr-1" />
+                                      成功
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center text-red-600">
+                                      <XCircle className="h-4 w-4 mr-1" />
+                                      失敗
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-2 text-xs">
+                                  {result.success ? (
+                                    <span className="font-mono text-green-700">{result.memberId}</span>
+                                  ) : (
+                                    <span className="text-red-600">{result.error}</span>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* 閉じるボタン */}
+                      <div className="flex justify-end pt-4">
+                        <Button
+                          onClick={() => {
+                            setShowBulkCreateModal(false)
+                            setBulkCreateData('')
+                            setBulkCreateResult(null)
+                          }}
+                          className="bg-slate-600 hover:bg-slate-700 text-white"
+                        >
+                          閉じる
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
