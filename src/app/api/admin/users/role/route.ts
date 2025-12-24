@@ -60,17 +60,21 @@ export async function PUT(request: NextRequest) {
       const updateData: {
         role: UserRole
         complianceTestPassed?: boolean
-        complianceTestPassedAt?: null
+        complianceTestPassedAt?: Date | null
         fpOnboardingCompleted?: boolean
-        fpOnboardingCompletedAt?: null
+        fpOnboardingCompletedAt?: Date | null
+        managerContactConfirmedAt?: Date | null
       } = { role: prismaRole }
 
-      // FPエイドに昇格する場合はコンプライアンステストを再受験必須にする
+      // 管理者が手動でFPに昇格する場合は、オンボーディングを完了済みにする
+      // （正規の昇格プロセスをスキップしているため、バナーを表示しない）
       if (isUpgradeToFP) {
-        updateData.complianceTestPassed = false
-        updateData.complianceTestPassedAt = null
-        updateData.fpOnboardingCompleted = false
-        updateData.fpOnboardingCompletedAt = null
+        const now = new Date()
+        updateData.complianceTestPassed = true
+        updateData.complianceTestPassedAt = now
+        updateData.fpOnboardingCompleted = true
+        updateData.fpOnboardingCompletedAt = now
+        updateData.managerContactConfirmedAt = now
       }
 
       await prisma.user.update({
