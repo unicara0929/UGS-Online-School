@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Users, UserCheck, UserX, Mail, Calendar, CreditCard, AlertCircle, Search, Filter, ArrowUpDown, Download, FileCheck, FileX, UserPlus, Eye, EyeOff } from 'lucide-react'
+import { Users, UserCheck, UserX, Mail, Calendar, CreditCard, AlertCircle, Search, Filter, ArrowUpDown, Download, FileCheck, FileX, UserPlus, Eye, EyeOff, Trash2 } from 'lucide-react'
 import { getRoleLabel, getRoleBadgeVariant, formatDate, formatCurrency } from '@/lib/utils/user-helpers'
 import { filterUsersBySearch, filterUsersByStatus, filterUsersByMembershipStatus, filterUsersByRole, sortUsers } from '@/lib/utils/filter-helpers'
 import { getSubscriptionStatus } from '@/lib/utils/subscription-helpers'
@@ -137,6 +137,9 @@ export default function AdminUsersPage() {
   // 仮登録ユーザー一括選択・削除
   const [selectedPendingUserIds, setSelectedPendingUserIds] = useState<Set<string>>(new Set())
   const [isDeletingPendingUsers, setIsDeletingPendingUsers] = useState(false)
+
+  // 本登録ユーザー削除
+  const [isDeletingUser, setIsDeletingUser] = useState<string | null>(null)
 
   useEffect(() => {
     fetchUsers()
@@ -607,6 +610,48 @@ export default function AdminUsersPage() {
       alert(err instanceof Error ? err.message : 'ユーザーの作成に失敗しました')
     } finally {
       setIsCreatingUser(false)
+    }
+  }
+
+  /**
+   * 本登録ユーザーを削除
+   */
+  const handleDeleteUser = async (userId: string, userName: string, userRole: string) => {
+    // 管理者ユーザーは削除できない
+    if (userRole === 'ADMIN') {
+      alert('管理者ユーザーは削除できません')
+      return
+    }
+
+    const confirmMessage = `「${userName}」を削除しますか？\n\nこの操作は取り消せません。ユーザーに関連するすべてのデータ（イベント参加、学習進捗、紹介情報など）も削除されます。`
+
+    if (!window.confirm(confirmMessage)) {
+      return
+    }
+
+    setIsDeletingUser(userId)
+
+    try {
+      const response = await fetch(`/api/admin/users/${userId}/delete`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'ユーザーの削除に失敗しました')
+      }
+
+      alert(data.message || 'ユーザーを削除しました')
+
+      // ユーザー一覧を再取得
+      await fetchUsers()
+      await fetchStats()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'ユーザーの削除に失敗しました')
+    } finally {
+      setIsDeletingUser(null)
     }
   }
 
@@ -1089,6 +1134,9 @@ export default function AdminUsersPage() {
                       <ArrowUpDown className="h-3 w-3 sm:h-4 sm:w-4 text-slate-500" />
                     </div>
                   </TableHead>
+                  <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm">
+                    操作
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1270,6 +1318,29 @@ export default function AdminUsersPage() {
                       <div className="text-slate-600 text-xs sm:text-sm whitespace-nowrap">
                         {user.lastSignIn ? formatDate(user.lastSignIn) : '未ログイン'}
                       </div>
+                    </TableCell>
+                    {/* 10. 操作 */}
+                    <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
+                      {user.type === 'registered' && user.role !== 'ADMIN' ? (
+                        <button
+                          onClick={() => handleDeleteUser(user.id, user.name || user.email, user.role)}
+                          disabled={isDeletingUser === user.id}
+                          className="inline-flex items-center px-2 py-1 rounded-md bg-red-50 text-red-600 border border-red-200 text-xs hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="ユーザーを削除"
+                        >
+                          <Trash2 className="h-3 w-3 mr-1" />
+                          {isDeletingUser === user.id ? '削除中...' : '削除'}
+                        </button>
+                      ) : user.type === 'pending' ? (
+                        <button
+                          onClick={() => handlePendingUserClick(user as unknown as PendingUser)}
+                          className="inline-flex items-center px-2 py-1 rounded-md bg-orange-50 text-orange-600 border border-orange-200 text-xs hover:bg-orange-100 transition-colors"
+                        >
+                          操作
+                        </button>
+                      ) : (
+                        <span className="text-slate-400 text-xs">-</span>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
