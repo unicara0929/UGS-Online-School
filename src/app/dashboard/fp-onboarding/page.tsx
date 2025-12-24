@@ -57,9 +57,14 @@ export default function FPOnboardingPage() {
   const vimeoId = extractVimeoId(FP_ONBOARDING_VIMEO_ID)
 
   // 完了処理（useCallbackでメモ化してクロージャの問題を解決）
-  const handleComplete = useCallback(async () => {
-    if (isCompleting || hasCompleted) return
+  // useRefで完了処理が一度だけ実行されるようにする
+  const completionAttemptedRef = useRef(false)
 
+  const handleComplete = useCallback(async () => {
+    // 既に完了処理を試みた場合は何もしない（重複リクエスト防止）
+    if (completionAttemptedRef.current || isCompleting || hasCompleted) return
+
+    completionAttemptedRef.current = true
     setIsCompleting(true)
     setError(null)
 
@@ -79,6 +84,9 @@ export default function FPOnboardingPage() {
     } catch (err) {
       console.error('Error completing onboarding:', err)
       setError(err instanceof Error ? err.message : '完了処理に失敗しました')
+      // エラーが発生してもcompletionAttemptedRefはtrueのまま維持
+      // これにより再試行の無限ループを防止
+    } finally {
       setIsCompleting(false)
     }
   }, [isCompleting, hasCompleted])
@@ -218,6 +226,7 @@ export default function FPOnboardingPage() {
         if (data.fpOnboardingCompleted) {
           setHasCompleted(true)
           setShowCompletionBanner(true)
+          completionAttemptedRef.current = true // 再リクエスト防止
           // 既に完了している場合は完了バナーを表示（自動リダイレクトはしない）
         }
       }

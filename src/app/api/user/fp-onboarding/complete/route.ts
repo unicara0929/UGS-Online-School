@@ -42,8 +42,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // FP昇格申請が承認されているか確認（fpPromotionApprovedフラグをチェック）
-    if (!user.fpPromotionApproved) {
+    // FP昇格申請が承認されているか、既にFPロールか確認
+    // 既にFPロールの場合は昇格済みなのでオンボーディング完了のみ記録
+    const isFPOrHigher = user.role === 'FP' || user.role === 'MANAGER' || user.role === 'ADMIN'
+    if (!user.fpPromotionApproved && !isFPOrHigher) {
       return NextResponse.json(
         { error: 'FP昇格申請が承認されていません' },
         { status: 400 }
