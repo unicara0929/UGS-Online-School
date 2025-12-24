@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { supabaseAdmin } from '@/lib/supabase'
 import { getAuthenticatedUser, checkRole, Roles } from '@/lib/auth/api-helpers'
 
 export async function POST(request: NextRequest) {
@@ -13,40 +12,23 @@ export async function POST(request: NextRequest) {
     const { allowed, error: roleError } = checkRole(authUser!.role, [Roles.MEMBER])
     if (!allowed) return roleError!
 
-    const { contractAgreed } = await request.json()
-
     // リクエストボディのuserIdを使わず、認証ユーザーのIDを使用
     const userId = authUser!.id
-
-    // 契約書の締結確認
-    if (!contractAgreed) {
-      return NextResponse.json(
-        { error: '業務委託契約書の締結が必要です' },
-        { status: 400 }
-      )
-    }
 
     // 既に申請が存在するか確認
     const existingApplication = await prisma.fPPromotionApplication.findUnique({
       where: { userId },
     })
 
-    if (existingApplication && existingApplication.status !== 'REJECTED') {
+    if (existingApplication && existingApplication.status !== 'REJECTED' && existingApplication.appliedAt !== null) {
       return NextResponse.json(
         { error: '既に申請が存在します', status: existingApplication.status },
         { status: 400 }
       )
     }
 
-    // 身分証がアップロードされているか確認
-    if (!existingApplication?.idDocumentUrl) {
-      return NextResponse.json(
-        { error: '身分証のアップロードが必要です' },
-        { status: 400 }
-      )
-    }
-
     // 昇格申請を作成または更新
+    // 注: 業務委託契約書と身分証明書はメールで別途対応
     const application = await prisma.fPPromotionApplication.upsert({
       where: { userId },
       update: {
@@ -56,7 +38,6 @@ export async function POST(request: NextRequest) {
       create: {
         userId,
         status: 'PENDING',
-        idDocumentUrl: existingApplication.idDocumentUrl,
         appliedAt: new Date(),
       },
     })
