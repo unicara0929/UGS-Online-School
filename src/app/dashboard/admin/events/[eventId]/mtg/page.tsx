@@ -725,28 +725,29 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                           </TableCell>
                           {/* 最終承認 */}
                           <TableCell>
-                            {/* 正式参加者は自動的に維持扱い */}
-                            {officialStatus.attended ? (
-                              <Badge className="bg-green-100 text-green-700 border border-green-300 font-semibold">
-                                維持
-                              </Badge>
-                            ) : (
-                              <select
-                                className={`text-xs border rounded px-2 py-1 font-semibold ${
-                                  participant.finalApproval === 'MAINTAINED'
-                                    ? 'bg-green-100 text-green-700 border-green-300'
-                                    : participant.finalApproval === 'DEMOTED'
-                                    ? 'bg-red-100 text-red-700 border-red-300'
-                                    : 'bg-white text-slate-600'
-                                }`}
-                                value={participant.finalApproval || ''}
-                                onChange={(e) => handleFinalApproval(participant.registrationId, participant.userId, e.target.value as 'MAINTAINED' | 'DEMOTED' | '')}
-                              >
-                                <option value="">未設定</option>
-                                <option value="MAINTAINED">維持</option>
-                                <option value="DEMOTED">降格</option>
-                              </select>
-                            )}
+                            {(() => {
+                              // 正式参加者はデフォルトで維持、それ以外は設定値またはundefined
+                              const effectiveApproval = officialStatus.attended && !participant.finalApproval
+                                ? 'MAINTAINED'
+                                : participant.finalApproval
+                              return (
+                                <select
+                                  className={`text-xs border rounded px-2 py-1 font-semibold ${
+                                    effectiveApproval === 'MAINTAINED'
+                                      ? 'bg-green-100 text-green-700 border-green-300'
+                                      : effectiveApproval === 'DEMOTED'
+                                      ? 'bg-red-100 text-red-700 border-red-300'
+                                      : 'bg-white text-slate-600'
+                                  }`}
+                                  value={effectiveApproval || ''}
+                                  onChange={(e) => handleFinalApproval(participant.registrationId, participant.userId, e.target.value as 'MAINTAINED' | 'DEMOTED' | '')}
+                                >
+                                  <option value="">未設定</option>
+                                  <option value="MAINTAINED">維持</option>
+                                  <option value="DEMOTED">降格</option>
+                                </select>
+                              )
+                            })()}
                           </TableCell>
                         </TableRow>
                       )
