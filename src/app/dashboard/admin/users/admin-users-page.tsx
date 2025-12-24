@@ -120,8 +120,9 @@ export default function AdminUsersPage() {
   // 仮登録ユーザー操作モーダル
   const [showPendingUserModal, setShowPendingUserModal] = useState(false)
   const [selectedPendingUser, setSelectedPendingUser] = useState<PendingUser | null>(null)
-  const [pendingUserAction, setPendingUserAction] = useState<'verify' | 'resend' | 'delete' | null>(null)
+  const [pendingUserAction, setPendingUserAction] = useState<'verify' | 'resend' | 'delete' | 'complete' | null>(null)
   const [isPendingUserActionLoading, setIsPendingUserActionLoading] = useState(false)
+  const [completeRegistrationRole, setCompleteRegistrationRole] = useState<string>('MEMBER')
 
   // 仮登録ユーザー一括選択・削除
   const [selectedPendingUserIds, setSelectedPendingUserIds] = useState<Set<string>>(new Set())
@@ -499,7 +500,7 @@ export default function AdminUsersPage() {
   /**
    * 仮登録ユーザーの操作を実行
    */
-  const handlePendingUserAction = async (action: 'verify' | 'resend' | 'delete') => {
+  const handlePendingUserAction = async (action: 'verify' | 'resend' | 'delete' | 'complete') => {
     if (!selectedPendingUser) return
 
     setIsPendingUserActionLoading(true)
@@ -512,6 +513,19 @@ export default function AdminUsersPage() {
         response = await fetch(`/api/admin/pending-users/${selectedPendingUser.id}`, {
           method: 'DELETE',
           credentials: 'include',
+        })
+      } else if (action === 'complete') {
+        // 決済スキップで本登録完了
+        response = await fetch('/api/admin/users/complete-registration', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            pendingUserId: selectedPendingUser.id,
+            initialRole: completeRegistrationRole,
+          }),
         })
       } else {
         response = await fetch(`/api/admin/pending-users/${selectedPendingUser.id}`, {
@@ -538,12 +552,16 @@ export default function AdminUsersPage() {
         alert('認証メールを再送信しました')
       } else if (action === 'delete') {
         alert('仮登録ユーザーを削除しました')
+      } else if (action === 'complete') {
+        alert(result.message || '本登録が完了しました')
       }
 
       // モーダルを閉じてデータを再取得
       setShowPendingUserModal(false)
       setSelectedPendingUser(null)
+      setCompleteRegistrationRole('MEMBER')
       await fetchPendingUsers()
+      await fetchUsers()
     } catch (err) {
       alert(err instanceof Error ? err.message : '操作に失敗しました')
     } finally {
@@ -1615,13 +1633,63 @@ export default function AdminUsersPage() {
                   )}
                 </div>
 
+                {/* 本登録を完了（決済スキップ）セクション */}
+                {selectedPendingUser.emailVerified && (
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-4 space-y-3">
+                    <h3 className="font-semibold text-green-800 flex items-center">
+                      <UserCheck className="h-4 w-4 mr-2" />
+                      本登録を完了（決済スキップ）
+                    </h3>
+                    <p className="text-xs text-green-700">
+                      決済なしで本登録を完了します。内部スタッフの登録に使用してください。
+                    </p>
+                    <div>
+                      <label className="block text-sm font-medium text-green-800 mb-1">
+                        初期ロール
+                      </label>
+                      <select
+                        value={completeRegistrationRole}
+                        onChange={(e) => setCompleteRegistrationRole(e.target.value)}
+                        className="w-full px-3 py-2 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-sm"
+                        disabled={isPendingUserActionLoading}
+                      >
+                        <option value="MEMBER">メンバー</option>
+                        <option value="FP">FPエイド</option>
+                        <option value="MANAGER">マネージャー</option>
+                        <option value="ADMIN">管理者</option>
+                      </select>
+                    </div>
+                    <Button
+                      onClick={() => {
+                        if (window.confirm(`${selectedPendingUser.name} を「${getRoleLabel(completeRegistrationRole)}」として本登録しますか？\n\n決済なしで本登録が完了します。パスワード設定メールが送信されます。`)) {
+                          handlePendingUserAction('complete')
+                        }
+                      }}
+                      disabled={isPendingUserActionLoading}
+                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                    >
+                      {isPendingUserActionLoading && pendingUserAction === 'complete' ? (
+                        <>
+                          <span className="animate-spin mr-2">⏳</span>
+                          処理中...
+                        </>
+                      ) : (
+                        <>
+                          <UserCheck className="h-4 w-4 mr-2" />
+                          本登録を完了する
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+
                 {/* 操作ボタン */}
                 <div className="space-y-3">
                   {!selectedPendingUser.emailVerified && (
                     <Button
                       onClick={() => handlePendingUserAction('verify')}
                       disabled={isPendingUserActionLoading}
-                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
                     >
                       {isPendingUserActionLoading && pendingUserAction === 'verify' ? (
                         <>
@@ -1689,6 +1757,7 @@ export default function AdminUsersPage() {
                     <li>メール認証済みのユーザーは決済ページに進めます</li>
                     <li>トークン期限切れの場合は認証メールを再送信してください</li>
                     <li>削除すると同じメールアドレスで新規登録できます</li>
+                    <li><strong>内部スタッフ:</strong> メール認証後「本登録を完了」で決済なしで登録できます</li>
                   </ul>
                 </div>
               </div>
