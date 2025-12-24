@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Loader2, Users, Video, FileText, Link, Calendar, Clock, MapPin, Key } from 'lucide-react'
+import { Loader2, Users, Video, FileText, Calendar, Clock, MapPin, Key } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -35,12 +35,10 @@ interface MtgFormData {
   date: string
   time: string
   location: string
-  maxParticipants: number | null
   attendanceCode: string
   applicationDeadline: string // 参加申込期限
   // 完了後に設定する項目
   vimeoUrl: string
-  surveyUrl: string
   materialsUrl: string
   attendanceDeadline: string // 動画視聴+アンケート期限
 }
@@ -74,11 +72,9 @@ export function MtgEventForm({
     date: initialData?.date || '',
     time: initialData?.time || '10:00-12:00',
     location: initialData?.location || 'オンライン（Zoom）',
-    maxParticipants: initialData?.maxParticipants ?? null,
     attendanceCode: initialData?.attendanceCode || '',
     applicationDeadline: initialData?.applicationDeadline || '',
     vimeoUrl: initialData?.vimeoUrl || '',
-    surveyUrl: initialData?.surveyUrl || '',
     materialsUrl: initialData?.materialsUrl || '',
     attendanceDeadline: defaultDeadline,
   })
@@ -101,8 +97,8 @@ export function MtgEventForm({
         return
       }
     } else {
-      if (!formData.vimeoUrl || !formData.surveyUrl || !formData.attendanceDeadline) {
-        alert('動画URL、アンケートURL、視聴期限は必須です')
+      if (!formData.vimeoUrl || !formData.attendanceDeadline) {
+        alert('動画URLと視聴期限は必須です')
         return
       }
     }
@@ -210,22 +206,6 @@ export function MtgEventForm({
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  最大参加者数
-                </label>
-                <input
-                  type="number"
-                  value={formData.maxParticipants ?? ''}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    maxParticipants: e.target.value ? parseInt(e.target.value) : null
-                  })}
-                  className={inputClassName}
-                  placeholder="制限なしの場合は空欄"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
                   <Key className="inline h-4 w-4 mr-1" />
                   参加コード（当日入力用）
                 </label>
@@ -296,21 +276,6 @@ export function MtgEventForm({
                   className={inputClassName}
                   placeholder="Google Drive, Dropboxなどの共有リンク"
                 />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  <Link className="inline h-4 w-4 mr-1" />
-                  アンケートURL <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="url"
-                  value={formData.surveyUrl}
-                  onChange={(e) => setFormData({ ...formData, surveyUrl: e.target.value })}
-                  className={inputClassName}
-                  placeholder="Google Formなどのアンケートリンク"
-                />
-                <p className="text-xs text-slate-500 mt-1">動画視聴後に回答してもらうアンケート</p>
               </div>
 
               <div>

@@ -196,7 +196,6 @@ function AdminEventsPageContent() {
     date: string
     time: string
     location: string
-    maxParticipants: number | null
     attendanceCode: string
     applicationDeadline: string
   }) => {
@@ -208,7 +207,7 @@ function AdminEventsPageContent() {
         date: data.date,
         time: data.time,
         location: data.location,
-        maxParticipants: data.maxParticipants,
+        maxParticipants: null, // 全体MTGは全員参加なので制限なし
         attendanceCode: data.attendanceCode || null,
         applicationDeadline: data.applicationDeadline || null,
         status: 'upcoming',
@@ -233,7 +232,6 @@ function AdminEventsPageContent() {
   // 全体MTG完了設定
   const handleCompleteMtgEvent = async (data: {
     vimeoUrl: string
-    surveyUrl: string
     materialsUrl: string
     attendanceDeadline: string
   }) => {
@@ -257,7 +255,6 @@ function AdminEventsPageContent() {
         thumbnailUrl: completingMtgEvent.thumbnailUrl,
         isRecurring: completingMtgEvent.isRecurring,
         vimeoUrl: data.vimeoUrl,
-        surveyUrl: data.surveyUrl,
         materialsUrl: data.materialsUrl,
         attendanceDeadline: data.attendanceDeadline,
       })
@@ -414,7 +411,6 @@ function AdminEventsPageContent() {
                 initialData={{
                   title: completingMtgEvent.title,
                   vimeoUrl: completingMtgEvent.vimeoUrl || '',
-                  surveyUrl: completingMtgEvent.surveyUrl || '',
                   materialsUrl: completingMtgEvent.materialsUrl || '',
                   attendanceDeadline: completingMtgEvent.attendanceDeadline || '',
                 }}
