@@ -89,6 +89,9 @@ export async function fetchVimeoVideoInfo(videoId: string): Promise<{
 } | null> {
   const accessToken = process.env.VIMEO_ACCESS_TOKEN
 
+  console.log('[VIMEO] Fetching video info for videoId:', videoId)
+  console.log('[VIMEO] Access token available:', !!accessToken)
+
   // アクセストークンがある場合はVimeo APIを使用
   if (accessToken) {
     try {
