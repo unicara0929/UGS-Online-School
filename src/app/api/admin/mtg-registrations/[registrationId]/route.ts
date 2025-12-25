@@ -59,22 +59,55 @@ export async function PATCH(
 
     // GM面談完了マーク
     if (action === 'gm_interview') {
+      // 未回答者（UNDECIDED）で動画+アンケート完了済みの場合、正式参加扱いにする
+      const isUndecidedWithVideoSurveyDone =
+        existingRegistration.participationIntent === 'UNDECIDED' &&
+        existingRegistration.videoWatched &&
+        existingRegistration.surveyCompleted
+
+      const updateData: {
+        gmInterviewCompleted: boolean
+        gmInterviewCompletedAt: Date
+        gmInterviewCompletedBy: string
+        attendanceMethod?: 'VIDEO_SURVEY'
+        attendanceCompletedAt?: Date
+        finalApproval?: FinalApprovalStatus
+        finalApprovalAt?: Date
+        finalApprovalBy?: string
+      } = {
+        gmInterviewCompleted: true,
+        gmInterviewCompletedAt: now,
+        gmInterviewCompletedBy: authUser!.id,
+      }
+
+      // 未回答者で動画+アンケート完了済みの場合
+      // → GM面談完了をトリガーに正式参加扱い＋最終承認を維持に設定
+      if (isUndecidedWithVideoSurveyDone) {
+        updateData.attendanceMethod = 'VIDEO_SURVEY'
+        updateData.attendanceCompletedAt = now
+        updateData.finalApproval = 'MAINTAINED'
+        updateData.finalApprovalAt = now
+        updateData.finalApprovalBy = authUser!.id
+      }
+
       const updatedRegistration = await prisma.eventRegistration.update({
         where: { id: registrationId },
-        data: {
-          gmInterviewCompleted: true,
-          gmInterviewCompletedAt: now,
-          gmInterviewCompletedBy: authUser!.id,
-        },
+        data: updateData,
       })
+
+      const message = isUndecidedWithVideoSurveyDone
+        ? 'GM面談完了としてマークし、正式参加扱い＋最終承認（維持）を設定しました'
+        : 'GM面談完了としてマークしました'
 
       return NextResponse.json({
         success: true,
-        message: 'GM面談完了としてマークしました',
+        message,
         registration: {
           id: updatedRegistration.id,
           gmInterviewCompleted: updatedRegistration.gmInterviewCompleted,
           gmInterviewCompletedAt: updatedRegistration.gmInterviewCompletedAt?.toISOString() ?? null,
+          attendanceCompletedAt: updatedRegistration.attendanceCompletedAt?.toISOString() ?? null,
+          finalApproval: updatedRegistration.finalApproval,
         },
       })
     }

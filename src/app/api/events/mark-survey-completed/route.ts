@@ -74,6 +74,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // イベントが全体MTGかどうかを確認
+    const eventWithRecurring = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: { isRecurring: true },
+    })
+
     const updatedRegistration = await prisma.eventRegistration.update({
       where: {
         userId_eventId: {
@@ -89,8 +95,20 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // 録画視聴とアンケート両方完了している場合、出席完了として記録
+    // 録画視聴とアンケート両方完了している場合
     if (updatedRegistration.videoWatched && updatedRegistration.surveyCompleted) {
+      // 全体MTGで未回答者（UNDECIDED）の場合は正式参加扱いにしない
+      // GM面談完了時に正式参加扱いにする
+      if (eventWithRecurring?.isRecurring && updatedRegistration.participationIntent === 'UNDECIDED') {
+        return NextResponse.json({
+          success: true,
+          message: '録画視聴とアンケート回答が完了しました。GM面談後に正式参加となります。',
+          attendanceCompleted: false,
+          needsGmInterview: true,
+        })
+      }
+
+      // 通常のケース（参加選択者 or 欠席申請者）: 出席完了として記録
       await prisma.eventRegistration.update({
         where: {
           userId_eventId: {

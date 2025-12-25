@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
+import { FinalApprovalStatus } from '@prisma/client'
 
 /**
  * 期限超過ユーザー用のEventRegistration作成API
@@ -60,22 +61,58 @@ export async function POST(request: NextRequest) {
     if (existingRegistration) {
       // 既存のregistrationがある場合は、GM面談をマークして返す
       if (markGmInterview) {
+        const now = new Date()
+
+        // 未回答者（UNDECIDED）で動画+アンケート完了済みの場合、正式参加扱いにする
+        const isUndecidedWithVideoSurveyDone =
+          existingRegistration.participationIntent === 'UNDECIDED' &&
+          existingRegistration.videoWatched &&
+          existingRegistration.surveyCompleted
+
+        const updateData: {
+          isOverdue: boolean
+          gmInterviewCompleted: boolean
+          gmInterviewCompletedAt: Date
+          gmInterviewCompletedBy: string
+          attendanceMethod?: 'VIDEO_SURVEY'
+          attendanceCompletedAt?: Date
+          finalApproval?: FinalApprovalStatus
+          finalApprovalAt?: Date
+          finalApprovalBy?: string
+        } = {
+          isOverdue: true,
+          gmInterviewCompleted: true,
+          gmInterviewCompletedAt: now,
+          gmInterviewCompletedBy: authUser!.id,
+        }
+
+        // 未回答者で動画+アンケート完了済みの場合
+        // → GM面談完了をトリガーに正式参加扱い＋最終承認を維持に設定
+        if (isUndecidedWithVideoSurveyDone) {
+          updateData.attendanceMethod = 'VIDEO_SURVEY'
+          updateData.attendanceCompletedAt = now
+          updateData.finalApproval = 'MAINTAINED'
+          updateData.finalApprovalAt = now
+          updateData.finalApprovalBy = authUser!.id
+        }
+
         const updated = await prisma.eventRegistration.update({
           where: { id: existingRegistration.id },
-          data: {
-            isOverdue: true,
-            gmInterviewCompleted: true,
-            gmInterviewCompletedAt: new Date(),
-            gmInterviewCompletedBy: authUser!.id,
-          },
+          data: updateData,
         })
+
+        const message = isUndecidedWithVideoSurveyDone
+          ? 'GM面談完了としてマークし、正式参加扱い＋最終承認（維持）を設定しました'
+          : 'GM面談完了としてマークしました'
 
         return NextResponse.json({
           success: true,
-          message: 'GM面談完了としてマークしました',
+          message,
           registration: {
             id: updated.id,
             gmInterviewCompleted: updated.gmInterviewCompleted,
+            attendanceCompletedAt: updated.attendanceCompletedAt?.toISOString() ?? null,
+            finalApproval: updated.finalApproval,
           },
         })
       }

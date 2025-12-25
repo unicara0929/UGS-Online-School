@@ -158,6 +158,12 @@ export async function POST(
         }
       })
 
+      // イベントが全体MTGかどうかを確認
+      const event = await tx.event.findUnique({
+        where: { id: eventId },
+        select: { isRecurring: true }
+      })
+
       if (registration) {
         await tx.eventRegistration.update({
           where: { id: registration.id },
@@ -168,14 +174,21 @@ export async function POST(
         })
 
         // 動画視聴も完了していれば出席完了とする
+        // ただし、全体MTGで未回答者（UNDECIDED）の場合は正式参加扱いにしない
         if (registration.videoWatched) {
-          await tx.eventRegistration.update({
-            where: { id: registration.id },
-            data: {
-              attendanceMethod: 'VIDEO_SURVEY',
-              attendanceCompletedAt: new Date()
-            }
-          })
+          const isUndecidedMtg = event?.isRecurring && registration.participationIntent === 'UNDECIDED'
+
+          if (!isUndecidedMtg) {
+            // 通常のケース（参加選択者 or 欠席申請者）: 出席完了として記録
+            await tx.eventRegistration.update({
+              where: { id: registration.id },
+              data: {
+                attendanceMethod: 'VIDEO_SURVEY',
+                attendanceCompletedAt: new Date()
+              }
+            })
+          }
+          // 未回答者の場合はGM面談完了時に正式参加扱いにする
         }
       }
 
