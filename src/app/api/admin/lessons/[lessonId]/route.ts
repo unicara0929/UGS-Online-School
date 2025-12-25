@@ -70,22 +70,11 @@ export async function PUT(
 
         const isVideoUrlChanged = existingLesson?.videoUrl !== normalizedUrl
 
-        console.log('[ADMIN_LESSONS] URL check:', {
-          existingUrl: existingLesson?.videoUrl,
-          newUrl: normalizedUrl,
-          isVideoUrlChanged,
-          duration,
-          willFetchFromVimeo: isVideoUrlChanged || duration === undefined || duration === 0
-        })
-
         // videoUrlが変更された場合、またはdurationが0/未指定の場合はVimeo APIから自動取得
         if (isVideoUrlChanged || duration === undefined || duration === 0) {
           const videoInfo = await fetchVimeoVideoInfo(videoId)
           if (videoInfo) {
             updateData.duration = videoInfo.duration
-            console.log('[ADMIN_LESSONS] Auto-fetched duration from Vimeo:', videoInfo.duration, 'seconds')
-          } else {
-            console.warn('[ADMIN_LESSONS] Could not fetch duration from Vimeo API')
           }
         }
       } else {

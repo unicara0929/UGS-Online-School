@@ -230,6 +230,27 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    // EventRegistrationのparticipationIntentをWILL_NOT_ATTENDに更新
+    await prisma.eventRegistration.upsert({
+      where: {
+        userId_eventId: {
+          userId: authUser!.id,
+          eventId,
+        },
+      },
+      update: {
+        participationIntent: 'WILL_NOT_ATTEND',
+        participationIntentAt: new Date(),
+      },
+      create: {
+        userId: authUser!.id,
+        eventId,
+        paymentStatus: 'FREE',
+        participationIntent: 'WILL_NOT_ATTEND',
+        participationIntentAt: new Date(),
+      },
+    })
+
     return NextResponse.json({
       success: true,
       message: existingExemption ? '欠席申請を更新しました' : '欠席申請を受け付けました。管理者による審査をお待ちください。',
