@@ -405,7 +405,9 @@ function LearningPage() {
                         </div>
                         <div className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0">
                           <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-slate-500" />
-                          <span className="text-xs sm:text-base text-slate-600">{currentLesson.duration}分</span>
+                          <span className="text-xs sm:text-base text-slate-600">
+                            {Math.floor(currentLesson.duration / 60)}:{(currentLesson.duration % 60).toString().padStart(2, '0')}
+                          </span>
                         </div>
                       </div>
                     </CardHeader>
