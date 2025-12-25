@@ -584,8 +584,8 @@ function EventsPageContent() {
                     {/* 出席確認セクション（登録済み or 動画/アンケートがある場合） */}
                     {(event.isRegistered || event.vimeoUrl || event.surveyUrl) && !event.attendanceCompletedAt && (
                       <div className="mt-4 space-y-4">
-                        {/* 参加コード入力 */}
-                        {event.hasAttendanceCode && (
+                        {/* 参加コード入力（動画URLが設定されていない場合のみ） */}
+                        {event.hasAttendanceCode && !event.vimeoUrl && (
                           <>
                             {event.attendanceDeadline && new Date(event.attendanceDeadline) < new Date() ? (
                               // 期限切れ

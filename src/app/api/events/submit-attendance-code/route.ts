@@ -32,6 +32,7 @@ export async function POST(request: NextRequest) {
         title: true,
         attendanceCode: true,
         attendanceDeadline: true,
+        vimeoUrl: true,
       },
     })
 
@@ -46,6 +47,15 @@ export async function POST(request: NextRequest) {
     if (!event.attendanceCode) {
       return NextResponse.json(
         { success: false, error: 'このイベントは参加コード機能が有効ではありません' },
+        { status: 400 }
+      )
+    }
+
+    // 動画URLが設定されている場合は出席コード入力を無効にする
+    // （完了設定で動画を設定した後は、出席コードでの出席確認を受け付けない）
+    if (event.vimeoUrl) {
+      return NextResponse.json(
+        { success: false, error: 'このイベントは録画視聴による出席確認のみ受け付けています' },
         { status: 400 }
       )
     }

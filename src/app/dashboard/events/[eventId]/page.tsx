@@ -678,8 +678,8 @@ function EventDetailPageContent() {
                     </div>
                   ) : (
                     <>
-                      {/* 参加コード入力（イベント開催中 or 完了後） */}
-                      {event.hasAttendanceCode && (
+                      {/* 参加コード入力（イベント開催中 or 完了後）- 動画URLが設定されていない場合のみ */}
+                      {event.hasAttendanceCode && !event.vimeoUrl && (
                         <>
                           {event.attendanceDeadline && new Date(event.attendanceDeadline) < new Date() ? (
                             <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
