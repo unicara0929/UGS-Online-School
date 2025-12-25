@@ -59,11 +59,91 @@ interface VimeoOEmbedResponse {
 }
 
 /**
- * Vimeo oEmbed APIから動画情報を取得する
+ * Vimeo APIのレスポンス型
+ */
+interface VimeoAPIResponse {
+  uri: string
+  name: string
+  description: string | null
+  duration: number
+  pictures: {
+    sizes: Array<{
+      width: number
+      height: number
+      link: string
+    }>
+  }
+}
+
+/**
+ * Vimeo APIから動画情報を取得する（認証付き）
+ * 非公開動画にも対応
  * @param videoId Vimeo Video ID
  * @returns 動画情報（タイトル、長さなど）またはnull
  */
 export async function fetchVimeoVideoInfo(videoId: string): Promise<{
+  duration: number
+  title: string
+  description: string
+  thumbnailUrl: string
+} | null> {
+  const accessToken = process.env.VIMEO_ACCESS_TOKEN
+
+  // アクセストークンがある場合はVimeo APIを使用
+  if (accessToken) {
+    try {
+      const url = `https://api.vimeo.com/videos/${videoId}`
+
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Accept': 'application/vnd.vimeo.*+json;version=3.4',
+        },
+        cache: 'no-store' // 常に最新の情報を取得
+      })
+
+      if (!response.ok) {
+        console.error(`[VIMEO API] Failed to fetch video info: ${response.status}`)
+        // APIが失敗した場合はoEmbedにフォールバック
+        return fetchVimeoVideoInfoViaOEmbed(videoId)
+      }
+
+      const data: VimeoAPIResponse = await response.json()
+
+      // サムネイルURLを取得（最大サイズ）
+      const thumbnailUrl = data.pictures?.sizes?.length > 0
+        ? data.pictures.sizes[data.pictures.sizes.length - 1].link
+        : ''
+
+      console.log('[VIMEO API] Successfully fetched video info:', {
+        videoId,
+        duration: data.duration,
+        title: data.name
+      })
+
+      return {
+        duration: data.duration, // 秒単位
+        title: data.name,
+        description: data.description || '',
+        thumbnailUrl,
+      }
+    } catch (error) {
+      console.error('[VIMEO API] Error fetching video info:', error)
+      // エラーの場合はoEmbedにフォールバック
+      return fetchVimeoVideoInfoViaOEmbed(videoId)
+    }
+  }
+
+  // アクセストークンがない場合はoEmbedを使用
+  return fetchVimeoVideoInfoViaOEmbed(videoId)
+}
+
+/**
+ * Vimeo oEmbed APIから動画情報を取得する（公開動画のみ）
+ * @param videoId Vimeo Video ID
+ * @returns 動画情報またはnull
+ */
+async function fetchVimeoVideoInfoViaOEmbed(videoId: string): Promise<{
   duration: number
   title: string
   description: string
@@ -76,25 +156,24 @@ export async function fetchVimeoVideoInfo(videoId: string): Promise<{
       headers: {
         'Accept': 'application/json',
       },
-      // キャッシュを有効にして負荷を軽減
       next: { revalidate: 3600 } // 1時間キャッシュ
     })
 
     if (!response.ok) {
-      console.error(`[VIMEO] Failed to fetch video info: ${response.status}`)
+      console.error(`[VIMEO oEmbed] Failed to fetch video info: ${response.status}`)
       return null
     }
 
     const data: VimeoOEmbedResponse = await response.json()
 
     return {
-      duration: data.duration, // 秒単位
+      duration: data.duration,
       title: data.title,
       description: data.description || '',
       thumbnailUrl: data.thumbnail_url,
     }
   } catch (error) {
-    console.error('[VIMEO] Error fetching video info:', error)
+    console.error('[VIMEO oEmbed] Error fetching video info:', error)
     return null
   }
 }
