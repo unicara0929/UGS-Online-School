@@ -57,15 +57,27 @@ export async function PUT(
             { status: 400 }
           )
         }
-        // 正規化されたVimeo URLを保存
-        updateData.videoUrl = normalizeVimeoUrl(videoUrl)
 
-        // duration が指定されていない場合、または0の場合、Vimeo APIから自動取得
-        if (duration === undefined || duration === 0) {
+        // 正規化されたVimeo URLを保存
+        const normalizedUrl = normalizeVimeoUrl(videoUrl)
+        updateData.videoUrl = normalizedUrl
+
+        // 既存のレッスンを取得して、videoUrlが変更されたかチェック
+        const existingLesson = await prisma.lesson.findUnique({
+          where: { id: lessonId },
+          select: { videoUrl: true }
+        })
+
+        const isVideoUrlChanged = existingLesson?.videoUrl !== normalizedUrl
+
+        // videoUrlが変更された場合、またはdurationが0/未指定の場合はVimeo APIから自動取得
+        if (isVideoUrlChanged || duration === undefined || duration === 0) {
           const videoInfo = await fetchVimeoVideoInfo(videoId)
           if (videoInfo) {
             updateData.duration = videoInfo.duration
-            console.log('[ADMIN_LESSONS] Auto-fetched duration from Vimeo:', videoInfo.duration)
+            console.log('[ADMIN_LESSONS] Auto-fetched duration from Vimeo:', videoInfo.duration, 'seconds')
+          } else {
+            console.warn('[ADMIN_LESSONS] Could not fetch duration from Vimeo API')
           }
         }
       } else {
