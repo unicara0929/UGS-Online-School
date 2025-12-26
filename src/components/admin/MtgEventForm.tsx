@@ -92,8 +92,16 @@ export function MtgEventForm({
 
   const handleSubmit = () => {
     if (mode === 'create') {
-      if (!formData.title || !formData.date) {
-        alert('タイトルと日付は必須です')
+      const missingFields: string[] = []
+      if (!formData.title) missingFields.push('タイトル')
+      if (!formData.date) missingFields.push('開催日')
+      if (!formData.time) missingFields.push('時間')
+      if (!formData.location) missingFields.push('場所')
+      if (!formData.attendanceCode) missingFields.push('参加コード')
+      if (!formData.applicationDeadline) missingFields.push('参加申込期限')
+
+      if (missingFields.length > 0) {
+        alert(`以下の項目は必須です:\n${missingFields.join('\n')}`)
         return
       }
     } else {
@@ -139,7 +147,7 @@ export function MtgEventForm({
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   <Users className="inline h-4 w-4 mr-1" />
-                  タイトル
+                  タイトル <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -153,7 +161,7 @@ export function MtgEventForm({
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   <Calendar className="inline h-4 w-4 mr-1" />
-                  開催日
+                  開催日 <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
@@ -166,7 +174,7 @@ export function MtgEventForm({
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   <Clock className="inline h-4 w-4 mr-1" />
-                  時間
+                  時間 <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -180,7 +188,7 @@ export function MtgEventForm({
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   <MapPin className="inline h-4 w-4 mr-1" />
-                  場所
+                  場所 <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -207,7 +215,7 @@ export function MtgEventForm({
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   <Key className="inline h-4 w-4 mr-1" />
-                  参加コード（当日入力用）
+                  参加コード（当日入力用） <span className="text-red-500">*</span>
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -229,7 +237,7 @@ export function MtgEventForm({
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   <Calendar className="inline h-4 w-4 mr-1" />
-                  参加申込期限
+                  参加申込期限 <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="datetime-local"
