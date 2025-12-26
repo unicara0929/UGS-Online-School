@@ -89,6 +89,17 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    // 「参加する」に変更した場合、既存の欠席申請（PENDING状態）を削除
+    if (intent === 'WILL_ATTEND') {
+      await prisma.mtgExemption.deleteMany({
+        where: {
+          userId: authUser!.id,
+          eventId: eventId,
+          status: 'PENDING', // 審査中のもののみ削除（承認済み・却下済みは残す）
+        },
+      })
+    }
+
     return NextResponse.json({
       success: true,
       message: intent === 'WILL_ATTEND' ? '参加予定として登録しました' : '不参加として登録しました',
