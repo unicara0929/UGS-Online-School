@@ -86,20 +86,60 @@ export async function POST(request: NextRequest) {
 
     console.log('Role mapping:', { inputRole: role, appRole, prismaRole })
 
-    // 会員番号を生成
-    const memberId = await generateMemberId()
-    console.log('Generated member ID:', memberId)
+    // 会員番号生成とユーザー作成をトランザクションで実行（重複防止）
+    const user = await prisma.$transaction(async (tx) => {
+      // 最大3回リトライ
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          // 会員番号を生成（トランザクション内で）
+          const latestUser = await tx.user.findFirst({
+            where: {
+              memberId: {
+                startsWith: 'UGS'
+              }
+            },
+            orderBy: {
+              memberId: 'desc'
+            },
+            select: {
+              memberId: true
+            }
+          })
 
-    // Prismaでユーザープロファイルを作成（リトライ付き）
-    // 根本的な解決: リトライではなく、接続プール設定を最適化することで問題を解決
-    const user = await prisma.user.create({
-      data: {
-        id: userId,
-        email,
-        name,
-        role: prismaRole,
-        memberId,
+          let nextNumber = 1
+          if (latestUser?.memberId) {
+            const numberPart = latestUser.memberId.replace('UGS', '')
+            const currentNumber = parseInt(numberPart, 10)
+            if (!isNaN(currentNumber)) {
+              nextNumber = currentNumber + 1
+            }
+          }
+
+          const memberId = `UGS${nextNumber.toString().padStart(7, '0')}`
+          console.log('Generated member ID:', memberId)
+
+          // ユーザー作成
+          const createdUser = await tx.user.create({
+            data: {
+              id: userId,
+              email,
+              name,
+              role: prismaRole,
+              memberId,
+            }
+          })
+
+          return createdUser
+        } catch (err: any) {
+          // memberIdの重複エラーの場合はリトライ
+          if (err.code === 'P2002' && err.meta?.target?.includes('memberId')) {
+            console.log(`MemberId collision detected, retrying... (attempt ${attempt + 1})`)
+            continue
+          }
+          throw err
+        }
       }
+      throw new Error('会員番号の生成に失敗しました。しばらく待ってから再度お試しください。')
     })
 
     console.log('User created successfully:', { id: user.id, role: user.role })
