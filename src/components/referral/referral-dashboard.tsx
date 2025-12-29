@@ -125,22 +125,22 @@ export function ReferralDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* 紹介コード表示 */}
+      {/* 紹介リンク表示 */}
       {referralCode && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
               <Share2 className="h-5 w-5 mr-2" />
-              あなたの紹介コード
+              あなたの紹介リンク
             </CardTitle>
             <CardDescription>
-              このコードを共有して、新しいメンバーを紹介してください
+              このリンクを共有して、新しいメンバーを紹介してください
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex items-center space-x-4">
-              <div className="flex-1 bg-slate-100 rounded-lg px-4 py-3 font-mono text-lg font-bold">
-                {referralCode}
+              <div className="flex-1 bg-slate-100 rounded-lg px-4 py-3 font-mono text-sm break-all">
+                {typeof window !== 'undefined' ? `${window.location.origin}/register?ref=${referralCode}` : ''}
               </div>
               <Button
                 onClick={copyReferralCode}
@@ -160,9 +160,6 @@ export function ReferralDashboard() {
                 )}
               </Button>
             </div>
-            <p className="text-sm text-slate-600 mt-2">
-              紹介リンク: <span className="font-mono text-xs">{window.location.origin}/register?ref={referralCode}</span>
-            </p>
           </CardContent>
         </Card>
       )}
