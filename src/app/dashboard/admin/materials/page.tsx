@@ -230,7 +230,7 @@ export default function AdminMaterialsPage() {
         : '/api/admin/materials'
 
       const response = await fetch(url, {
-        method: editingMaterial ? 'PUT' : 'POST',
+        method: editingMaterial ? 'PATCH' : 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
