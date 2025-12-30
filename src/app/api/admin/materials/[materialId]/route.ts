@@ -110,6 +110,14 @@ export async function PATCH(
   }
 }
 
+// PUT: 資料を更新（PATCHと同じ処理）
+export async function PUT(
+  request: NextRequest,
+  context: { params: Promise<{ materialId: string }> }
+) {
+  return PATCH(request, context)
+}
+
 // DELETE: 資料を削除（管理者のみ）
 export async function DELETE(
   request: NextRequest,
