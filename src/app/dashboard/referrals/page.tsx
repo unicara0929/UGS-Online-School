@@ -93,43 +93,27 @@ function ReferralsPageContent() {
             </CardDescription>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0 space-y-3 sm:space-y-4">
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
-                紹介コード
-              </label>
-              <div className="flex items-center gap-2">
-                <div className="flex-1 p-2 sm:p-3 bg-slate-100 border border-slate-300 rounded-lg font-mono text-base sm:text-lg font-bold text-slate-900">
-                  {referralCode}
-                </div>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <div className="flex-1 p-2 sm:p-3 bg-slate-100 border border-slate-300 rounded-lg text-xs sm:text-sm text-slate-700 break-all">
+                {referralLink}
               </div>
-            </div>
-
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
-                紹介リンク
-              </label>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                <div className="flex-1 p-2 sm:p-3 bg-slate-100 border border-slate-300 rounded-lg text-xs sm:text-sm text-slate-700 break-all">
-                  {referralLink}
-                </div>
-                <Button
-                  onClick={handleCopy}
-                  variant={isCopied ? "default" : "outline"}
-                  className="flex-shrink-0 w-full sm:w-auto"
-                >
-                  {isCopied ? (
-                    <>
-                      <Check className="h-4 w-4 mr-2" />
-                      コピー済み
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="h-4 w-4 mr-2" />
-                      コピー
-                    </>
-                  )}
-                </Button>
-              </div>
+              <Button
+                onClick={handleCopy}
+                variant={isCopied ? "default" : "outline"}
+                className="flex-shrink-0 w-full sm:w-auto"
+              >
+                {isCopied ? (
+                  <>
+                    <Check className="h-4 w-4 mr-2" />
+                    コピー済み
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4 mr-2" />
+                    コピー
+                  </>
+                )}
+              </Button>
             </div>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
