@@ -197,10 +197,10 @@ export default function AdminMaterialsPage() {
       const data = await response.json()
       setFormData(prev => ({
         ...prev,
-        fileUrl: data.url,
-        fileName: file.name,
-        fileSize: file.size.toString(),
-        fileType: file.type,
+        fileUrl: data.fileUrl,
+        fileName: data.fileName,
+        fileSize: data.fileSize,
+        fileType: data.fileType,
       }))
     } catch (err) {
       alert(err instanceof Error ? err.message : 'ファイルのアップロードに失敗しました')
