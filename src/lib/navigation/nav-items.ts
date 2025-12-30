@@ -96,6 +96,7 @@ export const navigation: NavItem[] = [
     roles: ['admin'],
     subItems: [
       { name: '教育コンテンツ管理', href: '/dashboard/admin/courses', icon: BookOpen, roles: ['admin'] },
+      { name: '資料コンテンツ管理', href: '/dashboard/admin/materials', icon: FileText, roles: ['admin'] },
       { name: 'コンプライアンステスト', href: '/dashboard/admin/compliance-test', icon: ShieldCheck, roles: ['admin'] },
     ]
   },
