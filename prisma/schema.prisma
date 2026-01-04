@@ -85,8 +85,6 @@ model User {
   categoryViews           UserCategoryView[]
   contentViews            UserContentView[]
   notificationReads       UserNotificationRead[] // システム通知の既読管理
-  // 事前アンケート
-  preInterviewResponses   PreInterviewResponse[] @relation("PreInterviewRespondent")
   // コンプライアンステスト
   complianceTestAttempts  ComplianceTestAttempt[]
   // 全体MTG免除申請
@@ -579,8 +577,6 @@ model LPMeeting {
   member   User  @relation("LPMeetingMember", fields: [memberId], references: [id], onDelete: Cascade)
   fp       User? @relation("LPMeetingFP", fields: [fpId], references: [id], onDelete: SetNull)
   assigner User? @relation("LPMeetingAssigner", fields: [assignedBy], references: [id], onDelete: SetNull)
-
-  preInterviewResponse PreInterviewResponse?  // 事前アンケート回答
 
   // @@unique([memberId]) を削除し、再申請を可能に（キャンセル/ノーショー後に再申請できる）
   @@index([fpId, status])
@@ -1184,122 +1180,6 @@ model Consultation {
   @@index([type])
   @@index([createdAt])
   @@map("consultations")
-}
-
-// =====================
-// LP面談事前アンケート機能
-// =====================
-
-// 質問タイプ
-enum PreInterviewQuestionType {
-  TEXT          // 短いテキスト
-  TEXTAREA      // 長いテキスト
-  SELECT        // 単一選択（ドロップダウン）
-  MULTI_SELECT  // 複数選択
-  CHECKBOX      // はい/いいえ
-  RADIO         // ラジオボタン
-  NUMBER        // 数値
-}
-
-// 事前アンケートテンプレート（管理者が作成・編集）
-model PreInterviewTemplate {
-  id          String   @id @default(cuid())
-  name        String   // テンプレート名（例: "LP面談事前アンケート"）
-  description String?  @db.Text
-  isActive    Boolean  @default(true)  // 有効/無効
-  version     Int      @default(1)     // バージョン管理
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  questions   PreInterviewQuestion[]
-  responses   PreInterviewResponse[]
-
-  @@map("pre_interview_templates")
-}
-
-// 質問項目
-model PreInterviewQuestion {
-  id          String   @id @default(cuid())
-  templateId  String
-  template    PreInterviewTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
-
-  order       Int      // 表示順
-  category    String?  // カテゴリ（例: "投資経験", "保険", "キャリア"）
-  question    String   // 質問文
-  description String?  // 補足説明
-
-  type        PreInterviewQuestionType  // 質問タイプ
-  options     Json?    // 選択肢 ["選択肢1", "選択肢2", ...]
-
-  required    Boolean  @default(false)
-  showIf      Json?    // 条件分岐（例: { "questionId": "xxx", "value": "はい" }）
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  answers     PreInterviewAnswer[]
-
-  @@index([templateId, order])
-  @@map("pre_interview_questions")
-}
-
-// 事前アンケート回答ステータス
-enum PreInterviewStatus {
-  PENDING      // 未開始
-  IN_PROGRESS  // 回答中（途中保存）
-  COMPLETED    // 完了
-}
-
-// 回答セッション（1面談につき1つ）
-model PreInterviewResponse {
-  id            String   @id @default(cuid())
-  templateId    String
-  template      PreInterviewTemplate @relation(fields: [templateId], references: [id])
-
-  lpMeetingId   String   @unique  // LP面談と1:1で紐付け
-  lpMeeting     LPMeeting @relation(fields: [lpMeetingId], references: [id], onDelete: Cascade)
-
-  respondentId  String   // 回答者（会員）
-  respondent    User     @relation("PreInterviewRespondent", fields: [respondentId], references: [id], onDelete: Cascade)
-
-  status        PreInterviewStatus @default(PENDING)
-  dueDate       DateTime?  // 回答期限（面談日の前日等）
-  startedAt     DateTime?  // 回答開始日時
-  completedAt   DateTime?  // 回答完了日時
-
-  // 通知管理
-  notificationSentAt    DateTime?  // 初回通知送信日時
-  reminderSentAt        DateTime?  // リマインダー送信日時
-  completionNotifiedAt  DateTime?  // 回答完了通知送信日時（FPへ）
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  answers       PreInterviewAnswer[]
-
-  @@index([respondentId])
-  @@index([status])
-  @@index([dueDate])
-  @@map("pre_interview_responses")
-}
-
-// 個別回答
-model PreInterviewAnswer {
-  id          String   @id @default(cuid())
-  responseId  String
-  response    PreInterviewResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
-
-  questionId  String
-  question    PreInterviewQuestion @relation(fields: [questionId], references: [id])
-
-  value       Json     // 回答値（テキスト: "回答", 選択: ["選択肢1"], 数値: 100 等）
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@unique([responseId, questionId])
-  @@index([responseId])
-  @@map("pre_interview_answers")
 }
 
 // =====================

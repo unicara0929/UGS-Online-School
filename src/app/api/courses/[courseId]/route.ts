@@ -65,16 +65,28 @@ export async function GET(
     // レスポンス用にフォーマット
     const lessons = course.lessons.map((lesson) => {
       const progress = progressMap.get(lesson.id)
-      // Vimeo IDを抽出（URLまたは数値のみの場合）
+      // Vimeo IDとハッシュを抽出（URLまたは数値のみの場合）
       let vimeoId: string | null = null
+      let vimeoHash: string | null = null
       if (lesson.videoUrl) {
+        const trimmedUrl = lesson.videoUrl.trim()
         // 数値のみの場合はそのまま使用
-        if (/^\d+$/.test(lesson.videoUrl.trim())) {
-          vimeoId = lesson.videoUrl.trim()
+        if (/^\d+$/.test(trimmedUrl)) {
+          vimeoId = trimmedUrl
         } else {
           // URLからVimeo IDを抽出（vimeo.com/123456 または player.vimeo.com/video/123456 形式に対応）
-          const match = lesson.videoUrl.match(/(?:vimeo\.com\/|player\.vimeo\.com\/video\/)(\d+)/)
-          vimeoId = match?.[1] || null
+          // プライベートリンクの形式: vimeo.com/123456789/abc123def または vimeo.com/123456789?h=abc123def
+          const idMatch = trimmedUrl.match(/(?:vimeo\.com\/|player\.vimeo\.com\/video\/)(\d+)/)
+          vimeoId = idMatch?.[1] || null
+
+          // ハッシュを抽出（/video_id/hash 形式または ?h=hash 形式）
+          if (vimeoId) {
+            // パス形式: vimeo.com/123456789/abc123def
+            const pathHashMatch = trimmedUrl.match(/vimeo\.com\/\d+\/([a-zA-Z0-9]+)/)
+            // クエリパラメータ形式: ?h=abc123def
+            const queryHashMatch = trimmedUrl.match(/[?&]h=([a-zA-Z0-9]+)/)
+            vimeoHash = pathHashMatch?.[1] || queryHashMatch?.[1] || null
+          }
         }
       }
 
@@ -88,6 +100,7 @@ export async function GET(
         content: `このレッスンでは、${lesson.title}について学習します。`,
         videoUrl: lesson.videoUrl,
         vimeoId,
+        vimeoHash,
         materials: lesson.pdfUrl ? [lesson.pdfUrl] : [],
       }
     })

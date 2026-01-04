@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { LPMeetingStatus, MeetingPlatform, NotificationType, NotificationPriority, PreInterviewStatus } from '@prisma/client'
+import { LPMeetingStatus, MeetingPlatform, NotificationType, NotificationPriority } from '@prisma/client'
 import { createNotification } from '@/lib/services/notification-service'
-import { formatDateTime, formatDate } from '@/lib/utils/format'
+import { formatDateTime } from '@/lib/utils/format'
 import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
 import { Resend } from 'resend'
 
@@ -103,80 +103,6 @@ export async function POST(
       `${formatDateTime(new Date(scheduledAt))}に${counselorName}さんとのLP面談が確定しました。オンライン面談のURL: ${meetingUrl}`,
       '/dashboard/lp-meeting/request'
     )
-
-    // 事前アンケートを自動作成
-    let preInterviewResponse = null
-    try {
-      // アクティブなテンプレートを取得
-      const activeTemplate = await prisma.preInterviewTemplate.findFirst({
-        where: { isActive: true },
-        orderBy: { createdAt: 'desc' }
-      })
-
-      if (activeTemplate) {
-        // 回答期限は面談日の前日
-        const scheduledDate = new Date(scheduledAt)
-        const dueDate = new Date(scheduledDate)
-        dueDate.setDate(dueDate.getDate() - 1)
-        dueDate.setHours(23, 59, 59, 999)
-
-        // 事前アンケート回答セッションを作成
-        preInterviewResponse = await prisma.preInterviewResponse.create({
-          data: {
-            templateId: activeTemplate.id,
-            lpMeetingId: meetingId,
-            respondentId: updatedMeeting.memberId,
-            status: PreInterviewStatus.PENDING,
-            dueDate,
-            notificationSentAt: new Date()
-          }
-        })
-
-        // メンバーにアプリ内通知を送信
-        await createNotification(
-          updatedMeeting.memberId,
-          NotificationType.PRE_INTERVIEW_REQUESTED,
-          NotificationPriority.INFO,
-          '事前アンケートのお願い',
-          `LP面談前の事前アンケートにご回答ください。回答期限: ${formatDate(dueDate)}`,
-          '/dashboard/pre-interview'
-        )
-
-        // メンバーにメール通知を送信
-        const resend = getResend()
-        try {
-          await resend.emails.send({
-            from: 'UGS <inc@unicara.jp>',
-            to: updatedMeeting.member.email,
-            subject: '【LP面談】事前アンケートのお願い',
-            html: `
-              <p>${updatedMeeting.member.name} さん</p>
-              <br>
-              <p>LP面談が確定しました。面談前に事前アンケートへのご回答をお願いいたします。</p>
-              <br>
-              <p>─────────────────</p>
-              <p><strong>■ 面談日時</strong><br>${formatDateTime(scheduledDate)}</p>
-              <br>
-              <p><strong>■ 面談担当者</strong><br>${counselorName}</p>
-              <br>
-              <p><strong>■ アンケート回答期限</strong><br>${formatDate(dueDate)}</p>
-              <p>─────────────────</p>
-              <br>
-              <p>下記のリンクよりご回答ください。</p>
-              <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/pre-interview">事前アンケートに回答する</a></p>
-              <br>
-              <p>※回答は途中保存が可能です。</p>
-            `
-          })
-          console.log('[事前アンケート通知] メール送信成功:', updatedMeeting.member.email)
-        } catch (emailError) {
-          console.error('[事前アンケート通知] メール送信失敗:', emailError)
-        }
-      }
-    } catch (preInterviewError) {
-      console.error('事前アンケート作成エラー:', preInterviewError)
-      // 事前アンケート作成失敗しても面談確定は成功とする
-    }
 
     // 面談者にメール通知を送信
     try {

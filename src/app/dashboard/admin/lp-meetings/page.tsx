@@ -9,37 +9,9 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAuth } from "@/contexts/auth-context"
-import { Calendar, Clock, Video, CheckCircle, XCircle, Loader2, Users, AlertCircle, UserX, Ban, MapPin, Building2, FileText, ChevronDown, ChevronUp } from "lucide-react"
+import { Calendar, Clock, Video, CheckCircle, XCircle, Loader2, Users, AlertCircle, UserX, Ban, MapPin, Building2 } from "lucide-react"
 import { formatDateTime } from "@/lib/utils/format"
 import { LP_MEETING_COUNSELORS } from '@/lib/constants/lp-meeting-counselors'
-
-interface PreInterviewAnswer {
-  id: string
-  questionId: string
-  value: any
-}
-
-interface PreInterviewQuestion {
-  id: string
-  question: string
-  type: string
-  required: boolean
-  options?: string[]
-  order: number
-}
-
-interface PreInterviewResponse {
-  id: string
-  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED'
-  startedAt?: string | null
-  completedAt?: string | null
-  template: {
-    id: string
-    name: string
-    questions: PreInterviewQuestion[]
-  }
-  answers: PreInterviewAnswer[]
-}
 
 interface LPMeeting {
   id: string
@@ -69,7 +41,6 @@ interface LPMeeting {
     name: string
     email: string
   }
-  preInterviewResponse?: PreInterviewResponse | null
 }
 
 function AdminLPMeetingsPageContent() {
@@ -86,7 +57,6 @@ function AdminLPMeetingsPageContent() {
   const [selectedMeeting, setSelectedMeeting] = useState<LPMeeting | null>(null)
   const [showScheduleForm, setShowScheduleForm] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [expandedPreInterview, setExpandedPreInterview] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'requested' | 'scheduled'>('requested')
 
   const [scheduleForm, setScheduleForm] = useState({
@@ -322,28 +292,6 @@ function AdminLPMeetingsPageContent() {
     }
   }
 
-  // 事前アンケートの回答を取得するヘルパー
-  const getAnswerValue = (response: PreInterviewResponse, questionId: string): string => {
-    const answer = response.answers.find(a => a.questionId === questionId)
-    if (!answer) return '未回答'
-    if (Array.isArray(answer.value)) {
-      return answer.value.join(', ')
-    }
-    return String(answer.value)
-  }
-
-  // 事前アンケートのステータスバッジ
-  const getPreInterviewStatusBadge = (status: string) => {
-    switch (status) {
-      case 'COMPLETED':
-        return <Badge className="bg-green-100 text-green-800">回答済み</Badge>
-      case 'IN_PROGRESS':
-        return <Badge className="bg-yellow-100 text-yellow-800">回答中</Badge>
-      default:
-        return <Badge className="bg-slate-100 text-slate-600">未回答</Badge>
-    }
-  }
-
   const requestedMeetings = meetings.filter(m => m.status === 'REQUESTED')
   const scheduledMeetings = meetings.filter(m => m.status === 'SCHEDULED')
   const completedMeetings = meetings.filter(m => m.status === 'COMPLETED')
@@ -476,12 +424,6 @@ function AdminLPMeetingsPageContent() {
                                     <span className="text-slate-400"> 他{(meeting.preferredDates as string[]).length - 2}件</span>
                                   )}
                                 </div>
-                                {meeting.preInterviewResponse && (
-                                  <div className="mt-1 flex items-center gap-1">
-                                    <FileText className="h-3 w-3 text-slate-500" />
-                                    {getPreInterviewStatusBadge(meeting.preInterviewResponse.status)}
-                                  </div>
-                                )}
                               </div>
                               <Button
                                 size="sm"

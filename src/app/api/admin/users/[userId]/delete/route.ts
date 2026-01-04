@@ -73,7 +73,6 @@ export async function DELETE(
 
       // 4. FP関連
       await tx.fPPromotionApplication.deleteMany({ where: { userId } })
-      await tx.preInterviewResponse.deleteMany({ where: { respondentId: userId } })
 
       // 5. 学習進捗関連
       await tx.courseProgress.deleteMany({ where: { userId } })

@@ -67,11 +67,6 @@ export async function POST(
       }
     })
 
-    // 事前アンケートがあれば削除（または無効化）
-    await prisma.preInterviewResponse.deleteMany({
-      where: { lpMeetingId: meetingId }
-    })
-
     // メンバーにアプリ内通知を送信
     await createNotification(
       updatedMeeting.memberId,

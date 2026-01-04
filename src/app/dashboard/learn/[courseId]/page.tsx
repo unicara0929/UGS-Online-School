@@ -34,6 +34,7 @@ interface Lesson {
   content: string
   videoUrl?: string
   vimeoId?: string // Vimeo動画ID
+  vimeoHash?: string // Vimeoプライベートリンク用ハッシュ
   materials?: string[]
 }
 
@@ -420,7 +421,7 @@ function LearningPage() {
                         <iframe
                           ref={iframeRef}
                           key={`vimeo-${currentLesson.id}`} // レッスンが切り替わったときにiframeを再マウント
-                          src={`https://player.vimeo.com/video/${currentLesson.vimeoId}?api=1`}
+                          src={`https://player.vimeo.com/video/${currentLesson.vimeoId}${currentLesson.vimeoHash ? `?h=${currentLesson.vimeoHash}&` : '?'}api=1`}
                           loading="lazy"
                           allow="autoplay; fullscreen; picture-in-picture"
                           allowFullScreen

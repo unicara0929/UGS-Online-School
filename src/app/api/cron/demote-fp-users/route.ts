@@ -136,10 +136,6 @@ export async function GET(request: NextRequest) {
             where: { memberId: user.id },
           })
 
-          await prisma.preInterviewResponse.deleteMany({
-            where: { respondentId: user.id },
-          })
-
           // 4. Supabaseのメタデータも更新
           try {
             await supabaseAdmin.auth.admin.updateUserById(user.id, {

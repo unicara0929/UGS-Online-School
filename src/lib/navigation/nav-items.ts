@@ -20,7 +20,6 @@ import {
   CreditCard,
   UserRound,
   UserX,
-  ClipboardList,
   ShieldCheck,
   Wrench,
   Briefcase,
@@ -107,7 +106,6 @@ export const navigation: NavItem[] = [
     subItems: [
       { name: 'イベント管理', href: '/dashboard/admin/events', icon: Calendar, roles: ['admin'] },
       { name: 'LP面談管理', href: '/dashboard/admin/lp-meetings', icon: MessageSquare, roles: ['admin'] },
-      { name: '事前アンケート管理', href: '/dashboard/admin/pre-interview-templates', icon: ClipboardList, roles: ['admin'] },
     ]
   },
   {

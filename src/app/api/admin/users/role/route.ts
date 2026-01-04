@@ -111,12 +111,7 @@ export async function PUT(request: NextRequest) {
           where: { memberId: userId }
         })
 
-        // 事前アンケート回答を削除
-        await prisma.preInterviewResponse.deleteMany({
-          where: { respondentId: userId }
-        })
-
-        console.log(`Reset FPPromotionApplication, LPMeeting, and PreInterviewResponse for user ${userId} due to demotion to MEMBER`)
+        console.log(`Reset FPPromotionApplication and LPMeeting for user ${userId} due to demotion to MEMBER`)
       }
     } catch (prismaError: any) {
       console.error('Prisma user update error:', prismaError)
