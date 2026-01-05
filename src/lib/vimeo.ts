@@ -32,6 +32,39 @@ export function extractVimeoVideoId(urlOrId: string): string | null {
 }
 
 /**
+ * Vimeo URLからプライベートリンク用ハッシュを抽出する
+ * @param url VimeoのURL
+ * @returns ハッシュ文字列またはnull
+ *
+ * 対応形式:
+ * - vimeo.com/123456789/abc123def (パス形式)
+ * - vimeo.com/123456789?h=abc123def (クエリパラメータ形式)
+ * - player.vimeo.com/video/123456789?h=abc123def (プレーヤーURL形式)
+ */
+export function extractVimeoHash(url: string): string | null {
+  if (!url) return null
+
+  // 数値のみの場合はハッシュなし
+  if (/^\d+$/.test(url)) {
+    return null
+  }
+
+  // パス形式: vimeo.com/123456789/abc123def
+  const pathHashMatch = url.match(/vimeo\.com\/\d+\/([a-zA-Z0-9]+)/)
+  if (pathHashMatch && pathHashMatch[1]) {
+    return pathHashMatch[1]
+  }
+
+  // クエリパラメータ形式: ?h=abc123def
+  const queryHashMatch = url.match(/[?&]h=([a-zA-Z0-9]+)/)
+  if (queryHashMatch && queryHashMatch[1]) {
+    return queryHashMatch[1]
+  }
+
+  return null
+}
+
+/**
  * Vimeo oEmbed APIのレスポンス型
  */
 interface VimeoOEmbedResponse {
@@ -174,11 +207,18 @@ async function fetchVimeoVideoInfoViaOEmbed(videoId: string): Promise<{
 
 /**
  * Vimeo URLを正規化する（プレーヤーURL形式に変換）
+ * プライベートリンクのハッシュも保持します
  * @param urlOrId VimeoのURLまたはVideo ID
- * @returns 正規化されたプレーヤーURL
+ * @returns 正規化されたプレーヤーURL（ハッシュ付きの場合は ?h=xxx 形式）
  */
 export function normalizeVimeoUrl(urlOrId: string): string | null {
   const videoId = extractVimeoVideoId(urlOrId)
   if (!videoId) return null
+
+  const hash = extractVimeoHash(urlOrId)
+  if (hash) {
+    return `https://player.vimeo.com/video/${videoId}?h=${hash}`
+  }
+
   return `https://player.vimeo.com/video/${videoId}`
 }
