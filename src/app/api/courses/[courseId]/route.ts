@@ -101,6 +101,7 @@ export async function GET(
         videoUrl: lesson.videoUrl,
         vimeoId,
         vimeoHash,
+        thumbnailUrl: lesson.thumbnailUrl,
         materials: lesson.pdfUrl ? [lesson.pdfUrl] : [],
       }
     })

@@ -152,19 +152,20 @@ model Course {
 }
 
 model Lesson {
-  id          String           @id @default(cuid())
-  courseId    String
-  title       String
-  description String?
-  duration    Int
-  order       Int
-  videoUrl    String?
-  pdfUrl      String?
-  isPublished Boolean          @default(true) // 公開/非公開管理
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  progress    CourseProgress[]
-  course      Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  id           String           @id @default(cuid())
+  courseId     String
+  title        String
+  description  String?
+  duration     Int
+  order        Int
+  videoUrl     String?
+  thumbnailUrl String?          // Vimeoサムネイル画像URL
+  pdfUrl       String?
+  isPublished  Boolean          @default(true) // 公開/非公開管理
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  progress     CourseProgress[]
+  course       Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@map("lessons")
 }

@@ -32,8 +32,9 @@ export async function POST(
       )
     }
 
-    // Vimeo URLまたはIDのバリデーションと動画時間の自動取得
+    // Vimeo URLまたはIDのバリデーションと動画時間・サムネイルの自動取得
     let processedVideoUrl: string | null = null
+    let thumbnailUrl: string | null = null
     let finalDuration = duration
 
     if (videoUrl) {
@@ -47,16 +48,23 @@ export async function POST(
       // 正規化されたVimeo URLを保存
       processedVideoUrl = normalizeVimeoUrl(videoUrl)
 
-      // duration が指定されていない場合、Vimeo APIから自動取得
-      if (finalDuration === undefined || finalDuration === 0) {
-        const videoInfo = await fetchVimeoVideoInfo(videoId)
-        if (videoInfo) {
+      // Vimeo APIから動画情報を自動取得
+      const videoInfo = await fetchVimeoVideoInfo(videoId)
+      if (videoInfo) {
+        // サムネイルURLを取得
+        thumbnailUrl = videoInfo.thumbnailUrl || null
+        console.log('[ADMIN_LESSONS] Auto-fetched thumbnail from Vimeo:', thumbnailUrl)
+
+        // duration が指定されていない場合は取得した値を使用
+        if (finalDuration === undefined || finalDuration === 0) {
           finalDuration = videoInfo.duration
           console.log('[ADMIN_LESSONS] Auto-fetched duration from Vimeo:', finalDuration)
-        } else {
-          // Vimeoから取得できない場合はデフォルト値を設定
+        }
+      } else {
+        // Vimeoから取得できない場合はデフォルト値を設定
+        if (finalDuration === undefined || finalDuration === 0) {
           finalDuration = 0
-          console.warn('[ADMIN_LESSONS] Could not fetch duration from Vimeo, using default')
+          console.warn('[ADMIN_LESSONS] Could not fetch info from Vimeo, using defaults')
         }
       }
     }
@@ -87,6 +95,7 @@ export async function POST(
         duration: finalDuration,
         order: order || 0,
         videoUrl: processedVideoUrl,
+        thumbnailUrl,
         pdfUrl: pdfUrl || null,
         isPublished: isPublished !== false // デフォルトはtrue
       }

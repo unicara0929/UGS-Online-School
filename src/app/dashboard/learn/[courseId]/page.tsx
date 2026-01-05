@@ -35,6 +35,7 @@ interface Lesson {
   videoUrl?: string
   vimeoId?: string // Vimeo動画ID
   vimeoHash?: string // Vimeoプライベートリンク用ハッシュ
+  thumbnailUrl?: string // Vimeoサムネイル画像URL
   materials?: string[]
 }
 
@@ -589,10 +590,9 @@ function LearningPage() {
               {/* サムネイルグリッド */}
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
                 {course.lessons.map((lesson, index) => {
-                  // Vimeoサムネイル URL（vumbnail.comを使用）
-                  const thumbnailUrl = lesson.vimeoId
-                    ? `https://vumbnail.com/${lesson.vimeoId}.jpg`
-                    : null
+                  // サムネイルURL（データベースのURLを優先、なければvumbnail.comを使用）
+                  const thumbnailUrl = lesson.thumbnailUrl
+                    || (lesson.vimeoId ? `https://vumbnail.com/${lesson.vimeoId}.jpg` : null)
 
                   return (
                     <div

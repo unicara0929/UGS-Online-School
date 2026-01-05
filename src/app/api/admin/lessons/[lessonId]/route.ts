@@ -47,7 +47,7 @@ export async function PUT(
     if (pdfUrl !== undefined) updateData.pdfUrl = pdfUrl
     if (isPublished !== undefined) updateData.isPublished = isPublished
 
-    // Vimeo URLの処理と動画時間の自動取得
+    // Vimeo URLの処理と動画時間・サムネイルの自動取得
     if (videoUrl !== undefined) {
       if (videoUrl) {
         const videoId = extractVimeoVideoId(videoUrl)
@@ -65,20 +65,28 @@ export async function PUT(
         // 既存のレッスンを取得して、videoUrlが変更されたかチェック
         const existingLesson = await prisma.lesson.findUnique({
           where: { id: lessonId },
-          select: { videoUrl: true }
+          select: { videoUrl: true, thumbnailUrl: true }
         })
 
         const isVideoUrlChanged = existingLesson?.videoUrl !== normalizedUrl
 
-        // videoUrlが変更された場合、またはdurationが0/未指定の場合はVimeo APIから自動取得
-        if (isVideoUrlChanged || duration === undefined || duration === 0) {
+        // videoUrlが変更された場合、またはduration/サムネイルが未設定の場合はVimeo APIから自動取得
+        if (isVideoUrlChanged || duration === undefined || duration === 0 || !existingLesson?.thumbnailUrl) {
           const videoInfo = await fetchVimeoVideoInfo(videoId)
           if (videoInfo) {
-            updateData.duration = videoInfo.duration
+            if (isVideoUrlChanged || duration === undefined || duration === 0) {
+              updateData.duration = videoInfo.duration
+            }
+            // サムネイルURLを更新
+            if (videoInfo.thumbnailUrl) {
+              updateData.thumbnailUrl = videoInfo.thumbnailUrl
+              console.log('[ADMIN_LESSONS] Auto-fetched thumbnail from Vimeo:', videoInfo.thumbnailUrl)
+            }
           }
         }
       } else {
         updateData.videoUrl = null
+        updateData.thumbnailUrl = null
       }
     }
 
