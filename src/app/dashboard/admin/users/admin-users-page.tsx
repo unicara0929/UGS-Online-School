@@ -117,6 +117,11 @@ export default function AdminUsersPage() {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
   const [statusUpdateResult, setStatusUpdateResult] = useState<{ success: number; failed: number; total: number } | null>(null)
 
+  // 一括ロール変更機能
+  const [showBulkRoleChangeModal, setShowBulkRoleChangeModal] = useState(false)
+  const [isChangingRole, setIsChangingRole] = useState(false)
+  const [bulkRoleChangeResult, setBulkRoleChangeResult] = useState<{ success: boolean; message: string; count: number } | null>(null)
+
   // 仮登録ユーザー操作モーダル
   const [showPendingUserModal, setShowPendingUserModal] = useState(false)
   const [selectedPendingUser, setSelectedPendingUser] = useState<PendingUser | null>(null)
@@ -815,6 +820,64 @@ export default function AdminUsersPage() {
     }
   }
 
+  /**
+   * 一括ロール変更（MEMBER → FP）
+   */
+  const handleBulkRoleChange = async () => {
+    const memberCount = users.filter(u => u.role === 'MEMBER').length
+
+    if (memberCount === 0) {
+      alert('変更対象のMEMBERユーザーがいません')
+      return
+    }
+
+    if (!confirm(`現在のMEMBERユーザー ${memberCount}名 を全員FPエイドに昇格しますか？\n\n※オンボーディングは完了済みとして設定されます`)) {
+      return
+    }
+
+    setIsChangingRole(true)
+    setBulkRoleChangeResult(null)
+
+    try {
+      const response = await fetch('/api/admin/users/role/bulk', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          fromRole: 'MEMBER',
+          toRole: 'FP',
+        }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || '一括ロール変更に失敗しました')
+      }
+
+      setBulkRoleChangeResult({
+        success: true,
+        message: result.message,
+        count: result.updatedCount,
+      })
+
+      // ユーザー一覧と統計を再取得
+      await fetchUsers()
+      await fetchStats()
+    } catch (error) {
+      console.error('一括ロール変更エラー:', error)
+      setBulkRoleChangeResult({
+        success: false,
+        message: error instanceof Error ? error.message : '一括ロール変更に失敗しました',
+        count: 0,
+      })
+    } finally {
+      setIsChangingRole(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
@@ -939,7 +1002,17 @@ export default function AdminUsersPage() {
                   {stats.memberCount}
                   <span className="text-sm sm:text-lg text-slate-500 ml-1 sm:ml-2">名</span>
                 </div>
-                <p className="text-xs sm:text-sm text-slate-500">現在のUGS会員数</p>
+                <p className="text-xs sm:text-sm text-slate-500 mb-3">現在のUGS会員数</p>
+                {stats.memberCount > 0 && (
+                  <Button
+                    onClick={() => setShowBulkRoleChangeModal(true)}
+                    size="sm"
+                    className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                  >
+                    <UserCheck className="h-4 w-4 mr-2" />
+                    全員FPに昇格
+                  </Button>
+                )}
               </CardContent>
             </Card>
 
@@ -1592,6 +1665,114 @@ export default function AdminUsersPage() {
                           <>
                             <UserCheck className="h-4 w-4 mr-2" />
                             変更する
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 一括ロール変更モーダル（MEMBER → FP） */}
+        {showBulkRoleChangeModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full">
+              <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4 rounded-t-2xl">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-white flex items-center">
+                    <UserCheck className="h-5 w-5 mr-2" />
+                    一括ロール変更
+                  </h2>
+                  <button
+                    onClick={() => {
+                      setShowBulkRoleChangeModal(false)
+                      setBulkRoleChangeResult(null)
+                    }}
+                    className="text-white hover:bg-white/20 rounded-lg p-2 transition-all"
+                  >
+                    <span className="text-2xl">&times;</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6">
+                {bulkRoleChangeResult ? (
+                  // 結果表示
+                  <div className="text-center py-6">
+                    <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
+                      bulkRoleChangeResult.success ? 'bg-green-100' : 'bg-red-100'
+                    }`}>
+                      {bulkRoleChangeResult.success ? (
+                        <CheckCircle className="w-8 h-8 text-green-600" />
+                      ) : (
+                        <XCircle className="w-8 h-8 text-red-600" />
+                      )}
+                    </div>
+                    <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                      {bulkRoleChangeResult.success ? '変更完了' : 'エラー'}
+                    </h3>
+                    <p className="text-slate-600 mb-6">
+                      {bulkRoleChangeResult.message}
+                    </p>
+                    <Button
+                      onClick={() => {
+                        setShowBulkRoleChangeModal(false)
+                        setBulkRoleChangeResult(null)
+                      }}
+                      className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                    >
+                      閉じる
+                    </Button>
+                  </div>
+                ) : (
+                  // 確認画面
+                  <>
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+                      <div className="flex items-start">
+                        <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 mr-3 flex-shrink-0" />
+                        <div>
+                          <h4 className="font-semibold text-amber-800 mb-1">確認</h4>
+                          <p className="text-sm text-amber-700">
+                            現在のMEMBERユーザー <strong>{stats?.memberCount || 0}名</strong> を全員FPエイドに昇格します。
+                          </p>
+                          <ul className="text-sm text-amber-700 mt-2 list-disc list-inside">
+                            <li>オンボーディングは完了済みとして設定されます</li>
+                            <li>コンプラテストは合格済みとして設定されます</li>
+                            <li>昇格メールは送信されません</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={() => setShowBulkRoleChangeModal(false)}
+                        variant="outline"
+                        className="flex-1"
+                        disabled={isChangingRole}
+                      >
+                        キャンセル
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setShowBulkRoleChangeModal(false)
+                          handleBulkRoleChange()
+                        }}
+                        className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                        disabled={isChangingRole}
+                      >
+                        {isChangingRole ? (
+                          <>
+                            <span className="animate-spin mr-2">⏳</span>
+                            処理中...
+                          </>
+                        ) : (
+                          <>
+                            <UserCheck className="h-4 w-4 mr-2" />
+                            実行する
                           </>
                         )}
                       </Button>
