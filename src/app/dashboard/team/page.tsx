@@ -6,7 +6,7 @@ import { ProtectedRoute } from '@/components/auth/protected-route'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Users, TrendingUp, FileCheck, Activity, UserCheck, ChevronRight, CheckCircle, Target, X, BookOpen } from 'lucide-react'
+import { Loader2, Users, TrendingUp, FileCheck, Activity, UserCheck, ChevronRight, CheckCircle, Target } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 
@@ -56,20 +56,6 @@ interface TeamStats {
   referralTypeBreakdown: Record<string, number>
 }
 
-interface CompletedLesson {
-  id: string
-  lessonId: string
-  lessonTitle: string
-  lessonOrder: number
-  courseId: string
-  courseTitle: string
-  category: string
-  categoryLabel: string
-  level: string
-  levelLabel: string
-  completedAt: string | null
-}
-
 export default function TeamPage() {
   const router = useRouter()
   const { user } = useAuth()
@@ -77,12 +63,6 @@ export default function TeamPage() {
   const [stats, setStats] = useState<TeamStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
-  // 視聴済みレッスンモーダル用
-  const [showLessonsModal, setShowLessonsModal] = useState(false)
-  const [selectedMemberForLessons, setSelectedMemberForLessons] = useState<TeamMember | null>(null)
-  const [completedLessons, setCompletedLessons] = useState<CompletedLesson[]>([])
-  const [isLoadingLessons, setIsLoadingLessons] = useState(false)
 
   const isManager = user?.role === 'manager'
 
@@ -129,28 +109,8 @@ export default function TeamPage() {
     router.push(`/dashboard/team/members/${member.id}`)
   }
 
-  const handleLessonsClick = async (member: TeamMember) => {
-    setSelectedMemberForLessons(member)
-    setShowLessonsModal(true)
-    setIsLoadingLessons(true)
-    setCompletedLessons([])
-
-    try {
-      const response = await fetch(`/api/team/members/${member.id}/completed-lessons`, {
-        credentials: 'include'
-      })
-      const data = await response.json()
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || '視聴済みレッスンの取得に失敗しました')
-      }
-
-      setCompletedLessons(data.lessons)
-    } catch (err) {
-      console.error('Failed to fetch completed lessons:', err)
-    } finally {
-      setIsLoadingLessons(false)
-    }
+  const handleLessonsClick = (member: TeamMember) => {
+    router.push(`/dashboard/team/members/${member.id}/lessons`)
   }
 
   // 昇格進捗のプログレスバーを描画
@@ -427,126 +387,6 @@ export default function TeamPage() {
             )}
           </CardContent>
         </Card>
-
-        {/* 視聴済みレッスンモーダル */}
-        {showLessonsModal && selectedMemberForLessons && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-              {/* ヘッダー */}
-              <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex-shrink-0">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <BookOpen className="h-6 w-6 text-white" />
-                    <div>
-                      <h2 className="text-xl font-semibold text-white">
-                        視聴済みレッスン一覧
-                      </h2>
-                      <p className="text-purple-200 text-sm">
-                        {selectedMemberForLessons.name} さん
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setShowLessonsModal(false)
-                      setSelectedMemberForLessons(null)
-                      setCompletedLessons([])
-                    }}
-                    className="text-white hover:bg-white/20 rounded-lg p-2 transition-all"
-                  >
-                    <X className="h-6 w-6" />
-                  </button>
-                </div>
-              </div>
-
-              {/* コンテンツ */}
-              <div className="flex-1 overflow-y-auto p-6">
-                {isLoadingLessons ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
-                    <span className="ml-3 text-slate-600">読み込み中...</span>
-                  </div>
-                ) : completedLessons.length === 0 ? (
-                  <div className="text-center py-12">
-                    <BookOpen className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                    <p className="text-slate-500">視聴済みのレッスンはありません</p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="mb-4 text-sm text-slate-600">
-                      合計 <span className="font-semibold text-purple-600">{completedLessons.length}</span> レッスン完了
-                    </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b border-slate-200">
-                            <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">カテゴリ</th>
-                            <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">コース名</th>
-                            <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">レッスン名</th>
-                            <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">レベル</th>
-                            <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">視聴完了日</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {completedLessons.map((lesson) => (
-                            <tr key={lesson.id} className="border-b border-slate-100 hover:bg-slate-50">
-                              <td className="py-3 px-4">
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                  {lesson.categoryLabel}
-                                </span>
-                              </td>
-                              <td className="py-3 px-4 text-sm text-slate-700">
-                                {lesson.courseTitle}
-                              </td>
-                              <td className="py-3 px-4 text-sm text-slate-900 font-medium">
-                                {lesson.lessonTitle}
-                              </td>
-                              <td className="py-3 px-4">
-                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                  lesson.level === 'BEGINNER' ? 'bg-green-100 text-green-800' :
-                                  lesson.level === 'INTERMEDIATE' ? 'bg-yellow-100 text-yellow-800' :
-                                  'bg-red-100 text-red-800'
-                                }`}>
-                                  {lesson.levelLabel}
-                                </span>
-                              </td>
-                              <td className="py-3 px-4 text-sm text-slate-600">
-                                {lesson.completedAt
-                                  ? new Date(lesson.completedAt).toLocaleDateString('ja-JP', {
-                                      year: 'numeric',
-                                      month: '2-digit',
-                                      day: '2-digit',
-                                      hour: '2-digit',
-                                      minute: '2-digit'
-                                    })
-                                  : '-'
-                                }
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* フッター */}
-              <div className="border-t border-slate-200 px-6 py-4 flex-shrink-0">
-                <button
-                  onClick={() => {
-                    setShowLessonsModal(false)
-                    setSelectedMemberForLessons(null)
-                    setCompletedLessons([])
-                  }}
-                  className="w-full sm:w-auto px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
-                >
-                  閉じる
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
         </div>
       </DashboardLayout>
     </ProtectedRoute>
