@@ -61,6 +61,12 @@ interface PendingUser {
   createdAt: string
 }
 
+interface ManagerInfo {
+  id: string
+  name: string
+  email: string
+}
+
 interface SupabaseUser {
   id: string
   email: string
@@ -71,6 +77,8 @@ interface SupabaseUser {
   membershipStatus?: string
   memberId?: string | null
   contractCompleted?: boolean // 業務委託契約書完了
+  managerId?: string | null // 担当マネージャーID
+  managerName?: string | null // 担当マネージャー名
   raw_user_meta_data: {
     name?: string
     [key: string]: any
@@ -83,6 +91,7 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<SupabaseUser[]>([])
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([])
   const [subscriptions, setSubscriptions] = useState<SubscriptionInfo[]>([])
+  const [managers, setManagers] = useState<ManagerInfo[]>([]) // マネージャー一覧
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -220,6 +229,7 @@ export default function AdminUsersPage() {
       }
       const data = await response.json()
       setUsers(data.users || [])
+      setManagers(data.managers || []) // マネージャー一覧も設定
     } catch (err) {
       setError(err instanceof Error ? err.message : 'エラーが発生しました')
     } finally {
@@ -304,6 +314,32 @@ export default function AdminUsersPage() {
     }
   }
 
+  /**
+   * 担当マネージャーを更新
+   */
+  const updateUserManager = async (userId: string, managerId: string | null) => {
+    try {
+      const response = await fetch(`/api/admin/users/${userId}/manager`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ managerId }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || '担当マネージャーの更新に失敗しました')
+      }
+
+      // ユーザー一覧を再取得
+      await fetchUsers()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '担当マネージャーの更新に失敗しました')
+    }
+  }
+
 
   /**
    * ユーザーのサブスクリプションステータスを取得
@@ -327,6 +363,8 @@ export default function AdminUsersPage() {
       membershipStatus?: string
       memberId?: string
       contractCompleted?: boolean
+      managerId?: string | null
+      managerName?: string | null
       createdAt: string
       lastSignIn: string | null
       subscription: SubscriptionInfo | null
@@ -345,6 +383,8 @@ export default function AdminUsersPage() {
         membershipStatus: 'PENDING',
         memberId: undefined as string | undefined,
         contractCompleted: false,
+        managerId: null as string | null,
+        managerName: null as string | null,
         createdAt: pending.createdAt,
         lastSignIn: null as string | null,
         subscription: null as SubscriptionInfo | null,
@@ -361,6 +401,8 @@ export default function AdminUsersPage() {
         membershipStatus: user.membershipStatus || 'ACTIVE',
         memberId: user.memberId || undefined,
         contractCompleted: user.contractCompleted || false,
+        managerId: user.managerId || null,
+        managerName: user.managerName || null,
         createdAt: user.created_at,
         lastSignIn: user.last_sign_in_at,
         subscription: (subscriptions.find(sub => sub.userId === user.id) || null) as SubscriptionInfo | null,
@@ -1223,7 +1265,7 @@ export default function AdminUsersPage() {
             </div>
           </div>
           <div className="overflow-x-auto">
-            <Table className="min-w-[900px]">
+            <Table className="min-w-[1000px]">
               <TableHeader>
                 <TableRow className="bg-slate-50/50 hover:bg-slate-50">
                   <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 w-10 sm:w-12">
@@ -1268,6 +1310,7 @@ export default function AdminUsersPage() {
                   </TableHead>
                   <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm">決済</TableHead>
                   <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm">契約</TableHead>
+                  <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm">担当MGR</TableHead>
                   <TableHead
                     className="cursor-pointer hover:bg-slate-100 transition-colors py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm"
                     onClick={() => handleSort('createdAt')}
@@ -1461,17 +1504,38 @@ export default function AdminUsersPage() {
                         </button>
                       )}
                     </TableCell>
-                    {/* 8. 登録日 */}
+                    {/* 8. 担当MGR */}
+                    <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
+                      {user.type === 'pending' ? (
+                        <span className="text-slate-400 text-xs">-</span>
+                      ) : user.role === 'FP' ? (
+                        <select
+                          value={user.managerId || ''}
+                          onChange={(e) => updateUserManager(user.id, e.target.value || null)}
+                          className="text-xs px-2 py-1 border border-slate-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1 transition-all cursor-pointer min-w-[100px]"
+                        >
+                          <option value="">未設定</option>
+                          {managers.map((manager) => (
+                            <option key={manager.id} value={manager.id}>
+                              {manager.name}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span className="text-slate-400 text-xs">-</span>
+                      )}
+                    </TableCell>
+                    {/* 9. 登録日 */}
                     <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
                       <div className="text-slate-600 text-xs sm:text-sm whitespace-nowrap">{formatDate(user.createdAt)}</div>
                     </TableCell>
-                    {/* 9. 最終ログイン */}
+                    {/* 10. 最終ログイン */}
                     <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
                       <div className="text-slate-600 text-xs sm:text-sm whitespace-nowrap">
                         {user.lastSignIn ? formatDate(user.lastSignIn) : '未ログイン'}
                       </div>
                     </TableCell>
-                    {/* 10. 操作 */}
+                    {/* 11. 操作 */}
                     <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
                       {user.type === 'registered' && user.role !== 'ADMIN' ? (
                         <button

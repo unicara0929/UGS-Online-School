@@ -26,10 +26,28 @@ export async function GET(request: NextRequest) {
         memberId: true,
         createdAt: true,
         contractCompleted: true,
+        managerId: true,
+        manager: {
+          select: {
+            id: true,
+            name: true,
+          }
+        }
       }
     })
 
-    // 2. Supabaseからユーザー一覧を取得（認証情報用）
+    // 2. マネージャー一覧を取得（プルダウン用）
+    const managers = await prisma.user.findMany({
+      where: { role: 'MANAGER' },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+      orderBy: { name: 'asc' }
+    })
+
+    // 3. Supabaseからユーザー一覧を取得（認証情報用）
     // ページネーションで全ユーザーを取得（デフォルトは50件のみ）
     let allSupabaseUsers: SupabaseUser[] = []
     let page = 1
@@ -62,12 +80,12 @@ export async function GET(request: NextRequest) {
       page++
     }
 
-    // 3. Supabaseユーザーのマップを作成
+    // 4. Supabaseユーザーのマップを作成
     const supabaseMap = new Map(
       allSupabaseUsers.map(user => [user.id, user])
     )
 
-    // 4. Prismaユーザーをベースに、Supabaseの認証情報を付加
+    // 5. Prismaユーザーをベースに、Supabaseの認証情報を付加
     const formattedUsers = prismaUsers.map((prismaUser) => {
       const supabaseUser = supabaseMap.get(prismaUser.id)
 
@@ -81,6 +99,8 @@ export async function GET(request: NextRequest) {
         membershipStatus: prismaUser.membershipStatus, // 会員ステータス
         memberId: prismaUser.memberId, // 会員番号
         contractCompleted: prismaUser.contractCompleted, // 業務委託契約書完了
+        managerId: prismaUser.managerId, // 担当マネージャーID
+        managerName: prismaUser.manager?.name || null, // 担当マネージャー名
         raw_user_meta_data: {
           name: prismaUser.name, // Prismaの名前が正
           role: prismaUser.role,
@@ -90,7 +110,7 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    return NextResponse.json({ users: formattedUsers })
+    return NextResponse.json({ users: formattedUsers, managers })
   } catch (error) {
     console.error('API error:', error)
     return NextResponse.json(
