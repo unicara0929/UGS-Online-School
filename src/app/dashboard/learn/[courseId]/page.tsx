@@ -106,9 +106,11 @@ function LearningPage() {
 
   const currentLesson = course?.lessons[currentLessonIndex]
 
-  // レッスン完了を記録する関数
-  const handleCompleteLesson = async () => {
+  // レッスン完了状態をトグルする関数
+  const handleToggleLessonComplete = async () => {
     if (!course || !currentLesson) return
+
+    const newCompletedState = !currentLesson.isCompleted
 
     try {
       const response = await fetch('/api/courses/progress', {
@@ -120,7 +122,7 @@ function LearningPage() {
         body: JSON.stringify({
           courseId: course.id,
           lessonId: currentLesson.id,
-          isCompleted: true,
+          isCompleted: newCompletedState,
         }),
       })
 
@@ -137,7 +139,7 @@ function LearningPage() {
         }
       }
     } catch (err) {
-      console.error('Failed to mark lesson as complete:', err)
+      console.error('Failed to toggle lesson completion:', err)
     }
   }
 
@@ -539,20 +541,24 @@ function LearningPage() {
                     </Card>
                   )}
 
-                  {/* レッスン完了ボタン */}
+                  {/* レッスン完了ボタン（トグル形式） */}
                   <Card>
                     <CardContent className="p-3 sm:p-6">
                       <div className="text-center">
                         <Button
                           size="sm"
-                          onClick={handleCompleteLesson}
-                          disabled={currentLesson.isCompleted}
-                          className="h-9 sm:h-10 text-xs sm:text-sm w-full sm:w-auto"
+                          onClick={handleToggleLessonComplete}
+                          variant={currentLesson.isCompleted ? "outline" : "default"}
+                          className={`h-9 sm:h-10 text-xs sm:text-sm w-full sm:w-auto ${
+                            currentLesson.isCompleted
+                              ? "border-green-500 text-green-700 hover:bg-green-50"
+                              : ""
+                          }`}
                         >
                           {currentLesson.isCompleted ? (
                             <>
-                              <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
-                              視聴済み
+                              <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-green-600" />
+                              視聴済みを解除する
                             </>
                           ) : (
                             <>
