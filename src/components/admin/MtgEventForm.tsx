@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Loader2, Users, Video, FileText, Calendar, Clock, MapPin, Key } from 'lucide-react'
+import { Loader2, Users, Video, FileText, Calendar, Clock, MapPin, Key, Link } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -35,6 +35,7 @@ interface MtgFormData {
   date: string
   time: string
   location: string
+  onlineMeetingUrl: string // オンライン参加用URL（Google Meet等）
   attendanceCode: string
   applicationDeadline: string // 参加申込期限
   // 完了後に設定する項目
@@ -72,6 +73,7 @@ export function MtgEventForm({
     date: initialData?.date || '',
     time: initialData?.time || '10:00-12:00',
     location: initialData?.location || 'オンライン（Zoom）',
+    onlineMeetingUrl: initialData?.onlineMeetingUrl || '',
     attendanceCode: initialData?.attendanceCode || '',
     applicationDeadline: initialData?.applicationDeadline || '',
     vimeoUrl: initialData?.vimeoUrl || '',
@@ -197,6 +199,21 @@ export function MtgEventForm({
                   className={inputClassName}
                   placeholder="オンライン（Zoom）または会場名"
                 />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <Link className="inline h-4 w-4 mr-1" />
+                  オンライン参加URL
+                </label>
+                <input
+                  type="url"
+                  value={formData.onlineMeetingUrl}
+                  onChange={(e) => setFormData({ ...formData, onlineMeetingUrl: e.target.value })}
+                  className={inputClassName}
+                  placeholder="https://meet.google.com/xxx-xxxx-xxx"
+                />
+                <p className="text-xs text-slate-500 mt-1">Google MeetやZoomなどのオンライン参加用リンク</p>
               </div>
 
               <div className="md:col-span-2">

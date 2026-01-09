@@ -196,6 +196,7 @@ function AdminEventsPageContent() {
     date: string
     time: string
     location: string
+    onlineMeetingUrl: string
     attendanceCode: string
     applicationDeadline: string
   }) => {
@@ -207,6 +208,7 @@ function AdminEventsPageContent() {
         date: data.date,
         time: data.time,
         location: data.location,
+        onlineMeetingUrl: data.onlineMeetingUrl || null,
         maxParticipants: null, // 全体MTGは全員参加なので制限なし
         attendanceCode: data.attendanceCode || null,
         applicationDeadline: data.applicationDeadline || null,

@@ -59,6 +59,7 @@ export async function PUT(
       attendanceType,
       venueType,
       location,
+      onlineMeetingUrl,
       maxParticipants,
       status,
       thumbnailUrl,
@@ -101,6 +102,7 @@ export async function PUT(
       updateData.venueType = EVENT_VENUE_TYPE_INPUT_MAP[venueType] ?? 'ONLINE'
     }
     if (location !== undefined) updateData.location = location
+    if (onlineMeetingUrl !== undefined) updateData.onlineMeetingUrl = onlineMeetingUrl || null
     if (maxParticipants !== undefined) {
       updateData.maxParticipants = maxParticipants !== null ? Number(maxParticipants) : null
     }
@@ -219,6 +221,7 @@ export async function PUT(
         attendanceType: updatedEvent.attendanceType,
         venueType: updatedEvent.venueType,
         location: updatedEvent.location ?? '',
+        onlineMeetingUrl: updatedEvent.onlineMeetingUrl ?? null,
         maxParticipants: updatedEvent.maxParticipants ?? null,
         status: updatedEvent.status,
         thumbnailUrl: updatedEvent.thumbnailUrl ?? null,

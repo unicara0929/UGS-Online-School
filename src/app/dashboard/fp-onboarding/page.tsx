@@ -26,7 +26,7 @@ declare global {
 
 // Vimeo動画ID（環境変数から取得、デフォルトはテスト用動画）
 // Vimeoの動画URL（例: https://vimeo.com/123456789）または動画ID（例: 123456789）を設定
-const FP_ONBOARDING_VIMEO_ID = process.env.NEXT_PUBLIC_FP_ONBOARDING_VIMEO_ID || '1135031850'
+const FP_ONBOARDING_VIMEO_ID = process.env.NEXT_PUBLIC_FP_ONBOARDING_VIMEO_ID || '1151531206'
 const COMPLETION_THRESHOLD = 0.9 // 90%以上視聴で完了
 
 // VimeoのURLから動画IDを抽出する関数

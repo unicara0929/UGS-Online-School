@@ -201,6 +201,7 @@ model Event {
   attendanceType  EventAttendanceType @default(OPTIONAL) // 参加設定: 必須 / 任意
   venueType       EventVenueType      @default(ONLINE) // 開催形式: オンライン / オフライン / ハイブリッド
   location        String?
+  onlineMeetingUrl String?            // オンライン参加用URL（Google Meet等）
   maxParticipants Int?
   status          EventStatus         @default(UPCOMING)
   // サムネイル画像
