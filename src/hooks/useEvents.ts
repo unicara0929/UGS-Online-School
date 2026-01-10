@@ -54,11 +54,19 @@ export function useEvents(): UseEventsReturn {
         thumbnailUrl: event.thumbnailUrl || null,
         currentParticipants: event.currentParticipants,
         registrations: event.registrations,
+        // 出席確認関連
+        attendanceCode: event.attendanceCode || null,
+        vimeoUrl: event.vimeoUrl || null,
+        surveyUrl: event.surveyUrl || null,
+        attendanceDeadline: event.attendanceDeadline || null,
+        // 全体MTG関連
+        isRecurring: event.isRecurring || false,
+        applicationDeadline: event.applicationDeadline || null,
+        onlineMeetingUrl: event.onlineMeetingUrl || null,
         // 過去イベント記録用
         summary: event.summary || null,
         photos: event.photos || [],
         materialsUrl: event.materialsUrl || null,
-        vimeoUrl: event.vimeoUrl || null,
         actualParticipants: event.actualParticipants || null,
         actualLocation: event.actualLocation || null,
         adminNotes: event.adminNotes || null,
