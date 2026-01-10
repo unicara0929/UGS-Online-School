@@ -27,7 +27,6 @@ export async function POST(request: NextRequest) {
         id: true,
         title: true,
         surveyUrl: true,
-        attendanceDeadline: true,
       },
     })
 
@@ -45,9 +44,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-
-    // 期限超過チェック（ブロックせず、フラグのみ設定）
-    const isOverdue = event.attendanceDeadline ? new Date() > new Date(event.attendanceDeadline) : false
 
     // イベント登録を確認
     const registration = await prisma.eventRegistration.findUnique({
@@ -90,8 +86,6 @@ export async function POST(request: NextRequest) {
       data: {
         surveyCompleted: true,
         surveyCompletedAt: new Date(),
-        // 期限超過の場合、フラグを設定
-        ...(isOverdue && { isOverdue: true }),
       },
     })
 

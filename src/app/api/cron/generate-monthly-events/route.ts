@@ -55,16 +55,9 @@ export async function GET(request: NextRequest) {
         continue // 既に存在する場合はスキップ
       }
 
-      // イベント開始時刻と終了時刻を設定
+      // イベント開始時刻を設定
       const eventStart = new Date(targetDate)
       eventStart.setHours(19, 0, 0, 0) // 19:00 JST
-
-      const eventEnd = new Date(targetDate)
-      eventEnd.setHours(21, 0, 0, 0) // 21:00 JST
-
-      // 出席期限: イベント終了24時間後
-      const attendanceDeadline = new Date(eventEnd)
-      attendanceDeadline.setHours(attendanceDeadline.getHours() + 24)
 
       // イベントを作成
       const event = await prisma.event.create({
@@ -85,7 +78,6 @@ export async function GET(request: NextRequest) {
           attendanceCode: null,
           vimeoUrl: null,
           surveyUrl: null,
-          attendanceDeadline,
           isRecurring: true,
           recurrencePattern: 'monthly-first-sunday',
         },

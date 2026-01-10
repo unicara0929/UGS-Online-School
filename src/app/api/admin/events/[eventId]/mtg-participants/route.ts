@@ -35,7 +35,6 @@ export async function GET(
         vimeoUrl: true,
         surveyUrl: true,
         materialsUrl: true,
-        attendanceDeadline: true,
       }
     })
 
@@ -114,10 +113,6 @@ export async function GET(
     const registrationMap = new Map(registrations.map(r => [r.userId, r]))
     const exemptionMap = new Map(exemptions.map(e => [e.userId, e]))
 
-    // 視聴期限を過ぎているかの判定用
-    const now = new Date()
-    const deadlineDate = event.attendanceDeadline ? new Date(event.attendanceDeadline) : null
-
     // 各FPエイドのステータスを計算
     const participants = fpUsers.map(user => {
       const registration = registrationMap.get(user.id)
@@ -185,17 +180,9 @@ export async function GET(
         videoCompletedAt: registration?.videoCompletedAt?.toISOString() ?? null,
         surveyCompleted: registration?.surveyCompleted ?? false,
         surveyCompletedAt: registration?.surveyCompletedAt?.toISOString() ?? null,
-        // 期限超過・GM面談・最終承認
-        // 期限超過の判定: 視聴期限を過ぎていて、かつ正式参加が完了していない場合
-        isOverdue: (() => {
-          // 正式参加完了済み（コード入力、動画+アンケート完了、欠席承認）の場合は期限超過にならない
-          if (status === 'attended_code' || status === 'attended_video') return false
-          if (exemption && exemption.status === 'APPROVED') return false
-          // 視聴期限が設定されていて、期限を過ぎている場合は期限超過
-          if (deadlineDate && now > deadlineDate) return true
-          // DBに保存された値も参照（手動フラグ用）
-          return registration?.isOverdue ?? false
-        })(),
+        // GM面談・最終承認
+        // isOverdueはDBに保存されたフラグのみを参照（手動フラグ用）
+        isOverdue: registration?.isOverdue ?? false,
         gmInterviewCompleted: registration?.gmInterviewCompleted ?? false,
         gmInterviewCompletedAt: registration?.gmInterviewCompletedAt?.toISOString() ?? null,
         finalApproval: registration?.finalApproval ?? null,
@@ -255,7 +242,6 @@ export async function GET(
         hasVideo: !!event.vimeoUrl,
         hasSurvey: !!event.surveyUrl,
         hasMaterials: !!event.materialsUrl,
-        attendanceDeadline: event.attendanceDeadline?.toISOString() ?? null,
       },
       participants,
       summary,
