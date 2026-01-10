@@ -235,7 +235,6 @@ function AdminEventsPageContent() {
   const handleCompleteMtgEvent = async (data: {
     vimeoUrl: string
     materialsUrl: string
-    attendanceDeadline: string
   }) => {
     if (!completingMtgEvent) return
 
@@ -258,7 +257,6 @@ function AdminEventsPageContent() {
         isRecurring: completingMtgEvent.isRecurring,
         vimeoUrl: data.vimeoUrl,
         materialsUrl: data.materialsUrl,
-        attendanceDeadline: data.attendanceDeadline,
       })
 
       if (success) {
@@ -414,7 +412,6 @@ function AdminEventsPageContent() {
                   title: completingMtgEvent.title,
                   vimeoUrl: completingMtgEvent.vimeoUrl || '',
                   materialsUrl: completingMtgEvent.materialsUrl || '',
-                  attendanceDeadline: completingMtgEvent.attendanceDeadline || '',
                 }}
                 onSubmit={handleCompleteMtgEvent}
                 onCancel={() => {
