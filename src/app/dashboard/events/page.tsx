@@ -176,6 +176,8 @@ function EventsPageContent() {
             attendanceCompletedAt: event.attendanceCompletedAt || null,
             videoWatched: event.videoWatched || false,
             surveyCompleted: event.surveyCompleted || false,
+            // 全体MTG関連
+            isRecurring: event.isRecurring || false,
           }))
 
           setEvents(formattedEvents)
@@ -445,8 +447,9 @@ function EventsPageContent() {
                             NEW
                           </Badge>
                         )}
-                        <Badge variant={getEventTypeColor(event.type)}>
-                          {getEventTypeLabel(event.type)}
+                        {/* 全体MTGは必須として表示 */}
+                        <Badge variant={event.isRecurring ? 'destructive' : getEventTypeColor(event.type)}>
+                          {event.isRecurring ? '必須' : getEventTypeLabel(event.type)}
                         </Badge>
                         {event.isPaid && (
                           <Badge variant="outline" className="bg-amber-50 border-amber-300 text-amber-700">
@@ -715,4 +718,6 @@ type EventItem = {
   attendanceCompletedAt: string | null
   videoWatched: boolean
   surveyCompleted: boolean
+  // 全体MTG関連
+  isRecurring: boolean
 }
