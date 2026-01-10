@@ -1,23 +1,10 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { Loader2, Users, Video, FileText, Calendar, Clock, MapPin, Key, Link } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-
-// 翌日23:59をデフォルト期限として取得
-function getDefaultDeadline(): string {
-  const now = new Date()
-  // 翌日を取得
-  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
-  tomorrow.setHours(23, 59, 0, 0)
-  // datetime-local形式に変換 (YYYY-MM-DDTHH:mm)
-  const year = tomorrow.getFullYear()
-  const month = String(tomorrow.getMonth() + 1).padStart(2, '0')
-  const day = String(tomorrow.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}T23:59`
-}
 
 // 指定日の23:59をデフォルト期限として取得
 function getDefaultApplicationDeadline(eventDate: string): string {
@@ -41,7 +28,6 @@ interface MtgFormData {
   // 完了後に設定する項目
   vimeoUrl: string
   materialsUrl: string
-  attendanceDeadline: string // 動画視聴+アンケート期限
 }
 
 interface MtgEventFormProps {
@@ -59,14 +45,6 @@ export function MtgEventForm({
   onCancel,
   isSubmitting
 }: MtgEventFormProps) {
-  // 完了設定モードの場合、デフォルト期限を当月末に設定
-  const defaultDeadline = useMemo(() => {
-    if (mode === 'complete' && !initialData?.attendanceDeadline) {
-      return getDefaultDeadline()
-    }
-    return initialData?.attendanceDeadline || ''
-  }, [mode, initialData?.attendanceDeadline])
-
   const [formData, setFormData] = useState<MtgFormData>({
     title: initialData?.title || '',
     description: initialData?.description || '',
@@ -78,7 +56,6 @@ export function MtgEventForm({
     applicationDeadline: initialData?.applicationDeadline || '',
     vimeoUrl: initialData?.vimeoUrl || '',
     materialsUrl: initialData?.materialsUrl || '',
-    attendanceDeadline: defaultDeadline,
   })
 
   // 開催日が変更されたら参加申込期限を自動設定（未設定の場合のみ）
@@ -107,8 +84,8 @@ export function MtgEventForm({
         return
       }
     } else {
-      if (!formData.vimeoUrl || !formData.attendanceDeadline) {
-        alert('動画URLと視聴期限は必須です')
+      if (!formData.vimeoUrl) {
+        alert('動画URLは必須です')
         return
       }
     }
@@ -303,19 +280,9 @@ export function MtgEventForm({
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  <Calendar className="inline h-4 w-4 mr-1" />
-                  視聴期限 <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="datetime-local"
-                  value={formData.attendanceDeadline}
-                  onChange={(e) => setFormData({ ...formData, attendanceDeadline: e.target.value })}
-                  className={inputClassName}
-                />
-                <p className="text-xs text-slate-500 mt-1">この期限まで動画視聴・アンケート回答で出席扱いになります</p>
-              </div>
+              <p className="text-xs text-slate-500">
+                ※ 動画・アンケートはいつでも視聴・回答可能です（期限なし）
+              </p>
             </div>
           </>
         )}
