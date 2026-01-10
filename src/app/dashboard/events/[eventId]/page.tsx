@@ -524,14 +524,14 @@ function EventDetailPageContent() {
                                 <Button
                                   size="lg"
                                   variant="outline"
-                                  className="h-auto py-4 border-2 border-purple-300 text-purple-700 hover:bg-purple-50 flex flex-col items-center w-full disabled:opacity-50"
+                                  className="h-auto py-4 px-3 border-2 border-purple-300 text-purple-700 hover:bg-purple-50 flex flex-col items-center w-full disabled:opacity-50"
                                   onClick={() => {
                                     document.getElementById('exemption-section')?.scrollIntoView({ behavior: 'smooth' })
                                   }}
                                   disabled={isSubmitting || isApplicationExpired}
                                 >
                                   <span className="font-bold text-lg">② 欠席申請をする</span>
-                                  <span className="text-xs opacity-70 mt-1">やむを得ない事情がある場合（動画視聴+アンケートで出席扱い）</span>
+                                  <span className="text-xs opacity-70 mt-1 text-center whitespace-normal leading-tight">やむを得ない事情がある場合<br className="sm:hidden" />（動画視聴+アンケートで出席扱い）</span>
                                 </Button>
                               </div>
                             </div>
