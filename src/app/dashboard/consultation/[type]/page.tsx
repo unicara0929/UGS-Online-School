@@ -99,18 +99,30 @@ export default function ConsultationFormPage({ params }: { params: Promise<{ typ
     )
   }
 
-  // 希望日時を追加
-  const addPreferredDate = () => {
-    if (preferredDates.length < 5) {
-      setPreferredDates([...preferredDates, ''])
-    }
+  /**
+   * 明日の日付を取得（YYYY-MM-DD形式）
+   */
+  const getTomorrowDate = (): string => {
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const year = tomorrow.getFullYear()
+    const month = String(tomorrow.getMonth() + 1).padStart(2, '0')
+    const day = String(tomorrow.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
   }
 
-  // 希望日時を削除
-  const removePreferredDate = (index: number) => {
-    if (preferredDates.length > 1) {
-      setPreferredDates(preferredDates.filter((_, i) => i !== index))
+  /**
+   * 30分刻みの時間オプションを生成（09:00〜21:00）
+   */
+  const generateTimeOptions = (): string[] => {
+    const options: string[] = []
+    for (let hour = 9; hour <= 21; hour++) {
+      options.push(`${String(hour).padStart(2, '0')}:00`)
+      if (hour < 21) {
+        options.push(`${String(hour).padStart(2, '0')}:30`)
+      }
     }
+    return options
   }
 
   // 希望日時を更新
@@ -399,22 +411,53 @@ export default function ConsultationFormPage({ params }: { params: Promise<{ typ
               <p className="text-sm text-muted-foreground mb-2">
                 ご都合の良い日時を選択してください（1つ以上入力必須、最大5つ）
               </p>
-              <div className="space-y-2">
-                {preferredDates.map((date, index) => (
-                  <div key={index} className="flex gap-2 items-center">
-                    <span className="text-sm font-medium text-muted-foreground w-16 flex-shrink-0">
-                      候補{index + 1}
-                    </span>
-                    <Input
-                      type="datetime-local"
-                      value={date}
-                      onChange={(e) => updatePreferredDate(index, e.target.value)}
-                      min={new Date().toISOString().slice(0, 16)}
-                      className="flex-1"
-                    />
-                  </div>
-                ))}
+              <div className="space-y-3">
+                {preferredDates.map((date, index) => {
+                  // datetime-local形式から日付と時間を分離
+                  const dateValue = date ? date.split('T')[0] : ''
+                  const timeValue = date ? date.split('T')[1] || '' : ''
+
+                  return (
+                    <div key={index} className="flex items-start sm:items-center gap-2">
+                      <span className="text-sm font-medium text-muted-foreground w-16 flex-shrink-0 pt-2 sm:pt-0">
+                        候補{index + 1}
+                      </span>
+                      <div className="flex-1 flex flex-col sm:flex-row gap-2">
+                        {/* 日付選択 */}
+                        <Input
+                          type="date"
+                          value={dateValue}
+                          min={getTomorrowDate()}
+                          onChange={(e) => {
+                            const newDate = e.target.value
+                            const currentTime = timeValue || '10:00'
+                            updatePreferredDate(index, `${newDate}T${currentTime}`)
+                          }}
+                          className="flex-1"
+                        />
+                        {/* 時間選択（30分刻み） */}
+                        <select
+                          value={timeValue}
+                          onChange={(e) => {
+                            const newTime = e.target.value
+                            const currentDate = dateValue || getTomorrowDate()
+                            updatePreferredDate(index, `${currentDate}T${newTime}`)
+                          }}
+                          className="w-full sm:w-28 px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-sm"
+                        >
+                          <option value="">時間</option>
+                          {generateTimeOptions().map((time) => (
+                            <option key={time} value={time}>{time}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                ※時間は30分刻み（10:00、10:30、11:00...）で選択できます
+              </p>
             </div>
 
             {/* 添付ファイル */}
