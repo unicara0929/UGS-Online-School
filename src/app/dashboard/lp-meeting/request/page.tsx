@@ -46,7 +46,7 @@ function LPMeetingRequestPageContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showRequestForm, setShowRequestForm] = useState(false)
-  const [preferredDates, setPreferredDates] = useState<string[]>([])
+  const [preferredDates, setPreferredDates] = useState<string[]>(['', '', '', '', ''])
   const [memberNotes, setMemberNotes] = useState('')
   const [meetingLocation, setMeetingLocation] = useState<'OFFLINE' | 'UGS_OFFICE' | ''>('')
   const [validationError, setValidationError] = useState('')
@@ -539,6 +539,9 @@ function LPMeetingRequestPageContent() {
 
                         return (
                           <div key={index} className="flex items-start sm:items-center gap-2">
+                            <span className="text-sm font-medium text-slate-600 w-16 flex-shrink-0 pt-2 sm:pt-0">
+                              候補{index + 1}
+                            </span>
                             <div className="flex-1 flex flex-col sm:flex-row gap-2">
                               {/* 日付選択 */}
                               <input
@@ -570,33 +573,13 @@ function LPMeetingRequestPageContent() {
                                 ))}
                               </select>
                             </div>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removePreferredDate(index)}
-                              className="flex-shrink-0"
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
                           </div>
                         )
                       })}
-                      {preferredDates.length < 5 && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={addPreferredDate}
-                          className="w-full"
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          希望日時を追加
-                        </Button>
-                      )}
                     </div>
                     <div className="mt-2 space-y-1">
                       <p className="text-xs text-slate-500">
-                        {preferredDates.length}/5 選択済み
+                        {preferredDates.filter(d => d).length}/5 入力済み
                       </p>
                       <p className="text-xs text-slate-500">
                         ※時間は30分刻み（10:00、10:30、11:00...）で選択できます

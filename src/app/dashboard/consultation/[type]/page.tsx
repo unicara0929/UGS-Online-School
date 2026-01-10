@@ -50,7 +50,7 @@ export default function ConsultationFormPage({ params }: { params: Promise<{ typ
   const [content, setContent] = useState('')
   const [preferredContact, setPreferredContact] = useState('EMAIL')
   const [lineId, setLineId] = useState('')
-  const [preferredDates, setPreferredDates] = useState<string[]>([''])
+  const [preferredDates, setPreferredDates] = useState<string[]>(['', '', '', '', ''])
   const [attachment, setAttachment] = useState<{ url: string; name: string } | null>(null)
   const [uploading, setUploading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -397,11 +397,14 @@ export default function ConsultationFormPage({ params }: { params: Promise<{ typ
             <div className="space-y-2">
               <Label>希望日時 <span className="text-red-500">*</span></Label>
               <p className="text-sm text-muted-foreground mb-2">
-                ご都合の良い日時を選択してください（最大5つ）
+                ご都合の良い日時を選択してください（1つ以上入力必須、最大5つ）
               </p>
               <div className="space-y-2">
                 {preferredDates.map((date, index) => (
-                  <div key={index} className="flex gap-2">
+                  <div key={index} className="flex gap-2 items-center">
+                    <span className="text-sm font-medium text-muted-foreground w-16 flex-shrink-0">
+                      候補{index + 1}
+                    </span>
                     <Input
                       type="datetime-local"
                       value={date}
@@ -409,30 +412,9 @@ export default function ConsultationFormPage({ params }: { params: Promise<{ typ
                       min={new Date().toISOString().slice(0, 16)}
                       className="flex-1"
                     />
-                    {preferredDates.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removePreferredDate(index)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
                   </div>
                 ))}
               </div>
-              {preferredDates.length < 5 && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={addPreferredDate}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  日時を追加
-                </Button>
-              )}
             </div>
 
             {/* 添付ファイル */}
