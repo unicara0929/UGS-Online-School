@@ -150,6 +150,8 @@ export async function GET(
         isPaid: event.isPaid,
         price: event.price ?? null,
         paymentStatus: registration?.paymentStatus ?? null,
+        // オンライン参加URL
+        onlineMeetingUrl: event.onlineMeetingUrl ?? null,
         // 出席確認関連
         hasAttendanceCode: !!event.attendanceCode,
         applicationDeadline: event.applicationDeadline?.toISOString() ?? null,

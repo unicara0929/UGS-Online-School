@@ -23,6 +23,7 @@ import {
   Download,
   Image as ImageIcon,
   FileText,
+  ExternalLink,
 } from 'lucide-react'
 import { AttendanceCodeInput } from '@/components/events/attendance-code-input'
 import { VideoSurveyAttendance } from '@/components/events/video-survey-attendance'
@@ -48,6 +49,8 @@ type EventDetail = {
   isPaid: boolean
   price: number | null
   paymentStatus: string | null
+  // オンライン参加URL
+  onlineMeetingUrl: string | null
   // 出席確認関連
   hasAttendanceCode: boolean
   applicationDeadline: string | null
@@ -426,6 +429,23 @@ function EventDetailPageContent() {
                       <div className="font-medium">{event.location}</div>
                     </div>
                   </div>
+                  {/* オンライン参加URL */}
+                  {event.onlineMeetingUrl && (
+                    <div className="flex items-center text-slate-600 md:col-span-2">
+                      <ExternalLink className="h-5 w-5 mr-3 text-slate-400" />
+                      <div>
+                        <div className="text-sm text-slate-500">オンライン参加URL</div>
+                        <a
+                          href={event.onlineMeetingUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-medium text-blue-600 hover:text-blue-700 hover:underline break-all"
+                        >
+                          {event.onlineMeetingUrl}
+                        </a>
+                      </div>
+                    </div>
+                  )}
                   {/* 全体MTGの場合は参加者数を非表示 */}
                   {!event.isRecurring && (
                     <div className="flex items-center text-slate-600">
