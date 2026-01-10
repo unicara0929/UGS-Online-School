@@ -344,8 +344,6 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
         if (!p.hasExemption) return false
       } else if (filters.intent === 'WILL_ATTEND') {
         if (p.participationIntent !== 'WILL_ATTEND') return false
-      } else if (filters.intent === 'WILL_NOT_ATTEND') {
-        if (p.participationIntent !== 'WILL_NOT_ATTEND') return false
       } else if (filters.intent === 'UNDECIDED') {
         if (p.participationIntent !== 'UNDECIDED' || p.hasExemption) return false
       }
@@ -689,7 +687,6 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                         options={[
                           { value: 'all', label: 'すべて' },
                           { value: 'WILL_ATTEND', label: '参加' },
-                          { value: 'WILL_NOT_ATTEND', label: '不参加' },
                           { value: 'exemption', label: '欠席申請' },
                           { value: 'UNDECIDED', label: '未回答' },
                         ]}
