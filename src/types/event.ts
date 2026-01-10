@@ -52,6 +52,7 @@ export interface AdminEventItem {
   // 全体MTG関連
   isRecurring: boolean
   applicationDeadline: string | null
+  onlineMeetingUrl: string | null
   // 過去イベント記録用
   summary: string | null
   photos: string[]

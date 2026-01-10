@@ -31,7 +31,7 @@ interface MtgFormData {
 }
 
 interface MtgEventFormProps {
-  mode: 'create' | 'complete'
+  mode: 'create' | 'edit' | 'complete'
   initialData?: Partial<MtgFormData>
   onSubmit: (data: MtgFormData) => void
   onCancel: () => void
@@ -70,7 +70,7 @@ export function MtgEventForm({
   const inputClassName = 'w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
 
   const handleSubmit = () => {
-    if (mode === 'create') {
+    if (mode === 'create' || mode === 'edit') {
       const missingFields: string[] = []
       if (!formData.title) missingFields.push('タイトル')
       if (!formData.date) missingFields.push('開催日')
@@ -108,18 +108,20 @@ export function MtgEventForm({
         <div className="flex items-center gap-2">
           <Badge className="bg-blue-600">全体MTG</Badge>
           <CardTitle>
-            {mode === 'create' ? '全体MTG作成' : '全体MTG完了設定'}
+            {mode === 'create' ? '全体MTG作成' : mode === 'edit' ? '全体MTG編集' : '全体MTG完了設定'}
           </CardTitle>
         </div>
         <CardDescription>
           {mode === 'create'
             ? '全体MTGを作成します。参加者は欠席申請や参加コード入力、動画視聴で出席確認ができます。'
+            : mode === 'edit'
+            ? '全体MTGの情報を編集します。'
             : '動画・資料・アンケートを設定して、参加できなかった方が後日視聴できるようにします。'
           }
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {mode === 'create' ? (
+        {(mode === 'create' || mode === 'edit') ? (
           <>
             {/* 基本情報 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -296,7 +298,7 @@ export function MtgEventForm({
                 処理中...
               </span>
             ) : (
-              mode === 'create' ? '全体MTGを作成' : '完了設定を保存'
+              mode === 'create' ? '全体MTGを作成' : mode === 'edit' ? '全体MTGを更新' : '完了設定を保存'
             )}
           </Button>
           <Button variant="outline" onClick={onCancel} disabled={isSubmitting}>

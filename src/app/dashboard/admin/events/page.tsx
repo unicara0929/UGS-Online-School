@@ -22,7 +22,9 @@ function AdminEventsPageContent() {
   const [showEditForm, setShowEditForm] = useState(false)
   const [showArchiveForm, setShowArchiveForm] = useState(false)
   const [showMtgCreateForm, setShowMtgCreateForm] = useState(false)
+  const [showMtgEditForm, setShowMtgEditForm] = useState(false)
   const [showMtgCompleteForm, setShowMtgCompleteForm] = useState(false)
+  const [editingMtgEvent, setEditingMtgEvent] = useState<AdminEventItem | null>(null)
   const [completingMtgEvent, setCompletingMtgEvent] = useState<AdminEventItem | null>(null)
   const [editingEventId, setEditingEventId] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -95,9 +97,15 @@ function AdminEventsPageContent() {
 
   // イベント編集開始
   const handleEditEvent = (event: AdminEventItem) => {
-    setEditingEventId(event.id)
-    editForm.initializeFromEvent(event)
-    setShowEditForm(true)
+    // 全体MTGの場合は専用フォームを使用
+    if (event.isRecurring) {
+      setEditingMtgEvent(event)
+      setShowMtgEditForm(true)
+    } else {
+      setEditingEventId(event.id)
+      editForm.initializeFromEvent(event)
+      setShowEditForm(true)
+    }
   }
 
   // イベント更新
@@ -224,6 +232,53 @@ function AdminEventsPageContent() {
 
       if (success) {
         setShowMtgCreateForm(false)
+        await fetchEvents()
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // 全体MTG更新
+  const handleUpdateMtgEvent = async (data: {
+    title: string
+    description: string
+    date: string
+    time: string
+    location: string
+    onlineMeetingUrl: string
+    attendanceCode: string
+    applicationDeadline: string
+  }) => {
+    if (!editingMtgEvent) return
+
+    setIsSubmitting(true)
+    try {
+      const success = await updateEvent(editingMtgEvent.id, {
+        title: data.title,
+        description: data.description,
+        date: data.date,
+        time: data.time,
+        location: data.location,
+        onlineMeetingUrl: data.onlineMeetingUrl || null,
+        attendanceCode: data.attendanceCode || null,
+        applicationDeadline: data.applicationDeadline || null,
+        // 既存の値を保持
+        type: editingMtgEvent.type,
+        targetRoles: editingMtgEvent.targetRoles,
+        attendanceType: editingMtgEvent.attendanceType,
+        venueType: editingMtgEvent.venueType,
+        maxParticipants: editingMtgEvent.maxParticipants,
+        status: editingMtgEvent.status,
+        thumbnailUrl: editingMtgEvent.thumbnailUrl,
+        isRecurring: true,
+        vimeoUrl: editingMtgEvent.vimeoUrl,
+        materialsUrl: editingMtgEvent.materialsUrl,
+      })
+
+      if (success) {
+        setShowMtgEditForm(false)
+        setEditingMtgEvent(null)
         await fetchEvents()
       }
     } finally {
@@ -400,6 +455,33 @@ function AdminEventsPageContent() {
                 mode="create"
                 onSubmit={handleCreateMtgEvent}
                 onCancel={() => setShowMtgCreateForm(false)}
+                isSubmitting={isSubmitting}
+              />
+            )}
+
+            {/* 全体MTG編集フォーム */}
+            {showMtgEditForm && editingMtgEvent && (
+              <MtgEventForm
+                mode="edit"
+                initialData={{
+                  title: editingMtgEvent.title,
+                  description: editingMtgEvent.description,
+                  date: editingMtgEvent.date.split('T')[0],
+                  time: editingMtgEvent.time,
+                  location: editingMtgEvent.location,
+                  onlineMeetingUrl: editingMtgEvent.onlineMeetingUrl || '',
+                  attendanceCode: editingMtgEvent.attendanceCode || '',
+                  applicationDeadline: editingMtgEvent.applicationDeadline
+                    ? editingMtgEvent.applicationDeadline.slice(0, 16)
+                    : '',
+                  vimeoUrl: editingMtgEvent.vimeoUrl || '',
+                  materialsUrl: editingMtgEvent.materialsUrl || '',
+                }}
+                onSubmit={handleUpdateMtgEvent}
+                onCancel={() => {
+                  setShowMtgEditForm(false)
+                  setEditingMtgEvent(null)
+                }}
                 isSubmitting={isSubmitting}
               />
             )}
