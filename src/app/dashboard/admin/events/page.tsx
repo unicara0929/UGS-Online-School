@@ -97,11 +97,16 @@ function AdminEventsPageContent() {
 
   // イベント編集開始
   const handleEditEvent = (event: AdminEventItem) => {
+    // デバッグ用
+    console.log('handleEditEvent called:', { title: event.title, isRecurring: event.isRecurring })
+
     // 全体MTGの場合は専用フォームを使用
     if (event.isRecurring) {
+      console.log('Opening MtgEventForm for:', event.title)
       setEditingMtgEvent(event)
       setShowMtgEditForm(true)
     } else {
+      console.log('Opening EventForm for:', event.title)
       setEditingEventId(event.id)
       editForm.initializeFromEvent(event)
       setShowEditForm(true)
