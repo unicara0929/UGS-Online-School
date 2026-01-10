@@ -367,6 +367,25 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
     if (filters.survey !== 'all') {
       if (filters.survey === 'completed' && !p.surveyCompleted) return false
       if (filters.survey === 'not_completed' && p.surveyCompleted) return false
+
+      // 日時ベースのフィルター
+      if (filters.survey === 'today' || filters.survey === 'last7days' || filters.survey === 'older') {
+        if (!p.surveyCompleted || !p.surveyCompletedAt) return false
+
+        const surveyDate = new Date(p.surveyCompletedAt)
+        const now = new Date()
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
+
+        if (filters.survey === 'today') {
+          const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000)
+          if (surveyDate < today || surveyDate >= tomorrow) return false
+        } else if (filters.survey === 'last7days') {
+          if (surveyDate < sevenDaysAgo) return false
+        } else if (filters.survey === 'older') {
+          if (surveyDate >= sevenDaysAgo) return false
+        }
+      }
     }
 
     // GM面談フィルター
@@ -725,6 +744,9 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                           { value: 'all', label: 'すべて' },
                           { value: 'completed', label: '回答済' },
                           { value: 'not_completed', label: '未回答' },
+                          { value: 'today', label: '本日回答' },
+                          { value: 'last7days', label: '直近7日' },
+                          { value: 'older', label: '7日以上前' },
                         ]}
                         onChange={(v) => setFilters({ ...filters, survey: v })}
                       />
