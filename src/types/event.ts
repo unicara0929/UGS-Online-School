@@ -106,7 +106,7 @@ export const DEFAULT_EVENT_FORM: EventFormData = {
   attendanceType: 'optional',
   venueType: 'online',
   location: '',
-  maxParticipants: 50,
+  maxParticipants: null,
   status: 'upcoming',
   thumbnailUrl: null,
   isPaid: false,

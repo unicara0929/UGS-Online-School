@@ -152,6 +152,7 @@ export function EventForm({
                 })
               }}
               className={inputClassName}
+              placeholder="空欄で無制限"
             />
           </div>
 
