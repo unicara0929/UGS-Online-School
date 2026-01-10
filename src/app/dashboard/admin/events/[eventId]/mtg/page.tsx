@@ -28,7 +28,10 @@ import {
   UserCheck,
   UserX,
   MessageSquare,
-  Settings
+  Settings,
+  ChevronDown,
+  Filter,
+  X
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -107,6 +110,79 @@ interface Summary {
   paymentUnpaid: number
 }
 
+// フィルター状態の型定義
+interface ColumnFilters {
+  payment: string // 'all' | 'paid' | 'unpaid'
+  intent: string // 'all' | 'WILL_ATTEND' | 'WILL_NOT_ATTEND' | 'UNDECIDED' | 'exemption'
+  official: string // 'all' | 'attended' | 'not_attended'
+  video: string // 'all' | 'watched' | 'not_watched'
+  survey: string // 'all' | 'completed' | 'not_completed'
+  gmInterview: string // 'all' | 'completed' | 'not_completed'
+  finalApproval: string // 'all' | 'MAINTAINED' | 'DEMOTED' | 'not_set'
+}
+
+const initialFilters: ColumnFilters = {
+  payment: 'all',
+  intent: 'all',
+  official: 'all',
+  video: 'all',
+  survey: 'all',
+  gmInterview: 'all',
+  finalApproval: 'all',
+}
+
+// フィルタードロップダウンコンポーネント
+function FilterDropdown({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string
+  value: string
+  options: { value: string; label: string }[]
+  onChange: (value: string) => void
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+  const isFiltered = value !== 'all'
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center gap-1 text-left font-medium text-sm hover:bg-slate-100 px-2 py-1 rounded ${
+          isFiltered ? 'text-blue-600 bg-blue-50' : 'text-slate-700'
+        }`}
+      >
+        {label}
+        <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        {isFiltered && <Filter className="h-3 w-3 text-blue-600" />}
+      </button>
+      {isOpen && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
+          <div className="absolute top-full left-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-20 min-w-[140px]">
+            {options.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => {
+                  onChange(option.value)
+                  setIsOpen(false)
+                }}
+                className={`w-full text-left px-3 py-2 text-sm hover:bg-slate-100 first:rounded-t-lg last:rounded-b-lg ${
+                  value === option.value ? 'bg-blue-50 text-blue-600 font-medium' : 'text-slate-700'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: string }> }) {
   const router = useRouter()
   const { eventId } = use(params)
@@ -115,7 +191,7 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
   const [summary, setSummary] = useState<Summary | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [filter, setFilter] = useState<string>('all')
+  const [filters, setFilters] = useState<ColumnFilters>(initialFilters)
 
   useEffect(() => {
     fetchData()
@@ -254,21 +330,68 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
     }
   }
 
-  // フィルタリング
+  // フィルタリング（AND条件で複数フィルターを適用）
   const filteredParticipants = participants.filter(p => {
-    if (filter === 'all') return true
-    if (filter === 'attended') return p.status === 'attended_code' || p.status === 'attended_video'
-    if (filter === 'exempted') return p.status === 'exempted'
-    if (filter === 'incomplete') return p.status === 'video_incomplete'
-    if (filter === 'not_responded') return p.status === 'not_responded'
-    // 新規フィルター
-    if (filter === 'overdue') return p.isOverdue
-    if (filter === 'need_gm') return p.isOverdue && !p.gmInterviewCompleted
-    if (filter === 'maintained') return p.finalApproval === 'MAINTAINED'
-    if (filter === 'demoted') return p.finalApproval === 'DEMOTED'
-    if (filter === 'unpaid') return p.paymentStatus === 'unpaid'
+    // 月額費フィルター
+    if (filters.payment !== 'all') {
+      if (filters.payment === 'paid' && p.paymentStatus !== 'paid') return false
+      if (filters.payment === 'unpaid' && p.paymentStatus !== 'unpaid') return false
+    }
+
+    // 選択（参加意思）フィルター
+    if (filters.intent !== 'all') {
+      if (filters.intent === 'exemption') {
+        if (!p.hasExemption) return false
+      } else if (filters.intent === 'WILL_ATTEND') {
+        if (p.participationIntent !== 'WILL_ATTEND') return false
+      } else if (filters.intent === 'WILL_NOT_ATTEND') {
+        if (p.participationIntent !== 'WILL_NOT_ATTEND') return false
+      } else if (filters.intent === 'UNDECIDED') {
+        if (p.participationIntent !== 'UNDECIDED' || p.hasExemption) return false
+      }
+    }
+
+    // 正式参加フィルター
+    if (filters.official !== 'all') {
+      const isOfficiallyAttended = p.status === 'attended_code' || p.status === 'attended_video' ||
+        (p.hasExemption && p.exemptionStatus === 'APPROVED')
+      if (filters.official === 'attended' && !isOfficiallyAttended) return false
+      if (filters.official === 'not_attended' && isOfficiallyAttended) return false
+    }
+
+    // 動画視聴フィルター
+    if (filters.video !== 'all') {
+      if (filters.video === 'watched' && !p.videoWatched) return false
+      if (filters.video === 'not_watched' && p.videoWatched) return false
+    }
+
+    // アンケートフィルター
+    if (filters.survey !== 'all') {
+      if (filters.survey === 'completed' && !p.surveyCompleted) return false
+      if (filters.survey === 'not_completed' && p.surveyCompleted) return false
+    }
+
+    // GM面談フィルター
+    if (filters.gmInterview !== 'all') {
+      if (filters.gmInterview === 'completed' && !p.gmInterviewCompleted) return false
+      if (filters.gmInterview === 'not_completed' && p.gmInterviewCompleted) return false
+    }
+
+    // 最終承認フィルター
+    if (filters.finalApproval !== 'all') {
+      if (filters.finalApproval === 'MAINTAINED' && p.finalApproval !== 'MAINTAINED') return false
+      if (filters.finalApproval === 'DEMOTED' && p.finalApproval !== 'DEMOTED') return false
+      if (filters.finalApproval === 'not_set' && p.finalApproval !== null) return false
+    }
+
     return true
   })
+
+  // フィルターが適用されているかどうか
+  const hasActiveFilters = Object.values(filters).some(v => v !== 'all')
+
+  // フィルターをリセット
+  const resetFilters = () => setFilters(initialFilters)
 
   if (isLoading) {
     return (
@@ -519,76 +642,25 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>FPエイド参加状況</CardTitle>
-                  <CardDescription>全FPエイドの出席状況を確認できます</CardDescription>
+                  <CardDescription>
+                    全FPエイドの出席状況を確認できます（各列ヘッダーをクリックしてフィルター）
+                  </CardDescription>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant={filter === 'all' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setFilter('all')}
-                  >
-                    全員
-                  </Button>
-                  <Button
-                    variant={filter === 'attended' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setFilter('attended')}
-                  >
-                    出席済み
-                  </Button>
-                  <Button
-                    variant={filter === 'exempted' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setFilter('exempted')}
-                  >
-                    免除
-                  </Button>
-                  <Button
-                    variant={filter === 'incomplete' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setFilter('incomplete')}
-                  >
-                    途中
-                  </Button>
-                  <Button
-                    variant={filter === 'not_responded' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setFilter('not_responded')}
-                  >
-                    未対応
-                  </Button>
-                  <Button
-                    variant={filter === 'overdue' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setFilter('overdue')}
-                    className={filter === 'overdue' ? '' : 'text-orange-600 border-orange-300'}
-                  >
-                    期限超過
-                  </Button>
-                  <Button
-                    variant={filter === 'need_gm' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setFilter('need_gm')}
-                    className={filter === 'need_gm' ? '' : 'text-red-600 border-red-300'}
-                  >
-                    GM面談なし
-                  </Button>
-                  <Button
-                    variant={filter === 'demoted' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setFilter('demoted')}
-                    className={filter === 'demoted' ? '' : 'text-red-600 border-red-300'}
-                  >
-                    降格予定
-                  </Button>
-                  <Button
-                    variant={filter === 'maintained' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setFilter('maintained')}
-                    className={filter === 'maintained' ? '' : 'text-green-600 border-green-300'}
-                  >
-                    維持
-                  </Button>
+                <div className="flex items-center gap-2">
+                  {hasActiveFilters && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={resetFilters}
+                      className="text-slate-600"
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      フィルター解除
+                    </Button>
+                  )}
+                  <span className="text-sm text-slate-500">
+                    {filteredParticipants.length} / {participants.length} 名
+                  </span>
                 </div>
               </div>
             </CardHeader>
@@ -598,13 +670,93 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                   <TableRow className="bg-slate-50">
                     <TableHead>会員番号</TableHead>
                     <TableHead>名前</TableHead>
-                    <TableHead>月額費</TableHead>
-                    <TableHead>選択</TableHead>
-                    <TableHead>正式参加</TableHead>
-                    <TableHead>動画</TableHead>
-                    <TableHead>アンケート</TableHead>
-                    <TableHead>GM面談</TableHead>
-                    <TableHead>最終承認</TableHead>
+                    <TableHead className="p-1">
+                      <FilterDropdown
+                        label="月額費"
+                        value={filters.payment}
+                        options={[
+                          { value: 'all', label: 'すべて' },
+                          { value: 'paid', label: '済' },
+                          { value: 'unpaid', label: '未' },
+                        ]}
+                        onChange={(v) => setFilters({ ...filters, payment: v })}
+                      />
+                    </TableHead>
+                    <TableHead className="p-1">
+                      <FilterDropdown
+                        label="選択"
+                        value={filters.intent}
+                        options={[
+                          { value: 'all', label: 'すべて' },
+                          { value: 'WILL_ATTEND', label: '参加' },
+                          { value: 'WILL_NOT_ATTEND', label: '不参加' },
+                          { value: 'exemption', label: '欠席申請' },
+                          { value: 'UNDECIDED', label: '未回答' },
+                        ]}
+                        onChange={(v) => setFilters({ ...filters, intent: v })}
+                      />
+                    </TableHead>
+                    <TableHead className="p-1">
+                      <FilterDropdown
+                        label="正式参加"
+                        value={filters.official}
+                        options={[
+                          { value: 'all', label: 'すべて' },
+                          { value: 'attended', label: '参加済' },
+                          { value: 'not_attended', label: '未参加' },
+                        ]}
+                        onChange={(v) => setFilters({ ...filters, official: v })}
+                      />
+                    </TableHead>
+                    <TableHead className="p-1">
+                      <FilterDropdown
+                        label="動画"
+                        value={filters.video}
+                        options={[
+                          { value: 'all', label: 'すべて' },
+                          { value: 'watched', label: '視聴済' },
+                          { value: 'not_watched', label: '未視聴' },
+                        ]}
+                        onChange={(v) => setFilters({ ...filters, video: v })}
+                      />
+                    </TableHead>
+                    <TableHead className="p-1">
+                      <FilterDropdown
+                        label="アンケート"
+                        value={filters.survey}
+                        options={[
+                          { value: 'all', label: 'すべて' },
+                          { value: 'completed', label: '回答済' },
+                          { value: 'not_completed', label: '未回答' },
+                        ]}
+                        onChange={(v) => setFilters({ ...filters, survey: v })}
+                      />
+                    </TableHead>
+                    <TableHead className="p-1">
+                      <FilterDropdown
+                        label="GM面談"
+                        value={filters.gmInterview}
+                        options={[
+                          { value: 'all', label: 'すべて' },
+                          { value: 'completed', label: '済' },
+                          { value: 'not_completed', label: '未' },
+                        ]}
+                        onChange={(v) => setFilters({ ...filters, gmInterview: v })}
+                      />
+                    </TableHead>
+                    <TableHead className="p-1">
+                      <FilterDropdown
+                        label="最終承認"
+                        value={filters.finalApproval}
+                        options={[
+                          { value: 'all', label: 'すべて' },
+                          { value: 'MAINTAINED', label: '維持' },
+                          { value: 'DEMOTED', label: '降格' },
+                          { value: 'not_set', label: '未設定' },
+                        ]}
+                        onChange={(v) => setFilters({ ...filters, finalApproval: v })}
+                      />
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
