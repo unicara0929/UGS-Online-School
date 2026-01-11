@@ -159,13 +159,13 @@ function EventsPageContent() {
       <Sidebar />
 
       <div className="flex-1 md:ml-64">
-        <PageHeader title="イベント" />
+        <PageHeader title="キャンペーン案内" />
 
         <main className="px-4 sm:px-6 lg:px-8 py-8">
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900">イベント一覧</h2>
-              <p className="text-slate-600">参加予定のイベントと新着イベント</p>
+              <h2 className="text-2xl font-bold text-slate-900">キャンペーン案内</h2>
+              <p className="text-slate-600">参加予定のキャンペーンと新着案内</p>
             </div>
 
             {error && (

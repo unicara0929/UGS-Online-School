@@ -62,8 +62,8 @@ export const navigation: NavItem[] = [
   // FP向けLP面談管理は廃止（面談者が社内スタッフに変更、管理者画面で管理）
   // イベント関連（ロール別表示）
   { name: '月初（全体MTG）', href: '/dashboard/mtg', icon: CalendarCheck, roles: ['fp', 'manager'] },
-  { name: 'イベント', href: '/dashboard/events', icon: Calendar, roles: ['member', 'fp', 'manager'] },
-  { name: '研修', href: '/dashboard/training', icon: GraduationCap, roles: ['fp', 'manager'] },
+  { name: 'キャンペーン案内', href: '/dashboard/events', icon: Calendar, roles: ['member', 'fp', 'manager'] },
+  { name: 'イベント・研修', href: '/dashboard/training', icon: GraduationCap, roles: ['fp', 'manager'] },
   { name: '個別相談', href: '/dashboard/consultation', icon: UserRound, roles: ['member', 'fp', 'manager'] },
   {
     name: '名刺注文',

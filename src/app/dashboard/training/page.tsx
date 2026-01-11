@@ -107,13 +107,13 @@ function TrainingPageContent() {
       <Sidebar />
 
       <div className="flex-1 md:ml-64">
-        <PageHeader title="研修" />
+        <PageHeader title="イベント・研修" />
 
         <main className="px-4 sm:px-6 lg:px-8 py-8">
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900">研修一覧</h2>
-              <p className="text-slate-600">スキルアップのための研修に参加しましょう</p>
+              <h2 className="text-2xl font-bold text-slate-900">イベント・研修一覧</h2>
+              <p className="text-slate-600">スキルアップのためのイベント・研修に参加しましょう</p>
             </div>
 
             {error && (
