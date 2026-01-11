@@ -245,6 +245,42 @@ export function MtgEventForm({
                   この期限を過ぎると「参加する」「不参加」「欠席申請」ができなくなります（デフォルト: 開催日当日23:59）
                 </p>
               </div>
+
+              {/* 編集モードのみ: 動画・資料URL（後から変更可能） */}
+              {mode === 'edit' && (
+                <>
+                  <div className="md:col-span-2 pt-4 border-t border-slate-200">
+                    <h4 className="text-sm font-semibold text-slate-800 mb-3">録画・資料（任意）</h4>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      <Video className="inline h-4 w-4 mr-1" />
+                      Vimeo動画URL
+                    </label>
+                    <input
+                      type="url"
+                      value={formData.vimeoUrl}
+                      onChange={(e) => setFormData({ ...formData, vimeoUrl: e.target.value })}
+                      className={inputClassName}
+                      placeholder="https://vimeo.com/xxxxxxxxx"
+                    />
+                    <p className="text-xs text-slate-500 mt-1">参加できなかった方が視聴する録画動画</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      <FileText className="inline h-4 w-4 mr-1" />
+                      資料URL
+                    </label>
+                    <input
+                      type="url"
+                      value={formData.materialsUrl}
+                      onChange={(e) => setFormData({ ...formData, materialsUrl: e.target.value })}
+                      className={inputClassName}
+                      placeholder="Google Drive, Dropboxなどの共有リンク"
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </>
         ) : (

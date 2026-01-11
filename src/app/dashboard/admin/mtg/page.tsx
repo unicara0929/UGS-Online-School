@@ -195,8 +195,8 @@ function AdminMtgPageContent() {
           status: editingMtgEvent.status,
           thumbnailUrl: editingMtgEvent.thumbnailUrl,
           isRecurring: true,
-          vimeoUrl: editingMtgEvent.vimeoUrl,
-          materialsUrl: editingMtgEvent.materialsUrl,
+          vimeoUrl: data.vimeoUrl || null,
+          materialsUrl: data.materialsUrl || null,
         }),
       })
 
