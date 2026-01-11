@@ -346,12 +346,12 @@ function LearningPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-slate-50 flex overflow-x-hidden">
       {/* サイドバー */}
       <Sidebar />
 
       {/* メインコンテンツ */}
-      <div className="flex-1 md:ml-64">
+      <div className="flex-1 md:ml-64 min-w-0 overflow-x-hidden">
         {/* ヘッダー */}
         <header className="bg-white shadow-lg border-b border-slate-200">
           <div className="px-3 sm:px-6 lg:px-8">
@@ -391,8 +391,8 @@ function LearningPage() {
           </div>
         </header>
 
-        <main className="px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
-          <div className="space-y-6">
+        <main className="px-3 sm:px-6 lg:px-8 py-4 sm:py-8 overflow-x-hidden">
+          <div className="space-y-6 w-full">
             {/* メイン学習エリア */}
             <div>
               {currentLesson && (
@@ -575,7 +575,7 @@ function LearningPage() {
             </div>
 
             {/* レッスン一覧（サムネイルグリッド形式） */}
-            <div className="overflow-hidden">
+            <div className="w-full overflow-hidden">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                 <h2 className="text-base sm:text-xl font-bold text-slate-900 flex items-center">
                   <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 mr-2 flex-shrink-0" />
