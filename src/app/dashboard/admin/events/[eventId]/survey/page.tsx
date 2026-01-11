@@ -14,6 +14,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
   Loader2,
   ArrowLeft,
   Plus,
@@ -21,7 +29,10 @@ import {
   GripVertical,
   Save,
   FileText,
-  Eye
+  Eye,
+  Download,
+  Upload,
+  BookTemplate
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -45,6 +56,13 @@ interface Survey {
 interface Event {
   id: string
   title: string
+}
+
+interface SurveyTemplate {
+  id: string
+  name: string
+  description: string | null
+  questions: Question[]
 }
 
 const questionTypeLabels: Record<string, string> = {
@@ -71,9 +89,32 @@ function AdminSurveyPageContent({ params }: { params: Promise<{ eventId: string 
   const [description, setDescription] = useState('')
   const [questions, setQuestions] = useState<Question[]>([])
 
+  // テンプレート関連
+  const [templates, setTemplates] = useState<SurveyTemplate[]>([])
+  const [showTemplateDialog, setShowTemplateDialog] = useState(false)
+  const [showSaveTemplateDialog, setShowSaveTemplateDialog] = useState(false)
+  const [templateName, setTemplateName] = useState('')
+  const [templateDescription, setTemplateDescription] = useState('')
+  const [isSavingTemplate, setIsSavingTemplate] = useState(false)
+
   useEffect(() => {
     fetchSurvey()
+    fetchTemplates()
   }, [eventId])
+
+  const fetchTemplates = async () => {
+    try {
+      const response = await fetch('/api/admin/survey-templates', {
+        credentials: 'include'
+      })
+      const data = await response.json()
+      if (response.ok && data.success) {
+        setTemplates(data.templates)
+      }
+    } catch (err) {
+      console.error('Error fetching templates:', err)
+    }
+  }
 
   const fetchSurvey = async () => {
     try {
@@ -217,6 +258,93 @@ function AdminSurveyPageContent({ params }: { params: Promise<{ eventId: string 
     }
   }
 
+  // テンプレートを読み込む
+  const loadTemplate = (template: SurveyTemplate) => {
+    setQuestions(template.questions.map(q => ({
+      question: q.question,
+      type: q.type,
+      options: q.options || [],
+      required: q.required,
+      description: q.description
+    })))
+    setShowTemplateDialog(false)
+    setSuccessMessage(`テンプレート「${template.name}」を読み込みました`)
+    setTimeout(() => setSuccessMessage(null), 3000)
+  }
+
+  // 現在の設問をテンプレートとして保存
+  const saveAsTemplate = async () => {
+    if (!templateName.trim()) {
+      setError('テンプレート名を入力してください')
+      return
+    }
+    if (questions.length === 0) {
+      setError('テンプレートとして保存する質問がありません')
+      return
+    }
+
+    setIsSavingTemplate(true)
+    try {
+      const response = await fetch('/api/admin/survey-templates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          name: templateName.trim(),
+          description: templateDescription.trim() || null,
+          questions: questions.map(q => ({
+            question: q.question,
+            type: q.type,
+            options: q.options,
+            required: q.required,
+            description: q.description
+          }))
+        })
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        setSuccessMessage('テンプレートを保存しました')
+        setShowSaveTemplateDialog(false)
+        setTemplateName('')
+        setTemplateDescription('')
+        fetchTemplates()
+        setTimeout(() => setSuccessMessage(null), 3000)
+      } else {
+        setError(data.error || 'テンプレートの保存に失敗しました')
+      }
+    } catch (err) {
+      console.error('Error saving template:', err)
+      setError('テンプレートの保存中にエラーが発生しました')
+    } finally {
+      setIsSavingTemplate(false)
+    }
+  }
+
+  // テンプレートを削除
+  const deleteTemplate = async (templateId: string) => {
+    if (!confirm('このテンプレートを削除しますか？')) return
+
+    try {
+      const response = await fetch(`/api/admin/survey-templates/${templateId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      })
+
+      if (response.ok) {
+        setSuccessMessage('テンプレートを削除しました')
+        fetchTemplates()
+        setTimeout(() => setSuccessMessage(null), 3000)
+      } else {
+        setError('テンプレートの削除に失敗しました')
+      }
+    } catch (err) {
+      console.error('Error deleting template:', err)
+      setError('テンプレートの削除中にエラーが発生しました')
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex">
@@ -261,6 +389,24 @@ function AdminSurveyPageContent({ params }: { params: Promise<{ eventId: string 
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {/* テンプレートボタン */}
+              <Button
+                variant="outline"
+                onClick={() => setShowTemplateDialog(true)}
+                disabled={templates.length === 0}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                テンプレート使用
+              </Button>
+              {questions.length > 0 && (
+                <Button
+                  variant="outline"
+                  onClick={() => setShowSaveTemplateDialog(true)}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  テンプレート保存
+                </Button>
+              )}
               {survey && (
                 <Link href={`/dashboard/admin/events/${eventId}/survey/responses`}>
                   <Button variant="outline">
@@ -463,6 +609,122 @@ function AdminSurveyPageContent({ params }: { params: Promise<{ eventId: string 
           </Card>
         </main>
       </div>
+
+      {/* テンプレート選択ダイアログ */}
+      <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BookTemplate className="h-5 w-5" />
+              テンプレートを選択
+            </DialogTitle>
+            <DialogDescription>
+              保存済みのテンプレートから質問を読み込みます。現在の質問は置き換えられます。
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-4">
+            {templates.length === 0 ? (
+              <p className="text-center text-slate-500 py-4">
+                保存されているテンプレートがありません
+              </p>
+            ) : (
+              templates.map((template) => (
+                <Card
+                  key={template.id}
+                  className="cursor-pointer hover:bg-slate-50 transition-colors"
+                >
+                  <CardContent className="py-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1" onClick={() => loadTemplate(template)}>
+                        <h4 className="font-semibold text-slate-900">{template.name}</h4>
+                        {template.description && (
+                          <p className="text-sm text-slate-600 mt-1">{template.description}</p>
+                        )}
+                        <p className="text-xs text-slate-500 mt-2">
+                          {template.questions.length}問
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => loadTemplate(template)}
+                        >
+                          使用する
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteTemplate(template.id)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTemplateDialog(false)}>
+              キャンセル
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* テンプレート保存ダイアログ */}
+      <Dialog open={showSaveTemplateDialog} onOpenChange={setShowSaveTemplateDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Upload className="h-5 w-5" />
+              テンプレートとして保存
+            </DialogTitle>
+            <DialogDescription>
+              現在の{questions.length}問の質問をテンプレートとして保存します。
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="templateName">テンプレート名 *</Label>
+              <Input
+                id="templateName"
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+                placeholder="例: 全体MTGアンケート"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="templateDescription">説明（任意）</Label>
+              <Textarea
+                id="templateDescription"
+                value={templateDescription}
+                onChange={(e) => setTemplateDescription(e.target.value)}
+                placeholder="テンプレートの説明"
+                rows={2}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSaveTemplateDialog(false)}>
+              キャンセル
+            </Button>
+            <Button onClick={saveAsTemplate} disabled={isSavingTemplate}>
+              {isSavingTemplate ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  保存中...
+                </>
+              ) : (
+                '保存'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

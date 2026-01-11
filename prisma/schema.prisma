@@ -1397,6 +1397,22 @@ model EventSurveyAnswer {
   @@map("event_survey_answers")
 }
 
+// アンケートテンプレート
+model SurveyTemplate {
+  id          String   @id @default(cuid())
+  name        String   // テンプレート名（例: "全体MTGアンケート"）
+  description String?  @db.Text // 説明
+
+  // 質問をJSONで保存（EventSurveyQuestionと同じ構造）
+  // [{ question: string, type: string, options?: string[], required: boolean, description?: string }]
+  questions   Json
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("survey_templates")
+}
+
 // =====================
 // MGR（FPエイドマネージャー）管理機能
 // =====================
