@@ -116,7 +116,8 @@ interface ColumnFilters {
   intent: string // 'all' | 'WILL_ATTEND' | 'WILL_NOT_ATTEND' | 'UNDECIDED' | 'exemption'
   official: string // 'all' | 'attended' | 'not_attended'
   video: string // 'all' | 'watched' | 'not_watched'
-  survey: string // 'all' | 'completed' | 'not_completed'
+  survey: string // 'all' | 'completed' | 'not_completed' | 'after_datetime'
+  surveyAfterDatetime: string // 指定日時以降のフィルター用
   gmInterview: string // 'all' | 'completed' | 'not_completed'
   finalApproval: string // 'all' | 'MAINTAINED' | 'DEMOTED' | 'not_set'
 }
@@ -127,6 +128,7 @@ const initialFilters: ColumnFilters = {
   official: 'all',
   video: 'all',
   survey: 'all',
+  surveyAfterDatetime: '',
   gmInterview: 'all',
   finalApproval: 'all',
 }
@@ -176,6 +178,92 @@ function FilterDropdown({
                 {option.label}
               </button>
             ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+// アンケート専用フィルタードロップダウン（日時指定対応）
+function SurveyFilterDropdown({
+  filters,
+  setFilters,
+}: {
+  filters: ColumnFilters
+  setFilters: (filters: ColumnFilters) => void
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+  const isFiltered = filters.survey !== 'all'
+
+  const options = [
+    { value: 'all', label: 'すべて' },
+    { value: 'completed', label: '回答済' },
+    { value: 'not_completed', label: '未回答' },
+    { value: 'after_datetime', label: '指定日時以降' },
+  ]
+
+  const getDisplayLabel = () => {
+    if (filters.survey === 'after_datetime' && filters.surveyAfterDatetime) {
+      const date = new Date(filters.surveyAfterDatetime)
+      return `${format(date, 'M/d HH:mm', { locale: ja })}以降`
+    }
+    const option = options.find(o => o.value === filters.survey)
+    return option?.label || 'すべて'
+  }
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center gap-1 text-left font-medium text-sm hover:bg-slate-100 px-2 py-1 rounded ${
+          isFiltered ? 'text-blue-600 bg-blue-50' : 'text-slate-700'
+        }`}
+      >
+        アンケート
+        <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        {isFiltered && <Filter className="h-3 w-3 text-blue-600" />}
+      </button>
+      {isOpen && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
+          <div className="absolute top-full left-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-20 min-w-[200px]">
+            {options.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => {
+                  if (option.value !== 'after_datetime') {
+                    setFilters({ ...filters, survey: option.value, surveyAfterDatetime: '' })
+                    setIsOpen(false)
+                  } else {
+                    setFilters({ ...filters, survey: option.value })
+                  }
+                }}
+                className={`w-full text-left px-3 py-2 text-sm hover:bg-slate-100 first:rounded-t-lg ${
+                  filters.survey === option.value ? 'bg-blue-50 text-blue-600 font-medium' : 'text-slate-700'
+                } ${option.value === 'after_datetime' ? '' : 'last:rounded-b-lg'}`}
+              >
+                {option.label}
+              </button>
+            ))}
+            {/* 日時指定入力 */}
+            {filters.survey === 'after_datetime' && (
+              <div className="px-3 py-2 border-t border-slate-200">
+                <input
+                  type="datetime-local"
+                  value={filters.surveyAfterDatetime}
+                  onChange={(e) => setFilters({ ...filters, surveyAfterDatetime: e.target.value })}
+                  className="w-full px-2 py-1 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  onClick={() => setIsOpen(false)}
+                  disabled={!filters.surveyAfterDatetime}
+                  className="w-full mt-2 px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed"
+                >
+                  適用
+                </button>
+              </div>
+            )}
           </div>
         </>
       )}
@@ -368,23 +456,13 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
       if (filters.survey === 'completed' && !p.surveyCompleted) return false
       if (filters.survey === 'not_completed' && p.surveyCompleted) return false
 
-      // 日時ベースのフィルター
-      if (filters.survey === 'today' || filters.survey === 'last7days' || filters.survey === 'older') {
+      // 指定日時以降のフィルター
+      if (filters.survey === 'after_datetime' && filters.surveyAfterDatetime) {
         if (!p.surveyCompleted || !p.surveyCompletedAt) return false
 
         const surveyDate = new Date(p.surveyCompletedAt)
-        const now = new Date()
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-        const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
-
-        if (filters.survey === 'today') {
-          const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000)
-          if (surveyDate < today || surveyDate >= tomorrow) return false
-        } else if (filters.survey === 'last7days') {
-          if (surveyDate < sevenDaysAgo) return false
-        } else if (filters.survey === 'older') {
-          if (surveyDate >= sevenDaysAgo) return false
-        }
+        const filterDate = new Date(filters.surveyAfterDatetime)
+        if (surveyDate < filterDate) return false
       }
     }
 
@@ -405,7 +483,14 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
   })
 
   // フィルターが適用されているかどうか
-  const hasActiveFilters = Object.values(filters).some(v => v !== 'all')
+  const hasActiveFilters =
+    filters.payment !== 'all' ||
+    filters.intent !== 'all' ||
+    filters.official !== 'all' ||
+    filters.video !== 'all' ||
+    filters.survey !== 'all' ||
+    filters.gmInterview !== 'all' ||
+    filters.finalApproval !== 'all'
 
   // フィルターをリセット
   const resetFilters = () => setFilters(initialFilters)
@@ -737,18 +822,9 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                       />
                     </TableHead>
                     <TableHead className="p-1">
-                      <FilterDropdown
-                        label="アンケート"
-                        value={filters.survey}
-                        options={[
-                          { value: 'all', label: 'すべて' },
-                          { value: 'completed', label: '回答済' },
-                          { value: 'not_completed', label: '未回答' },
-                          { value: 'today', label: '本日回答' },
-                          { value: 'last7days', label: '直近7日' },
-                          { value: 'older', label: '7日以上前' },
-                        ]}
-                        onChange={(v) => setFilters({ ...filters, survey: v })}
+                      <SurveyFilterDropdown
+                        filters={filters}
+                        setFilters={setFilters}
                       />
                     </TableHead>
                     <TableHead className="p-1">
