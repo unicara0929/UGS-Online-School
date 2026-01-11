@@ -251,22 +251,22 @@ function AdminTrainingPageContent() {
       <Sidebar />
 
       <div className="flex-1 md:ml-64">
-        <PageHeader title="研修管理" />
+        <PageHeader title="イベント・研修管理" />
 
         <main className="px-4 sm:px-6 lg:px-8 py-8">
           <div className="space-y-6">
             {/* ヘッダー */}
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">研修管理</h2>
-                <p className="text-slate-600">研修の作成・編集・削除</p>
+                <h2 className="text-2xl font-bold text-slate-900">イベント・研修管理</h2>
+                <p className="text-slate-600">イベント・研修の作成・編集・削除</p>
               </div>
               <Button
                 onClick={() => setShowCreateForm(true)}
                 className="bg-emerald-600 hover:bg-emerald-700"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                研修を作成
+                新規作成
               </Button>
             </div>
 
