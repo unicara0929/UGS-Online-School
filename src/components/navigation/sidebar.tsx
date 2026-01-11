@@ -18,6 +18,7 @@ export function Sidebar() {
   const [logoError, setLogoError] = useState(false)
   const [profileImage, setProfileImage] = useState<string | null>(null)
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
+  const [manuallyCollapsed, setManuallyCollapsed] = useState<Set<string>>(new Set())
   const { badges } = useNewBadge()
 
   // サイドバーを閉じる関数
@@ -99,20 +100,40 @@ export function Sidebar() {
 
   // 項目が展開されているかどうか
   const isExpanded = (itemName: string) => {
+    // 手動で折りたたまれている場合は折りたたみ状態
+    if (manuallyCollapsed.has(itemName)) {
+      return false
+    }
+    // 展開リストにあるか、子項目がアクティブなら展開
     return expandedItems.has(itemName) || isSubItemActive(navigation.find(n => n.name === itemName)!)
   }
 
   // 展開状態を切り替え
   const toggleExpanded = (itemName: string) => {
-    setExpandedItems(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(itemName)) {
+    const item = navigation.find(n => n.name === itemName)
+    const hasActiveSubItem = item ? isSubItemActive(item) : false
+
+    if (isExpanded(itemName)) {
+      // 現在展開中 → 折りたたむ
+      setExpandedItems(prev => {
+        const newSet = new Set(prev)
         newSet.delete(itemName)
-      } else {
-        newSet.add(itemName)
+        return newSet
+      })
+      // 子項目がアクティブな場合は手動折りたたみとして記録
+      if (hasActiveSubItem) {
+        setManuallyCollapsed(prev => new Set(prev).add(itemName))
       }
-      return newSet
-    })
+    } else {
+      // 現在折りたたみ中 → 展開する
+      setExpandedItems(prev => new Set(prev).add(itemName))
+      // 手動折りたたみを解除
+      setManuallyCollapsed(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(itemName)
+        return newSet
+      })
+    }
   }
 
   // パスが変更されたときにサイドバーを閉じる（別のuseEffectで確実に実行）
@@ -143,11 +164,17 @@ export function Sidebar() {
     }
   }, [isOpen])
 
-  // パスが変更されたときに、アクティブな親項目を自動展開
+  // パスが変更されたときに、アクティブな親項目を自動展開（手動折りたたみをリセット）
   useEffect(() => {
     navigation.forEach(item => {
       if (item.subItems && isSubItemActive(item)) {
         setExpandedItems(prev => new Set(prev).add(item.name))
+        // 新しいパスに移動したら手動折りたたみをリセット
+        setManuallyCollapsed(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(item.name)
+          return newSet
+        })
       }
     })
   }, [pathname])
