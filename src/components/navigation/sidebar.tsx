@@ -75,27 +75,48 @@ export function Sidebar() {
     hasAnyRole(item.roles)
   )
 
+  // パスがメニュー項目にマッチするかをチェック（特殊ケース対応）
+  const isPathMatchingHref = (href: string, currentPath: string): boolean => {
+    if (!href) return false
+
+    // /dashboardの場合は完全一致のみ
+    if (href === '/dashboard') {
+      return currentPath === '/dashboard'
+    }
+
+    // MTG関連の特殊ケース: /events/[id]/mtg は MTGメニューにマッチさせる
+    // 管理者: /dashboard/admin/events/xxx/mtg → /dashboard/admin/mtg
+    // ユーザー: /dashboard/events/xxx（MTGイベント詳細）→ /dashboard/mtg
+    if (href === '/dashboard/admin/mtg' || href === '/dashboard/mtg') {
+      if (currentPath.includes('/events/') && currentPath.endsWith('/mtg')) {
+        return true
+      }
+    }
+
+    // イベント管理の特殊ケース: /events/[id]/mtg は除外
+    if (href === '/dashboard/admin/events' || href === '/dashboard/events') {
+      if (currentPath.includes('/events/') && currentPath.endsWith('/mtg')) {
+        return false
+      }
+    }
+
+    // 通常のマッチング: 完全一致またはパスで始まる場合
+    return currentPath === href || currentPath.startsWith(href + '/')
+  }
+
   // 子項目がアクティブかどうかをチェック
   const isSubItemActive = (item: typeof navigation[0]) => {
     if (!item.subItems) return false
     return item.subItems.some(subItem => {
       if (!subItem.href) return false
-      // 完全一致または、そのパスで始まる場合（ただし、/dashboardだけの場合は除外）
-      if (subItem.href === '/dashboard') {
-        return pathname === '/dashboard'
-      }
-      return pathname === subItem.href || pathname.startsWith(subItem.href + '/')
+      return isPathMatchingHref(subItem.href, pathname)
     })
   }
 
   // 親項目がアクティブかどうかをチェック（hrefがある場合）
   const isParentItemActive = (item: typeof navigation[0]) => {
     if (!item.href) return false
-    // /dashboardの場合は完全一致のみ
-    if (item.href === '/dashboard') {
-      return pathname === '/dashboard'
-    }
-    return pathname === item.href || pathname.startsWith(item.href + '/')
+    return isPathMatchingHref(item.href, pathname)
   }
 
   // 項目が展開されているかどうか
@@ -256,15 +277,8 @@ export function Sidebar() {
             {filteredNavigation.map((item) => {
               const hasSubItems = item.subItems && item.subItems.length > 0
               const isExpandedItem = isExpanded(item.name)
-              // アクティブ状態の判定：/dashboardの場合は完全一致のみ、それ以外はパスで始まる場合
-              let isActive = false
-              if (item.href) {
-                if (item.href === '/dashboard') {
-                  isActive = pathname === '/dashboard'
-                } else {
-                  isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-                }
-              }
+              // アクティブ状態の判定
+              const isActive = item.href ? isPathMatchingHref(item.href, pathname) : false
               const hasActiveSubItem = isSubItemActive(item)
 
               if (hasSubItems) {
@@ -295,14 +309,7 @@ export function Sidebar() {
                       <div className="ml-4 mt-1 space-y-1">
                         {item.subItems!.filter(subItem => hasAnyRole(subItem.roles)).map((subItem) => {
                           // 子項目のアクティブ状態判定
-                          let isSubActive = false
-                          if (subItem.href) {
-                            if (subItem.href === '/dashboard') {
-                              isSubActive = pathname === '/dashboard'
-                            } else {
-                              isSubActive = pathname === subItem.href || pathname.startsWith(subItem.href + '/')
-                            }
-                          }
+                          const isSubActive = subItem.href ? isPathMatchingHref(subItem.href, pathname) : false
                           return (
                             <Link
                               key={subItem.name}
