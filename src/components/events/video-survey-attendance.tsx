@@ -324,8 +324,7 @@ export function VideoSurveyAttendance({
               <div className="flex items-center gap-2 text-green-800">
                 <CheckCircle2 className="h-5 w-5" />
                 <div>
-                  <p className="font-semibold">出席完了！</p>
-                  <p className="text-sm">録画視聴とアンケート回答が確認されました</p>
+                  <p className="font-semibold">動画視聴+アンケート完了</p>
                 </div>
               </div>
             </div>

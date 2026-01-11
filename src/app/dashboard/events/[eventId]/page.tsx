@@ -470,11 +470,11 @@ function EventDetailPageContent() {
                       {event.attendanceCompletedAt ? (
                         <div className="w-full text-center py-4 bg-green-50 rounded-lg border border-green-200">
                           <p className="text-green-600 font-medium text-lg">
-                            ✓ 出席完了
+                            ✓ {event.attendanceMethod === 'CODE' ? '出席完了' : '動画視聴+アンケート完了'}
                           </p>
-                          <p className="text-sm text-green-700 mt-1">
-                            {event.attendanceMethod === 'CODE' ? '参加コードで確認済み' : '動画視聴+アンケート完了'}
-                          </p>
+                          {event.attendanceMethod === 'CODE' && (
+                            <p className="text-sm text-green-700 mt-1">参加コードで確認済み</p>
+                          )}
                         </div>
                       ) : event.exemption?.status === 'APPROVED' ? (
                         /* 免除承認済みの場合 */
@@ -797,12 +797,12 @@ function EventDetailPageContent() {
                   <div className="flex items-center gap-3 text-green-800">
                     <CheckCircle2 className="h-6 w-6" />
                     <div>
-                      <p className="font-semibold text-lg">出席完了</p>
-                      <p className="text-sm">
-                        {event.attendanceMethod === 'CODE'
-                          ? '参加コードで確認済み'
-                          : '録画視聴+アンケート完了'}
+                      <p className="font-semibold text-lg">
+                        {event.attendanceMethod === 'CODE' ? '出席完了' : '動画視聴+アンケート完了'}
                       </p>
+                      {event.attendanceMethod === 'CODE' && (
+                        <p className="text-sm">参加コードで確認済み</p>
+                      )}
                       <p className="text-xs mt-1">{formatDate(event.attendanceCompletedAt)}</p>
                     </div>
                   </div>
