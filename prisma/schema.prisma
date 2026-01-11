@@ -200,6 +200,7 @@ model Event {
   targetRoles     EventTargetRole[]   // 対象ロール（複数選択可能）: UGS会員 / FPエイド / マネージャー / 全員
   attendanceType  EventAttendanceType @default(OPTIONAL) // 参加設定: 必須 / 任意
   venueType       EventVenueType      @default(ONLINE) // 開催形式: オンライン / オフライン / ハイブリッド
+  eventCategory   EventCategory       @default(REGULAR) // イベントカテゴリ: MTG / REGULAR / TRAINING
   location        String?
   onlineMeetingUrl String?            // オンライン参加用URL（Google Meet等）
   maxParticipants Int?
@@ -332,6 +333,13 @@ enum EventStatus {
   UPCOMING
   COMPLETED
   CANCELLED
+}
+
+// イベントカテゴリ（管理画面での分類用）
+enum EventCategory {
+  MTG       // 月初（全体MTG）
+  REGULAR   // 通常イベント
+  TRAINING  // 研修
 }
 
 enum AttendanceMethod {

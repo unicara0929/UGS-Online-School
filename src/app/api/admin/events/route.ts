@@ -25,7 +25,12 @@ export async function GET(request: NextRequest) {
     const { error: adminError } = checkAdmin(authUser!.role)
     if (adminError) return adminError
 
+    // カテゴリフィルター（オプション）
+    const { searchParams } = new URL(request.url)
+    const category = searchParams.get('category') // MTG, REGULAR, TRAINING
+
     const events = await prisma.event.findMany({
+      where: category ? { eventCategory: category as 'MTG' | 'REGULAR' | 'TRAINING' } : undefined,
       orderBy: { date: 'asc' },
       include: {
         registrations: {
@@ -105,6 +110,8 @@ export async function GET(request: NextRequest) {
         attendanceDeadline: event.attendanceDeadline?.toISOString() ?? null,
         // 全体MTGフラグ
         isRecurring: event.isRecurring ?? false,
+        // イベントカテゴリ
+        eventCategory: event.eventCategory ?? 'REGULAR',
         registrations: event.registrations.map((registration) => {
           // 免除申請情報を取得
           const exemption = event.isRecurring
@@ -204,6 +211,8 @@ export async function POST(request: NextRequest) {
       // 定期開催関連
       isRecurring = false,
       recurrencePattern,
+      // イベントカテゴリ
+      eventCategory,
       // 過去イベント記録用
       summary,
       photos = [],
@@ -261,6 +270,8 @@ export async function POST(request: NextRequest) {
         // 定期開催関連
         isRecurring,
         recurrencePattern: recurrencePattern || null,
+        // イベントカテゴリ（isRecurringの場合は自動でMTG）
+        eventCategory: isRecurring ? 'MTG' : (eventCategory || 'REGULAR'),
         // 過去イベント記録用
         summary: summary || null,
         photos: photos || [],

@@ -74,6 +74,8 @@ export async function PUT(
       isRecurring,
       recurrencePattern,
       applicationDeadline,
+      // イベントカテゴリ
+      eventCategory,
       // 過去イベント記録用
       summary,
       photos,
@@ -131,6 +133,12 @@ export async function PUT(
     // 定期開催関連
     if (isRecurring !== undefined) updateData.isRecurring = isRecurring
     if (recurrencePattern !== undefined) updateData.recurrencePattern = recurrencePattern || null
+    // イベントカテゴリ（isRecurringがtrueになった場合は自動でMTG）
+    if (eventCategory !== undefined) {
+      updateData.eventCategory = eventCategory
+    } else if (isRecurring !== undefined && isRecurring) {
+      updateData.eventCategory = 'MTG'
+    }
     if (applicationDeadline !== undefined) {
       if (applicationDeadline) {
         // datetime-localの値はタイムゾーンなしなので、JSTとして解釈する
@@ -236,6 +244,8 @@ export async function PUT(
         isRecurring: updatedEvent.isRecurring,
         recurrencePattern: updatedEvent.recurrencePattern ?? null,
         applicationDeadline: updatedEvent.applicationDeadline?.toISOString() ?? null,
+        // イベントカテゴリ
+        eventCategory: updatedEvent.eventCategory,
         // 過去イベント記録用
         summary: updatedEvent.summary ?? null,
         photos: updatedEvent.photos ?? [],

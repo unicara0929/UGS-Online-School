@@ -26,7 +26,9 @@ import {
   TrendingUp,
   AlertTriangle,
   Scale,
-  Receipt
+  Receipt,
+  GraduationCap,
+  CalendarCheck,
 } from 'lucide-react'
 
 export interface NavItem {
@@ -58,7 +60,10 @@ export const navigation: NavItem[] = [
   { name: '昇格管理', href: '/dashboard/promotion', icon: Award, roles: ['member', 'fp'] },
   { name: 'LP面談予約', href: '/dashboard/lp-meeting/request', icon: MessageSquare, roles: ['member'] },
   // FP向けLP面談管理は廃止（面談者が社内スタッフに変更、管理者画面で管理）
+  // イベント関連（ロール別表示）
+  { name: '月初（全体MTG）', href: '/dashboard/mtg', icon: CalendarCheck, roles: ['fp', 'manager'] },
   { name: 'イベント', href: '/dashboard/events', icon: Calendar, roles: ['member', 'fp', 'manager'] },
+  { name: '研修', href: '/dashboard/training', icon: GraduationCap, roles: ['fp', 'manager'] },
   { name: '個別相談', href: '/dashboard/consultation', icon: UserRound, roles: ['member', 'fp', 'manager'] },
   {
     name: '名刺注文',
@@ -104,7 +109,9 @@ export const navigation: NavItem[] = [
     icon: Calendar,
     roles: ['admin'],
     subItems: [
+      { name: '月初（全体MTG）管理', href: '/dashboard/admin/mtg', icon: CalendarCheck, roles: ['admin'] },
       { name: 'イベント管理', href: '/dashboard/admin/events', icon: Calendar, roles: ['admin'] },
+      { name: '研修管理', href: '/dashboard/admin/training', icon: GraduationCap, roles: ['admin'] },
       { name: 'LP面談管理', href: '/dashboard/admin/lp-meetings', icon: MessageSquare, roles: ['admin'] },
     ]
   },

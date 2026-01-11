@@ -109,7 +109,7 @@ function EventsPageContent() {
           const timeoutId = setTimeout(() => controller.abort(), 15000) // 15秒タイムアウトに延長
 
           console.log(`Fetching events for user: ${user.id}`)
-          const response = await fetch(`/api/events?userId=${encodeURIComponent(user.id)}`, {
+          const response = await fetch(`/api/events?userId=${encodeURIComponent(user.id)}&category=REGULAR`, {
             signal: controller.signal,
             credentials: 'include' // Cookieベースの認証に必要
           })

@@ -51,6 +51,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
+    const category = searchParams.get('category') // MTG, REGULAR, TRAINING
 
     const includeOptions = userId
       ? {
@@ -89,6 +90,8 @@ export async function GET(request: NextRequest) {
         AND: [
           // 記録専用イベントを除外
           { isArchiveOnly: false },
+          // カテゴリフィルター（指定されている場合）
+          ...(category ? [{ eventCategory: category as 'MTG' | 'REGULAR' | 'TRAINING' }] : []),
           // ロールによるフィルタリング
           {
             OR: [
