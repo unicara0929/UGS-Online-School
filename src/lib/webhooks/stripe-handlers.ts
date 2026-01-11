@@ -407,6 +407,13 @@ async function handleBusinessCardPaymentCompleted(session: Stripe.Checkout.Sessi
         userName: updatedOrder.user.name,
         deliveryMethod: updatedOrder.deliveryMethod,
         orderId: updatedOrder.id,
+        shippingAddress: updatedOrder.deliveryMethod === 'SHIPPING' ? {
+          postalCode: updatedOrder.postalCode,
+          prefecture: updatedOrder.prefecture,
+          city: updatedOrder.city,
+          addressLine1: updatedOrder.addressLine1,
+          addressLine2: updatedOrder.addressLine2,
+        } : undefined,
       })
     } catch (chatworkError) {
       console.error('Failed to send business card order Chatwork notification:', chatworkError)
