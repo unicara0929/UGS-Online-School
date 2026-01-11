@@ -1,20 +1,25 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
-import { Loader2, Plus, Calendar, Archive, GraduationCap } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { format } from 'date-fns'
+import { ja } from 'date-fns/locale'
+import { Loader2, Plus, Calendar, Archive, GraduationCap, Users, Edit, Trash2, ChevronRight, Video, MapPin } from 'lucide-react'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import { Sidebar } from '@/components/navigation/sidebar'
 import { PageHeader } from '@/components/dashboard/page-header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { EventForm } from '@/components/admin/EventForm'
-import { EventCard } from '@/components/admin/EventCard'
 import { useEventForm } from '@/hooks/useEventForm'
 import type { AdminEventItem } from '@/types/event'
+import { getTargetRoleLabel, getAttendanceTypeLabel } from '@/constants/event'
 
 type EventTab = 'upcoming' | 'past'
 
 function AdminTrainingPageContent() {
+  const router = useRouter()
   const [events, setEvents] = useState<AdminEventItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -27,6 +32,14 @@ function AdminTrainingPageContent() {
   // フォーム用
   const createForm = useEventForm()
   const editForm = useEventForm()
+
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'M/d(E)', { locale: ja })
+    } catch {
+      return dateString
+    }
+  }
 
   const fetchEvents = async () => {
     setIsLoading(true)
@@ -344,18 +357,104 @@ function AdminTrainingPageContent() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {displayedEvents.map(event => (
-                  <EventCard
-                    key={event.id}
-                    event={event}
-                    onEdit={handleEditEvent}
-                    onDelete={handleDeleteEvent}
-                    isSubmitting={isSubmitting}
-                    showArchiveInfo={activeTab === 'past'}
-                  />
-                ))}
-              </div>
+              <Card className="border-emerald-200">
+                <div className="divide-y divide-slate-100">
+                  {displayedEvents.map(event => (
+                    <div
+                      key={event.id}
+                      className="flex items-center px-4 py-3 hover:bg-emerald-50 transition-colors group"
+                    >
+                      {/* 日付 */}
+                      <div className="flex-shrink-0 w-20 text-center">
+                        <div className="text-sm font-semibold text-slate-900">
+                          {formatDate(event.date)}
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          {event.time || '-'}
+                        </div>
+                      </div>
+
+                      {/* タイトル・バッジ */}
+                      <div
+                        className="flex-1 ml-4 min-w-0 cursor-pointer"
+                        onClick={() => router.push(`/dashboard/admin/events/${event.id}`)}
+                      >
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <Badge className="bg-emerald-600 text-[10px] px-1.5 py-0">
+                            研修
+                          </Badge>
+                          {event.targetRoles.map(role => (
+                            <Badge key={role} variant="outline" className="text-[10px] px-1.5 py-0">
+                              {getTargetRoleLabel(role)}
+                            </Badge>
+                          ))}
+                          <Badge
+                            variant={event.attendanceType === 'required' ? 'destructive' : 'secondary'}
+                            className="text-[10px] px-1.5 py-0"
+                          >
+                            {getAttendanceTypeLabel(event.attendanceType)}
+                          </Badge>
+                          {event.venueType === 'online' && (
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-blue-50 border-blue-200 text-blue-700">
+                              <Video className="h-2.5 w-2.5 mr-0.5" />
+                              オンライン
+                            </Badge>
+                          )}
+                          {event.venueType === 'offline' && (
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-green-50 border-green-200 text-green-700">
+                              <MapPin className="h-2.5 w-2.5 mr-0.5" />
+                              オフライン
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm font-medium text-slate-900 truncate group-hover:text-primary-600">
+                          {event.title}
+                        </p>
+                      </div>
+
+                      {/* 参加者数 */}
+                      <div className="flex-shrink-0 mx-4 text-center">
+                        <div className="flex items-center text-xs text-slate-600">
+                          <Users className="h-3.5 w-3.5 mr-1" />
+                          <span>{event.currentParticipants}名</span>
+                        </div>
+                      </div>
+
+                      {/* アクションボタン */}
+                      <div className="flex-shrink-0 flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleEditEvent(events.find(e => e.id === event.id)!)
+                          }}
+                          disabled={isSubmitting}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDeleteEvent(event.id)
+                          }}
+                          disabled={isSubmitting}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                        <ChevronRight
+                          className="h-4 w-4 text-slate-400 group-hover:text-slate-600 cursor-pointer"
+                          onClick={() => router.push(`/dashboard/admin/events/${event.id}`)}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
             )}
           </div>
         </main>

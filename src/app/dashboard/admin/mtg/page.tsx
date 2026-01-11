@@ -1,13 +1,16 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
-import { Loader2, Plus, Calendar, Archive } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { format } from 'date-fns'
+import { ja } from 'date-fns/locale'
+import { Loader2, Plus, Calendar, Archive, Users, Edit, Trash2, ChevronRight, CheckCircle2, Video } from 'lucide-react'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import { Sidebar } from '@/components/navigation/sidebar'
 import { PageHeader } from '@/components/dashboard/page-header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { EventCard } from '@/components/admin/EventCard'
+import { Badge } from '@/components/ui/badge'
 import { MtgEventForm } from '@/components/admin/MtgEventForm'
 import type { AdminEventItem } from '@/types/event'
 
@@ -27,6 +30,7 @@ interface MtgEventFormData {
 }
 
 function AdminMtgPageContent() {
+  const router = useRouter()
   const [events, setEvents] = useState<AdminEventItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -37,6 +41,14 @@ function AdminMtgPageContent() {
   const [completingMtgEvent, setCompletingMtgEvent] = useState<AdminEventItem | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeTab, setActiveTab] = useState<EventTab>('upcoming')
+
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'M/d(E)', { locale: ja })
+    } catch {
+      return dateString
+    }
+  }
 
   const fetchEvents = async () => {
     setIsLoading(true)
@@ -418,19 +430,106 @@ function AdminMtgPageContent() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {displayedEvents.map(event => (
-                  <EventCard
-                    key={event.id}
-                    event={event}
-                    onEdit={handleEditEvent}
-                    onDelete={handleDeleteEvent}
-                    onMtgComplete={handleStartMtgComplete}
-                    isSubmitting={isSubmitting}
-                    showArchiveInfo={activeTab === 'past'}
-                  />
-                ))}
-              </div>
+              <Card className="border-blue-200">
+                <div className="divide-y divide-slate-100">
+                  {displayedEvents.map(event => (
+                    <div
+                      key={event.id}
+                      className="flex items-center px-4 py-3 hover:bg-blue-50 transition-colors group"
+                    >
+                      {/* 日付 */}
+                      <div className="flex-shrink-0 w-20 text-center">
+                        <div className="text-sm font-semibold text-slate-900">
+                          {formatDate(event.date)}
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          {event.time || '-'}
+                        </div>
+                      </div>
+
+                      {/* タイトル・バッジ */}
+                      <div
+                        className="flex-1 ml-4 min-w-0 cursor-pointer"
+                        onClick={() => router.push(`/dashboard/admin/events/${event.id}/mtg`)}
+                      >
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <Badge className="bg-blue-600 text-[10px] px-1.5 py-0">
+                            全体MTG
+                          </Badge>
+                          <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
+                            必須参加
+                          </Badge>
+                          {event.vimeoUrl && (
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-purple-50 border-purple-200 text-purple-700">
+                              <Video className="h-2.5 w-2.5 mr-0.5" />
+                              録画あり
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm font-medium text-slate-900 truncate group-hover:text-primary-600">
+                          {event.title}
+                        </p>
+                      </div>
+
+                      {/* 参加者数 */}
+                      <div className="flex-shrink-0 mx-4 text-center">
+                        <div className="flex items-center text-xs text-slate-600">
+                          <Users className="h-3.5 w-3.5 mr-1" />
+                          <span>{event.currentParticipants}名</span>
+                        </div>
+                      </div>
+
+                      {/* アクションボタン */}
+                      <div className="flex-shrink-0 flex items-center gap-1">
+                        {/* 完了設定ボタン（開催予定のみ） */}
+                        {event.status === 'upcoming' && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-100"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleStartMtgComplete(event)
+                            }}
+                            disabled={isSubmitting}
+                          >
+                            <CheckCircle2 className="h-4 w-4 mr-1" />
+                            <span className="text-xs">完了</span>
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleEditEvent(event)
+                          }}
+                          disabled={isSubmitting}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDeleteEvent(event.id)
+                          }}
+                          disabled={isSubmitting}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                        <ChevronRight
+                          className="h-4 w-4 text-slate-400 group-hover:text-slate-600 cursor-pointer"
+                          onClick={() => router.push(`/dashboard/admin/events/${event.id}/mtg`)}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
             )}
           </div>
         </main>
