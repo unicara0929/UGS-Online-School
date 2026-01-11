@@ -222,20 +222,20 @@ function MaterialsPageContent() {
                     {materials.map((material) => (
                       <div
                         key={material.id}
-                        className="flex items-center px-4 py-3 hover:bg-slate-50 transition-colors"
+                        className="flex items-start sm:items-center px-4 py-3 hover:bg-slate-50 transition-colors gap-3"
                       >
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
                           <FileText className="h-5 w-5 text-blue-600" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             {material.isNew && (
                               <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 text-xs">
                                 <Sparkles className="h-3 w-3 mr-1" />
                                 NEW
                               </Badge>
                             )}
-                            <h3 className="font-medium text-slate-900 truncate">{material.title}</h3>
+                            <h3 className="font-medium text-slate-900 break-words">{material.title}</h3>
                           </div>
                           <div className="flex items-center gap-2 text-sm text-slate-500">
                             {material.fileName && (
@@ -246,15 +246,28 @@ function MaterialsPageContent() {
                             )}
                           </div>
                           {material.description && (
-                            <p className="text-sm text-slate-500 mt-1 line-clamp-1">{material.description}</p>
+                            <p className="text-sm text-slate-500 mt-1 line-clamp-2 sm:line-clamp-1">{material.description}</p>
+                          )}
+                          {/* モバイル用ダウンロードボタン */}
+                          {material.fileUrl && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => window.open(material.fileUrl, '_blank')}
+                              className="mt-2 sm:hidden"
+                            >
+                              <Download className="h-4 w-4 mr-1" />
+                              ダウンロード
+                            </Button>
                           )}
                         </div>
+                        {/* デスクトップ用ダウンロードボタン */}
                         {material.fileUrl && (
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => window.open(material.fileUrl, '_blank')}
-                            className="ml-2 shrink-0"
+                            className="hidden sm:flex shrink-0"
                           >
                             <Download className="h-4 w-4 mr-1" />
                             ダウンロード
