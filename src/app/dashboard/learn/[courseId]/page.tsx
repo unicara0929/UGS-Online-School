@@ -594,7 +594,7 @@ function LearningPage() {
               </div>
 
               {/* サムネイルグリッド */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 px-0.5">
                 {course.lessons.map((lesson, index) => {
                   // サムネイルURL（データベースのURLを優先、なければvumbnail.comを使用）
                   const thumbnailUrl = lesson.thumbnailUrl
@@ -610,19 +610,19 @@ function LearningPage() {
                         // 動画エリアにスクロール
                         window.scrollTo({ top: 0, behavior: 'smooth' })
                       }}
-                      className={`cursor-pointer group transition-all duration-200 ${
+                      className={`cursor-pointer group transition-all duration-200 rounded-lg ${
                         index === currentLessonIndex
-                          ? 'ring-2 ring-blue-500 ring-offset-2 rounded-lg'
+                          ? 'ring-2 ring-blue-500 bg-blue-50'
                           : ''
                       }`}
                     >
                       {/* サムネイル */}
-                      <div className="relative aspect-video rounded-lg overflow-hidden bg-slate-200">
+                      <div className="relative aspect-video rounded-lg overflow-hidden bg-slate-800">
                         {thumbnailUrl ? (
                           <img
                             src={thumbnailUrl}
                             alt={lesson.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
                             loading="lazy"
                           />
                         ) : (
