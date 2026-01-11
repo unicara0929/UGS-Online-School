@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState, useRef } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import { ja } from "date-fns/locale"
@@ -8,24 +8,16 @@ import { ProtectedRoute } from "@/components/auth/protected-route"
 import { Sidebar } from "@/components/navigation/sidebar"
 import { PageHeader } from "@/components/dashboard/page-header"
 import { useAuth } from "@/contexts/auth-context"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Clock, MapPin, Video, Loader2, Users, Sparkles, ArrowRight, GraduationCap } from "lucide-react"
-import { useNewBadge } from "@/hooks/use-new-badge"
+import { GraduationCap, Loader2, Sparkles, ChevronRight, CheckCircle2 } from "lucide-react"
 
 type TrainingItem = {
   id: string
   title: string
-  description: string
   date: string
   time: string
-  location: string
-  venueType: 'online' | 'offline' | 'hybrid'
   status: 'upcoming' | 'completed' | 'cancelled'
-  thumbnailUrl: string | null
-  maxParticipants: number | null
-  currentParticipants: number
   isRegistered: boolean
   isPaid: boolean
   price: number | null
@@ -39,14 +31,10 @@ function TrainingPageContent() {
   const [events, setEvents] = useState<TrainingItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     const fetchTrainingEvents = async () => {
-      if (!user?.id) {
-        console.log('No user ID available, skipping fetch')
-        return
-      }
+      if (!user?.id) return
 
       setIsLoading(true)
       setError(null)
@@ -70,15 +58,9 @@ function TrainingPageContent() {
         const formattedEvents: TrainingItem[] = data.events.map((event: any) => ({
           id: event.id,
           title: event.title,
-          description: event.description,
           date: event.date,
           time: event.time,
-          location: event.location,
-          venueType: event.venueType || 'online',
           status: event.status,
-          thumbnailUrl: event.thumbnailUrl || null,
-          maxParticipants: event.maxParticipants,
-          currentParticipants: event.currentParticipants,
           isRegistered: event.isRegistered,
           isPaid: event.isPaid || false,
           price: event.price || null,
@@ -100,7 +82,7 @@ function TrainingPageContent() {
 
   const formatDate = (dateString: string) => {
     try {
-      return format(new Date(dateString), "yyyy年M月d日(E)", { locale: ja })
+      return format(new Date(dateString), "M/d(E)", { locale: ja })
     } catch {
       return dateString
     }
@@ -116,90 +98,8 @@ function TrainingPageContent() {
     [events]
   )
 
-  const canRegisterForEvent = (event: TrainingItem) => {
-    if (event.maxParticipants !== null && event.maxParticipants !== undefined && event.maxParticipants > 0) {
-      return event.currentParticipants < event.maxParticipants
-    }
-    return true
-  }
-
-  const handleCheckout = async (eventId: string) => {
-    setIsSubmitting(true)
-    try {
-      const response = await fetch('/api/events/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ eventId }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'チェックアウトの作成に失敗しました')
-      }
-
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl
-      }
-    } catch (err) {
-      console.error('Failed to create checkout session:', err)
-      alert(err instanceof Error ? err.message : 'チェックアウトの作成に失敗しました')
-      setIsSubmitting(false)
-    }
-  }
-
-  const handleToggleRegistration = async (event: TrainingItem) => {
-    if (!user?.id) return
-
-    if (event.isPaid && !event.isRegistered) {
-      await handleCheckout(event.id)
-      return
-    }
-
-    if (event.isPaid && event.paymentStatus === 'PENDING') {
-      await handleCheckout(event.id)
-      return
-    }
-
-    const action = event.isRegistered ? 'unregister' : 'register'
-
-    setIsSubmitting(true)
-    try {
-      const response = await fetch('/api/events/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          userId: user.id,
-          eventId: event.id,
-          action,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || '処理に失敗しました')
-      }
-
-      setEvents(prev =>
-        prev.map(item =>
-          item.id === event.id
-            ? {
-                ...item,
-                isRegistered: action === 'register',
-                currentParticipants: data.currentParticipants ?? item.currentParticipants,
-              }
-            : item
-        )
-      )
-    } catch (err) {
-      console.error('Failed to update registration:', err)
-      alert(err instanceof Error ? err.message : '処理に失敗しました')
-    } finally {
-      setIsSubmitting(false)
-    }
+  const handleEventClick = (eventId: string) => {
+    router.push(`/dashboard/events/${eventId}`)
   }
 
   return (
@@ -232,170 +132,110 @@ function TrainingPageContent() {
                 </div>
               </div>
             ) : (
-              <>
+              <div className="space-y-6">
                 {/* 開催予定の研修 */}
                 {upcomingEvents.length > 0 && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-slate-800">開催予定</h3>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      {upcomingEvents.map(event => (
-                        <Card key={event.id} className="hover:shadow-xl transition-all duration-300 border-emerald-200 bg-emerald-50/30">
-                          {event.thumbnailUrl && (
-                            <div className="w-full h-48 overflow-hidden rounded-t-lg">
-                              <img
-                                src={event.thumbnailUrl}
-                                alt={event.title}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                          )}
-                          <CardHeader>
-                            <div className="flex flex-wrap items-center gap-2 mb-2">
-                              {event.isNew && (
-                                <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 animate-pulse">
-                                  <Sparkles className="h-3 w-3 mr-1" />
-                                  NEW
-                                </Badge>
-                              )}
-                              <Badge className="bg-emerald-600">
-                                <GraduationCap className="h-3 w-3 mr-1" />
-                                研修
-                              </Badge>
-                              {event.isPaid && (
-                                <Badge variant="outline" className="bg-amber-50 border-amber-300 text-amber-700">
-                                  ¥{event.price?.toLocaleString()}
-                                </Badge>
-                              )}
-                            </div>
-                            <CardTitle className="text-lg">{event.title}</CardTitle>
-                            <CardDescription>{event.description}</CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-3">
-                              <div className="flex items-center text-sm text-slate-600">
-                                <Calendar className="h-4 w-4 mr-2" />
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
+                      開催予定
+                    </h3>
+                    <Card className="border-emerald-200">
+                      <div className="divide-y divide-slate-100">
+                        {upcomingEvents.map(event => (
+                          <div
+                            key={event.id}
+                            onClick={() => handleEventClick(event.id)}
+                            className="flex items-center px-4 py-3 hover:bg-emerald-50 cursor-pointer transition-colors group"
+                          >
+                            {/* 日付 */}
+                            <div className="flex-shrink-0 w-16 text-center">
+                              <div className="text-sm font-semibold text-slate-900">
                                 {formatDate(event.date)}
                               </div>
-                              <div className="flex items-center text-sm text-slate-600">
-                                <Clock className="h-4 w-4 mr-2" />
-                                {event.time || '時間未定'}
+                              <div className="text-xs text-slate-500">
+                                {event.time || '-'}
                               </div>
-                              <div className="flex items-center text-sm text-slate-600">
-                                {event.venueType === 'online' ? (
-                                  <Video className="h-4 w-4 mr-2" />
-                                ) : event.venueType === 'offline' ? (
-                                  <MapPin className="h-4 w-4 mr-2" />
-                                ) : (
-                                  <>
-                                    <Video className="h-4 w-4 mr-1" />
-                                    <MapPin className="h-4 w-4 mr-2" />
-                                  </>
+                            </div>
+
+                            {/* タイトル・バッジ */}
+                            <div className="flex-1 ml-4 min-w-0">
+                              <div className="flex items-center gap-2">
+                                {event.isNew && (
+                                  <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 text-[10px] px-1.5 py-0">
+                                    <Sparkles className="h-2.5 w-2.5 mr-0.5" />
+                                    NEW
+                                  </Badge>
                                 )}
-                                {event.location}
+                                <Badge className="bg-emerald-600 text-[10px] px-1.5 py-0">
+                                  研修
+                                </Badge>
+                                {event.isPaid && (
+                                  <Badge variant="outline" className="bg-amber-50 border-amber-300 text-amber-700 text-[10px] px-1.5 py-0">
+                                    ¥{event.price?.toLocaleString()}
+                                  </Badge>
+                                )}
+                                {event.isRegistered && (
+                                  <Badge variant="outline" className="bg-blue-50 border-blue-300 text-blue-700 text-[10px] px-1.5 py-0">
+                                    申込済
+                                  </Badge>
+                                )}
                               </div>
-                              <div className="flex items-center text-sm text-slate-500">
-                                <Users className="h-4 w-4 mr-1" />
-                                {event.maxParticipants !== null && event.maxParticipants > 0
-                                  ? `${event.currentParticipants}/${event.maxParticipants}名`
-                                  : `${event.currentParticipants}名参加`}
-                              </div>
+                              <p className="text-sm font-medium text-slate-900 truncate group-hover:text-primary-600">
+                                {event.title}
+                              </p>
                             </div>
 
-                            <div className="mt-4 flex flex-col gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="w-full"
-                                onClick={() => router.push(`/dashboard/events/${event.id}`)}
-                              >
-                                詳細を見る
-                                <ArrowRight className="h-4 w-4 ml-2" />
-                              </Button>
-
-                              {canRegisterForEvent(event) ? (
-                                <Button
-                                  size="sm"
-                                  variant={event.isRegistered ? "outline" : "default"}
-                                  className="w-full"
-                                  disabled={isSubmitting || (event.isPaid && event.paymentStatus === 'PAID')}
-                                  onClick={() => handleToggleRegistration(event)}
-                                >
-                                  {event.isRegistered
-                                    ? event.isPaid && event.paymentStatus === 'PAID'
-                                      ? '参加確定（支払い済み）'
-                                      : event.isPaid && event.paymentStatus === 'PENDING'
-                                        ? '支払いを完了する'
-                                        : 'キャンセル'
-                                    : event.isPaid
-                                      ? `¥${event.price?.toLocaleString()}で申し込む`
-                                      : '申し込む'
-                                  }
-                                </Button>
-                              ) : (
-                                <Button
-                                  size="sm"
-                                  disabled
-                                  className="w-full"
-                                >
-                                  満員（定員に達しました）
-                                </Button>
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
+                            {/* 矢印 */}
+                            <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-slate-600 flex-shrink-0" />
+                          </div>
+                        ))}
+                      </div>
+                    </Card>
                   </div>
                 )}
 
                 {/* 過去の研修 */}
                 {pastEvents.length > 0 && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-slate-800">過去の研修</h3>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      {pastEvents.map(event => (
-                        <Card key={event.id} className="hover:shadow-lg transition-all duration-300 opacity-80">
-                          {event.thumbnailUrl && (
-                            <div className="w-full h-40 overflow-hidden rounded-t-lg">
-                              <img
-                                src={event.thumbnailUrl}
-                                alt={event.title}
-                                className="w-full h-full object-cover opacity-80"
-                              />
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
+                      過去の研修
+                    </h3>
+                    <Card>
+                      <div className="divide-y divide-slate-100">
+                        {pastEvents.map(event => (
+                          <div
+                            key={event.id}
+                            onClick={() => handleEventClick(event.id)}
+                            className="flex items-center px-4 py-3 hover:bg-slate-50 cursor-pointer transition-colors group opacity-70"
+                          >
+                            {/* 日付 */}
+                            <div className="flex-shrink-0 w-16 text-center">
+                              <div className="text-sm font-semibold text-slate-600">
+                                {formatDate(event.date)}
+                              </div>
                             </div>
-                          )}
-                          <CardHeader>
-                            <div className="flex items-center gap-2 mb-2">
-                              <Badge variant="secondary">終了</Badge>
-                              {event.isRegistered && (
-                                <Badge variant="outline" className="bg-green-50 border-green-300 text-green-700">
-                                  参加済み
-                                </Badge>
-                              )}
+
+                            {/* タイトル・バッジ */}
+                            <div className="flex-1 ml-4 min-w-0">
+                              <div className="flex items-center gap-2">
+                                {event.isRegistered && (
+                                  <Badge variant="outline" className="bg-green-50 border-green-300 text-green-700 text-[10px] px-1.5 py-0">
+                                    <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" />
+                                    参加済
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-sm font-medium text-slate-700 truncate group-hover:text-primary-600">
+                                {event.title}
+                              </p>
                             </div>
-                            <CardTitle className="text-lg">{event.title}</CardTitle>
-                            <CardDescription>{event.description}</CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="flex items-center text-sm text-slate-600">
-                              <Calendar className="h-4 w-4 mr-2" />
-                              {formatDate(event.date)}
-                            </div>
-                            <div className="mt-4">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="w-full"
-                                onClick={() => router.push(`/dashboard/events/${event.id}`)}
-                              >
-                                詳細を見る
-                                <ArrowRight className="h-4 w-4 ml-2" />
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
+
+                            {/* 矢印 */}
+                            <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-slate-600 flex-shrink-0" />
+                          </div>
+                        ))}
+                      </div>
+                    </Card>
                   </div>
                 )}
 
@@ -407,7 +247,7 @@ function TrainingPageContent() {
                     </CardContent>
                   </Card>
                 )}
-              </>
+              </div>
             )}
           </div>
         </main>

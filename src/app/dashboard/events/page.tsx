@@ -8,12 +8,9 @@ import { ProtectedRoute } from "@/components/auth/protected-route"
 import { Sidebar } from "@/components/navigation/sidebar"
 import { PageHeader } from "@/components/dashboard/page-header"
 import { useAuth } from "@/contexts/auth-context"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Clock, MapPin, Users, Video, Loader2, CheckCircle2, Sparkles, ArrowRight } from "lucide-react"
-import { AttendanceCodeInput } from "@/components/events/attendance-code-input"
-import { VideoSurveyAttendance } from "@/components/events/video-survey-attendance"
+import { Calendar, Loader2, Sparkles, ChevronRight, CheckCircle2 } from "lucide-react"
 import { useNewBadge } from "@/hooks/use-new-badge"
 
 function EventsPageContent() {
@@ -22,12 +19,10 @@ function EventsPageContent() {
   const [events, setEvents] = useState<EventItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [paymentMessage, setPaymentMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
-  const { markCategoryViewed, recordContentView } = useNewBadge()
+  const { markCategoryViewed } = useNewBadge()
   const hasMarkedViewed = useRef(false)
 
-  // ページを開いたときにカテゴリを閲覧済みとしてマーク
   useEffect(() => {
     if (!hasMarkedViewed.current) {
       markCategoryViewed('EVENTS')
@@ -43,8 +38,6 @@ function EventsPageContent() {
 
       if (!sessionId) return
 
-      console.log('[PAYMENT_VERIFY] Session ID found in URL:', sessionId)
-
       try {
         const response = await fetch('/api/events/verify-payment', {
           method: 'POST',
@@ -56,28 +49,21 @@ function EventsPageContent() {
         const data = await response.json()
 
         if (data.success) {
-          console.log('[PAYMENT_VERIFY] Payment verified:', data)
           setPaymentMessage({
             type: 'success',
             text: '決済が完了しました！イベントへの参加が確定しました。'
           })
-
-          // URLからsession_idを削除（履歴に残さない）
           window.history.replaceState({}, '', '/dashboard/events')
-
-          // イベント一覧を再読み込み
           setTimeout(() => {
             window.location.reload()
           }, 2000)
         } else {
-          console.warn('[PAYMENT_VERIFY] Payment verification failed:', data)
           setPaymentMessage({
             type: 'error',
             text: data.message || '決済の確認に失敗しました'
           })
         }
       } catch (error) {
-        console.error('[PAYMENT_VERIFY] Error:', error)
         setPaymentMessage({
           type: 'error',
           text: '決済の確認中にエラーが発生しました'
@@ -90,118 +76,47 @@ function EventsPageContent() {
 
   useEffect(() => {
     const fetchEvents = async () => {
-      if (!user?.id) {
-        console.log('No user ID available, skipping fetch')
-        return
-      }
-
-      console.log('Starting to fetch events, user:', { id: user.id, role: user.role, email: user.email })
+      if (!user?.id) return
 
       setIsLoading(true)
       setError(null)
-      let retryCount = 0
-      const maxRetries = 3
-      const retryDelay = 1000 // 1秒
 
-      while (retryCount < maxRetries) {
-        try {
-          const controller = new AbortController()
-          const timeoutId = setTimeout(() => controller.abort(), 15000) // 15秒タイムアウトに延長
+      try {
+        const response = await fetch(`/api/events?userId=${encodeURIComponent(user.id)}&category=REGULAR`, {
+          credentials: 'include'
+        })
 
-          console.log(`Fetching events for user: ${user.id}`)
-          const response = await fetch(`/api/events?userId=${encodeURIComponent(user.id)}&category=REGULAR`, {
-            signal: controller.signal,
-            credentials: 'include' // Cookieベースの認証に必要
-          })
-
-          clearTimeout(timeoutId)
-
-          console.log(`Events API response status: ${response.status} ${response.statusText}`)
-          console.log('Response headers:', Object.fromEntries(response.headers.entries()))
-
-          if (!response.ok) {
-            // レスポンステキストを取得
-            const responseText = await response.text()
-            console.error('Events API error response text:', responseText)
-
-            // JSONとしてパース試行
-            let errorData: any = { error: 'Unknown error' }
-            try {
-              if (responseText) {
-                errorData = JSON.parse(responseText)
-              }
-            } catch (parseError) {
-              console.error('Failed to parse error response as JSON:', parseError)
-              errorData = { error: responseText || `HTTP ${response.status}: ${response.statusText}` }
-            }
-
-            console.error('Events API error response:', errorData)
-            throw new Error(errorData.error || `ページの取得に失敗しました (${response.status})`)
-          }
-
-          const data = await response.json()
-
-          if (!data.success) {
-            throw new Error(data.error || "イベントの取得に失敗しました")
-          }
-
-          const formattedEvents: EventItem[] = data.events.map((event: any) => ({
-            id: event.id,
-            title: event.title,
-            description: event.description,
-            date: event.date,
-            time: event.time,
-            type: event.type, // 後方互換性のため残す
-            targetRoles: event.targetRoles || [],
-            attendanceType: event.attendanceType || 'optional',
-            venueType: event.venueType || 'online',
-            location: event.location,
-            maxParticipants: event.maxParticipants,
-            currentParticipants: event.currentParticipants,
-            isRegistered: event.isRegistered,
-            status: event.status,
-            thumbnailUrl: event.thumbnailUrl || null,
-            isPaid: event.isPaid || false,
-            price: event.price || null,
-            paymentStatus: event.paymentStatus || null,
-            // 新着表示関連
-            isNew: event.isNew || false,
-            updatedAt: event.updatedAt || '',
-            // 出席確認関連
-            hasAttendanceCode: event.hasAttendanceCode || false,
-            attendanceDeadline: event.attendanceDeadline || null,
-            vimeoUrl: event.vimeoUrl || null,
-            surveyUrl: event.surveyUrl || null,
-            attendanceMethod: event.attendanceMethod || null,
-            attendanceCompletedAt: event.attendanceCompletedAt || null,
-            videoWatched: event.videoWatched || false,
-            surveyCompleted: event.surveyCompleted || false,
-            // 全体MTG関連
-            isRecurring: event.isRecurring || false,
-          }))
-
-          setEvents(formattedEvents)
-          setIsLoading(false)
-          return // 成功したら終了
-        } catch (err: any) {
-          console.error(`Failed to fetch events (attempt ${retryCount + 1}/${maxRetries}):`, err)
-          
-          if (err.name === 'AbortError') {
-            console.error('Request timeout')
-          }
-
-          retryCount++
-          
-          if (retryCount >= maxRetries) {
-            console.error('Failed to fetch events after retries')
-            setError(err instanceof Error ? err.message : "イベントの取得に失敗しました")
-            setIsLoading(false)
-            return
-          }
-
-          // リトライ前に待機
-          await new Promise(resolve => setTimeout(resolve, retryDelay * retryCount))
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'イベントの取得に失敗しました')
         }
+
+        const data = await response.json()
+
+        if (!data.success) {
+          throw new Error(data.error || 'イベントの取得に失敗しました')
+        }
+
+        const formattedEvents: EventItem[] = data.events.map((event: any) => ({
+          id: event.id,
+          title: event.title,
+          date: event.date,
+          time: event.time,
+          status: event.status,
+          isRegistered: event.isRegistered,
+          isPaid: event.isPaid || false,
+          price: event.price || null,
+          paymentStatus: event.paymentStatus || null,
+          isNew: event.isNew || false,
+          attendanceCompletedAt: event.attendanceCompletedAt || null,
+        }))
+
+        setEvents(formattedEvents)
+      } catch (err) {
+        console.error('Failed to fetch events:', err)
+        setError(err instanceof Error ? err.message : 'イベントの取得に失敗しました')
+      } finally {
+        setIsLoading(false)
       }
     }
 
@@ -210,193 +125,47 @@ function EventsPageContent() {
 
   const formatDate = (dateString: string) => {
     try {
+      return format(new Date(dateString), "M/d(E)", { locale: ja })
+    } catch {
+      return dateString
+    }
+  }
+
+  const formatFullDate = (dateString: string) => {
+    try {
       return format(new Date(dateString), "yyyy年M月d日(E)", { locale: ja })
     } catch {
       return dateString
     }
   }
 
-  const visibleEvents = useMemo(() => {
-    return events.filter(event => {
-      if (event.type === 'manager-only') {
-        return user?.role === 'manager' || user?.role === 'admin'
-      }
-      return true
-    })
-  }, [events, user?.role])
+  // 開催予定と過去イベントに分類
+  const upcomingEvents = useMemo(() =>
+    events.filter(event => event.status === 'upcoming'),
+    [events]
+  )
 
-  const getEventTypeColor = (type: string) => {
-    switch (type) {
-      case 'required': return 'destructive'
-      case 'optional': return 'secondary'
-      case 'manager-only': return 'default'
-      default: return 'secondary'
-    }
-  }
+  const pastEvents = useMemo(() =>
+    events.filter(event => event.status === 'completed' || event.status === 'cancelled'),
+    [events]
+  )
 
-  const getEventTypeLabel = (type: string) => {
-    switch (type) {
-      case 'required': return '必須'
-      case 'optional': return '任意'
-      case 'manager-only': return 'Mgr限定'
-      default: return type
-    }
-  }
-
-  const canRegisterForEvent = (event: any) => {
-    if (event.type === 'manager-only' && user?.role !== 'manager' && user?.role !== 'admin') {
-      return false
-    }
-    // 定員が設定されている場合（0より大きい場合）のみチェック
-    if (event.maxParticipants !== null && event.maxParticipants !== undefined && event.maxParticipants > 0) {
-      return event.currentParticipants < event.maxParticipants
-    }
-    // 定員未設定・0の場合は無制限
-    return true
-  }
-
-  // 有料イベントの決済処理（新規申込 or PENDING状態からの再決済）
-  const handleCheckout = async (eventId: string) => {
-    setIsSubmitting(true)
-    try {
-      const response = await fetch('/api/events/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ eventId }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'チェックアウトの作成に失敗しました')
-      }
-
-      // Stripe Checkoutページにリダイレクト
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl
-      }
-    } catch (err) {
-      console.error('Failed to create checkout session:', err)
-      alert(err instanceof Error ? err.message : 'チェックアウトの作成に失敗しました')
-      setIsSubmitting(false)
-    }
-  }
-
-  // イベント登録のキャンセル（PENDING状態のみ）
-  const handleCancelRegistration = async (eventId: string) => {
-    if (!confirm('申し込みをキャンセルしますか？')) return
-
-    setIsSubmitting(true)
-    try {
-      const response = await fetch('/api/events/cancel', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ eventId }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'キャンセルに失敗しました')
-      }
-
-      // イベント一覧を更新（isRegistered=false, paymentStatus=nullに）
-      setEvents(prev =>
-        prev.map(item =>
-          item.id === eventId
-            ? {
-                ...item,
-                isRegistered: false,
-                paymentStatus: null,
-                currentParticipants: Math.max(0, item.currentParticipants - 1),
-              }
-            : item
-        )
-      )
-
-      alert('申し込みをキャンセルしました')
-    } catch (err) {
-      console.error('Failed to cancel registration:', err)
-      alert(err instanceof Error ? err.message : 'キャンセルに失敗しました')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const handleToggleRegistration = async (event: EventItem) => {
-    if (!user?.id) return
-
-    // 有料イベントの場合、決済処理へ
-    if (event.isPaid && !event.isRegistered) {
-      await handleCheckout(event.id)
-      return
-    }
-
-    // 有料イベントでPENDING状態の場合も決済処理へ
-    if (event.isPaid && event.paymentStatus === 'PENDING') {
-      await handleCheckout(event.id)
-      return
-    }
-
-    // 無料イベントまたはキャンセルの場合は既存ロジック
-    const action = event.isRegistered ? 'unregister' : 'register'
-
-    setIsSubmitting(true)
-    try {
-      const response = await fetch('/api/events/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // Cookieベースの認証に必要
-        body: JSON.stringify({
-          userId: user.id,
-          eventId: event.id,
-          action,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || '処理に失敗しました')
-      }
-
-      setEvents(prev =>
-        prev.map(item =>
-          item.id === event.id
-            ? {
-                ...item,
-                isRegistered: action === 'register',
-                currentParticipants: data.currentParticipants ?? item.currentParticipants,
-              }
-            : item
-        )
-      )
-    } catch (err) {
-      console.error('Failed to update registration:', err)
-      alert(err instanceof Error ? err.message : '処理に失敗しました')
-    } finally {
-      setIsSubmitting(false)
-    }
+  const handleEventClick = (eventId: string) => {
+    router.push(`/dashboard/events/${eventId}`)
   }
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
-      {/* サイドバー */}
       <Sidebar />
 
-      {/* メインコンテンツ */}
       <div className="flex-1 md:ml-64">
         <PageHeader title="イベント" />
 
         <main className="px-4 sm:px-6 lg:px-8 py-8">
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-slate-900">イベント一覧</h2>
-                <p className="text-slate-600">参加予定のイベントと新着イベント</p>
-              </div>
+            <div>
+              <h2 className="text-2xl font-bold text-slate-900">イベント一覧</h2>
+              <p className="text-slate-600">参加予定のイベントと新着イベント</p>
             </div>
 
             {error && (
@@ -425,252 +194,119 @@ function EventsPageContent() {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {visibleEvents.map(event => (
-                <Card key={event.id} className="hover:shadow-xl transition-all duration-300">
-                  {/* サムネイル画像 */}
-                  {event.thumbnailUrl && (
-                    <div className="w-full h-48 overflow-hidden rounded-t-lg">
-                      <img
-                        src={event.thumbnailUrl}
-                        alt={event.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                  <CardHeader>
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        {event.isNew && (
-                          <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 animate-pulse">
-                            <Sparkles className="h-3 w-3 mr-1" />
-                            NEW
-                          </Badge>
-                        )}
-                        {/* 全体MTGは必須として表示 */}
-                        <Badge variant={event.isRecurring ? 'destructive' : getEventTypeColor(event.type)}>
-                          {event.isRecurring ? '必須' : getEventTypeLabel(event.type)}
-                        </Badge>
-                        {event.isPaid && (
-                          <Badge variant="outline" className="bg-amber-50 border-amber-300 text-amber-700">
-                            ¥{event.price?.toLocaleString()}
-                          </Badge>
-                        )}
-                        {event.isRegistered && event.paymentStatus === 'PAID' && (
-                          <Badge variant="outline" className="bg-green-50 border-green-300 text-green-700">
-                            支払い済み
-                          </Badge>
-                        )}
-                        {event.isRegistered && event.paymentStatus === 'PENDING' && (
-                          <Badge variant="outline" className="bg-yellow-50 border-yellow-300 text-yellow-700">
-                            支払い待ち
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center text-sm text-slate-500 flex-shrink-0">
-                        <Users className="h-4 w-4 mr-1" />
-                        {event.maxParticipants !== null && event.maxParticipants !== undefined && event.maxParticipants > 0
-                          ? `${event.currentParticipants}/${event.maxParticipants}名`
-                          : `${event.currentParticipants}名参加`}
-                      </div>
-                    </div>
-                    <CardTitle className="text-lg">{event.title}</CardTitle>
-                    <CardDescription>{event.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex items-center text-sm text-slate-600">
-                        <Calendar className="h-4 w-4 mr-2" />
-                          {formatDate(event.date)}
-                      </div>
-                      <div className="flex items-center text-sm text-slate-600">
-                        <Clock className="h-4 w-4 mr-2" />
-                          {event.time || '時間未定'}
-                      </div>
-                      <div className="flex items-center text-sm text-slate-600">
-                        {event.venueType === 'online' ? (
-                          <Video className="h-4 w-4 mr-2" />
-                        ) : event.venueType === 'offline' ? (
-                          <MapPin className="h-4 w-4 mr-2" />
-                        ) : (
-                          <>
-                            <Video className="h-4 w-4 mr-1" />
-                            <MapPin className="h-4 w-4 mr-2" />
-                          </>
-                        )}
-                        {event.location}
-                      </div>
-                    </div>
-
-                    {/* 詳細を見るボタン */}
-                    <div className="mt-4">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => router.push(`/dashboard/events/${event.id}`)}
-                      >
-                        詳細を見る
-                        <ArrowRight className="h-4 w-4 ml-2" />
-                      </Button>
-                    </div>
-
-                    {/* 必須イベント以外は申込ボタンを表示 */}
-                    {event.attendanceType !== 'required' && (
-                      <div className="mt-2 flex flex-col sm:flex-row gap-2">
-                        {/* PENDING状態：支払い完了ボタン＋キャンセルボタン */}
-                        {event.isPaid && event.paymentStatus === 'PENDING' ? (
-                          <>
-                            <Button
-                              size="sm"
-                              variant="default"
-                              className="flex-1"
-                              disabled={isSubmitting}
-                              onClick={() => handleCheckout(event.id)}
-                            >
-                              支払いを完了する
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled={isSubmitting}
-                              onClick={() => handleCancelRegistration(event.id)}
-                            >
-                              キャンセル
-                            </Button>
-                          </>
-                        ) : /* PAID状態：参加確定メッセージ */
-                        event.isPaid && event.paymentStatus === 'PAID' ? (
-                          <div className="w-full text-center py-2 text-sm text-green-600 font-medium">
-                            ✓ 参加確定（お支払い完了）
-                          </div>
-                        ) : /* 未登録 or 無料イベント */
-                        canRegisterForEvent(event) ? (
-                          <Button
-                            size="sm"
-                            variant={event.isRegistered ? "outline" : "default"}
-                            className="flex-1"
-                            disabled={isSubmitting}
-                            onClick={() => handleToggleRegistration(event)}
+              <div className="space-y-6">
+                {/* 開催予定のイベント */}
+                {upcomingEvents.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
+                      開催予定
+                    </h3>
+                    <Card>
+                      <div className="divide-y divide-slate-100">
+                        {upcomingEvents.map(event => (
+                          <div
+                            key={event.id}
+                            onClick={() => handleEventClick(event.id)}
+                            className="flex items-center px-4 py-3 hover:bg-slate-50 cursor-pointer transition-colors group"
                           >
-                            {event.isRegistered
-                              ? "キャンセル"
-                              : event.isPaid
-                                ? `¥${event.price?.toLocaleString()}で申し込む`
-                                : "申し込む"
-                            }
-                          </Button>
-                        ) : (
-                          <Button
-                            size="sm"
-                            disabled
-                            className="flex-1"
-                          >
-                            参加不可
-                          </Button>
-                        )}
-                      </div>
-                    )}
-
-                    {event.type === 'manager-only' && user?.role !== 'manager' && user?.role !== 'admin' && (
-                      <div className="mt-2 text-xs text-slate-500 bg-slate-50 p-2 rounded">
-                        マネージャー限定イベントです
-                      </div>
-                    )}
-
-                    {event.maxParticipants !== null && event.maxParticipants !== undefined && event.maxParticipants > 0 && (
-                      <div className="mt-2 text-xs text-slate-500">
-                        定員: {event.currentParticipants}/{event.maxParticipants}名
-                      </div>
-                    )}
-
-                    {/* 出席確認セクション（登録済み or 動画/アンケートがある場合） */}
-                    {(event.isRegistered || event.vimeoUrl || event.surveyUrl) && !event.attendanceCompletedAt && (
-                      <div className="mt-4 space-y-4">
-                        {/* 参加コード入力（動画URLが設定されていない場合のみ） */}
-                        {event.hasAttendanceCode && !event.vimeoUrl && (
-                          <>
-                            {event.attendanceDeadline && new Date(event.attendanceDeadline) < new Date() ? (
-                              // 期限切れ
-                              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                                <p className="text-sm text-slate-600">出席確認の期限が過ぎました</p>
+                            {/* 日付 */}
+                            <div className="flex-shrink-0 w-16 text-center">
+                              <div className="text-sm font-semibold text-slate-900">
+                                {formatDate(event.date)}
                               </div>
-                            ) : (
-                              // 出席コード入力可能
-                              <AttendanceCodeInput
-                                eventId={event.id}
-                                eventTitle={event.title}
-                                onSuccess={() => {
-                                  // イベント一覧を再取得
-                                  window.location.reload()
-                                }}
-                              />
-                            )}
-                          </>
-                        )}
+                              <div className="text-xs text-slate-500">
+                                {event.time || '-'}
+                              </div>
+                            </div>
 
-                        {/* 録画視聴+アンケート */}
-                        {(event.vimeoUrl || event.surveyUrl) && (
-                          <>
-                            {event.attendanceDeadline && new Date(event.attendanceDeadline) < new Date() ? (
-                              // 期限切れ（コードがない場合のみ表示）
-                              !event.hasAttendanceCode && (
-                                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                                  <p className="text-sm text-slate-600">出席確認の期限が過ぎました</p>
-                                </div>
-                              )
-                            ) : (
-                              // 録画視聴+アンケート可能
-                              <VideoSurveyAttendance
-                                eventId={event.id}
-                                eventTitle={event.title}
-                                vimeoUrl={event.vimeoUrl}
-                                surveyUrl={event.surveyUrl}
-                                videoWatched={event.videoWatched}
-                                surveyCompleted={event.surveyCompleted}
-                                onSuccess={() => {
-                                  // イベント一覧を再取得
-                                  window.location.reload()
-                                }}
-                              />
-                            )}
-                          </>
-                        )}
-                      </div>
-                    )}
-
-                    {/* 出席完了表示 */}
-                    {event.isRegistered && event.attendanceCompletedAt && (
-                      <div className="mt-4">
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                          <div className="flex items-center gap-2 text-green-800">
-                            <CheckCircle2 className="h-5 w-5" />
-                            <div>
-                              <p className="font-semibold">出席完了</p>
-                              <p className="text-sm">
-                                {event.attendanceMethod === 'CODE' ? '参加コードで確認済み' : '録画視聴+アンケート完了'}
-                              </p>
-                              <p className="text-xs mt-1">
-                                {formatDate(event.attendanceCompletedAt)}
+                            {/* タイトル・バッジ */}
+                            <div className="flex-1 ml-4 min-w-0">
+                              <div className="flex items-center gap-2">
+                                {event.isNew && (
+                                  <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 text-[10px] px-1.5 py-0">
+                                    <Sparkles className="h-2.5 w-2.5 mr-0.5" />
+                                    NEW
+                                  </Badge>
+                                )}
+                                {event.isPaid && (
+                                  <Badge variant="outline" className="bg-amber-50 border-amber-300 text-amber-700 text-[10px] px-1.5 py-0">
+                                    ¥{event.price?.toLocaleString()}
+                                  </Badge>
+                                )}
+                                {event.isRegistered && (
+                                  <Badge variant="outline" className="bg-blue-50 border-blue-300 text-blue-700 text-[10px] px-1.5 py-0">
+                                    申込済
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-sm font-medium text-slate-900 truncate group-hover:text-primary-600">
+                                {event.title}
                               </p>
                             </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-                ))}
-              </div>
-            )}
 
-            {!isLoading && visibleEvents.length === 0 && (
-              <Card>
-                <CardContent className="text-center py-8">
-                  <Calendar className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                  <p className="text-slate-600">参加可能なイベントがありません</p>
-                </CardContent>
-              </Card>
+                            {/* 矢印 */}
+                            <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-slate-600 flex-shrink-0" />
+                          </div>
+                        ))}
+                      </div>
+                    </Card>
+                  </div>
+                )}
+
+                {/* 過去のイベント */}
+                {pastEvents.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
+                      過去のイベント
+                    </h3>
+                    <Card>
+                      <div className="divide-y divide-slate-100">
+                        {pastEvents.map(event => (
+                          <div
+                            key={event.id}
+                            onClick={() => handleEventClick(event.id)}
+                            className="flex items-center px-4 py-3 hover:bg-slate-50 cursor-pointer transition-colors group opacity-70"
+                          >
+                            {/* 日付 */}
+                            <div className="flex-shrink-0 w-16 text-center">
+                              <div className="text-sm font-semibold text-slate-600">
+                                {formatDate(event.date)}
+                              </div>
+                            </div>
+
+                            {/* タイトル・バッジ */}
+                            <div className="flex-1 ml-4 min-w-0">
+                              <div className="flex items-center gap-2">
+                                {event.attendanceCompletedAt && (
+                                  <Badge variant="outline" className="bg-green-50 border-green-300 text-green-700 text-[10px] px-1.5 py-0">
+                                    <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" />
+                                    参加済
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-sm font-medium text-slate-700 truncate group-hover:text-primary-600">
+                                {event.title}
+                              </p>
+                            </div>
+
+                            {/* 矢印 */}
+                            <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-slate-600 flex-shrink-0" />
+                          </div>
+                        ))}
+                      </div>
+                    </Card>
+                  </div>
+                )}
+
+                {events.length === 0 && (
+                  <Card>
+                    <CardContent className="text-center py-8">
+                      <Calendar className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                      <p className="text-slate-600">参加可能なイベントがありません</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
             )}
           </div>
         </main>
@@ -690,34 +326,13 @@ export default function EventsPage() {
 type EventItem = {
   id: string
   title: string
-  description: string
   date: string
   time: string
-  type: 'required' | 'optional' | 'manager-only' // 後方互換性のため残す
-  targetRoles: ('member' | 'fp' | 'manager' | 'all')[]
-  attendanceType: 'required' | 'optional'
-  venueType: 'online' | 'offline' | 'hybrid'
-  location: string
-  maxParticipants: number | null
-  currentParticipants: number
-  isRegistered: boolean
   status: 'upcoming' | 'completed' | 'cancelled'
-  thumbnailUrl: string | null
+  isRegistered: boolean
   isPaid: boolean
   price: number | null
   paymentStatus: string | null
-  // 新着表示関連
   isNew: boolean
-  updatedAt: string
-  // 出席確認関連
-  hasAttendanceCode: boolean
-  attendanceDeadline: string | null
-  vimeoUrl: string | null
-  surveyUrl: string | null
-  attendanceMethod: 'CODE' | 'VIDEO_SURVEY' | null
   attendanceCompletedAt: string | null
-  videoWatched: boolean
-  surveyCompleted: boolean
-  // 全体MTG関連
-  isRecurring: boolean
 }
