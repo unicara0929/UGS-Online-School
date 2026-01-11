@@ -11,6 +11,7 @@ import {
   sendBusinessCardOrderConfirmationEmail,
   sendBusinessCardOrderNotificationToAdmin,
 } from '@/lib/email'
+import { sendBusinessCardOrderChatworkNotification } from '@/lib/chatwork'
 import { sendEventConfirmationEmail } from '@/lib/services/email-service'
 import { prisma } from '@/lib/prisma'
 import { ReferralStatus, UserRole } from '@prisma/client'
@@ -398,6 +399,18 @@ async function handleBusinessCardPaymentCompleted(session: Stripe.Checkout.Sessi
     } catch (emailError) {
       console.error('Failed to send business card order emails:', emailError)
       // メール送信失敗でも処理は続行
+    }
+
+    // Chatwork通知を送信
+    try {
+      await sendBusinessCardOrderChatworkNotification({
+        userName: updatedOrder.user.name,
+        deliveryMethod: updatedOrder.deliveryMethod,
+        orderId: updatedOrder.id,
+      })
+    } catch (chatworkError) {
+      console.error('Failed to send business card order Chatwork notification:', chatworkError)
+      // Chatwork通知失敗でも処理は続行
     }
   } catch (error) {
     console.error('Failed to update business card order payment status:', error)
