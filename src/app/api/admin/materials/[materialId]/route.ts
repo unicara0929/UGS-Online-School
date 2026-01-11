@@ -40,6 +40,7 @@ export async function PATCH(
       fileSize,
       fileType,
       category,
+      folderId,
       viewableRoles,
     } = body || {}
 
@@ -72,6 +73,7 @@ export async function PATCH(
     if (fileSize !== undefined) updateData.fileSize = fileSize
     if (fileType !== undefined) updateData.fileType = fileType
     if (category !== undefined) updateData.category = category
+    if (folderId !== undefined) updateData.folderId = folderId || null
     if (viewableRoles !== undefined) {
       updateData.viewableRoles = viewableRoles.map(
         (role: string) => MATERIAL_VIEWABLE_ROLE_INPUT_MAP[role] ?? 'MEMBER'
@@ -94,6 +96,7 @@ export async function PATCH(
         fileSize: updatedMaterial.fileSize ?? '',
         fileType: updatedMaterial.fileType ?? '',
         category: updatedMaterial.category ?? '',
+        folderId: updatedMaterial.folderId,
         viewableRoles: updatedMaterial.viewableRoles.map(
           (role) => MATERIAL_VIEWABLE_ROLE_MAP[role as keyof typeof MATERIAL_VIEWABLE_ROLE_MAP]
         ),

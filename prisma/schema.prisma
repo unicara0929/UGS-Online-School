@@ -713,6 +713,20 @@ enum EventRefundStatus {
   FAILED      // 返金失敗
 }
 
+// 資料フォルダ
+model MaterialFolder {
+  id          String           @id @default(cuid())
+  name        String
+  parentId    String?          // 親フォルダID（nullならルート）
+  parent      MaterialFolder?  @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children    MaterialFolder[] @relation("FolderHierarchy")
+  materials   Material[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@map("material_folders")
+}
+
 model Material {
   id             String                 @id @default(cuid())
   title          String
@@ -722,6 +736,8 @@ model Material {
   fileSize       String? // 例: "2.5MB"
   fileType       String? // 例: "PDF", "DOCX"
   category       String? // 例: "マニュアル", "テンプレート"
+  folderId       String?                // フォルダID（nullならルート）
+  folder         MaterialFolder?        @relation(fields: [folderId], references: [id], onDelete: SetNull)
   viewableRoles  MaterialViewableRole[] // 閲覧可能ロール（複数選択）
   createdAt      DateTime               @default(now())
   updatedAt      DateTime               @updatedAt

@@ -18,7 +18,13 @@ import {
   X,
   Download,
   Loader2,
-  Save
+  Save,
+  Folder,
+  FolderPlus,
+  ChevronRight,
+  Home,
+  MoreVertical,
+  FolderOpen
 } from 'lucide-react'
 import {
   Dialog,
@@ -35,6 +41,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 interface Material {
   id: string
@@ -45,9 +57,25 @@ interface Material {
   fileSize: string
   fileType: string
   category: string
+  folderId: string | null
   viewableRoles: string[]
   createdAt: string
   updatedAt: string
+}
+
+interface MaterialFolder {
+  id: string
+  name: string
+  parentId: string | null
+  childCount: number
+  materialCount: number
+  createdAt: string
+  updatedAt: string
+}
+
+interface Breadcrumb {
+  id: string
+  name: string
 }
 
 const ROLE_OPTIONS = [
@@ -96,10 +124,15 @@ const formatFileSize = (bytes: string | number) => {
 
 export default function AdminMaterialsPage() {
   const [materials, setMaterials] = useState<Material[]>([])
+  const [folders, setFolders] = useState<MaterialFolder[]>([])
+  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null)
+  const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false)
   const [editingMaterial, setEditingMaterial] = useState<Material | null>(null)
+  const [editingFolder, setEditingFolder] = useState<MaterialFolder | null>(null)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -116,23 +149,47 @@ export default function AdminMaterialsPage() {
     viewableRoles: ['member', 'fp', 'manager', 'admin'] as string[],
   })
 
-  useEffect(() => {
-    fetchMaterials()
-  }, [])
+  const [folderName, setFolderName] = useState('')
 
-  const fetchMaterials = async () => {
+  useEffect(() => {
+    fetchData()
+  }, [currentFolderId])
+
+  const fetchData = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/admin/materials', {
-        credentials: 'include'
-      })
+      const folderParam = currentFolderId ? `?folderId=${currentFolderId}` : ''
+      const parentParam = currentFolderId ? `?parentId=${currentFolderId}` : ''
 
-      if (!response.ok) {
-        throw new Error('資料一覧の取得に失敗しました')
+      const [materialsRes, foldersRes] = await Promise.all([
+        fetch(`/api/admin/materials${folderParam}`, { credentials: 'include' }),
+        fetch(`/api/admin/material-folders${parentParam}`, { credentials: 'include' }),
+      ])
+
+      if (!materialsRes.ok || !foldersRes.ok) {
+        throw new Error('データの取得に失敗しました')
       }
 
-      const data = await response.json()
-      setMaterials(data.materials || [])
+      const [materialsData, foldersData] = await Promise.all([
+        materialsRes.json(),
+        foldersRes.json(),
+      ])
+
+      setMaterials(materialsData.materials || [])
+      setFolders(foldersData.folders || [])
+
+      // パンくずリストを取得
+      if (currentFolderId) {
+        const breadcrumbRes = await fetch(`/api/admin/material-folders/${currentFolderId}`, {
+          credentials: 'include',
+        })
+        if (breadcrumbRes.ok) {
+          const breadcrumbData = await breadcrumbRes.json()
+          setBreadcrumbs(breadcrumbData.breadcrumbs || [])
+        }
+      } else {
+        setBreadcrumbs([])
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'エラーが発生しました')
     } finally {
@@ -172,6 +229,23 @@ export default function AdminMaterialsPage() {
   const handleCloseDialog = () => {
     setIsDialogOpen(false)
     setEditingMaterial(null)
+  }
+
+  const handleOpenFolderDialog = (folder?: MaterialFolder) => {
+    if (folder) {
+      setEditingFolder(folder)
+      setFolderName(folder.name)
+    } else {
+      setEditingFolder(null)
+      setFolderName('')
+    }
+    setIsFolderDialogOpen(true)
+  }
+
+  const handleCloseFolderDialog = () => {
+    setIsFolderDialogOpen(false)
+    setEditingFolder(null)
+    setFolderName('')
   }
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -235,7 +309,10 @@ export default function AdminMaterialsPage() {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          folderId: currentFolderId,
+        }),
       })
 
       if (!response.ok) {
@@ -243,9 +320,48 @@ export default function AdminMaterialsPage() {
         throw new Error(data.error || '資料の保存に失敗しました')
       }
 
-      await fetchMaterials()
+      await fetchData()
       handleCloseDialog()
       alert(editingMaterial ? '資料を更新しました' : '資料を作成しました')
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'エラーが発生しました')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleSaveFolder = async () => {
+    if (!folderName.trim()) {
+      alert('フォルダ名を入力してください')
+      return
+    }
+
+    setSaving(true)
+    try {
+      const url = editingFolder
+        ? `/api/admin/material-folders/${editingFolder.id}`
+        : '/api/admin/material-folders'
+
+      const response = await fetch(url, {
+        method: editingFolder ? 'PATCH' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          name: folderName.trim(),
+          parentId: currentFolderId,
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'フォルダの保存に失敗しました')
+      }
+
+      await fetchData()
+      handleCloseFolderDialog()
+      alert(editingFolder ? 'フォルダを更新しました' : 'フォルダを作成しました')
     } catch (err) {
       alert(err instanceof Error ? err.message : 'エラーが発生しました')
     } finally {
@@ -270,7 +386,30 @@ export default function AdminMaterialsPage() {
       }
 
       alert('資料を削除しました')
-      fetchMaterials()
+      fetchData()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'エラーが発生しました')
+    }
+  }
+
+  const handleDeleteFolder = async (folderId: string, name: string) => {
+    if (!confirm(`フォルダ「${name}」を削除してもよろしいですか？\n※フォルダ内の資料はルートに移動されます`)) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/admin/material-folders/${folderId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'フォルダの削除に失敗しました')
+      }
+
+      alert('フォルダを削除しました')
+      fetchData()
     } catch (err) {
       alert(err instanceof Error ? err.message : 'エラーが発生しました')
     }
@@ -283,6 +422,10 @@ export default function AdminMaterialsPage() {
         ? prev.viewableRoles.filter(r => r !== role)
         : [...prev.viewableRoles, role]
     }))
+  }
+
+  const navigateToFolder = (folderId: string | null) => {
+    setCurrentFolderId(folderId)
   }
 
   if (loading) {
@@ -324,104 +467,182 @@ export default function AdminMaterialsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 mb-2">資料コンテンツ管理</h1>
-            <p className="text-slate-600">資料をアップロード・管理します</p>
+            <p className="text-slate-600">資料をフォルダで整理・管理します</p>
           </div>
-          <Button
-            onClick={() => handleOpenDialog()}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            新規資料追加
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => handleOpenFolderDialog()}
+              variant="outline"
+            >
+              <FolderPlus className="h-4 w-4 mr-2" />
+              フォルダ作成
+            </Button>
+            <Button
+              onClick={() => handleOpenDialog()}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              資料追加
+            </Button>
+          </div>
         </div>
 
-        {/* 資料一覧 */}
-        {materials.length === 0 ? (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <FileText className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-              <p className="text-slate-600 mb-4">まだ資料が登録されていません</p>
-              <Button onClick={() => handleOpenDialog()} variant="outline">
-                <Plus className="h-4 w-4 mr-2" />
-                最初の資料を追加
+        {/* パンくずリスト */}
+        <div className="flex items-center gap-1 text-sm">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigateToFolder(null)}
+            className={`p-1 h-auto ${!currentFolderId ? 'text-blue-600 font-medium' : 'text-slate-600'}`}
+          >
+            <Home className="h-4 w-4 mr-1" />
+            ルート
+          </Button>
+          {breadcrumbs.map((crumb, index) => (
+            <div key={crumb.id} className="flex items-center">
+              <ChevronRight className="h-4 w-4 text-slate-400" />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigateToFolder(crumb.id)}
+                className={`p-1 h-auto ${index === breadcrumbs.length - 1 ? 'text-blue-600 font-medium' : 'text-slate-600'}`}
+              >
+                {crumb.name}
               </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-4">
-            {materials.map((material) => (
-              <Card key={material.id} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-start space-x-4 mb-3">
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <FileText className="h-6 w-6 text-white" />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="text-xl font-bold text-slate-900 mb-1">{material.title}</h3>
-                          {material.description && (
-                            <p className="text-slate-600 mb-2">{material.description}</p>
-                          )}
-                          <div className="flex flex-wrap items-center gap-2 text-sm">
-                            {material.category && (
-                              <Badge variant="outline">
-                                {getCategoryLabel(material.category)}
-                              </Badge>
-                            )}
-                            {material.fileName && (
-                              <span className="text-slate-500">
-                                {material.fileName}
-                                {material.fileSize && ` (${formatFileSize(material.fileSize)})`}
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {material.viewableRoles.map(role => (
-                              <Badge key={role} variant="secondary" className="text-xs">
-                                {getRoleLabel(role)}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
+            </div>
+          ))}
+        </div>
+
+        {/* フォルダ・資料一覧 */}
+        <Card>
+          <CardContent className="p-0">
+            {folders.length === 0 && materials.length === 0 ? (
+              <div className="p-12 text-center">
+                <FolderOpen className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                <p className="text-slate-600 mb-4">このフォルダは空です</p>
+                <div className="flex justify-center gap-2">
+                  <Button onClick={() => handleOpenFolderDialog()} variant="outline">
+                    <FolderPlus className="h-4 w-4 mr-2" />
+                    フォルダを作成
+                  </Button>
+                  <Button onClick={() => handleOpenDialog()}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    資料を追加
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {/* フォルダ一覧 */}
+                {folders.map((folder) => (
+                  <div
+                    key={folder.id}
+                    className="flex items-center px-4 py-3 hover:bg-slate-50 transition-colors group"
+                  >
+                    <button
+                      onClick={() => navigateToFolder(folder.id)}
+                      className="flex items-center flex-1 text-left"
+                    >
+                      <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center mr-3">
+                        <Folder className="h-5 w-5 text-amber-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-medium text-slate-900">{folder.name}</h3>
+                        <p className="text-sm text-slate-500">
+                          {folder.childCount > 0 && `${folder.childCount}個のフォルダ`}
+                          {folder.childCount > 0 && folder.materialCount > 0 && '、'}
+                          {folder.materialCount > 0 && `${folder.materialCount}個の資料`}
+                          {folder.childCount === 0 && folder.materialCount === 0 && '空のフォルダ'}
+                        </p>
+                      </div>
+                    </button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleOpenFolderDialog(folder)}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          名前を変更
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleDeleteFolder(folder.id, folder.name)}
+                          className="text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          削除
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                ))}
+
+                {/* 資料一覧 */}
+                {materials.map((material) => (
+                  <div
+                    key={material.id}
+                    className="flex items-center px-4 py-3 hover:bg-slate-50 transition-colors group"
+                  >
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                      <FileText className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-medium text-slate-900 truncate">{material.title}</h3>
+                        {material.category && (
+                          <Badge variant="outline" className="text-xs shrink-0">
+                            {getCategoryLabel(material.category)}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-slate-500">
+                        {material.fileName && (
+                          <span className="truncate">
+                            {material.fileName}
+                            {material.fileSize && ` (${formatFileSize(material.fileSize)})`}
+                          </span>
+                        )}
+                        <span className="shrink-0">
+                          {material.viewableRoles.map(r => getRoleLabel(r)).join(', ')}
+                        </span>
                       </div>
                     </div>
-
-                    {/* アクションボタン */}
-                    <div className="flex items-center space-x-2 ml-4">
+                    <div className="flex items-center gap-1 ml-2">
                       {material.fileUrl && (
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => window.open(material.fileUrl, '_blank')}
+                          className="opacity-0 group-hover:opacity-100"
                         >
-                          <Download className="h-4 w-4 mr-1" />
-                          ダウンロード
+                          <Download className="h-4 w-4" />
                         </Button>
                       )}
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={() => handleOpenDialog(material)}
+                        className="opacity-0 group-hover:opacity-100"
                       >
-                        <Edit className="h-4 w-4 mr-1" />
-                        編集
+                        <Edit className="h-4 w-4" />
                       </Button>
                       <Button
-                        variant="destructive"
+                        variant="ghost"
                         size="sm"
                         onClick={() => handleDelete(material.id, material.title)}
+                        className="opacity-0 group-hover:opacity-100 text-red-600 hover:text-red-700"
                       >
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        削除
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* 資料追加/編集ダイアログ */}
@@ -571,6 +792,51 @@ export default function AdminMaterialsPage() {
                 <>
                   <Save className="h-4 w-4 mr-2" />
                   {editingMaterial ? '更新' : '作成'}
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* フォルダ作成/編集ダイアログ */}
+      <Dialog open={isFolderDialogOpen} onOpenChange={setIsFolderDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingFolder ? 'フォルダ名を変更' : '新規フォルダを作成'}
+            </DialogTitle>
+            <DialogDescription>
+              フォルダ名を入力してください
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            <div className="space-y-2">
+              <Label htmlFor="folderName">フォルダ名 *</Label>
+              <Input
+                id="folderName"
+                value={folderName}
+                onChange={(e) => setFolderName(e.target.value)}
+                placeholder="フォルダ名"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCloseFolderDialog}>
+              キャンセル
+            </Button>
+            <Button onClick={handleSaveFolder} disabled={saving}>
+              {saving ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  保存中...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  {editingFolder ? '更新' : '作成'}
                 </>
               )}
             </Button>

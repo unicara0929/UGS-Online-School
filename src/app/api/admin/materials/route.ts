@@ -16,7 +16,7 @@ const MATERIAL_VIEWABLE_ROLE_INPUT_MAP: Record<string, 'ADMIN' | 'MANAGER' | 'FP
   member: 'MEMBER',
 }
 
-// GET: 全資料を取得（管理者用）
+// GET: 資料を取得（管理者用、フォルダ指定対応）
 export async function GET(request: NextRequest) {
   try {
     // 認証チェック
@@ -27,7 +27,13 @@ export async function GET(request: NextRequest) {
     const { error: adminError } = checkAdmin(authUser!.role)
     if (adminError) return adminError
 
+    const { searchParams } = new URL(request.url)
+    const folderId = searchParams.get('folderId')
+
     const materials = await prisma.material.findMany({
+      where: {
+        folderId: folderId || null,
+      },
       orderBy: { createdAt: 'desc' },
     })
 
@@ -40,6 +46,7 @@ export async function GET(request: NextRequest) {
       fileSize: material.fileSize ?? '',
       fileType: material.fileType ?? '',
       category: material.category ?? '',
+      folderId: material.folderId,
       viewableRoles: material.viewableRoles.map(
         (role) => MATERIAL_VIEWABLE_ROLE_MAP[role as keyof typeof MATERIAL_VIEWABLE_ROLE_MAP]
       ),
@@ -77,6 +84,7 @@ export async function POST(request: NextRequest) {
       fileSize,
       fileType,
       category,
+      folderId,
       viewableRoles = [],
     } = body || {}
 
@@ -109,6 +117,7 @@ export async function POST(request: NextRequest) {
         fileSize,
         fileType,
         category,
+        folderId: folderId || null,
         viewableRoles: dbViewableRoles,
       },
     })
@@ -149,6 +158,7 @@ export async function POST(request: NextRequest) {
         fileSize: createdMaterial.fileSize ?? '',
         fileType: createdMaterial.fileType ?? '',
         category: createdMaterial.category ?? '',
+        folderId: createdMaterial.folderId,
         viewableRoles: createdMaterial.viewableRoles.map(
           (role) => MATERIAL_VIEWABLE_ROLE_MAP[role as keyof typeof MATERIAL_VIEWABLE_ROLE_MAP]
         ),
