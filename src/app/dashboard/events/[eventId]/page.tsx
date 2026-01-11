@@ -362,13 +362,18 @@ function EventDetailPageContent() {
 
             {/* サムネイル画像 */}
             {event.thumbnailUrl && (
-              <div className="w-full h-96 overflow-hidden rounded-lg shadow-lg">
+              <a
+                href={event.thumbnailUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full rounded-lg overflow-hidden shadow-lg hover:opacity-90 transition-opacity cursor-pointer"
+              >
                 <img
                   src={event.thumbnailUrl}
                   alt={event.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-auto object-contain"
                 />
-              </div>
+              </a>
             )}
 
             {/* イベント情報 */}
