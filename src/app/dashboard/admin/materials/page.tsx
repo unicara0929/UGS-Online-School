@@ -24,7 +24,8 @@ import {
   ChevronRight,
   Home,
   MoreVertical,
-  FolderOpen
+  FolderOpen,
+  FolderInput
 } from 'lucide-react'
 import {
   Dialog,
@@ -136,6 +137,12 @@ export default function AdminMaterialsPage() {
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // 移動ダイアログ用
+  const [isMoveDialogOpen, setIsMoveDialogOpen] = useState(false)
+  const [movingMaterial, setMovingMaterial] = useState<Material | null>(null)
+  const [allFolders, setAllFolders] = useState<MaterialFolder[]>([])
+  const [selectedMoveFolder, setSelectedMoveFolder] = useState<string>('root')
 
   // フォーム状態
   const [formData, setFormData] = useState({
@@ -428,6 +435,65 @@ export default function AdminMaterialsPage() {
     setCurrentFolderId(folderId)
   }
 
+  // 全フォルダを再帰的に取得
+  const fetchAllFolders = async (parentId: string | null = null, prefix: string = ''): Promise<MaterialFolder[]> => {
+    const param = parentId ? `?parentId=${parentId}` : ''
+    const res = await fetch(`/api/admin/material-folders${param}`, { credentials: 'include' })
+    if (!res.ok) return []
+    const data = await res.json()
+    const folders = data.folders || []
+
+    const result: MaterialFolder[] = []
+    for (const folder of folders) {
+      result.push({ ...folder, name: prefix + folder.name })
+      const children = await fetchAllFolders(folder.id, prefix + folder.name + ' / ')
+      result.push(...children)
+    }
+    return result
+  }
+
+  // 移動ダイアログを開く
+  const handleOpenMoveDialog = async (material: Material) => {
+    setMovingMaterial(material)
+    setSelectedMoveFolder(material.folderId || 'root')
+
+    // 全フォルダを取得
+    const folders = await fetchAllFolders()
+    setAllFolders(folders)
+    setIsMoveDialogOpen(true)
+  }
+
+  // 資料を移動
+  const handleMove = async () => {
+    if (!movingMaterial) return
+
+    setSaving(true)
+    try {
+      const response = await fetch(`/api/admin/materials/${movingMaterial.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          folderId: selectedMoveFolder === 'root' ? null : selectedMoveFolder,
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || '移動に失敗しました')
+      }
+
+      await fetchData()
+      setIsMoveDialogOpen(false)
+      setMovingMaterial(null)
+      alert('資料を移動しました')
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'エラーが発生しました')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
@@ -620,22 +686,30 @@ export default function AdminMaterialsPage() {
                           <Download className="h-4 w-4" />
                         </Button>
                       )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleOpenDialog(material)}
-                        className="opacity-0 group-hover:opacity-100"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(material.id, material.title)}
-                        className="opacity-0 group-hover:opacity-100 text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleOpenDialog(material)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            編集
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleOpenMoveDialog(material)}>
+                            <FolderInput className="h-4 w-4 mr-2" />
+                            フォルダに移動
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleDelete(material.id, material.title)}
+                            className="text-red-600"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            削除
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
                 ))}
@@ -837,6 +911,67 @@ export default function AdminMaterialsPage() {
                 <>
                   <Save className="h-4 w-4 mr-2" />
                   {editingFolder ? '更新' : '作成'}
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 資料移動ダイアログ */}
+      <Dialog open={isMoveDialogOpen} onOpenChange={setIsMoveDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>資料を移動</DialogTitle>
+            <DialogDescription>
+              「{movingMaterial?.title}」の移動先フォルダを選択してください
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            <div className="space-y-2">
+              <Label>移動先フォルダ</Label>
+              <Select
+                value={selectedMoveFolder}
+                onValueChange={setSelectedMoveFolder}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="フォルダを選択" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="root">
+                    <div className="flex items-center">
+                      <Home className="h-4 w-4 mr-2" />
+                      ルート
+                    </div>
+                  </SelectItem>
+                  {allFolders.map((folder) => (
+                    <SelectItem key={folder.id} value={folder.id}>
+                      <div className="flex items-center">
+                        <Folder className="h-4 w-4 mr-2 text-amber-600" />
+                        {folder.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsMoveDialogOpen(false)}>
+              キャンセル
+            </Button>
+            <Button onClick={handleMove} disabled={saving}>
+              {saving ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  移動中...
+                </>
+              ) : (
+                <>
+                  <FolderInput className="h-4 w-4 mr-2" />
+                  移動
                 </>
               )}
             </Button>
