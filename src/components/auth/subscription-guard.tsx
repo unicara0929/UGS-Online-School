@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { authenticatedFetch } from '@/lib/utils/api-client'
 
@@ -15,19 +15,26 @@ interface SubscriptionStatus {
 interface SubscriptionGuardProps {
   children: React.ReactNode
   allowAccess?: boolean
+  /** 決済エラー時でもアクセスを許可するパス */
+  allowedPaths?: string[]
 }
 
 /**
  * サブスクリプション状態に基づいてアクセスを制限するコンポーネント
  */
-export function SubscriptionGuard({ children, allowAccess = false }: SubscriptionGuardProps) {
-  const { user, isLoading } = useAuth()
+export function SubscriptionGuard({ children, allowAccess = false, allowedPaths = [] }: SubscriptionGuardProps) {
+  const { user, isLoading, logout } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null)
   const [isChecking, setIsChecking] = useState(true)
+  const [isUpdatingPayment, setIsUpdatingPayment] = useState(false)
+
+  // 現在のパスが許可リストに含まれているかチェック
+  const isPathAllowed = allowedPaths.some(path => pathname?.startsWith(path))
 
   useEffect(() => {
-    if (allowAccess || !user?.id) {
+    if (allowAccess || isPathAllowed || !user?.id) {
       setIsChecking(false)
       return
     }
@@ -51,7 +58,7 @@ export function SubscriptionGuard({ children, allowAccess = false }: Subscriptio
     }
 
     checkSubscription()
-  }, [user?.id, allowAccess])
+  }, [user?.id, allowAccess, isPathAllowed])
 
   // 管理者は常にアクセス可能
   if (user?.role === 'admin') {
@@ -77,10 +84,44 @@ export function SubscriptionGuard({ children, allowAccess = false }: Subscriptio
   const status = subscriptionStatus.stripeDetails?.status || subscriptionStatus.status.toLowerCase()
   const restrictedStatuses = ['past_due', 'unpaid', 'canceled', 'cancelled']
 
+  // カード情報更新ページを直接開く
+  const handleUpdatePaymentMethod = async () => {
+    setIsUpdatingPayment(true)
+    try {
+      const response = await authenticatedFetch('/api/user/subscription/update-payment-method', {
+        method: 'POST',
+        credentials: 'include',
+      })
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'カード情報更新ページの作成に失敗しました')
+      }
+      const data = await response.json()
+      window.location.href = data.url
+    } catch (error: any) {
+      alert(error.message || 'カード情報更新ページの作成に失敗しました')
+      setIsUpdatingPayment(false)
+    }
+  }
+
+  // ログアウト処理
+  const handleLogout = async () => {
+    try {
+      await logout()
+      router.push('/login')
+    } catch (error) {
+      console.error('Logout failed:', error)
+      // エラーでもログインページへ
+      window.location.href = '/login'
+    }
+  }
+
   if (restrictedStatuses.includes(status)) {
+    const isPastDueOrUnpaid = status === 'past_due' || status === 'unpaid'
+
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-red-50 to-pink-50 flex items-center justify-center">
-        <div className="max-w-md mx-auto p-8 bg-white rounded-xl shadow-lg">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-red-50 to-pink-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full mx-auto p-6 sm:p-8 bg-white rounded-xl shadow-lg">
           <div className="text-center">
             <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
               <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -88,29 +129,62 @@ export function SubscriptionGuard({ children, allowAccess = false }: Subscriptio
               </svg>
             </div>
             <h2 className="text-2xl font-bold text-slate-900 mb-3">
-              {status === 'past_due' || status === 'unpaid' 
-                ? '決済が完了していません' 
+              {isPastDueOrUnpaid
+                ? '決済が完了していません'
                 : 'サブスクリプションが無効です'}
             </h2>
             <p className="text-slate-600 mb-6">
-              {status === 'past_due' || status === 'unpaid'
+              {isPastDueOrUnpaid
                 ? 'お支払いが完了していないため、サービスへのアクセスが制限されています。カード情報を更新して決済を完了してください。'
                 : 'サブスクリプションがキャンセルされているため、サービスへのアクセスが制限されています。'}
             </p>
             <div className="space-y-3">
+              {/* 決済更新ボタン（直接Stripeへ） */}
+              {isPastDueOrUnpaid && (
+                <button
+                  onClick={handleUpdatePaymentMethod}
+                  disabled={isUpdatingPayment}
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-blue-400 disabled:to-indigo-400 text-white px-6 py-3 rounded-lg font-medium shadow-lg transition-all duration-200 flex items-center justify-center"
+                >
+                  {isUpdatingPayment ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      処理中...
+                    </>
+                  ) : (
+                    'カード情報を更新する'
+                  )}
+                </button>
+              )}
+
+              {/* サブスクリプション管理へ */}
               <button
                 onClick={() => router.push('/dashboard/settings/subscription')}
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-lg font-medium shadow-lg transition-all duration-200"
+                className={`w-full px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+                  isPastDueOrUnpaid
+                    ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                    : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg'
+                }`}
               >
                 サブスクリプション管理へ
               </button>
+
+              {/* ログアウト */}
               <button
-                onClick={() => router.push('/dashboard')}
-                className="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 px-6 py-3 rounded-lg font-medium transition-all duration-200"
+                onClick={handleLogout}
+                className="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 px-6 py-3 rounded-lg font-medium transition-all duration-200"
               >
-                ダッシュボードに戻る
+                ログアウト
               </button>
             </div>
+
+            {/* サポート案内 */}
+            <p className="text-xs text-slate-500 mt-6">
+              ご不明な点がございましたら、サポートまでお問い合わせください。
+            </p>
           </div>
         </div>
       </div>
