@@ -160,17 +160,15 @@ export function SubscriptionGuard({ children, allowAccess = false, allowedPaths 
                 </button>
               )}
 
-              {/* サブスクリプション管理へ */}
-              <button
-                onClick={() => router.push('/dashboard/settings/subscription')}
-                className={`w-full px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-                  isPastDueOrUnpaid
-                    ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                    : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg'
-                }`}
-              >
-                サブスクリプション管理へ
-              </button>
+              {/* サブスクリプション管理へ（キャンセル済みの場合のみ表示） */}
+              {!isPastDueOrUnpaid && (
+                <button
+                  onClick={() => router.push('/dashboard/settings/subscription')}
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-lg font-medium shadow-lg transition-all duration-200"
+                >
+                  サブスクリプション管理へ
+                </button>
+              )}
 
               {/* ログアウト */}
               <button
