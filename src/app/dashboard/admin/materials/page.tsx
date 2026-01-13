@@ -259,6 +259,16 @@ export default function AdminMaterialsPage() {
     const file = e.target.files?.[0]
     if (!file) return
 
+    // ファイルサイズチェック（50MB上限）
+    const MAX_FILE_SIZE = 50 * 1024 * 1024
+    if (file.size > MAX_FILE_SIZE) {
+      alert('ファイルサイズが大きすぎます（上限: 50MB）')
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+      return
+    }
+
     setUploading(true)
     try {
       const formDataUpload = new FormData()
@@ -271,8 +281,19 @@ export default function AdminMaterialsPage() {
       })
 
       if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'ファイルのアップロードに失敗しました')
+        // レスポンスがJSONかどうか確認
+        const contentType = response.headers.get('content-type')
+        if (contentType && contentType.includes('application/json')) {
+          const data = await response.json()
+          throw new Error(data.error || 'ファイルのアップロードに失敗しました')
+        } else {
+          // JSONでない場合（サーバーエラーなど）
+          const text = await response.text()
+          if (text.includes('Request Entity Too Large') || response.status === 413) {
+            throw new Error('ファイルサイズが大きすぎます。50MB以下のファイルを選択してください。')
+          }
+          throw new Error('ファイルのアップロードに失敗しました')
+        }
       }
 
       const data = await response.json()
