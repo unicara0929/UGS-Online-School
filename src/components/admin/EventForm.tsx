@@ -136,26 +136,6 @@ export function EventForm({
             </select>
           </div>
 
-          {/* 最大参加者数 */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              最大参加者数
-            </label>
-            <input
-              type="number"
-              value={formData.maxParticipants ?? ''}
-              onChange={(e) => {
-                const value = e.target.value
-                onFormChange({
-                  ...formData,
-                  maxParticipants: value === '' ? null : parseInt(value),
-                })
-              }}
-              className={inputClassName}
-              placeholder="空欄で無制限"
-            />
-          </div>
-
           {/* イベントタイプ（有料/無料） */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
