@@ -271,38 +271,56 @@ export default function AdminMaterialsPage() {
 
     setUploading(true)
     try {
-      const formDataUpload = new FormData()
-      formDataUpload.append('file', file)
-
-      const response = await fetch('/api/admin/materials/upload', {
+      // 1. 署名付きURLを取得
+      const urlResponse = await fetch('/api/admin/materials/upload-url', {
         method: 'POST',
         credentials: 'include',
-        body: formDataUpload,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileName: file.name,
+          fileType: file.type,
+        }),
       })
 
-      if (!response.ok) {
-        // レスポンスがJSONかどうか確認
-        const contentType = response.headers.get('content-type')
-        if (contentType && contentType.includes('application/json')) {
-          const data = await response.json()
-          throw new Error(data.error || 'ファイルのアップロードに失敗しました')
-        } else {
-          // JSONでない場合（サーバーエラーなど）
-          const text = await response.text()
-          if (text.includes('Request Entity Too Large') || response.status === 413) {
-            throw new Error('ファイルサイズが大きすぎます。50MB以下のファイルを選択してください。')
-          }
-          throw new Error('ファイルのアップロードに失敗しました')
-        }
+      if (!urlResponse.ok) {
+        const data = await urlResponse.json()
+        throw new Error(data.error || 'アップロードURLの取得に失敗しました')
       }
 
-      const data = await response.json()
+      const urlData = await urlResponse.json()
+
+      // 2. 署名付きURLを使って直接Supabaseにアップロード
+      const uploadResponse = await fetch(urlData.signedUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type || 'application/octet-stream',
+        },
+        body: file,
+      })
+
+      if (!uploadResponse.ok) {
+        throw new Error('ファイルのアップロードに失敗しました')
+      }
+
+      // ファイルサイズを計算（MBまたはKB）
+      let fileSizeStr = ''
+      if (file.size >= 1024 * 1024) {
+        fileSizeStr = `${(file.size / (1024 * 1024)).toFixed(2)}MB`
+      } else if (file.size >= 1024) {
+        fileSizeStr = `${(file.size / 1024).toFixed(2)}KB`
+      } else {
+        fileSizeStr = `${file.size}B`
+      }
+
+      // ファイルタイプを取得（拡張子から）
+      const fileExtension = file.name.split('.').pop()?.toUpperCase() || 'FILE'
+
       setFormData(prev => ({
         ...prev,
-        fileUrl: data.fileUrl,
-        fileName: data.fileName,
-        fileSize: data.fileSize,
-        fileType: data.fileType,
+        fileUrl: urlData.publicUrl,
+        fileName: file.name,
+        fileSize: fileSizeStr,
+        fileType: fileExtension,
       }))
     } catch (err) {
       alert(err instanceof Error ? err.message : 'ファイルのアップロードに失敗しました')
