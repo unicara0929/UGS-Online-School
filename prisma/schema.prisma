@@ -258,6 +258,7 @@ model EventRegistration {
   attendanceCompletedAt  DateTime?           // 出席完了日時
   videoWatched           Boolean             @default(false) // 録画視聴済みかどうか
   videoCompletedAt       DateTime?           // 動画視聴完了日時
+  videoProgress          Float               @default(0) // 視聴位置（秒）
   surveyCompleted        Boolean             @default(false) // アンケート回答済みかどうか
   surveyCompletedAt      DateTime?           // アンケート提出日時
   // 全体MTG参加意思（事前回答）

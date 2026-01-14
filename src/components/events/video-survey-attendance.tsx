@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Loader2, CheckCircle2, Video, FileText, ExternalLink } from 'lucide-react'
@@ -34,9 +34,14 @@ export function VideoSurveyAttendance({
   const [showVideo, setShowVideo] = useState(false)
   const [videoProgress, setVideoProgress] = useState(0)
   const [surveyOpened, setSurveyOpened] = useState(false)
+  const [savedProgress, setSavedProgress] = useState<number>(0)
+  const [isLoadingProgress, setIsLoadingProgress] = useState(false)
 
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const playerRef = useRef<Player | null>(null)
+  const currentTimeRef = useRef<number>(0)
+  const lastSavedTimeRef = useRef<number>(0)
+  const saveIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   // Vimeo動画IDを抽出
   const getVimeoVideoId = (url: string): string | null => {
@@ -53,11 +58,60 @@ export function VideoSurveyAttendance({
     return url
   }
 
+  // 視聴位置をサーバーに保存
+  const saveVideoProgress = useCallback(async (progress: number) => {
+    // 前回保存から10秒以上経過していない場合はスキップ
+    if (Math.abs(progress - lastSavedTimeRef.current) < 10) return
+
+    try {
+      await authenticatedFetch('/api/events/video-progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ eventId, progress }),
+      })
+      lastSavedTimeRef.current = progress
+    } catch (error) {
+      console.error('Failed to save video progress:', error)
+    }
+  }, [eventId])
+
+  // 保存された視聴位置を取得
+  useEffect(() => {
+    if (!videoWatched && vimeoUrl) {
+      setIsLoadingProgress(true)
+      authenticatedFetch(`/api/events/video-progress?eventId=${eventId}`, {
+        credentials: 'include',
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.videoProgress > 0) {
+            setSavedProgress(data.videoProgress)
+          }
+        })
+        .catch(error => console.error('Failed to load video progress:', error))
+        .finally(() => setIsLoadingProgress(false))
+    }
+  }, [eventId, videoWatched, vimeoUrl])
+
   // Vimeo Playerの初期化
   useEffect(() => {
     if (showVideo && iframeRef.current && vimeoUrl && !videoWatched) {
       const player = new Player(iframeRef.current)
       playerRef.current = player
+
+      // プレイヤー準備完了時に保存位置にシーク
+      player.ready().then(async () => {
+        if (savedProgress > 0) {
+          try {
+            await player.setCurrentTime(savedProgress)
+            setMessage({ type: 'success', text: `前回の続き（${Math.floor(savedProgress / 60)}分${Math.floor(savedProgress % 60)}秒）から再生します` })
+            setTimeout(() => setMessage(null), 3000)
+          } catch (error) {
+            console.error('Failed to seek to saved position:', error)
+          }
+        }
+      })
 
       // 再生終了イベント（100%視聴完了）
       player.on('ended', () => {
@@ -69,14 +123,40 @@ export function VideoSurveyAttendance({
       player.on('timeupdate', (data) => {
         const progress = Math.floor((data.seconds / data.duration) * 100)
         setVideoProgress(progress)
+        currentTimeRef.current = data.seconds
       })
+
+      // 定期的に視聴位置を保存（10秒ごと）
+      saveIntervalRef.current = setInterval(() => {
+        if (currentTimeRef.current > 0) {
+          saveVideoProgress(currentTimeRef.current)
+        }
+      }, 10000)
+
+      // ページ離脱時に視聴位置を保存
+      const handleBeforeUnload = () => {
+        if (currentTimeRef.current > 0) {
+          // sendBeaconで確実に送信
+          const data = JSON.stringify({ eventId, progress: currentTimeRef.current })
+          navigator.sendBeacon('/api/events/video-progress', data)
+        }
+      }
+      window.addEventListener('beforeunload', handleBeforeUnload)
 
       return () => {
         player.off('ended')
         player.off('timeupdate')
+        window.removeEventListener('beforeunload', handleBeforeUnload)
+        if (saveIntervalRef.current) {
+          clearInterval(saveIntervalRef.current)
+        }
+        // コンポーネントアンマウント時にも保存
+        if (currentTimeRef.current > 0) {
+          saveVideoProgress(currentTimeRef.current)
+        }
       }
     }
-  }, [showVideo, vimeoUrl, videoWatched])
+  }, [showVideo, vimeoUrl, videoWatched, savedProgress, saveVideoProgress])
 
   const handleMarkVideoWatched = async () => {
     if (isMarkingVideo) return
@@ -198,10 +278,31 @@ export function VideoSurveyAttendance({
           {vimeoUrl && !videoWatched && (
             <div className="space-y-3">
               {!showVideo ? (
-                <Button variant="outline" className="w-full" onClick={() => setShowVideo(true)}>
-                  <Video className="h-4 w-4 mr-2" />
-                  録画を視聴する
-                </Button>
+                <div className="space-y-2">
+                  <Button variant="outline" className="w-full" onClick={() => setShowVideo(true)} disabled={isLoadingProgress}>
+                    {isLoadingProgress ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        読み込み中...
+                      </>
+                    ) : savedProgress > 0 ? (
+                      <>
+                        <Video className="h-4 w-4 mr-2" />
+                        続きから視聴する（{Math.floor(savedProgress / 60)}分{Math.floor(savedProgress % 60)}秒〜）
+                      </>
+                    ) : (
+                      <>
+                        <Video className="h-4 w-4 mr-2" />
+                        録画を視聴する
+                      </>
+                    )}
+                  </Button>
+                  {savedProgress > 0 && (
+                    <p className="text-xs text-purple-600 text-center">
+                      前回の視聴位置から再開できます
+                    </p>
+                  )}
+                </div>
               ) : (
                 <div className="space-y-3">
                   <div className="aspect-video bg-black rounded-lg overflow-hidden">
