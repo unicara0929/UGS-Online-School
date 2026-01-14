@@ -6,6 +6,7 @@ import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import { Loader2, Plus, Calendar, Archive, GraduationCap, Users, Edit, Trash2, ChevronRight, Video, MapPin } from 'lucide-react'
 import { ProtectedRoute } from '@/components/auth/protected-route'
+import { useAuth } from '@/contexts/auth-context'
 import { Sidebar } from '@/components/navigation/sidebar'
 import { PageHeader } from '@/components/dashboard/page-header'
 import { Button } from '@/components/ui/button'
@@ -20,6 +21,8 @@ type EventTab = 'upcoming' | 'past'
 
 function AdminTrainingPageContent() {
   const router = useRouter()
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'admin'
   const [events, setEvents] = useState<AdminEventItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -259,15 +262,17 @@ function AdminTrainingPageContent() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-slate-900">イベント・研修管理</h2>
-                <p className="text-slate-600">イベント・研修の作成・編集・削除</p>
+                <p className="text-slate-600">{isAdmin ? 'イベント・研修の作成・編集・削除' : 'イベント・研修参加者の確認'}</p>
               </div>
-              <Button
-                onClick={() => setShowCreateForm(true)}
-                className="bg-emerald-600 hover:bg-emerald-700"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                新規作成
-              </Button>
+              {isAdmin && (
+                <Button
+                  onClick={() => setShowCreateForm(true)}
+                  className="bg-emerald-600 hover:bg-emerald-700"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  新規作成
+                </Button>
+              )}
             </div>
 
             {/* タブ切り替え */}
@@ -422,30 +427,34 @@ function AdminTrainingPageContent() {
 
                       {/* アクションボタン */}
                       <div className="flex-shrink-0 flex items-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-8 w-8 p-0"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleEditEvent(events.find(e => e.id === event.id)!)
-                          }}
-                          disabled={isSubmitting}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleDeleteEvent(event.id)
-                          }}
-                          disabled={isSubmitting}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {isAdmin && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleEditEvent(events.find(e => e.id === event.id)!)
+                              }}
+                              disabled={isSubmitting}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDeleteEvent(event.id)
+                              }}
+                              disabled={isSubmitting}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
                         <ChevronRight
                           className="h-4 w-4 text-slate-400 group-hover:text-slate-600 cursor-pointer"
                           onClick={() => router.push(`/dashboard/admin/events/${event.id}`)}

@@ -6,6 +6,7 @@ import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import { Loader2, Plus, Calendar, Archive, Users, Edit, Trash2, ChevronRight, CheckCircle2, Video } from 'lucide-react'
 import { ProtectedRoute } from '@/components/auth/protected-route'
+import { useAuth } from '@/contexts/auth-context'
 import { Sidebar } from '@/components/navigation/sidebar'
 import { PageHeader } from '@/components/dashboard/page-header'
 import { Button } from '@/components/ui/button'
@@ -31,6 +32,8 @@ interface MtgEventFormData {
 
 function AdminMtgPageContent() {
   const router = useRouter()
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'admin'
   const [events, setEvents] = useState<AdminEventItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -314,15 +317,17 @@ function AdminMtgPageContent() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-slate-900">月初（全体MTG）管理</h2>
-                <p className="text-slate-600">全体MTGの作成・編集・削除</p>
+                <p className="text-slate-600">{isAdmin ? '全体MTGの作成・編集・削除' : '全体MTG参加者の確認'}</p>
               </div>
-              <Button
-                onClick={() => setShowMtgCreateForm(true)}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                全体MTGを作成
-              </Button>
+              {isAdmin && (
+                <Button
+                  onClick={() => setShowMtgCreateForm(true)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  全体MTGを作成
+                </Button>
+              )}
             </div>
 
             {/* タブ切り替え */}
@@ -482,45 +487,49 @@ function AdminMtgPageContent() {
                       {/* アクションボタン */}
                       <div className="flex-shrink-0 flex items-center gap-1">
                         {/* 完了設定ボタン（開催予定のみ） */}
-                        {event.status === 'upcoming' && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-8 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-100"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleStartMtgComplete(event)
-                            }}
-                            disabled={isSubmitting}
-                          >
-                            <CheckCircle2 className="h-4 w-4 mr-1" />
-                            <span className="text-xs">完了</span>
-                          </Button>
+                        {isAdmin && (
+                          <>
+                            {event.status === 'upcoming' && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-100"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleStartMtgComplete(event)
+                                }}
+                                disabled={isSubmitting}
+                              >
+                                <CheckCircle2 className="h-4 w-4 mr-1" />
+                                <span className="text-xs">完了</span>
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleEditEvent(event)
+                              }}
+                              disabled={isSubmitting}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDeleteEvent(event.id)
+                              }}
+                              disabled={isSubmitting}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
                         )}
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-8 w-8 p-0"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleEditEvent(event)
-                          }}
-                          disabled={isSubmitting}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleDeleteEvent(event.id)
-                          }}
-                          disabled={isSubmitting}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
                         <ChevronRight
                           className="h-4 w-4 text-slate-400 group-hover:text-slate-600 cursor-pointer"
                           onClick={() => router.push(`/dashboard/admin/events/${event.id}/mtg`)}
