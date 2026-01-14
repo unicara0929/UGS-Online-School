@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -12,6 +13,12 @@ interface UpcomingEventsProps {
 }
 
 export function UpcomingEvents({ events }: UpcomingEventsProps) {
+  const router = useRouter()
+
+  const handleEventClick = (eventId: string) => {
+    router.push(`/dashboard/events/${eventId}`)
+  }
+
   return (
     <Card>
       <CardHeader className="p-4 sm:p-6">
@@ -38,8 +45,9 @@ export function UpcomingEvents({ events }: UpcomingEventsProps) {
                 size="sm"
                 variant={event.isRegistered ? "outline" : "default"}
                 className="w-full text-xs sm:text-sm h-8 sm:h-9"
+                onClick={() => handleEventClick(event.id)}
               >
-                {event.isRegistered ? "キャンセル" : "申し込む"}
+                {event.isRegistered ? "詳細を見る" : "申し込む"}
               </Button>
             </div>
           ))}
