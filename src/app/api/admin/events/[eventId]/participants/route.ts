@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
+import { getAuthenticatedUser, checkRole, RoleGroups } from '@/lib/auth/api-helpers'
 
 /**
  * イベント参加者一覧取得API
@@ -15,9 +15,9 @@ export async function GET(
     const { user: authUser, error: authError } = await getAuthenticatedUser(request)
     if (authError) return authError
 
-    // 管理者チェック
-    const { error: adminError } = checkAdmin(authUser!.role)
-    if (adminError) return adminError
+    // 管理者またはマネージャーチェック（閲覧権限）
+    const { error: roleError } = checkRole(authUser!.role, RoleGroups.MANAGER_AND_ABOVE)
+    if (roleError) return roleError
 
     const { eventId } = await context.params
     const { searchParams } = new URL(request.url)

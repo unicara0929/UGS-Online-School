@@ -78,6 +78,8 @@ export interface EventFormData {
   thumbnailUrl: string | null
   isPaid: boolean
   price: number | null
+  // オンライン参加URL
+  onlineMeetingUrl: string | null
   // 出席確認関連
   attendanceCode: string | null
   surveyUrl: string | null
@@ -111,6 +113,8 @@ export const DEFAULT_EVENT_FORM: EventFormData = {
   thumbnailUrl: null,
   isPaid: false,
   price: null,
+  // オンライン参加URL
+  onlineMeetingUrl: null,
   // 出席確認関連
   attendanceCode: null,
   surveyUrl: null,

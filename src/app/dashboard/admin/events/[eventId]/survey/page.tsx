@@ -731,7 +731,7 @@ function AdminSurveyPageContent({ params }: { params: Promise<{ eventId: string 
 
 export default function AdminSurveyPage({ params }: { params: Promise<{ eventId: string }> }) {
   return (
-    <ProtectedRoute requiredRoles={['admin']}>
+    <ProtectedRoute requiredRoles={['admin', 'manager']}>
       <AdminSurveyPageContent params={params} />
     </ProtectedRoute>
   )

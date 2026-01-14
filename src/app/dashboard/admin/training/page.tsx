@@ -465,7 +465,7 @@ function AdminTrainingPageContent() {
 
 export default function AdminTrainingPage() {
   return (
-    <ProtectedRoute requiredRoles={['admin']}>
+    <ProtectedRoute requiredRoles={['admin', 'manager']}>
       <AdminTrainingPageContent />
     </ProtectedRoute>
   )

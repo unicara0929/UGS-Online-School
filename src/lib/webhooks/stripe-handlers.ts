@@ -407,6 +407,8 @@ async function handleBusinessCardPaymentCompleted(session: Stripe.Checkout.Sessi
         userName: updatedOrder.user.name,
         deliveryMethod: updatedOrder.deliveryMethod,
         orderId: updatedOrder.id,
+        email: updatedOrder.email,
+        phoneNumber: updatedOrder.phoneNumber,
         shippingAddress: updatedOrder.deliveryMethod === 'SHIPPING' ? {
           postalCode: updatedOrder.postalCode,
           prefecture: updatedOrder.prefecture,

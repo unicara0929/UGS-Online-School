@@ -11,7 +11,7 @@ export async function GET(
   try {
     const { user, error: authError } = await getAuthenticatedUser(request)
     if (authError) return authError
-    if (!user || user.role !== 'ADMIN') {
+    if (!user || (user.role !== 'ADMIN' && user.role !== 'MANAGER')) {
       return NextResponse.json({ success: false, error: '権限がありません' }, { status: 403 })
     }
 

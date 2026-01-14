@@ -15,8 +15,8 @@ export async function GET(
     const { user: authUser, error: authError } = await getAuthenticatedUser(request)
     if (authError) return authError
 
-    // 管理者権限チェック
-    const { error: roleError } = checkRole(authUser!.role, RoleGroups.ADMIN_ONLY)
+    // 管理者またはマネージャーチェック（閲覧権限）
+    const { error: roleError } = checkRole(authUser!.role, RoleGroups.MANAGER_AND_ABOVE)
     if (roleError) return roleError
 
     const { eventId } = await context.params

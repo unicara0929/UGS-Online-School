@@ -540,7 +540,7 @@ function AdminMtgPageContent() {
 
 export default function AdminMtgPage() {
   return (
-    <ProtectedRoute requiredRoles={['admin']}>
+    <ProtectedRoute requiredRoles={['admin', 'manager']}>
       <AdminMtgPageContent />
     </ProtectedRoute>
   )

@@ -540,7 +540,7 @@ function AdminEventsPageContent() {
 
 export default function AdminEventsPage() {
   return (
-    <ProtectedRoute requiredRoles={['admin']}>
+    <ProtectedRoute requiredRoles={['admin', 'manager']}>
       <AdminEventsPageContent />
     </ProtectedRoute>
   )

@@ -107,11 +107,11 @@ export const navigation: NavItem[] = [
   {
     name: 'イベント・面談',
     icon: Calendar,
-    roles: ['admin'],
+    roles: ['admin', 'manager'],
     subItems: [
-      { name: '月初（全体MTG）管理', href: '/dashboard/admin/mtg', icon: CalendarCheck, roles: ['admin'] },
-      { name: 'キャンペーン案内', href: '/dashboard/admin/events', icon: Calendar, roles: ['admin'] },
-      { name: 'イベント・研修管理', href: '/dashboard/admin/training', icon: GraduationCap, roles: ['admin'] },
+      { name: '月初（全体MTG）管理', href: '/dashboard/admin/mtg', icon: CalendarCheck, roles: ['admin', 'manager'] },
+      { name: 'キャンペーン案内', href: '/dashboard/admin/events', icon: Calendar, roles: ['admin', 'manager'] },
+      { name: 'イベント・研修管理', href: '/dashboard/admin/training', icon: GraduationCap, roles: ['admin', 'manager'] },
       { name: 'LP面談管理', href: '/dashboard/admin/lp-meetings', icon: MessageSquare, roles: ['admin'] },
     ]
   },

@@ -672,7 +672,7 @@ function EventArchivePageContent() {
 
 export default function EventArchivePage() {
   return (
-    <ProtectedRoute requiredRoles={['admin']}>
+    <ProtectedRoute requiredRoles={['admin', 'manager']}>
       <EventArchivePageContent />
     </ProtectedRoute>
   )

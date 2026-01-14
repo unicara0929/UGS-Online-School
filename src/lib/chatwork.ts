@@ -54,6 +54,9 @@ export async function sendBusinessCardOrderChatworkNotification(params: {
   userName: string
   deliveryMethod: 'PICKUP' | 'SHIPPING'
   orderId: string
+  // 名刺に記載する連絡先
+  email?: string | null
+  phoneNumber?: string | null
   // 郵送先住所（郵送の場合のみ）
   shippingAddress?: {
     postalCode?: string | null
@@ -63,7 +66,7 @@ export async function sendBusinessCardOrderChatworkNotification(params: {
     addressLine2?: string | null
   }
 }): Promise<void> {
-  const { userName, deliveryMethod, orderId, shippingAddress } = params
+  const { userName, deliveryMethod, orderId, email, phoneNumber, shippingAddress } = params
   const roomId = process.env.CHATWORK_BUSINESS_CARD_ROOM_ID
 
   if (!roomId) {
@@ -91,6 +94,8 @@ export async function sendBusinessCardOrderChatworkNotification(params: {
   }
 
   const message = `[info][title]名刺注文決済完了[/title]ユーザー名: ${userName}
+メールアドレス: ${email || '未設定'}
+電話番号: ${phoneNumber || '未設定'}
 渡す方法: ${deliveryMethodLabel}${addressText}
 注文ID: ${orderId}[/info]`
 

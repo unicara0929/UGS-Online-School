@@ -1012,7 +1012,7 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
 
 export default function MtgParticipantsPage({ params }: { params: Promise<{ eventId: string }> }) {
   return (
-    <ProtectedRoute requiredRoles={['admin']}>
+    <ProtectedRoute requiredRoles={['admin', 'manager']}>
       <MtgParticipantsPageContent params={params} />
     </ProtectedRoute>
   )

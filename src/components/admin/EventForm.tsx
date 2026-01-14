@@ -229,6 +229,25 @@ export function EventForm({
             </div>
           </div>
 
+          {/* オンライン参加URL */}
+          {(formData.venueType === 'online' || formData.venueType === 'hybrid') && (
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                オンライン参加URL
+              </label>
+              <input
+                type="url"
+                value={formData.onlineMeetingUrl || ''}
+                onChange={(e) => onFormChange({ ...formData, onlineMeetingUrl: e.target.value || null })}
+                className={inputClassName}
+                placeholder="例: https://meet.google.com/xxx-xxxx-xxx"
+              />
+              <p className="text-xs text-slate-500 mt-1">
+                Google Meet、Zoom等のオンライン会議URLを入力してください
+              </p>
+            </div>
+          )}
+
           {/* 説明 */}
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-slate-700 mb-1">

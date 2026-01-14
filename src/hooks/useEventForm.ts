@@ -108,6 +108,8 @@ export function useEventForm(): UseEventFormReturn {
       thumbnailUrl: event.thumbnailUrl,
       isPaid: false,
       price: null,
+      // オンライン参加URL
+      onlineMeetingUrl: event.onlineMeetingUrl ?? null,
       // 過去イベント記録用
       summary: event.summary,
       photos: event.photos || [],
