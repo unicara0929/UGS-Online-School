@@ -99,7 +99,7 @@ function TrainingPageContent() {
   )
 
   const handleEventClick = (eventId: string) => {
-    router.push(`/dashboard/events/${eventId}`)
+    router.push(`/dashboard/training/${eventId}`)
   }
 
   return (
