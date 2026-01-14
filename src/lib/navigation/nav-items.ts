@@ -56,6 +56,17 @@ export const navigation: NavItem[] = [
   { name: 'インボイス申請フォーム', externalUrl: 'https://forms.gle/dkBGExfEuVhKppyk7', icon: Receipt, roles: ['fp'] },
   { name: '紹介管理', href: '/dashboard/referrals', icon: UserPlus, roles: ['member', 'fp', 'manager'] },
   { name: '契約管理', href: '/dashboard/contracts', icon: FileText, roles: ['fp', 'manager'] },
+  // MGR用イベント管理メニュー
+  {
+    name: 'イベント管理',
+    icon: Calendar,
+    roles: ['manager'],
+    subItems: [
+      { name: '月初（全体MTG）管理', href: '/dashboard/admin/mtg', icon: CalendarCheck, roles: ['manager'] },
+      { name: 'キャンペーン案内', href: '/dashboard/admin/events', icon: Calendar, roles: ['manager'] },
+      { name: 'イベント・研修管理', href: '/dashboard/admin/training', icon: GraduationCap, roles: ['manager'] },
+    ]
+  },
   { name: '通知', href: '/dashboard/notifications', icon: Bell, roles: ['member', 'fp', 'manager'] },
   { name: '昇格管理', href: '/dashboard/promotion', icon: Award, roles: ['member', 'fp'] },
   { name: 'LP面談予約', href: '/dashboard/lp-meeting/request', icon: MessageSquare, roles: ['member'] },
@@ -107,11 +118,11 @@ export const navigation: NavItem[] = [
   {
     name: 'イベント・面談',
     icon: Calendar,
-    roles: ['admin', 'manager'],
+    roles: ['admin'],
     subItems: [
-      { name: '月初（全体MTG）管理', href: '/dashboard/admin/mtg', icon: CalendarCheck, roles: ['admin', 'manager'] },
-      { name: 'キャンペーン案内', href: '/dashboard/admin/events', icon: Calendar, roles: ['admin', 'manager'] },
-      { name: 'イベント・研修管理', href: '/dashboard/admin/training', icon: GraduationCap, roles: ['admin', 'manager'] },
+      { name: '月初（全体MTG）管理', href: '/dashboard/admin/mtg', icon: CalendarCheck, roles: ['admin'] },
+      { name: 'キャンペーン案内', href: '/dashboard/admin/events', icon: Calendar, roles: ['admin'] },
+      { name: 'イベント・研修管理', href: '/dashboard/admin/training', icon: GraduationCap, roles: ['admin'] },
       { name: 'LP面談管理', href: '/dashboard/admin/lp-meetings', icon: MessageSquare, roles: ['admin'] },
     ]
   },
