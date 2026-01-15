@@ -9,6 +9,7 @@ import {
   Calendar,
   Loader2
 } from "lucide-react"
+import { useAuth } from "@/contexts/auth-context"
 
 interface DashboardStatsProps {
   userRole: string
@@ -26,8 +27,11 @@ interface PromotionConditions {
 }
 
 export function DashboardStats({ userRole }: DashboardStatsProps) {
+  const { user } = useAuth()
   const [promotionData, setPromotionData] = useState<{ met: number; total: number; label: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [eventCount, setEventCount] = useState<number>(0)
+  const [isLoadingEvents, setIsLoadingEvents] = useState(true)
 
   // FPエイド以上かどうかを判定（FP, MANAGER, ADMINは報酬表示）
   const isFPOrAbove = ['fp', 'manager', 'admin'].includes(userRole.toLowerCase())
@@ -36,6 +40,12 @@ export function DashboardStats({ userRole }: DashboardStatsProps) {
   useEffect(() => {
     fetchPromotionData()
   }, [userRole])
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchThisMonthEvents()
+    }
+  }, [user?.id])
 
   const fetchPromotionData = async () => {
     try {
@@ -78,6 +88,42 @@ export function DashboardStats({ userRole }: DashboardStatsProps) {
       console.error('Failed to fetch promotion data:', error)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const fetchThisMonthEvents = async () => {
+    try {
+      setIsLoadingEvents(true)
+      const response = await fetch(`/api/events?userId=${user?.id}`, {
+        credentials: 'include'
+      })
+
+      if (!response.ok) {
+        throw new Error('イベント情報の取得に失敗しました')
+      }
+
+      const data = await response.json()
+
+      if (data.success && data.events) {
+        // 今月のイベントをフィルタリング
+        const now = new Date()
+        const currentYear = now.getFullYear()
+        const currentMonth = now.getMonth()
+
+        const thisMonthEvents = data.events.filter((event: { date: string; status: string }) => {
+          const eventDate = new Date(event.date)
+          return eventDate.getFullYear() === currentYear &&
+                 eventDate.getMonth() === currentMonth &&
+                 event.status === 'upcoming'
+        })
+
+        setEventCount(thisMonthEvents.length)
+      }
+    } catch (error) {
+      console.error('Failed to fetch events:', error)
+      setEventCount(0)
+    } finally {
+      setIsLoadingEvents(false)
     }
   }
 
@@ -134,8 +180,14 @@ export function DashboardStats({ userRole }: DashboardStatsProps) {
           <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-600" />
         </CardHeader>
         <CardContent className="p-3 sm:p-6 pt-0">
-          <div className="text-lg sm:text-2xl font-bold">1</div>
-          <p className="text-[10px] sm:text-xs text-slate-600">月初MTG</p>
+          {isLoadingEvents ? (
+            <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+          ) : (
+            <>
+              <div className="text-lg sm:text-2xl font-bold">{eventCount}</div>
+              <p className="text-[10px] sm:text-xs text-slate-600">予定イベント数</p>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>
