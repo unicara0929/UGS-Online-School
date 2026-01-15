@@ -406,9 +406,17 @@ async function handleBusinessCardPaymentCompleted(session: Stripe.Checkout.Sessi
       await sendBusinessCardOrderChatworkNotification({
         userName: updatedOrder.user.name,
         deliveryMethod: updatedOrder.deliveryMethod,
-        orderId: updatedOrder.id,
         email: updatedOrder.email,
         phoneNumber: updatedOrder.phoneNumber,
+        // 名刺記載住所
+        cardAddress: {
+          postalCode: updatedOrder.cardPostalCode,
+          prefecture: updatedOrder.cardPrefecture,
+          city: updatedOrder.cardCity,
+          addressLine1: updatedOrder.cardAddressLine1,
+          addressLine2: updatedOrder.cardAddressLine2,
+        },
+        // 郵送先住所（郵送の場合のみ）
         shippingAddress: updatedOrder.deliveryMethod === 'SHIPPING' ? {
           postalCode: updatedOrder.postalCode,
           prefecture: updatedOrder.prefecture,

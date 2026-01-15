@@ -53,10 +53,17 @@ async function sendChatworkMessage({ roomId, message }: ChatworkMessageParams): 
 export async function sendBusinessCardOrderChatworkNotification(params: {
   userName: string
   deliveryMethod: 'PICKUP' | 'SHIPPING'
-  orderId: string
   // 名刺に記載する連絡先
   email?: string | null
   phoneNumber?: string | null
+  // 名刺記載住所
+  cardAddress?: {
+    postalCode?: string | null
+    prefecture?: string | null
+    city?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+  }
   // 郵送先住所（郵送の場合のみ）
   shippingAddress?: {
     postalCode?: string | null
@@ -66,7 +73,7 @@ export async function sendBusinessCardOrderChatworkNotification(params: {
     addressLine2?: string | null
   }
 }): Promise<void> {
-  const { userName, deliveryMethod, orderId, email, phoneNumber, shippingAddress } = params
+  const { userName, deliveryMethod, email, phoneNumber, cardAddress, shippingAddress } = params
   const roomId = process.env.CHATWORK_BUSINESS_CARD_ROOM_ID
 
   if (!roomId) {
@@ -78,8 +85,23 @@ export async function sendBusinessCardOrderChatworkNotification(params: {
     ? '本社で手渡し'
     : '郵送'
 
-  // 郵送の場合は住所を含める
-  let addressText = ''
+  // 名刺記載住所を整形
+  let cardAddressText = '未設定'
+  if (cardAddress) {
+    const parts = [
+      cardAddress.postalCode ? `〒${cardAddress.postalCode}` : '',
+      cardAddress.prefecture || '',
+      cardAddress.city || '',
+      cardAddress.addressLine1 || '',
+      cardAddress.addressLine2 || '',
+    ].filter(Boolean)
+    if (parts.length > 0) {
+      cardAddressText = parts.join(' ')
+    }
+  }
+
+  // 郵送の場合は郵送先住所を含める
+  let shippingAddressText = ''
   if (deliveryMethod === 'SHIPPING' && shippingAddress) {
     const parts = [
       shippingAddress.postalCode ? `〒${shippingAddress.postalCode}` : '',
@@ -89,15 +111,18 @@ export async function sendBusinessCardOrderChatworkNotification(params: {
       shippingAddress.addressLine2 || '',
     ].filter(Boolean)
     if (parts.length > 0) {
-      addressText = `\n郵送先: ${parts.join(' ')}`
+      shippingAddressText = `\n郵送先住所: ${parts.join(' ')}`
     }
   }
 
-  const message = `[info][title]名刺注文決済完了[/title]ユーザー名: ${userName}
+  // メンション先
+  const mentions = '[To:9252602]土岐成美さん\n[To:8991677]小林亮太さん\n\n'
+
+  const message = `${mentions}[info][title]名刺注文決済完了[/title]ユーザー名: ${userName}
 メールアドレス: ${email || '未設定'}
 電話番号: ${phoneNumber || '未設定'}
-渡す方法: ${deliveryMethodLabel}${addressText}
-注文ID: ${orderId}[/info]`
+名刺記載住所: ${cardAddressText}
+渡す方法: ${deliveryMethodLabel}${shippingAddressText}[/info]`
 
   try {
     await sendChatworkMessage({ roomId, message })
