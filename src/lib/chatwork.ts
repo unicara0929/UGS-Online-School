@@ -47,6 +47,57 @@ async function sendChatworkMessage({ roomId, message }: ChatworkMessageParams): 
   }
 }
 
+interface ChatworkTaskParams {
+  roomId: string
+  body: string
+  assigneeIds: string[] // 担当者のアカウントID
+  limitType?: 'none' | 'date' | 'time' // 期限タイプ
+}
+
+/**
+ * Chatworkにタスクを追加
+ */
+async function addChatworkTask({ roomId, body, assigneeIds, limitType = 'none' }: ChatworkTaskParams): Promise<void> {
+  const apiToken = process.env.CHATWORK_API_TOKEN
+
+  if (!apiToken) {
+    console.warn('[CHATWORK] CHATWORK_API_TOKEN is not set, skipping task creation')
+    return
+  }
+
+  if (!roomId) {
+    console.warn('[CHATWORK] Room ID is not provided, skipping task creation')
+    return
+  }
+
+  try {
+    const params = new URLSearchParams({
+      body,
+      to_ids: assigneeIds.join(','),
+      limit_type: limitType,
+    })
+
+    const response = await fetch(`${CHATWORK_API_URL}/rooms/${roomId}/tasks`, {
+      method: 'POST',
+      headers: {
+        'X-ChatWorkToken': apiToken,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: params,
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`Chatwork API error: ${response.status} - ${errorText}`)
+    }
+
+    console.log('[CHATWORK] Task created successfully in room:', roomId)
+  } catch (error) {
+    console.error('[CHATWORK] Failed to create task:', error)
+    throw error
+  }
+}
+
 /**
  * 名刺注文決済完了通知をChatworkに送信
  */
@@ -116,7 +167,7 @@ export async function sendBusinessCardOrderChatworkNotification(params: {
   }
 
   // メンション先
-  const mentions = '[To:9252602]土岐成美さん\n[To:8991677]小林亮太さん\n\n'
+  const mentions = '[To:9252602]土岐成美さん\n\n'
 
   const message = `${mentions}[info][title]名刺注文決済完了[/title]ユーザー名: ${userName}
 メールアドレス: ${email || '未設定'}
@@ -125,7 +176,16 @@ export async function sendBusinessCardOrderChatworkNotification(params: {
 渡す方法: ${deliveryMethodLabel}${shippingAddressText}[/info]`
 
   try {
+    // メッセージを送信
     await sendChatworkMessage({ roomId, message })
+
+    // タスクを追加（土岐さんに割り当て）
+    const taskBody = `名刺注文対応：${userName}さん（${deliveryMethodLabel}）`
+    await addChatworkTask({
+      roomId,
+      body: taskBody,
+      assigneeIds: ['9252602'], // 土岐成美さん
+    })
   } catch (error) {
     console.error('[CHATWORK] Failed to send business card order notification:', error)
     // 通知失敗でも決済処理は続行するため、エラーは再スローしない
