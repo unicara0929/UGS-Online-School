@@ -144,7 +144,20 @@ export async function POST(
         }
       })
 
-      // TODO: 確認メール送信
+      // 確認メール送信
+      try {
+        await sendExternalEventConfirmationEmail({
+          to: email,
+          name,
+          eventTitle: event.title,
+          eventDate: event.date,
+          eventTime: event.time || undefined,
+          eventLocation: event.location || undefined,
+        })
+      } catch (emailError) {
+        console.error('Failed to send confirmation email:', emailError)
+        // メール送信失敗しても登録は成功とする
+      }
 
       return NextResponse.json({
         success: true,
@@ -231,4 +244,66 @@ async function createCheckoutSession(
   })
 
   return session
+}
+
+// 外部参加者向け確認メール送信
+async function sendExternalEventConfirmationEmail(params: {
+  to: string
+  name: string
+  eventTitle: string
+  eventDate: Date
+  eventTime?: string
+  eventLocation?: string
+}): Promise<void> {
+  const { sendEmail } = await import('@/lib/email')
+  const { format } = await import('date-fns')
+  const { ja } = await import('date-fns/locale')
+
+  const formattedDate = format(params.eventDate, 'yyyy年M月d日(E)', { locale: ja })
+  const subject = `【UGS】イベント参加確定：${params.eventTitle}`
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0; text-align: center; }
+        .content { background: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 8px 8px; }
+        .event-info { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .event-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 10px; }
+        .event-detail { color: #666; margin: 5px 0; }
+        .footer { text-align: center; margin-top: 20px; color: #888; font-size: 12px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1 style="margin: 0; font-size: 24px;">イベント参加確定</h1>
+        </div>
+        <div class="content">
+          <p>${params.name} 様</p>
+          <p>以下のイベントへの参加が確定しました。</p>
+
+          <div class="event-info">
+            <div class="event-title">${params.eventTitle}</div>
+            <div class="event-detail">日時: ${formattedDate}${params.eventTime ? ` ${params.eventTime}` : ''}</div>
+            ${params.eventLocation ? `<div class="event-detail">場所: ${params.eventLocation}</div>` : ''}
+          </div>
+
+          <p>ご参加をお待ちしております。</p>
+          <p>ご不明点がございましたら、事務局までお問い合わせください。</p>
+
+          <div class="footer">
+            <p>このメールはUGSから自動送信されています。</p>
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+
+  await sendEmail({ to: params.to, subject, html })
 }
