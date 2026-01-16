@@ -43,6 +43,7 @@ export default function ExternalEventRegisterPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
+  const [referrer, setReferrer] = useState('')
   const [formError, setFormError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -92,7 +93,7 @@ export default function ExternalEventRegisterPage() {
       const response = await fetch(`/api/public/events/${token}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, phone }),
+        body: JSON.stringify({ name, email, phone, referrer: referrer.trim() || null }),
       })
 
       const data = await response.json()
@@ -267,14 +268,6 @@ export default function ExternalEventRegisterPage() {
                   <span>{event.location}</span>
                 </div>
               )}
-              {event.maxParticipants && (
-                <div className="flex items-center text-slate-600">
-                  <Users className="h-5 w-5 mr-3 text-slate-400" />
-                  <span>
-                    {event.currentParticipants} / {event.maxParticipants} 名
-                  </span>
-                </div>
-              )}
               {event.applicationDeadline && (
                 <div className="text-sm text-orange-600 mt-2">
                   申込期限: {formatDeadline(event.applicationDeadline)}
@@ -339,6 +332,20 @@ export default function ExternalEventRegisterPage() {
                     onChange={(e) => setPhone(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
                     placeholder="090-1234-5678"
+                    disabled={isSubmitting}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    紹介者
+                  </label>
+                  <input
+                    type="text"
+                    value={referrer}
+                    onChange={(e) => setReferrer(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                    placeholder="紹介者のお名前（任意）"
                     disabled={isSubmitting}
                   />
                 </div>

@@ -14,7 +14,7 @@ export async function POST(
   try {
     const { token } = await params
     const body = await request.json()
-    const { name, email, phone } = body
+    const { name, email, phone, referrer } = body
 
     // バリデーション
     if (!name || !email || !phone) {
@@ -140,6 +140,7 @@ export async function POST(
           name,
           email,
           phone,
+          referrer: referrer || null,
           paymentStatus: 'FREE',
         }
       })
@@ -153,6 +154,7 @@ export async function POST(
           eventDate: event.date,
           eventTime: event.time || undefined,
           eventLocation: event.location || undefined,
+          onlineMeetingUrl: event.onlineMeetingUrl || undefined,
         })
       } catch (emailError) {
         console.error('Failed to send confirmation email:', emailError)
@@ -175,6 +177,7 @@ export async function POST(
         name,
         email,
         phone,
+        referrer: referrer || null,
         paymentStatus: 'PENDING',
       }
     })
@@ -254,6 +257,7 @@ async function sendExternalEventConfirmationEmail(params: {
   eventDate: Date
   eventTime?: string
   eventLocation?: string
+  onlineMeetingUrl?: string
 }): Promise<void> {
   const { sendEmail } = await import('@/lib/email')
   const { format } = await import('date-fns')
@@ -275,6 +279,8 @@ async function sendExternalEventConfirmationEmail(params: {
         .event-info { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
         .event-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 10px; }
         .event-detail { color: #666; margin: 5px 0; }
+        .online-link { background: #e8f4fd; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #2196f3; }
+        .online-link a { color: #1976d2; text-decoration: none; word-break: break-all; }
         .footer { text-align: center; margin-top: 20px; color: #888; font-size: 12px; }
       </style>
     </head>
@@ -292,6 +298,13 @@ async function sendExternalEventConfirmationEmail(params: {
             <div class="event-detail">日時: ${formattedDate}${params.eventTime ? ` ${params.eventTime}` : ''}</div>
             ${params.eventLocation ? `<div class="event-detail">場所: ${params.eventLocation}</div>` : ''}
           </div>
+
+          ${params.onlineMeetingUrl ? `
+          <div class="online-link">
+            <strong>オンライン参加URL:</strong><br>
+            <a href="${params.onlineMeetingUrl}">${params.onlineMeetingUrl}</a>
+          </div>
+          ` : ''}
 
           <p>ご参加をお待ちしております。</p>
           <p>ご不明点がございましたら、事務局までお問い合わせください。</p>

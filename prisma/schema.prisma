@@ -293,6 +293,7 @@ model ExternalEventRegistration {
   name                  String
   email                 String
   phone                 String
+  referrer              String?             // 紹介者
   // 登録確認用トークン
   registrationToken     String              @unique @default(cuid())
   // 支払い関連（EventRegistrationと同じ構造）
