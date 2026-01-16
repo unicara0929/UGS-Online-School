@@ -16,8 +16,8 @@ import { sendEventConfirmationEmail } from '@/lib/services/email-service'
 import { prisma } from '@/lib/prisma'
 import { ReferralStatus, UserRole } from '@prisma/client'
 import Stripe from 'stripe'
-import { generateUniqueReferralCode } from '@/lib/services/referral-code-generator'
-import { generateMemberId } from '@/lib/services/member-id-generator'
+// Note: memberId/referralCode generation is now done inline within the transaction
+// to prevent race conditions (see handleCheckoutSessionCompleted)
 
 /**
  * checkout.session.completed イベントの処理
@@ -101,104 +101,160 @@ export async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Se
       )
 
       // 【トランザクション処理】Prisma側の操作をアトミックに実行
-      // トランザクション前にユニークなIDを生成（トランザクション内でのDB読み取りを最小化）
-      const referralCode = await generateUniqueReferralCode()
-      const memberId = await generateMemberId()
+      // memberId/referralCode生成とユーザー作成を同一トランザクション内で行い、
+      // 重複エラー時はリトライすることでレースコンディションを防止
+      const MAX_RETRIES = 3
+      let user = null
+      let lastError: Error | null = null
 
-      const user = await prisma.$transaction(async (tx) => {
-        // 1. Prismaユーザーの作成または取得
-        let user = await tx.user.findUnique({
-          where: { id: supabaseUser.user.id }
-        })
+      for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+        try {
+          user = await prisma.$transaction(async (tx) => {
+            // 1. 既存ユーザーをチェック（既に作成済みなら再利用）
+            let existingUser = await tx.user.findUnique({
+              where: { id: supabaseUser.user.id }
+            })
 
-        if (!user) {
-          user = await tx.user.create({
-            data: {
-              id: supabaseUser.user.id,
-              email: userEmail,
-              name: userName || pendingUser.name,
-              role: UserRole.MEMBER,
-              membershipStatus: 'PENDING',
-              memberId,
-              referralCode,
-            }
-          })
-          console.log('Prisma user created in transaction:', user.id)
-        }
+            if (existingUser) {
+              console.log('User already exists, reusing:', existingUser.id)
+            } else {
+              // 2. トランザクション内でユニークなmemberIdを生成
+              const latestUser = await tx.user.findFirst({
+                where: { memberId: { startsWith: 'UGS' } },
+                orderBy: { memberId: 'desc' },
+                select: { memberId: true }
+              })
 
-        // 2. サブスクリプションの作成（存在しない場合のみ）
-        const existingSubscription = await tx.subscription.findFirst({
-          where: { userId: user.id }
-        })
-
-        if (!existingSubscription) {
-          await tx.subscription.create({
-            data: {
-              userId: user.id,
-              stripeCustomerId: session.customer as string,
-              stripeSubscriptionId: session.subscription as string,
-              status: 'ACTIVE',
-            }
-          })
-          console.log('Subscription created in transaction for user:', user.id)
-        }
-
-        // 3. 会員ステータスをACTIVEに更新
-        user = await tx.user.update({
-          where: { id: user.id },
-          data: {
-            membershipStatus: 'ACTIVE',
-            membershipStatusChangedAt: new Date(),
-            membershipStatusReason: '決済完了により有効会員に移行'
-          }
-        })
-
-        // 4. 紹介コードがある場合、紹介レコードを作成
-        if (pendingUser.referralCode) {
-          const referrer = await tx.user.findUnique({
-            where: { referralCode: pendingUser.referralCode },
-            select: { id: true, role: true }
-          })
-
-          if (referrer && referrer.id !== user.id) {
-            const existingReferral = await tx.referral.findUnique({
-              where: {
-                referrerId_referredId: {
-                  referrerId: referrer.id,
-                  referredId: user.id
+              let nextNumber = 1
+              if (latestUser?.memberId) {
+                const numberPart = latestUser.memberId.replace('UGS', '')
+                const currentNumber = parseInt(numberPart, 10)
+                if (!isNaN(currentNumber)) {
+                  nextNumber = currentNumber + 1
                 }
+              }
+              const memberId = `UGS${nextNumber.toString().padStart(7, '0')}`
+
+              // 3. トランザクション内でユニークなreferralCodeを生成
+              const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+              let referralCode = ''
+              for (let i = 0; i < 8; i++) {
+                referralCode += chars.charAt(Math.floor(Math.random() * chars.length))
+              }
+              // 重複チェック（万が一重複していてもP2002で再試行される）
+
+              // 4. ユーザー作成
+              existingUser = await tx.user.create({
+                data: {
+                  id: supabaseUser.user.id,
+                  email: userEmail,
+                  name: userName || pendingUser.name,
+                  role: UserRole.MEMBER,
+                  membershipStatus: 'PENDING',
+                  memberId,
+                  referralCode,
+                }
+              })
+              console.log('Prisma user created in transaction:', existingUser.id, 'memberId:', memberId)
+            }
+
+            // 5. サブスクリプションの作成（存在しない場合のみ）
+            const existingSubscription = await tx.subscription.findFirst({
+              where: { userId: existingUser.id }
+            })
+
+            if (!existingSubscription) {
+              await tx.subscription.create({
+                data: {
+                  userId: existingUser.id,
+                  stripeCustomerId: session.customer as string,
+                  stripeSubscriptionId: session.subscription as string,
+                  status: 'ACTIVE',
+                }
+              })
+              console.log('Subscription created in transaction for user:', existingUser.id)
+            }
+
+            // 6. 会員ステータスをACTIVEに更新
+            existingUser = await tx.user.update({
+              where: { id: existingUser.id },
+              data: {
+                membershipStatus: 'ACTIVE',
+                membershipStatusChangedAt: new Date(),
+                membershipStatusReason: '決済完了により有効会員に移行'
               }
             })
 
-            if (!existingReferral) {
-              const referralType = referrer.role === 'FP' ? 'FP' : 'MEMBER'
-              await tx.referral.create({
-                data: {
-                  referrerId: referrer.id,
-                  referredId: user.id,
-                  referralType: referralType as any,
-                  status: ReferralStatus.PENDING
+            // 7. 紹介コードがある場合、紹介レコードを作成
+            if (pendingUser.referralCode) {
+              const referrer = await tx.user.findUnique({
+                where: { referralCode: pendingUser.referralCode },
+                select: { id: true, role: true }
+              })
+
+              if (referrer && referrer.id !== existingUser.id) {
+                const existingReferral = await tx.referral.findUnique({
+                  where: {
+                    referrerId_referredId: {
+                      referrerId: referrer.id,
+                      referredId: existingUser.id
+                    }
+                  }
+                })
+
+                if (!existingReferral) {
+                  const referralType = referrer.role === 'FP' ? 'FP' : 'MEMBER'
+                  await tx.referral.create({
+                    data: {
+                      referrerId: referrer.id,
+                      referredId: existingUser.id,
+                      referralType: referralType as any,
+                      status: ReferralStatus.PENDING
+                    }
+                  })
+                  console.log('Referral created in transaction:', {
+                    referrerId: referrer.id,
+                    referredId: existingUser.id
+                  })
                 }
-              })
-              console.log('Referral created in transaction:', {
-                referrerId: referrer.id,
-                referredId: user.id
-              })
+              }
+            }
+
+            // 8. PendingUserを削除
+            await tx.pendingUser.delete({
+              where: { id: pendingUser.id }
+            })
+            console.log('PendingUser deleted in transaction:', pendingUser.id)
+
+            return existingUser
+          }, {
+            timeout: 30000, // 30秒のタイムアウト
+            maxWait: 5000,  // 最大5秒待機
+          })
+
+          // 成功したらループを抜ける
+          break
+        } catch (err: any) {
+          lastError = err
+          // memberIdまたはreferralCodeの重複エラーの場合はリトライ
+          if (err.code === 'P2002') {
+            const target = err.meta?.target || []
+            if (target.includes('memberId') || target.includes('referralCode')) {
+              console.log(`Unique constraint violation on ${target}, retrying... (attempt ${attempt + 1}/${MAX_RETRIES})`)
+              continue
             }
           }
+          // その他のエラーは即座にスロー
+          throw err
         }
+      }
 
-        // 5. PendingUserを削除
-        await tx.pendingUser.delete({
-          where: { id: pendingUser.id }
-        })
-        console.log('PendingUser deleted in transaction:', pendingUser.id)
-
-        return user
-      }, {
-        timeout: 30000, // 30秒のタイムアウト
-        maxWait: 5000,  // 最大5秒待機
-      })
+      // リトライ上限に達した場合、またはユーザーが作成されなかった場合
+      if (!user) {
+        const errorMessage = lastError?.message || '不明なエラー'
+        console.error('Failed to create user after max retries:', errorMessage)
+        throw lastError || new Error('ユーザー作成に失敗しました')
+      }
 
       console.log('✅ New user registration completed successfully:', {
         userId: user.id,
