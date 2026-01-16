@@ -13,6 +13,45 @@ const transporter = nodemailer.createTransport({
   },
 })
 
+/**
+ * 汎用メール送信関数
+ */
+export async function sendEmail(params: {
+  to: string
+  subject: string
+  html: string
+}) {
+  const mailOptions = {
+    from: `"UGS" <${process.env.SMTP_USER}>`,
+    to: params.to,
+    subject: params.subject,
+    encoding: 'utf-8',
+    html: params.html,
+  }
+
+  try {
+    // 開発モードでメール送信をスキップする場合
+    if (process.env.NODE_ENV === 'development' && !process.env.SMTP_PASS) {
+      console.log('📧 [DEV MODE] Email would be sent to:', params.to)
+      console.log('📧 Subject:', params.subject)
+      return
+    }
+
+    await transporter.sendMail(mailOptions)
+    console.log('✅ Email sent successfully to:', params.to)
+  } catch (error: any) {
+    console.error('❌ Error sending email:', error)
+
+    // 開発モードではエラーを無視して続行
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('⚠️ Email sending failed, but continuing in development mode')
+      return
+    }
+
+    throw error
+  }
+}
+
 export interface PaymentConfirmationEmailData {
   to: string
   userName: string

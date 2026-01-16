@@ -112,6 +112,9 @@ export async function GET(request: NextRequest) {
         isRecurring: event.isRecurring ?? false,
         // イベントカテゴリ
         eventCategory: event.eventCategory ?? 'REGULAR',
+        // 外部参加者設定
+        allowExternalParticipation: event.allowExternalParticipation ?? false,
+        externalRegistrationToken: event.externalRegistrationToken ?? null,
         registrations: event.registrations.map((registration) => {
           // 免除申請情報を取得
           const exemption = event.isRecurring
@@ -213,6 +216,8 @@ export async function POST(request: NextRequest) {
       recurrencePattern,
       // イベントカテゴリ
       eventCategory,
+      // 外部参加者設定
+      allowExternalParticipation = false,
       // 過去イベント記録用
       summary,
       photos = [],
@@ -280,6 +285,9 @@ export async function POST(request: NextRequest) {
         actualLocation: actualLocation || null,
         adminNotes: adminNotes || null,
         isArchiveOnly,
+        // 外部参加者設定
+        allowExternalParticipation,
+        externalRegistrationToken: allowExternalParticipation ? crypto.randomUUID() : null,
       },
     })
 

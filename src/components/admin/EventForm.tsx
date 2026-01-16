@@ -289,6 +289,53 @@ export function EventForm({
               </p>
             </div>
           )}
+
+          {/* 外部参加者設定 */}
+          <div className="md:col-span-2 pt-4 border-t">
+            <label className="flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.allowExternalParticipation}
+                onChange={(e) => onFormChange({
+                  ...formData,
+                  allowExternalParticipation: e.target.checked
+                })}
+                className="w-4 h-4 text-slate-600 bg-slate-100 border-slate-300 rounded focus:ring-slate-500 focus:ring-2"
+              />
+              <span className="ml-2 text-sm font-medium text-slate-700">
+                外部参加者を許可する
+              </span>
+            </label>
+            <p className="text-xs text-slate-500 mt-1 ml-6">
+              ONにすると、アプリ未登録のユーザーも申し込み可能な公開URLが発行されます
+            </p>
+
+            {formData.allowExternalParticipation && formData.externalRegistrationToken && (
+              <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                <p className="text-sm text-slate-700 font-medium mb-1">公開登録URL:</p>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={`${typeof window !== 'undefined' ? window.location.origin : ''}/events/${formData.externalRegistrationToken}/register`}
+                    className="flex-1 text-sm px-2 py-1 bg-white border border-slate-200 rounded"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const url = `${window.location.origin}/events/${formData.externalRegistrationToken}/register`
+                      navigator.clipboard.writeText(url)
+                      alert('URLをコピーしました')
+                    }}
+                  >
+                    コピー
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* ボタン */}

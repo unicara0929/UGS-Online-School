@@ -76,6 +76,8 @@ export async function PUT(
       applicationDeadline,
       // イベントカテゴリ
       eventCategory,
+      // 外部参加者設定
+      allowExternalParticipation,
       // 過去イベント記録用
       summary,
       photos,
@@ -159,6 +161,15 @@ export async function PUT(
     if (actualLocation !== undefined) updateData.actualLocation = actualLocation || null
     if (adminNotes !== undefined) updateData.adminNotes = adminNotes || null
     if (isArchiveOnly !== undefined) updateData.isArchiveOnly = isArchiveOnly
+
+    // 外部参加者設定
+    if (allowExternalParticipation !== undefined) {
+      updateData.allowExternalParticipation = allowExternalParticipation
+      // ONに変更された場合でトークンがなければ生成
+      if (allowExternalParticipation && !existingEvent.externalRegistrationToken) {
+        updateData.externalRegistrationToken = crypto.randomUUID()
+      }
+    }
 
     // 有料イベントの検証
     if (isPaid && (!price || price <= 0)) {
@@ -254,6 +265,9 @@ export async function PUT(
         actualLocation: updatedEvent.actualLocation ?? null,
         adminNotes: updatedEvent.adminNotes ?? null,
         isArchiveOnly: updatedEvent.isArchiveOnly ?? false,
+        // 外部参加者設定
+        allowExternalParticipation: updatedEvent.allowExternalParticipation ?? false,
+        externalRegistrationToken: updatedEvent.externalRegistrationToken ?? null,
       },
     })
   } catch (error) {

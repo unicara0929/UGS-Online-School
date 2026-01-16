@@ -53,6 +53,9 @@ export interface AdminEventItem {
   isRecurring: boolean
   applicationDeadline: string | null
   onlineMeetingUrl: string | null
+  // 外部参加者設定
+  allowExternalParticipation: boolean
+  externalRegistrationToken: string | null
   // 過去イベント記録用
   summary: string | null
   photos: string[]
@@ -87,6 +90,9 @@ export interface EventFormData {
   // 全体MTG関連
   isRecurring: boolean
   applicationDeadline: string | null
+  // 外部参加者設定
+  allowExternalParticipation: boolean
+  externalRegistrationToken: string | null
   // 過去イベント記録用
   summary: string | null
   photos: string[]
@@ -122,6 +128,9 @@ export const DEFAULT_EVENT_FORM: EventFormData = {
   // 全体MTG関連
   isRecurring: false,
   applicationDeadline: null,
+  // 外部参加者設定
+  allowExternalParticipation: false,
+  externalRegistrationToken: null,
   // 過去イベント記録用
   summary: null,
   photos: [],

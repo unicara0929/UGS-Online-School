@@ -4,6 +4,7 @@ import { getAuthenticatedUser, checkRole, RoleGroups } from '@/lib/auth/api-help
 
 /**
  * イベント参加者CSVエクスポートAPI
+ * 内部参加者と外部参加者の両方をエクスポート
  */
 export async function GET(
   request: NextRequest,
@@ -20,7 +21,7 @@ export async function GET(
 
     const { eventId } = await context.params
 
-    // イベント情報を取得
+    // イベント情報を取得（内部参加者）
     const event = await prisma.event.findUnique({
       where: { id: eventId },
       include: {
@@ -39,6 +40,11 @@ export async function GET(
             createdAt: 'desc',
           },
         },
+        externalRegistrations: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
       },
     })
 
@@ -52,8 +58,10 @@ export async function GET(
     // CSVヘッダー
     const headers = [
       'ID',
+      '参加者種別',
       '名前',
       'メールアドレス',
+      '電話番号',
       'ロール',
       '支払いステータス',
       '支払い金額',
@@ -63,11 +71,13 @@ export async function GET(
       'キャンセル理由',
     ]
 
-    // CSVデータを生成
-    const rows = event.registrations.map((reg) => [
+    // 内部参加者のデータを生成
+    const internalRows = event.registrations.map((reg) => [
       reg.id,
+      '内部',
       reg.user.name,
       reg.user.email,
+      '', // 内部参加者は電話番号なし
       reg.user.role,
       reg.paymentStatus,
       reg.paidAmount || '',
@@ -77,10 +87,33 @@ export async function GET(
       reg.cancelReason || '',
     ])
 
+    // 外部参加者のデータを生成
+    const externalRows = event.externalRegistrations.map((reg) => [
+      reg.id,
+      '外部',
+      reg.name,
+      reg.email,
+      reg.phone,
+      'EXTERNAL',
+      reg.paymentStatus,
+      reg.paidAmount || '',
+      new Date(reg.createdAt).toISOString(),
+      reg.paidAt ? new Date(reg.paidAt).toISOString() : '',
+      '', // 外部参加者はキャンセル日時なし
+      '', // 外部参加者はキャンセル理由なし
+    ])
+
+    // 全てのデータを結合して日時順でソート
+    const allRows = [...internalRows, ...externalRows].sort((a, b) => {
+      const dateA = new Date(a[8] as string).getTime()
+      const dateB = new Date(b[8] as string).getTime()
+      return dateB - dateA
+    })
+
     // CSV文字列を生成
     const csvContent = [
       headers.map((h) => `"${h}"`).join(','),
-      ...rows.map((row) =>
+      ...allRows.map((row) =>
         row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')
       ),
     ].join('\n')

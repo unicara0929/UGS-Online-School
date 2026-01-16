@@ -26,10 +26,12 @@ import Link from 'next/link'
 
 type Participant = {
   id: string
-  userId: string
+  isExternal: boolean
+  userId: string | null
   userName: string
   userEmail: string
   userRole: string
+  userPhone: string | null
   paymentStatus: string
   paidAmount: number | null
   registeredAt: string
@@ -40,6 +42,8 @@ type Participant = {
 
 type EventSummary = {
   totalCount: number
+  internalCount: number
+  externalCount: number
   paidCount: number
   pendingCount: number
   freeCount: number
@@ -61,6 +65,7 @@ function EventDetailPageContent() {
   // フィルター状態
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>('all')
   const [roleFilter, setRoleFilter] = useState<string>('all')
+  const [participantTypeFilter, setParticipantTypeFilter] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState<string>('')
 
   // メール送信関連
@@ -80,6 +85,7 @@ function EventDetailPageContent() {
       const params = new URLSearchParams()
       if (paymentStatusFilter !== 'all') params.append('status', paymentStatusFilter)
       if (roleFilter !== 'all') params.append('role', roleFilter)
+      if (participantTypeFilter !== 'all') params.append('participantType', participantTypeFilter)
       if (searchQuery) params.append('search', searchQuery)
 
       const response = await fetch(`/api/admin/events/${eventId}/participants?${params.toString()}`, {
@@ -114,7 +120,7 @@ function EventDetailPageContent() {
     if (eventId) {
       fetchParticipants()
     }
-  }, [eventId, paymentStatusFilter, roleFilter, searchQuery])
+  }, [eventId, paymentStatusFilter, roleFilter, participantTypeFilter, searchQuery])
 
   const formatDate = (dateString: string) => {
     try {
@@ -152,6 +158,7 @@ function EventDetailPageContent() {
       case 'FP': return 'FPエイド'
       case 'MANAGER': return 'マネージャー'
       case 'ADMIN': return '管理者'
+      case 'EXTERNAL': return '外部参加者'
       default: return role
     }
   }
@@ -160,23 +167,27 @@ function EventDetailPageContent() {
     window.location.href = `/api/admin/events/${eventId}/participants/export`
   }
 
-  // 全選択/全解除
+  // 全選択/全解除（内部参加者のみ - 外部参加者はuserIdがないためメール送信対象外）
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedUserIds(filteredParticipants.map(p => p.userId))
+      setSelectedUserIds(filteredParticipants.filter(p => p.userId).map(p => p.userId!))
     } else {
       setSelectedUserIds([])
     }
   }
 
-  // 個別選択
-  const handleSelectUser = (userId: string, checked: boolean) => {
+  // 個別選択（内部参加者のみ）
+  const handleSelectUser = (userId: string | null, checked: boolean) => {
+    if (!userId) return // 外部参加者は選択不可
     if (checked) {
       setSelectedUserIds(prev => [...prev, userId])
     } else {
       setSelectedUserIds(prev => prev.filter(id => id !== userId))
     }
   }
+
+  // 選択可能な参加者数（内部参加者のみ）
+  const selectableParticipants = filteredParticipants.filter(p => p.userId)
 
   // メール送信処理
   const handleSendEmail = async () => {
@@ -314,12 +325,28 @@ function EventDetailPageContent() {
 
             {/* 参加者サマリー */}
             {summary && (
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
                 <Card>
                   <CardContent className="pt-6">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-slate-900">{summary.totalCount}</div>
                       <div className="text-xs text-slate-500 mt-1">総申込数</div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-slate-700">{summary.internalCount}</div>
+                      <div className="text-xs text-slate-500 mt-1">内部参加</div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-600">{summary.externalCount}</div>
+                      <div className="text-xs text-slate-500 mt-1">外部参加</div>
                     </div>
                   </CardContent>
                 </Card>
@@ -363,7 +390,7 @@ function EventDetailPageContent() {
               <CardContent className="pt-6">
                 <div className="space-y-4">
                   {/* フィルター */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
                         支払いステータス
@@ -382,12 +409,27 @@ function EventDetailPageContent() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
+                        参加者種別
+                      </label>
+                      <select
+                        value={participantTypeFilter}
+                        onChange={(e) => setParticipantTypeFilter(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                      >
+                        <option value="all">全て</option>
+                        <option value="internal">内部参加者</option>
+                        <option value="external">外部参加者</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
                         ロール
                       </label>
                       <select
                         value={roleFilter}
                         onChange={(e) => setRoleFilter(e.target.value)}
                         className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                        disabled={participantTypeFilter === 'external'}
                       >
                         <option value="all">全て</option>
                         <option value="MEMBER">UGS会員</option>
@@ -454,14 +496,16 @@ function EventDetailPageContent() {
                           <th className="px-4 py-3 w-12">
                             <input
                               type="checkbox"
-                              checked={selectedUserIds.length === filteredParticipants.length && filteredParticipants.length > 0}
+                              checked={selectedUserIds.length === selectableParticipants.length && selectableParticipants.length > 0}
                               onChange={(e) => handleSelectAll(e.target.checked)}
                               className="w-4 h-4 text-slate-600 bg-slate-100 border-slate-300 rounded focus:ring-slate-500"
+                              title="内部参加者のみ選択可能"
                             />
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">名前</th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">メール</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">ロール</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">電話番号</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">種別</th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">支払いステータス</th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">申込日時</th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">支払い日時</th>
@@ -469,19 +513,32 @@ function EventDetailPageContent() {
                       </thead>
                       <tbody className="divide-y divide-slate-200">
                         {filteredParticipants.map((participant) => (
-                          <tr key={participant.id} className="hover:bg-slate-50">
+                          <tr key={participant.id} className={`hover:bg-slate-50 ${participant.isExternal ? 'bg-purple-50/30' : ''}`}>
                             <td className="px-4 py-3">
-                              <input
-                                type="checkbox"
-                                checked={selectedUserIds.includes(participant.userId)}
-                                onChange={(e) => handleSelectUser(participant.userId, e.target.checked)}
-                                className="w-4 h-4 text-slate-600 bg-slate-100 border-slate-300 rounded focus:ring-slate-500"
-                              />
+                              {participant.userId ? (
+                                <input
+                                  type="checkbox"
+                                  checked={selectedUserIds.includes(participant.userId)}
+                                  onChange={(e) => handleSelectUser(participant.userId, e.target.checked)}
+                                  className="w-4 h-4 text-slate-600 bg-slate-100 border-slate-300 rounded focus:ring-slate-500"
+                                />
+                              ) : (
+                                <span className="text-slate-400" title="外部参加者は選択不可">-</span>
+                              )}
                             </td>
                             <td className="px-4 py-3 text-sm text-slate-900">{participant.userName}</td>
                             <td className="px-4 py-3 text-sm text-slate-600">{participant.userEmail}</td>
+                            <td className="px-4 py-3 text-sm text-slate-600">
+                              {participant.userPhone || '-'}
+                            </td>
                             <td className="px-4 py-3 text-sm">
-                              <Badge variant="outline">{getRoleLabel(participant.userRole)}</Badge>
+                              {participant.isExternal ? (
+                                <Badge variant="outline" className="bg-purple-50 border-purple-300 text-purple-700">
+                                  外部参加者
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline">{getRoleLabel(participant.userRole)}</Badge>
+                              )}
                             </td>
                             <td className="px-4 py-3 text-sm">
                               <Badge variant="outline" className={getPaymentStatusColor(participant.paymentStatus)}>

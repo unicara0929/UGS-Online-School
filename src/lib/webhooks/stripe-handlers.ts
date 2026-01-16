@@ -29,6 +29,12 @@ export async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Se
     return
   }
 
+  // 外部参加者イベント支払いの場合
+  if (session.metadata?.type === 'external-event') {
+    await handleExternalEventPaymentCompleted(session)
+    return
+  }
+
   // 名刺注文支払いの場合
   if (session.metadata?.type === 'business-card') {
     await handleBusinessCardPaymentCompleted(session)
@@ -293,6 +299,118 @@ async function handleEventPaymentCompleted(session: Stripe.Checkout.Session): Pr
   } catch (error) {
     console.error('Failed to update event registration payment status:', error)
   }
+}
+
+/**
+ * 外部参加者イベント支払い完了の処理
+ */
+async function handleExternalEventPaymentCompleted(session: Stripe.Checkout.Session): Promise<void> {
+  const { eventId, externalRegistrationId } = session.metadata || {}
+
+  if (!externalRegistrationId) {
+    console.error('Missing externalRegistrationId in external event payment session metadata')
+    return
+  }
+
+  try {
+    // ExternalEventRegistrationを更新: PENDING → PAID
+    const registration = await prisma.externalEventRegistration.update({
+      where: { id: externalRegistrationId },
+      data: {
+        paymentStatus: 'PAID',
+        stripePaymentIntentId: session.payment_intent as string,
+        paidAmount: session.amount_total || 0,
+        paidAt: new Date(),
+      },
+      include: {
+        event: true,
+      }
+    })
+
+    console.log(`External event payment completed: eventId=${eventId}, registrationId=${externalRegistrationId}`)
+
+    // 外部参加者への確認メールを送信
+    try {
+      await sendExternalEventConfirmationEmail({
+        to: registration.email,
+        name: registration.name,
+        eventTitle: registration.event.title,
+        eventDate: registration.event.date,
+        eventTime: registration.event.time || undefined,
+        eventLocation: registration.event.location || undefined,
+      })
+      console.log('External event confirmation email sent to:', registration.email)
+    } catch (emailError) {
+      console.error('Failed to send external event confirmation email:', emailError)
+      // メール送信失敗でも処理は続行
+    }
+  } catch (error) {
+    console.error('Failed to update external event registration payment status:', error)
+  }
+}
+
+/**
+ * 外部参加者向けイベント確認メール送信
+ */
+async function sendExternalEventConfirmationEmail(params: {
+  to: string
+  name: string
+  eventTitle: string
+  eventDate: Date
+  eventTime?: string
+  eventLocation?: string
+}): Promise<void> {
+  const { sendEmail } = await import('@/lib/email')
+  const { format } = await import('date-fns')
+  const { ja } = await import('date-fns/locale')
+
+  const formattedDate = format(params.eventDate, 'yyyy年M月d日(E)', { locale: ja })
+  const subject = `【UGS】イベント参加確定：${params.eventTitle}`
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0; text-align: center; }
+        .content { background: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 8px 8px; }
+        .event-info { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .event-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 10px; }
+        .event-detail { color: #666; margin: 5px 0; }
+        .footer { text-align: center; margin-top: 20px; color: #888; font-size: 12px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1 style="margin: 0; font-size: 24px;">イベント参加確定</h1>
+        </div>
+        <div class="content">
+          <p>${params.name} 様</p>
+          <p>以下のイベントへの参加が確定しました。</p>
+
+          <div class="event-info">
+            <div class="event-title">${params.eventTitle}</div>
+            <div class="event-detail">日時: ${formattedDate}${params.eventTime ? ` ${params.eventTime}` : ''}</div>
+            ${params.eventLocation ? `<div class="event-detail">場所: ${params.eventLocation}</div>` : ''}
+          </div>
+
+          <p>ご参加をお待ちしております。</p>
+          <p>ご不明点がございましたら、事務局までお問い合わせください。</p>
+
+          <div class="footer">
+            <p>このメールはUGSから自動送信されています。</p>
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+
+  await sendEmail({ to: params.to, subject, html })
 }
 
 const ROLE_LABELS: Record<string, string> = {

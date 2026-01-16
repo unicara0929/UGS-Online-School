@@ -5,6 +5,7 @@ import { getAuthenticatedUser, checkRole, RoleGroups } from '@/lib/auth/api-help
 /**
  * イベント参加者一覧取得API
  * 管理者がイベントの参加者リストを取得
+ * 内部参加者（登録ユーザー）と外部参加者の両方を含む
  */
 export async function GET(
   request: NextRequest,
@@ -25,6 +26,7 @@ export async function GET(
     // フィルターパラメータ
     const paymentStatus = searchParams.get('status') // PAID, PENDING, FREE, etc.
     const role = searchParams.get('role') // MEMBER, FP, MANAGER
+    const participantType = searchParams.get('participantType') // internal, external, all
     const search = searchParams.get('search') // 名前・メールで検索
 
     // イベント情報を取得
@@ -39,70 +41,135 @@ export async function GET(
       )
     }
 
-    // 参加者一覧を取得（フィルター適用）
-    const whereClause: any = {
-      eventId: eventId,
-    }
+    // 内部参加者を取得（フィルター適用）
+    let internalParticipants: any[] = []
+    if (!participantType || participantType === 'all' || participantType === 'internal') {
+      const whereClause: any = {
+        eventId: eventId,
+      }
 
-    // 支払いステータスフィルター
-    if (paymentStatus && paymentStatus !== 'all') {
-      whereClause.paymentStatus = paymentStatus
-    }
+      // 支払いステータスフィルター
+      if (paymentStatus && paymentStatus !== 'all') {
+        whereClause.paymentStatus = paymentStatus
+      }
 
-    // ユーザーのロールと検索条件
-    const userWhereClause: any = {}
-    if (role && role !== 'all') {
-      userWhereClause.role = role.toUpperCase()
-    }
-    if (search) {
-      userWhereClause.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } },
-      ]
-    }
+      // ユーザーのロールと検索条件
+      const userWhereClause: any = {}
+      if (role && role !== 'all') {
+        userWhereClause.role = role.toUpperCase()
+      }
+      if (search) {
+        userWhereClause.OR = [
+          { name: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+        ]
+      }
 
-    const registrations = await prisma.eventRegistration.findMany({
-      where: {
-        ...whereClause,
-        ...(Object.keys(userWhereClause).length > 0 ? { user: userWhereClause } : {}),
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true,
+      const registrations = await prisma.eventRegistration.findMany({
+        where: {
+          ...whereClause,
+          ...(Object.keys(userWhereClause).length > 0 ? { user: userWhereClause } : {}),
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              role: true,
+            },
           },
         },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      })
+
+      internalParticipants = registrations.map((reg) => ({
+        id: reg.id,
+        isExternal: false,
+        userId: reg.user.id,
+        userName: reg.user.name,
+        userEmail: reg.user.email,
+        userRole: reg.user.role,
+        userPhone: null,
+        paymentStatus: reg.paymentStatus,
+        paidAmount: reg.paidAmount,
+        registeredAt: reg.createdAt.toISOString(),
+        paidAt: reg.paidAt?.toISOString() || null,
+        canceledAt: reg.canceledAt?.toISOString() || null,
+        cancelReason: reg.cancelReason || null,
+      }))
+    }
+
+    // 外部参加者を取得（roleフィルターがかかっている場合は除外）
+    let externalParticipants: any[] = []
+    if ((!participantType || participantType === 'all' || participantType === 'external') && (!role || role === 'all')) {
+      const externalWhereClause: any = {
+        eventId: eventId,
+      }
+
+      // 支払いステータスフィルター
+      if (paymentStatus && paymentStatus !== 'all') {
+        externalWhereClause.paymentStatus = paymentStatus
+      }
+
+      // 検索条件
+      if (search) {
+        externalWhereClause.OR = [
+          { name: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+        ]
+      }
+
+      const externalRegistrations = await prisma.externalEventRegistration.findMany({
+        where: externalWhereClause,
+        orderBy: {
+          createdAt: 'desc',
+        },
+      })
+
+      externalParticipants = externalRegistrations.map((reg) => ({
+        id: reg.id,
+        isExternal: true,
+        userId: null,
+        userName: reg.name,
+        userEmail: reg.email,
+        userRole: 'EXTERNAL',
+        userPhone: reg.phone,
+        paymentStatus: reg.paymentStatus,
+        paidAmount: reg.paidAmount,
+        registeredAt: reg.createdAt.toISOString(),
+        paidAt: reg.paidAt?.toISOString() || null,
+        canceledAt: null,
+        cancelReason: null,
+      }))
+    }
+
+    // 内部・外部参加者を結合して日時順でソート
+    const allParticipants = [...internalParticipants, ...externalParticipants]
+      .sort((a, b) => new Date(b.registeredAt).getTime() - new Date(a.registeredAt).getTime())
+
+    // サマリー情報を計算（全参加者）
+    const allRegistrations = await prisma.eventRegistration.findMany({
+      where: { eventId },
+    })
+    const allExternalRegistrations = await prisma.externalEventRegistration.findMany({
+      where: { eventId },
     })
 
-    // レスポンス用にフォーマット
-    const participants = registrations.map((reg) => ({
-      id: reg.id,
-      userId: reg.user.id,
-      userName: reg.user.name,
-      userEmail: reg.user.email,
-      userRole: reg.user.role,
-      paymentStatus: reg.paymentStatus,
-      paidAmount: reg.paidAmount,
-      registeredAt: reg.createdAt.toISOString(),
-      paidAt: reg.paidAt?.toISOString() || null,
-      canceledAt: reg.canceledAt?.toISOString() || null,
-      cancelReason: reg.cancelReason || null,
-    }))
-
-    // サマリー情報を計算
     const summary = {
-      totalCount: registrations.length,
-      paidCount: registrations.filter((r) => r.paymentStatus === 'PAID').length,
-      pendingCount: registrations.filter((r) => r.paymentStatus === 'PENDING').length,
-      freeCount: registrations.filter((r) => r.paymentStatus === 'FREE').length,
-      refundedCount: registrations.filter((r) => r.paymentStatus === 'REFUNDED').length,
+      totalCount: allRegistrations.length + allExternalRegistrations.length,
+      internalCount: allRegistrations.length,
+      externalCount: allExternalRegistrations.length,
+      paidCount: allRegistrations.filter((r) => r.paymentStatus === 'PAID').length +
+        allExternalRegistrations.filter((r) => r.paymentStatus === 'PAID').length,
+      pendingCount: allRegistrations.filter((r) => r.paymentStatus === 'PENDING').length +
+        allExternalRegistrations.filter((r) => r.paymentStatus === 'PENDING').length,
+      freeCount: allRegistrations.filter((r) => r.paymentStatus === 'FREE').length +
+        allExternalRegistrations.filter((r) => r.paymentStatus === 'FREE').length,
+      refundedCount: allRegistrations.filter((r) => r.paymentStatus === 'REFUNDED').length +
+        allExternalRegistrations.filter((r) => r.paymentStatus === 'REFUNDED').length,
     }
 
     return NextResponse.json({
@@ -115,9 +182,10 @@ export async function GET(
         isPaid: event.isPaid,
         price: event.price,
         isRecurring: event.isRecurring || false,
+        allowExternalParticipation: event.allowExternalParticipation || false,
       },
       summary,
-      participants,
+      participants: allParticipants,
     })
   } catch (error) {
     console.error('Get event participants error:', error)

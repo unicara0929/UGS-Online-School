@@ -228,9 +228,13 @@ model Event {
   actualLocation    String?           // 最終的な会場情報
   adminNotes        String?           @db.Text // 管理者用メモ（参加者の反応、改善点など）
   isArchiveOnly     Boolean           @default(false) // 記録専用イベントかどうか（募集なし）
+  // 外部参加者設定
+  allowExternalParticipation Boolean  @default(false) // 外部参加者を許可するかどうか
+  externalRegistrationToken  String?  @unique         // 公開登録URL用トークン
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
   registrations   EventRegistration[]
+  externalRegistrations ExternalEventRegistration[] // 外部参加者
   emailCampaigns  EmailCampaign[]
   mtgExemptions   MtgExemption[]      // 免除申請
   eventSurvey     EventSurvey?        // イベントアンケート
@@ -279,6 +283,32 @@ model EventRegistration {
 
   @@unique([userId, eventId])
   @@map("event_registrations")
+}
+
+// 外部参加者（アプリ未登録ユーザー）用の登録情報
+model ExternalEventRegistration {
+  id                    String              @id @default(cuid())
+  eventId               String
+  // 外部参加者情報（userIdなし）
+  name                  String
+  email                 String
+  phone                 String
+  // 登録確認用トークン
+  registrationToken     String              @unique @default(cuid())
+  // 支払い関連（EventRegistrationと同じ構造）
+  paymentStatus         EventPaymentStatus  @default(PENDING)
+  stripePaymentIntentId String?
+  stripeSessionId       String?
+  paidAmount            Int?
+  paidAt                DateTime?
+  // タイムスタンプ
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  // リレーション
+  event                 Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([email, eventId]) // 同一イベントへの重複登録防止
+  @@map("external_event_registrations")
 }
 
 model Compensation {
