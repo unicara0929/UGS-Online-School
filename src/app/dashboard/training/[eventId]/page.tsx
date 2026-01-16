@@ -163,7 +163,8 @@ function TrainingEventDetailPageContent() {
     if (event.type === 'manager-only' && user?.role !== 'manager' && user?.role !== 'admin') {
       return false
     }
-    if (event.maxParticipants !== null && event.maxParticipants !== undefined) {
+    // 0またはnullは制限なしとして扱う
+    if (event.maxParticipants !== null && event.maxParticipants !== undefined && event.maxParticipants > 0) {
       return event.currentParticipants < event.maxParticipants
     }
     return true
@@ -482,7 +483,7 @@ function TrainingEventDetailPageContent() {
                       </div>
                     )}
 
-                  {!event.isRecurring && event.maxParticipants !== null && event.currentParticipants >= event.maxParticipants && (
+                  {!event.isRecurring && event.maxParticipants !== null && event.maxParticipants > 0 && event.currentParticipants >= event.maxParticipants && (
                     <div className="mt-3 text-sm text-slate-500 text-center">
                       定員に達しました
                     </div>

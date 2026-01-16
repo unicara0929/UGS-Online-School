@@ -261,7 +261,8 @@ export async function POST(request: NextRequest) {
         venueType: eventVenueType,
         location,
         onlineMeetingUrl: onlineMeetingUrl || null,
-        maxParticipants: maxParticipants !== undefined ? Number(maxParticipants) : null,
+        // 0, 空文字, undefinedはnull（制限なし）として扱う
+        maxParticipants: maxParticipants && Number(maxParticipants) > 0 ? Number(maxParticipants) : null,
         status: eventStatus,
         thumbnailUrl: thumbnailUrl || null,
         isPaid,

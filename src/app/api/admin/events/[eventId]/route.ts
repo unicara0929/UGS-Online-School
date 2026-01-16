@@ -108,7 +108,8 @@ export async function PUT(
     if (location !== undefined) updateData.location = location
     if (onlineMeetingUrl !== undefined) updateData.onlineMeetingUrl = onlineMeetingUrl || null
     if (maxParticipants !== undefined) {
-      updateData.maxParticipants = maxParticipants !== null ? Number(maxParticipants) : null
+      // 0, 空文字, nullは制限なし（null）として扱う
+      updateData.maxParticipants = maxParticipants && Number(maxParticipants) > 0 ? Number(maxParticipants) : null
     }
     if (status !== undefined) {
       updateData.status = EVENT_STATUS_INPUT_MAP[status] ?? 'UPCOMING'

@@ -75,9 +75,11 @@ export async function POST(request: NextRequest) {
         })
       }
 
+      // 定員チェック（0またはnullは制限なしとして扱う）
       if (
         event.maxParticipants !== null &&
         event.maxParticipants !== undefined &&
+        event.maxParticipants > 0 &&
         event._count.registrations >= event.maxParticipants
       ) {
         return NextResponse.json(
