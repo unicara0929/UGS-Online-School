@@ -126,8 +126,8 @@ export function useEventForm(): UseEventFormReturn {
       isRecurring: event.isRecurring ?? false,
       applicationDeadline: event.applicationDeadline ?? null,
       // 外部参加者設定
-      allowExternalParticipation: (event as any).allowExternalParticipation ?? false,
-      externalRegistrationToken: (event as any).externalRegistrationToken ?? null,
+      allowExternalParticipation: event.allowExternalParticipation ?? false,
+      externalRegistrationToken: event.externalRegistrationToken ?? null,
     })
     setThumbnailPreview(event.thumbnailUrl)
     setThumbnailFile(null)
