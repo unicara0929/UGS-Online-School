@@ -88,6 +88,9 @@ function AdminTrainingPageContent() {
         actualLocation: event.actualLocation || null,
         adminNotes: event.adminNotes || null,
         isArchiveOnly: event.isArchiveOnly || false,
+        // 外部参加者設定
+        allowExternalParticipation: event.allowExternalParticipation || false,
+        externalRegistrationToken: event.externalRegistrationToken || null,
       }))
 
       setEvents(formattedEvents)
