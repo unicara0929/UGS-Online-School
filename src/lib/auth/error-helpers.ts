@@ -51,13 +51,17 @@ export function isNotFoundError(error: unknown): boolean {
  */
 export function isConflictError(error: unknown): boolean {
   if (!error) return false
-  
+
   const errorObj = error as any
   const errorMessage = String(errorObj.message || '')
-  
+
   return (
     errorMessage.includes('409') ||
     errorMessage.includes('既に登録') ||
+    errorMessage.includes('既に使用') ||
+    errorMessage.includes('既に別のアカウント') ||
+    errorMessage.includes('already exists') ||
+    errorMessage.includes('already registered') ||
     errorObj.code === 'P2002' // Prisma unique constraint error
   )
 }
