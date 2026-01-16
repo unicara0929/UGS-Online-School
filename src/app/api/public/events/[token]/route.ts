@@ -65,8 +65,8 @@ export async function GET(
     // 現在の参加者数を計算
     const currentParticipants = event._count.registrations + event._count.externalRegistrations
 
-    // 定員チェック
-    const isFull = event.maxParticipants !== null && currentParticipants >= event.maxParticipants
+    // 定員チェック（0またはnullは制限なし）
+    const isFull = event.maxParticipants !== null && event.maxParticipants > 0 && currentParticipants >= event.maxParticipants
 
     // 公開用の情報のみを返す（機密情報を除外）
     return NextResponse.json({

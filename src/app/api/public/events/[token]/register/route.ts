@@ -81,7 +81,8 @@ export async function POST(
 
     // 定員チェック
     const currentParticipants = event._count.registrations + event._count.externalRegistrations
-    if (event.maxParticipants !== null && currentParticipants >= event.maxParticipants) {
+    // 定員チェック（0またはnullは制限なし）
+    if (event.maxParticipants !== null && event.maxParticipants > 0 && currentParticipants >= event.maxParticipants) {
       return NextResponse.json(
         { success: false, error: '定員に達しています' },
         { status: 400 }
