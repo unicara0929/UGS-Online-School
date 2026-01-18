@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
 import { sendContactConfirmationEmail, sendContactNotificationToAdmin } from '@/lib/email'
+import { sendContactChatworkNotification } from '@/lib/chatwork'
 
 const ROLE_LABELS: Record<string, string> = {
   MEMBER: 'UGS会員',
@@ -102,6 +103,25 @@ export async function POST(request: NextRequest) {
     } catch (emailError) {
       console.error('Failed to send contact emails:', emailError)
       // メール送信失敗でもお問い合わせ自体は成功として扱う
+    }
+
+    // Chatwork通知を送信
+    try {
+      const contactTypeLabels: Record<string, string> = {
+        ACCOUNT: 'アカウントについて',
+        PAYMENT: '支払い・請求について',
+        CONTENT: 'コンテンツについて',
+        TECHNICAL: '技術的な問題',
+        OTHER: 'その他',
+      }
+      await sendContactChatworkNotification({
+        userName: user.name,
+        email: user.email,
+        contactType: contactTypeLabels[type] || type,
+        submittedAt: submission.createdAt,
+      })
+    } catch (chatworkError) {
+      console.error('Failed to send contact Chatwork notification:', chatworkError)
     }
 
     return NextResponse.json({

@@ -5,6 +5,7 @@ import { createNotification } from '@/lib/services/notification-service'
 import { formatDateTime } from '@/lib/utils/format'
 import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
 import { Resend } from 'resend'
+import { sendLPMeetingScheduledChatworkNotification } from '@/lib/chatwork'
 
 // 遅延初期化（ビルド時のエラーを回避）
 function getResend() {
@@ -155,6 +156,18 @@ export async function POST(
         details: emailError
       })
       // メール送信失敗してもエラーにしない（面談確定は成功）
+    }
+
+    // Chatwork通知を送信
+    try {
+      await sendLPMeetingScheduledChatworkNotification({
+        userName: updatedMeeting.member.name,
+        email: updatedMeeting.member.email,
+        scheduledAt: new Date(scheduledAt),
+        counselorName,
+      })
+    } catch (chatworkError) {
+      console.error('Failed to send LP meeting scheduled Chatwork notification:', chatworkError)
     }
 
     return NextResponse.json({

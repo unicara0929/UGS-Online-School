@@ -4,6 +4,7 @@ import { PromotionStatus, UserRole } from '@prisma/client'
 import { createPromotionApprovedNotification } from '@/lib/services/notification-service'
 import { supabaseAdmin } from '@/lib/supabase'
 import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
+import { sendFPPromotionChatworkNotification } from '@/lib/chatwork'
 
 /**
  * 昇格申請を承認
@@ -150,7 +151,7 @@ export async function POST(
         'ADMIN': '管理者'
       }
       const roleName = roleNameMap[application.targetRole] || application.targetRole
-      
+
       await createPromotionApprovedNotification(
         application.userId,
         roleName
@@ -158,6 +159,26 @@ export async function POST(
     } catch (notificationError) {
       console.error('Failed to create notification:', notificationError)
       // 通知の作成に失敗しても処理は続行
+    }
+
+    // FP昇格の場合、Chatwork通知を送信
+    if (application.targetRole === UserRole.FP) {
+      try {
+        // ユーザー情報を取得
+        const user = await prisma.user.findUnique({
+          where: { id: application.userId },
+          select: { name: true, email: true }
+        })
+        if (user) {
+          await sendFPPromotionChatworkNotification({
+            userName: user.name,
+            email: user.email,
+            approvedAt: new Date(),
+          })
+        }
+      } catch (chatworkError) {
+        console.error('Failed to send FP promotion Chatwork notification:', chatworkError)
+      }
     }
 
     return NextResponse.json({

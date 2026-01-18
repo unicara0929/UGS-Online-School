@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { ConsultationType, ContactMethod, ConsultationStatus, NotificationType, NotificationPriority } from '@prisma/client'
 import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
 import { createNotification } from '@/lib/services/notification-service'
+import { sendConsultationChatworkNotification } from '@/lib/chatwork'
 
 // 相談ジャンルのラベル
 const CONSULTATION_TYPE_LABELS: Record<ConsultationType, string> = {
@@ -118,6 +119,18 @@ export async function POST(request: NextRequest) {
         `${user.name}さんから${typeLabel}相談の申請がありました。`,
         `/dashboard/admin/consultations/${consultation.id}`
       )
+    }
+
+    // Chatwork通知を送信
+    try {
+      await sendConsultationChatworkNotification({
+        userName: user.name,
+        email: user.email,
+        consultationType: typeLabel,
+        submittedAt: consultation.createdAt,
+      })
+    } catch (chatworkError) {
+      console.error('Failed to send consultation Chatwork notification:', chatworkError)
     }
 
     return NextResponse.json({

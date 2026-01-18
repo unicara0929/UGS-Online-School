@@ -11,7 +11,12 @@ import {
   sendBusinessCardOrderConfirmationEmail,
   sendBusinessCardOrderNotificationToAdmin,
 } from '@/lib/email'
-import { sendBusinessCardOrderChatworkNotification } from '@/lib/chatwork'
+import {
+  sendBusinessCardOrderChatworkNotification,
+  sendRegistrationPaymentChatworkNotification,
+  sendPaymentFailedChatworkNotification,
+  sendCancellationChatworkNotification,
+} from '@/lib/chatwork'
 import { sendEventConfirmationEmail } from '@/lib/services/email-service'
 import { prisma } from '@/lib/prisma'
 import { ReferralStatus, UserRole } from '@prisma/client'
@@ -296,6 +301,17 @@ export async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Se
   })
 
   console.log('Payment confirmation email sent for subscription:', subscription.id)
+
+  // Chatwork通知を送信
+  try {
+    await sendRegistrationPaymentChatworkNotification({
+      userName: session.metadata?.userName || '',
+      email: userEmail || '',
+      registeredAt: new Date(),
+    })
+  } catch (chatworkError) {
+    console.error('Failed to send registration Chatwork notification:', chatworkError)
+  }
 
   // 紹介コードが含まれている場合、紹介を自動登録
   await handleReferralRegistration(session)
@@ -842,6 +858,18 @@ export async function handleInvoicePaymentFailed(invoice: Stripe.Invoice): Promi
     console.error('Failed to send payment failed email:', emailError)
     // メール送信失敗でも処理は続行
   }
+
+  // Chatwork通知を送信
+  try {
+    await sendPaymentFailedChatworkNotification({
+      userName: subscription.user.name,
+      email: subscription.user.email,
+      failedAt: new Date(),
+      amount: invoice.amount_due || 0,
+    })
+  } catch (chatworkError) {
+    console.error('Failed to send payment failed Chatwork notification:', chatworkError)
+  }
 }
 
 /**
@@ -891,5 +919,16 @@ export async function handleSubscriptionDeleted(subscription: Stripe.Subscriptio
   } catch (emailError) {
     console.error('Failed to send subscription cancelled email:', emailError)
     // メール送信失敗でも処理は続行
+  }
+
+  // Chatwork通知を送信
+  try {
+    await sendCancellationChatworkNotification({
+      userName: subscriptionRecord.user.name,
+      email: subscriptionRecord.user.email,
+      cancelledAt: new Date(),
+    })
+  } catch (chatworkError) {
+    console.error('Failed to send cancellation Chatwork notification:', chatworkError)
   }
 }

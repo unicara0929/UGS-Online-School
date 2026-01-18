@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { LPMeetingStatus, NotificationType, NotificationPriority } from '@prisma/client'
 import { createNotification } from '@/lib/services/notification-service'
 import { getAuthenticatedUser, checkRole, Roles } from '@/lib/auth/api-helpers'
+import { sendLPMeetingRequestChatworkNotification } from '@/lib/chatwork'
 
 /**
  * 面談予約申請
@@ -118,6 +119,18 @@ export async function POST(request: NextRequest) {
         `${meeting.member.name}さんからLP面談の予約申請がありました。希望日時を確認して面談を確定してください。`,
         '/dashboard/admin/lp-meetings'
       )
+    }
+
+    // Chatwork通知を送信
+    try {
+      await sendLPMeetingRequestChatworkNotification({
+        userName: meeting.member.name,
+        email: meeting.member.email,
+        preferredDates: (preferredDates as string[]).map(d => new Date(d)),
+        requestedAt: meeting.createdAt,
+      })
+    } catch (chatworkError) {
+      console.error('Failed to send LP meeting request Chatwork notification:', chatworkError)
     }
 
     return NextResponse.json({

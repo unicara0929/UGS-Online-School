@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { supabaseAdmin } from '@/lib/supabase'
 import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
 import { UserRole, PromotionStatus } from '@prisma/client'
+import { sendMGRPromotionChatworkNotification } from '@/lib/chatwork'
 
 /**
  * マネージャー昇格申請を承認（管理者用）
@@ -102,6 +103,17 @@ export async function POST(
     } catch (supabaseError) {
       console.error('Failed to update Supabase user_metadata:', supabaseError)
       // Supabase更新失敗しても処理は続行（Prismaは既に更新済み）
+    }
+
+    // Chatwork通知を送信
+    try {
+      await sendMGRPromotionChatworkNotification({
+        userName: application.user.name,
+        email: application.user.email,
+        approvedAt: new Date(),
+      })
+    } catch (chatworkError) {
+      console.error('Failed to send MGR promotion Chatwork notification:', chatworkError)
     }
 
     return NextResponse.json({
