@@ -12,10 +12,19 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { GraduationCap, Loader2, Sparkles, ChevronRight, CheckCircle2 } from "lucide-react"
 
+type Schedule = {
+  id: string
+  date: string
+  time: string
+  location: string
+  status: string
+  registrationCount: number
+}
+
 type TrainingItem = {
   id: string
   title: string
-  date: string
+  date: string | null
   time: string
   status: 'upcoming' | 'completed' | 'cancelled'
   isRegistered: boolean
@@ -23,6 +32,7 @@ type TrainingItem = {
   price: number | null
   paymentStatus: string | null
   isNew: boolean
+  schedules: Schedule[]
 }
 
 function TrainingPageContent() {
@@ -66,6 +76,7 @@ function TrainingPageContent() {
           price: event.price || null,
           paymentStatus: event.paymentStatus || null,
           isNew: event.isNew || false,
+          schedules: event.schedules || [],
         }))
 
         setEvents(formattedEvents)
@@ -80,7 +91,8 @@ function TrainingPageContent() {
     fetchTrainingEvents()
   }, [user?.id])
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return '未定'
     try {
       return format(new Date(dateString), "M/d(E)", { locale: ja })
     } catch {
@@ -145,48 +157,71 @@ function TrainingPageContent() {
                           <div
                             key={event.id}
                             onClick={() => handleEventClick(event.id)}
-                            className="flex items-center px-4 py-3 hover:bg-emerald-50 cursor-pointer transition-colors group"
+                            className="px-4 py-3 hover:bg-emerald-50 cursor-pointer transition-colors group"
                           >
-                            {/* 日付 */}
-                            <div className="flex-shrink-0 w-16 text-center">
-                              <div className="text-sm font-semibold text-slate-900">
-                                {formatDate(event.date)}
+                            <div className="flex items-center">
+                              {/* 日付 */}
+                              <div className="flex-shrink-0 w-16 text-center">
+                                <div className="text-sm font-semibold text-slate-900">
+                                  {formatDate(event.date)}
+                                </div>
+                                <div className="text-xs text-slate-500">
+                                  {event.time || '-'}
+                                </div>
                               </div>
-                              <div className="text-xs text-slate-500">
-                                {event.time || '-'}
+
+                              {/* タイトル・バッジ */}
+                              <div className="flex-1 ml-4 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  {event.isNew && (
+                                    <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 text-[10px] px-1.5 py-0">
+                                      <Sparkles className="h-2.5 w-2.5 mr-0.5" />
+                                      NEW
+                                    </Badge>
+                                  )}
+                                  <Badge className="bg-emerald-600 text-[10px] px-1.5 py-0">
+                                    研修
+                                  </Badge>
+                                  {event.isPaid && (
+                                    <Badge variant="outline" className="bg-amber-50 border-amber-300 text-amber-700 text-[10px] px-1.5 py-0">
+                                      ¥{event.price?.toLocaleString()}
+                                    </Badge>
+                                  )}
+                                  {event.isRegistered && (
+                                    <Badge variant="outline" className="bg-blue-50 border-blue-300 text-blue-700 text-[10px] px-1.5 py-0">
+                                      申込済
+                                    </Badge>
+                                  )}
+                                  {event.schedules.length > 1 && (
+                                    <Badge variant="outline" className="bg-purple-50 border-purple-300 text-purple-700 text-[10px] px-1.5 py-0">
+                                      {event.schedules.length}日程
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-sm font-medium text-slate-900 truncate group-hover:text-primary-600">
+                                  {event.title}
+                                </p>
                               </div>
+
+                              {/* 矢印 */}
+                              <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-slate-600 flex-shrink-0" />
                             </div>
 
-                            {/* タイトル・バッジ */}
-                            <div className="flex-1 ml-4 min-w-0">
-                              <div className="flex items-center gap-2">
-                                {event.isNew && (
-                                  <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 text-[10px] px-1.5 py-0">
-                                    <Sparkles className="h-2.5 w-2.5 mr-0.5" />
-                                    NEW
-                                  </Badge>
-                                )}
-                                <Badge className="bg-emerald-600 text-[10px] px-1.5 py-0">
-                                  研修
-                                </Badge>
-                                {event.isPaid && (
-                                  <Badge variant="outline" className="bg-amber-50 border-amber-300 text-amber-700 text-[10px] px-1.5 py-0">
-                                    ¥{event.price?.toLocaleString()}
-                                  </Badge>
-                                )}
-                                {event.isRegistered && (
-                                  <Badge variant="outline" className="bg-blue-50 border-blue-300 text-blue-700 text-[10px] px-1.5 py-0">
-                                    申込済
-                                  </Badge>
-                                )}
+                            {/* 複数日程がある場合、全日程を表示 */}
+                            {event.schedules.length > 1 && (
+                              <div className="mt-2 ml-20 space-y-1">
+                                {event.schedules.map((schedule, index) => (
+                                  <div key={schedule.id} className="flex items-center text-xs text-slate-500">
+                                    <span className="w-4 text-center text-slate-400">{index + 1}.</span>
+                                    <span className="ml-1 font-medium">{formatDate(schedule.date)}</span>
+                                    <span className="ml-2">{schedule.time || ''}</span>
+                                    {schedule.location && (
+                                      <span className="ml-2 text-slate-400">@ {schedule.location}</span>
+                                    )}
+                                  </div>
+                                ))}
                               </div>
-                              <p className="text-sm font-medium text-slate-900 truncate group-hover:text-primary-600">
-                                {event.title}
-                              </p>
-                            </div>
-
-                            {/* 矢印 */}
-                            <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-slate-600 flex-shrink-0" />
+                            )}
                           </div>
                         ))}
                       </div>

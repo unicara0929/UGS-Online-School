@@ -171,8 +171,8 @@ export async function GET(
         paymentStatus: registration?.paymentStatus ?? null,
         // オンライン参加URL（登録スケジュールのURLを使用）
         onlineMeetingUrl: registeredSchedule?.onlineMeetingUrl ?? firstSchedule?.onlineMeetingUrl ?? null,
-        // 出席確認関連
-        hasAttendanceCode: event.schedules.some(s => !!s.attendanceCode),
+        // 出席確認関連（参加コードは全体MTGのみで使用）
+        hasAttendanceCode: event.isRecurring && event.schedules.some(s => !!s.attendanceCode),
         // 期限設定（日数ベース）
         applicationDeadlineDays: event.applicationDeadlineDays ?? null,
         attendanceDeadlineDays: event.attendanceDeadlineDays ?? null,

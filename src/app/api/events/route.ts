@@ -223,7 +223,8 @@ export async function GET(request: NextRequest) {
         price: event.price ?? null,
         paymentStatus: registration?.paymentStatus ?? null,
         // 出席確認関連
-        hasAttendanceCode: schedules.some((s: any) => !!s.attendanceCode), // コードの有無のみ
+        // 参加コードは全体MTG（isRecurring）のみで使用
+        hasAttendanceCode: event.isRecurring && schedules.some((s: any) => !!s.attendanceCode),
         applicationDeadlineDays: event.applicationDeadlineDays ?? null,
         attendanceDeadlineDays: event.attendanceDeadlineDays ?? null,
         vimeoUrl: event.vimeoUrl ?? null,
