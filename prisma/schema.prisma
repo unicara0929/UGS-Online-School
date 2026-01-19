@@ -200,6 +200,15 @@ model Event {
   venueType                  EventVenueType              @default(ONLINE) // 開催形式: オンライン / オフライン / ハイブリッド
   eventCategory              EventCategory               @default(REGULAR) // イベントカテゴリ: MTG / REGULAR / TRAINING
   status                     EventStatus                 @default(UPCOMING)
+  // 旧フィールド（移行後に削除予定）
+  date                       DateTime? // 開催日（移行後削除）
+  time                       String? // 開催時間（移行後削除）
+  location                   String? // 開催場所（移行後削除）
+  onlineMeetingUrl           String? // オンラインURL（移行後削除）
+  attendanceCode             String? // 参加コード（移行後削除）
+  applicationDeadline        DateTime? // 申込期限（移行後削除）
+  attendanceDeadline         DateTime? // 出席期限（移行後削除）
+  actualParticipants         Int? // 実参加人数（移行後削除）
   // サムネイル画像
   thumbnailUrl               String? // サムネイル画像URL（Supabase Storage）
   // 有料イベント関連
@@ -303,7 +312,7 @@ model EventRegistration {
   user                   User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   schedule               EventSchedule?       @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
 
-  @@unique([userId, eventId, scheduleId])
+  @@unique([userId, eventId]) // 移行後に [userId, eventId, scheduleId] に変更予定
   @@index([scheduleId])
   @@map("event_registrations")
 }
@@ -333,7 +342,7 @@ model ExternalEventRegistration {
   event                 Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
   schedule              EventSchedule?     @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
 
-  @@unique([email, eventId, scheduleId]) // 同一イベント・同一日程への重複登録防止
+  @@unique([email, eventId]) // 移行後に [email, eventId, scheduleId] に変更予定
   @@index([scheduleId])
   @@map("external_event_registrations")
 }
