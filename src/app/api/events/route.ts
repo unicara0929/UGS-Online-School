@@ -103,47 +103,46 @@ export async function GET(request: NextRequest) {
 
     const now = new Date()
 
+    // ロールフィルターを構築（管理者は全イベント表示）
+    const roleFilter = isAdmin
+      ? {}
+      : userRole === 'MEMBER'
+        ? {
+            OR: [
+              // 全員対象イベント（ただし全体MTGは除外）
+              { AND: [{ targetRoles: { has: 'ALL' as const } }, { isRecurring: false }] },
+              { AND: [{ targetRoles: { has: 'ALL' as const } }, { isRecurring: null }] },
+              // ユーザーのロールに一致するイベント
+              { targetRoles: { has: userTargetRole as 'MEMBER' | 'FP' | 'MANAGER' | 'ALL' } },
+            ],
+          }
+        : {
+            OR: [
+              // 全員対象イベント
+              { targetRoles: { has: 'ALL' as const } },
+              // ユーザーのロールに一致するイベント
+              { targetRoles: { has: userTargetRole as 'MEMBER' | 'FP' | 'MANAGER' | 'ALL' } },
+            ],
+          }
+
     const eventsPromise = prisma.event.findMany({
       where: {
-        AND: [
-          // 記録専用イベントを除外
-          { isArchiveOnly: false },
-          // カテゴリフィルター（指定されている場合）
-          ...(category ? [{ eventCategory: category as 'MTG' | 'REGULAR' | 'TRAINING' }] : []),
-          // ロールによるフィルタリング（管理者は全イベント表示）
-          ...(isAdmin ? [] : [
-            {
-              OR: [
-                // 全員対象イベント（ただし全体MTGはMEMBER除外）
-                {
-                  AND: [
-                    { targetRoles: { has: 'ALL' } },
-                    // 全体MTG（isRecurring=true）はMEMBER以外のみ表示
-                    ...(userRole === 'MEMBER' ? [{ isRecurring: { not: true } }] : []),
-                  ],
-                },
-                { targetRoles: { has: userTargetRole } }, // ユーザーのロールに一致するイベント
-              ],
-            },
-          ]),
-          // ステータスフィルタリング
+        // 記録専用イベントを除外
+        isArchiveOnly: false,
+        // カテゴリフィルター（指定されている場合）
+        ...(category ? { eventCategory: category as 'MTG' | 'REGULAR' | 'TRAINING' } : {}),
+        // ロールによるフィルタリング
+        ...roleFilter,
+        // ステータスフィルタリング
+        OR: [
+          // 開催予定のイベント
+          { status: 'UPCOMING' },
+          // 完了済みイベントで動画またはアンケートが設定されている
           {
+            status: 'COMPLETED',
             OR: [
-              // 開催予定のイベント
-              { status: 'UPCOMING' },
-              // 完了済みイベントで動画またはアンケートが設定されている
-              // 視聴期限チェックはフロントエンドで行う（出席完了していないユーザーには期限切れでも表示する必要があるため）
-              {
-                AND: [
-                  { status: 'COMPLETED' },
-                  {
-                    OR: [
-                      { vimeoUrl: { not: null } },
-                      { surveyUrl: { not: null } },
-                    ],
-                  },
-                ],
-              },
+              { vimeoUrl: { not: null } },
+              { surveyUrl: { not: null } },
             ],
           },
         ],
