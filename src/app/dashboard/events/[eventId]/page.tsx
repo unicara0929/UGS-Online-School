@@ -32,6 +32,16 @@ import { VideoSurveyAttendance } from '@/components/events/video-survey-attendan
 import { MtgExemptionForm } from '@/components/events/mtg-exemption-form'
 import { InternalSurvey } from '@/components/events/internal-survey'
 
+type Schedule = {
+  id: string
+  date: string
+  time: string
+  location: string
+  onlineMeetingUrl: string | null
+  status: 'OPEN' | 'CLOSED' | 'CANCELLED'
+  registrationCount: number
+}
+
 type EventDetail = {
   id: string
   title: string
@@ -87,6 +97,9 @@ type EventDetail = {
   // 外部参加者設定
   allowExternalParticipation: boolean
   externalRegistrationToken: string | null
+  // スケジュール関連
+  schedules: Schedule[]
+  registeredScheduleId: string | null
 }
 
 function EventDetailPageContent() {
@@ -99,6 +112,7 @@ function EventDetailPageContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [selectedScheduleId, setSelectedScheduleId] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -119,6 +133,15 @@ function EventDetailPageContent() {
         }
 
         setEvent(data.event)
+
+        // 日程選択の初期化：登録済みスケジュールがあればそれを、なければ最初のOPENスケジュールを選択
+        const eventData = data.event as EventDetail
+        if (eventData.registeredScheduleId) {
+          setSelectedScheduleId(eventData.registeredScheduleId)
+        } else if (eventData.schedules && eventData.schedules.length > 0) {
+          const firstOpenSchedule = eventData.schedules.find(s => s.status === 'OPEN')
+          setSelectedScheduleId(firstOpenSchedule?.id ?? eventData.schedules[0].id)
+        }
       } catch (err) {
         console.error('Failed to fetch event:', err)
         setError(err instanceof Error ? err.message : 'イベント情報の取得に失敗しました')
@@ -258,6 +281,7 @@ function EventDetailPageContent() {
         body: JSON.stringify({
           userId: user.id,
           eventId: event.id,
+          scheduleId: selectedScheduleId, // 選択された日程ID
           action,
         }),
       })
@@ -502,6 +526,91 @@ function EventDetailPageContent() {
                     </div>
                   )}
                 </div>
+
+                {/* 日程選択（複数日程がある場合・全体MTG以外） */}
+                {!event.isRecurring && event.schedules.length > 1 && !event.isRegistered && (
+                  <div className="pt-4 border-t">
+                    <h3 className="font-semibold text-slate-900 mb-3">参加日程を選択してください</h3>
+                    <div className="space-y-2">
+                      {event.schedules.map((schedule) => {
+                        const isOpen = schedule.status === 'OPEN'
+                        const isSelected = selectedScheduleId === schedule.id
+                        return (
+                          <label
+                            key={schedule.id}
+                            className={`flex items-center p-3 rounded-lg border cursor-pointer transition-all ${
+                              isSelected
+                                ? 'border-blue-500 bg-blue-50'
+                                : isOpen
+                                ? 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                                : 'border-slate-200 bg-slate-100 opacity-60 cursor-not-allowed'
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="schedule"
+                              value={schedule.id}
+                              checked={isSelected}
+                              disabled={!isOpen}
+                              onChange={() => setSelectedScheduleId(schedule.id)}
+                              className="sr-only"
+                            />
+                            <div className={`w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center ${
+                              isSelected ? 'border-blue-500' : 'border-slate-300'
+                            }`}>
+                              {isSelected && <div className="w-2 h-2 rounded-full bg-blue-500" />}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-slate-900">
+                                  {formatDate(schedule.date)}
+                                </span>
+                                <span className="text-slate-600">{schedule.time}</span>
+                                {!isOpen && (
+                                  <Badge variant="outline" className="text-xs bg-slate-200 text-slate-600">
+                                    募集終了
+                                  </Badge>
+                                )}
+                              </div>
+                              {schedule.location && (
+                                <div className="text-sm text-slate-500 mt-0.5">
+                                  {schedule.location}
+                                </div>
+                              )}
+                            </div>
+                          </label>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* 登録済みの日程表示（全体MTG以外） */}
+                {!event.isRecurring && event.isRegistered && event.registeredScheduleId && event.schedules.length > 1 && (
+                  <div className="pt-4 border-t">
+                    <h3 className="font-semibold text-slate-900 mb-2">申込済みの日程</h3>
+                    {(() => {
+                      const registeredSchedule = event.schedules.find(s => s.id === event.registeredScheduleId)
+                      if (!registeredSchedule) return null
+                      return (
+                        <div className="p-3 rounded-lg border border-blue-500 bg-blue-50">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="h-5 w-5 text-blue-600" />
+                            <span className="font-medium text-slate-900">
+                              {formatDate(registeredSchedule.date)}
+                            </span>
+                            <span className="text-slate-600">{registeredSchedule.time}</span>
+                          </div>
+                          {registeredSchedule.location && (
+                            <div className="text-sm text-slate-500 mt-1 ml-7">
+                              {registeredSchedule.location}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })()}
+                  </div>
+                )}
 
                 {/* 参加登録ボタン */}
                 <div className="pt-4 border-t">
