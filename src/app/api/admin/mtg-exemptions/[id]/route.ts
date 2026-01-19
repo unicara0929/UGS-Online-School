@@ -41,8 +41,11 @@ export async function GET(
           select: {
             id: true,
             title: true,
-            date: true,
-            time: true,
+            schedules: {
+              orderBy: { date: 'asc' },
+              take: 1,
+              select: { date: true, time: true }
+            }
           },
         },
       },
@@ -68,8 +71,10 @@ export async function GET(
         updatedAt: exemption.updatedAt.toISOString(),
         user: exemption.user,
         event: {
-          ...exemption.event,
-          date: exemption.event.date.toISOString(),
+          id: exemption.event.id,
+          title: exemption.event.title,
+          date: exemption.event.schedules[0]?.date?.toISOString() ?? null,
+          time: exemption.event.schedules[0]?.time ?? null,
         },
       },
     })
@@ -162,7 +167,11 @@ export async function PATCH(
           select: {
             id: true,
             title: true,
-            date: true,
+            schedules: {
+              orderBy: { date: 'asc' },
+              take: 1,
+              select: { date: true }
+            }
           },
         },
       },
@@ -180,8 +189,9 @@ export async function PATCH(
         reviewedBy: exemption.reviewedBy,
         user: exemption.user,
         event: {
-          ...exemption.event,
-          date: exemption.event.date.toISOString(),
+          id: exemption.event.id,
+          title: exemption.event.title,
+          date: exemption.event.schedules[0]?.date?.toISOString() ?? null,
         },
       },
     })

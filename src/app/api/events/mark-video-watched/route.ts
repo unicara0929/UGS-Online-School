@@ -46,12 +46,10 @@ export async function POST(request: NextRequest) {
     }
 
     // イベント登録を確認
-    const registration = await prisma.eventRegistration.findUnique({
+    const registration = await prisma.eventRegistration.findFirst({
       where: {
-        userId_eventId: {
-          userId,
-          eventId,
-        },
+        userId,
+        eventId,
       },
     })
 
@@ -65,12 +63,7 @@ export async function POST(request: NextRequest) {
     // 録画視聴済みとして記録
     const now = new Date()
     const updatedRegistration = await prisma.eventRegistration.update({
-      where: {
-        userId_eventId: {
-          userId,
-          eventId,
-        },
-      },
+      where: { id: registration.id },
       data: {
         videoWatched: true,
         videoCompletedAt: now,
@@ -80,12 +73,7 @@ export async function POST(request: NextRequest) {
     // 録画視聴とアンケート両方完了している場合、出席完了として記録
     if (updatedRegistration.videoWatched && updatedRegistration.surveyCompleted) {
       await prisma.eventRegistration.update({
-        where: {
-          userId_eventId: {
-            userId,
-            eventId,
-          },
-        },
+        where: { id: registration.id },
         data: {
           attendanceMethod: 'VIDEO_SURVEY',
           attendanceCompletedAt: new Date(),

@@ -11,8 +11,9 @@ export async function POST(request: NextRequest) {
     if (authError) return authError
 
     const body = await request.json()
-    const { eventId, action } = body as {
+    const { eventId, scheduleId, action } = body as {
       eventId?: string
+      scheduleId?: string // 日程ID（複数日程対応）
       action?: ActionType
     }
 
@@ -39,12 +40,19 @@ export async function POST(request: NextRequest) {
     const event = await prisma.event.findUnique({
       where: { id: eventId },
       include: {
+        schedules: {
+          include: {
+            _count: {
+              select: { registrations: true, externalRegistrations: true }
+            }
+          }
+        },
         registrations: {
           where: { userId },
-          select: { id: true },
+          select: { id: true, scheduleId: true },
         },
         _count: {
-          select: { registrations: true },
+          select: { registrations: true, externalRegistrations: true },
         },
       },
     })
@@ -55,6 +63,11 @@ export async function POST(request: NextRequest) {
         { status: 404 }
       )
     }
+
+    // スケジュールIDが指定されている場合、存在確認
+    const targetSchedule = scheduleId
+      ? event.schedules.find(s => s.id === scheduleId)
+      : event.schedules[0] // 指定なしの場合は最初のスケジュール
 
     if (action === 'register') {
       // 有料イベントの場合は直接登録を拒否
@@ -68,27 +81,15 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      if (event.registrations.length > 0) {
+      // 同じスケジュールに既に登録済みかチェック
+      const existingRegistration = event.registrations.find(
+        r => r.scheduleId === (targetSchedule?.id ?? null)
+      )
+      if (existingRegistration) {
         return NextResponse.json({
           success: true,
           message: '既に申し込み済みです',
         })
-      }
-
-      // 定員チェック（0またはnullは制限なしとして扱う）
-      if (
-        event.maxParticipants !== null &&
-        event.maxParticipants !== undefined &&
-        event.maxParticipants > 0 &&
-        event._count.registrations >= event.maxParticipants
-      ) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: '定員に達しているため申し込むことができません',
-          },
-          { status: 400 }
-        )
       }
 
       // 無料イベントとして登録
@@ -96,11 +97,17 @@ export async function POST(request: NextRequest) {
         data: {
           userId,
           eventId,
+          scheduleId: targetSchedule?.id ?? null,
           paymentStatus: 'FREE', // 無料イベント
         },
       })
     } else if (action === 'unregister') {
-      if (event.registrations.length === 0) {
+      // 登録を探す（scheduleIdを考慮）
+      const targetRegistration = scheduleId
+        ? event.registrations.find(r => r.scheduleId === scheduleId)
+        : event.registrations[0]
+
+      if (!targetRegistration) {
         return NextResponse.json({
           success: true,
           message: '申し込みは既にキャンセルされています',
@@ -108,26 +115,21 @@ export async function POST(request: NextRequest) {
       }
 
       await prisma.eventRegistration.delete({
-        where: {
-          userId_eventId: {
-            userId,
-            eventId,
-          },
-        },
+        where: { id: targetRegistration.id },
       })
     }
 
     const updatedEvent = await prisma.event.findUnique({
       where: { id: eventId },
       include: {
-        _count: { select: { registrations: true } },
+        _count: { select: { registrations: true, externalRegistrations: true } },
       },
     })
 
     return NextResponse.json({
       success: true,
       message: action === 'register' ? '申し込みが完了しました' : '申し込みをキャンセルしました',
-      currentParticipants: updatedEvent?._count.registrations ?? 0,
+      currentParticipants: (updatedEvent?._count.registrations ?? 0) + (updatedEvent?._count.externalRegistrations ?? 0),
     })
   } catch (error) {
     console.error('[EVENTS_REGISTER_POST_ERROR]', error)

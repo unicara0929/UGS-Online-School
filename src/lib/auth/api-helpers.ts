@@ -245,6 +245,29 @@ export function checkAdmin(userRole: string): {
 }
 
 /**
+ * 管理者またはマネージャーチェック
+ * ユーザーが管理者またはマネージャー権限を持っているか確認
+ */
+export function checkAdminOrManager(userRole: string): {
+  allowed: boolean
+  error: NextResponse | null
+} {
+  const normalizedRole = userRole.toLowerCase()
+
+  if (normalizedRole === 'admin' || normalizedRole === 'manager') {
+    return { allowed: true, error: null }
+  }
+
+  return {
+    allowed: false,
+    error: NextResponse.json(
+      { error: 'アクセス権限がありません。管理者またはマネージャー権限が必要です。' },
+      { status: 403 }
+    ),
+  }
+}
+
+/**
  * 所有権チェック
  * リソースの所有者または管理者のみがアクセス可能
  */

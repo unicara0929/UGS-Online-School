@@ -149,12 +149,10 @@ export async function POST(
       }
 
       // EventRegistrationのsurveyCompletedを更新
-      const registration = await tx.eventRegistration.findUnique({
+      const registration = await tx.eventRegistration.findFirst({
         where: {
-          userId_eventId: {
-            userId: user.id,
-            eventId
-          }
+          userId: user.id,
+          eventId
         }
       })
 

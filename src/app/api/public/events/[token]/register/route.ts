@@ -14,7 +14,7 @@ export async function POST(
   try {
     const { token } = await params
     const body = await request.json()
-    const { name, email, phone, referrer } = body
+    const { name, email, phone, referrer, scheduleId } = body
 
     // バリデーション
     if (!name || !email || !phone) {
@@ -39,6 +39,17 @@ export async function POST(
         externalRegistrationToken: token,
       },
       include: {
+        schedules: {
+          orderBy: { date: 'asc' },
+          include: {
+            _count: {
+              select: {
+                registrations: true,
+                externalRegistrations: true,
+              }
+            }
+          }
+        },
         _count: {
           select: {
             registrations: true,
@@ -71,31 +82,32 @@ export async function POST(
       )
     }
 
-    // 申込期限チェック
-    if (event.applicationDeadline && new Date(event.applicationDeadline) < new Date()) {
-      return NextResponse.json(
-        { success: false, error: '申込期限が過ぎています' },
-        { status: 410 }
-      )
+    // 対象スケジュールを決定
+    const targetSchedule = scheduleId
+      ? event.schedules.find(s => s.id === scheduleId)
+      : event.schedules[0]
+
+    // 申込期限チェック（日数ベース）
+    if (event.applicationDeadlineDays !== null && targetSchedule) {
+      const deadline = new Date(targetSchedule.date)
+      deadline.setDate(deadline.getDate() - event.applicationDeadlineDays)
+      if (new Date() > deadline) {
+        return NextResponse.json(
+          { success: false, error: '申込期限が過ぎています' },
+          { status: 410 }
+        )
+      }
     }
 
-    // 定員チェック
+    // 現在の参加者数を計算
     const currentParticipants = event._count.registrations + event._count.externalRegistrations
-    // 定員チェック（0またはnullは制限なし）
-    if (event.maxParticipants !== null && event.maxParticipants > 0 && currentParticipants >= event.maxParticipants) {
-      return NextResponse.json(
-        { success: false, error: '定員に達しています' },
-        { status: 400 }
-      )
-    }
 
-    // 重複登録チェック
-    const existingRegistration = await prisma.externalEventRegistration.findUnique({
+    // 重複登録チェック（同じイベント・スケジュールに登録済みか）
+    const existingRegistration = await prisma.externalEventRegistration.findFirst({
       where: {
-        email_eventId: {
-          email,
-          eventId: event.id,
-        }
+        email,
+        eventId: event.id,
+        scheduleId: targetSchedule?.id ?? null,
       }
     })
 
@@ -137,6 +149,7 @@ export async function POST(
       const registration = await prisma.externalEventRegistration.create({
         data: {
           eventId: event.id,
+          scheduleId: targetSchedule?.id ?? null,
           name,
           email,
           phone,
@@ -151,10 +164,10 @@ export async function POST(
           to: email,
           name,
           eventTitle: event.title,
-          eventDate: event.date,
-          eventTime: event.time || undefined,
-          eventLocation: event.location || undefined,
-          onlineMeetingUrl: event.onlineMeetingUrl || undefined,
+          eventDate: targetSchedule?.date ?? new Date(),
+          eventTime: targetSchedule?.time || undefined,
+          eventLocation: targetSchedule?.location || undefined,
+          onlineMeetingUrl: targetSchedule?.onlineMeetingUrl || undefined,
         })
       } catch (emailError) {
         console.error('Failed to send confirmation email:', emailError)
@@ -174,6 +187,7 @@ export async function POST(
     const registration = await prisma.externalEventRegistration.create({
       data: {
         eventId: event.id,
+        scheduleId: targetSchedule?.id ?? null,
         name,
         email,
         phone,

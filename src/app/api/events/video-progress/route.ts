@@ -21,14 +21,13 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const registration = await prisma.eventRegistration.findUnique({
+    const registration = await prisma.eventRegistration.findFirst({
       where: {
-        userId_eventId: {
-          userId: user!.id,
-          eventId,
-        },
+        userId: user!.id,
+        eventId,
       },
       select: {
+        id: true,
         videoProgress: true,
         videoWatched: true,
       },
@@ -76,12 +75,10 @@ export async function POST(request: NextRequest) {
     }
 
     // 登録が存在するか確認
-    const registration = await prisma.eventRegistration.findUnique({
+    const registration = await prisma.eventRegistration.findFirst({
       where: {
-        userId_eventId: {
-          userId: user!.id,
-          eventId,
-        },
+        userId: user!.id,
+        eventId,
       },
     })
 
@@ -102,12 +99,7 @@ export async function POST(request: NextRequest) {
 
     // 視聴位置を更新
     await prisma.eventRegistration.update({
-      where: {
-        userId_eventId: {
-          userId: user!.id,
-          eventId,
-        },
-      },
+      where: { id: registration.id },
       data: {
         videoProgress: progress,
       },

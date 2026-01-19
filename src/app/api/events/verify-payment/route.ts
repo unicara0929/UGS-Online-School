@@ -68,8 +68,16 @@ export async function POST(request: NextRequest) {
     const existingRegistration = await prisma.eventRegistration.findUnique({
       where: { id: registrationId },
       include: {
-        event: true,
-        user: true
+        event: {
+          include: {
+            schedules: {
+              orderBy: { date: 'asc' },
+              take: 1,
+            }
+          }
+        },
+        user: true,
+        schedule: true,
       }
     })
 
@@ -109,8 +117,16 @@ export async function POST(request: NextRequest) {
         paidAt: new Date(),
       },
       include: {
-        event: true,
-        user: true
+        event: {
+          include: {
+            schedules: {
+              orderBy: { date: 'asc' },
+              take: 1,
+            }
+          }
+        },
+        user: true,
+        schedule: true,
       }
     })
 
@@ -121,20 +137,23 @@ export async function POST(request: NextRequest) {
       amount: session.amount_total
     })
 
+    // 対象スケジュール（登録スケジュール優先、なければ最初のスケジュール）
+    const targetSchedule = updatedRegistration.schedule || updatedRegistration.event.schedules[0]
+
     // イベント参加確定メールを送信
     try {
       await sendEventConfirmationEmail({
         to: updatedRegistration.user.email,
         userName: updatedRegistration.user.name,
         eventTitle: updatedRegistration.event.title,
-        eventDate: updatedRegistration.event.date.toLocaleDateString('ja-JP', {
+        eventDate: targetSchedule?.date ? targetSchedule.date.toLocaleDateString('ja-JP', {
           year: 'numeric',
           month: 'long',
           day: 'numeric',
           weekday: 'long'
-        }),
-        eventTime: updatedRegistration.event.time || undefined,
-        eventLocation: updatedRegistration.event.location || undefined,
+        }) : '',
+        eventTime: targetSchedule?.time || undefined,
+        eventLocation: targetSchedule?.location || undefined,
         venueType: updatedRegistration.event.venueType,
         eventId: updatedRegistration.event.id,
       })

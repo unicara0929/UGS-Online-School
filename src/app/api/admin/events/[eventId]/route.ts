@@ -52,28 +52,23 @@ export async function PUT(
     const {
       title,
       description,
-      date,
-      time,
       type,
       targetRoles,
       attendanceType,
       venueType,
-      location,
-      onlineMeetingUrl,
-      maxParticipants,
       status,
       thumbnailUrl,
       isPaid,
       price,
-      // 出席確認関連
-      attendanceCode,
+      // 出席確認関連（イベントレベル）
       vimeoUrl,
       surveyUrl,
-      attendanceDeadline,
+      // 期限設定（日数ベース）
+      applicationDeadlineDays,
+      attendanceDeadlineDays,
       // 定期開催関連
       isRecurring,
       recurrencePattern,
-      applicationDeadline,
       // イベントカテゴリ
       eventCategory,
       // 外部参加者設定
@@ -82,8 +77,6 @@ export async function PUT(
       summary,
       photos,
       materialsUrl,
-      actualParticipants,
-      actualLocation,
       adminNotes,
       isArchiveOnly,
     } = body || {}
@@ -93,8 +86,6 @@ export async function PUT(
 
     if (title !== undefined) updateData.title = title
     if (description !== undefined) updateData.description = description
-    if (date !== undefined) updateData.date = new Date(date)
-    if (time !== undefined) updateData.time = time
     if (type !== undefined) updateData.type = EVENT_TYPE_INPUT_MAP[type] ?? 'OPTIONAL'
     if (targetRoles !== undefined) {
       updateData.targetRoles = targetRoles.map((role: string) => EVENT_TARGET_ROLE_INPUT_MAP[role] ?? 'ALL')
@@ -105,12 +96,6 @@ export async function PUT(
     if (venueType !== undefined) {
       updateData.venueType = EVENT_VENUE_TYPE_INPUT_MAP[venueType] ?? 'ONLINE'
     }
-    if (location !== undefined) updateData.location = location
-    if (onlineMeetingUrl !== undefined) updateData.onlineMeetingUrl = onlineMeetingUrl || null
-    if (maxParticipants !== undefined) {
-      // 0, 空文字, nullは制限なし（null）として扱う
-      updateData.maxParticipants = maxParticipants && Number(maxParticipants) > 0 ? Number(maxParticipants) : null
-    }
     if (status !== undefined) {
       updateData.status = EVENT_STATUS_INPUT_MAP[status] ?? 'UPCOMING'
     }
@@ -118,19 +103,15 @@ export async function PUT(
     if (isPaid !== undefined) updateData.isPaid = isPaid
     if (price !== undefined) updateData.price = isPaid ? Number(price) : null
 
-    // 出席確認関連
-    if (attendanceCode !== undefined) updateData.attendanceCode = attendanceCode || null
+    // 出席確認関連（イベントレベル）
     if (vimeoUrl !== undefined) updateData.vimeoUrl = vimeoUrl || null
     if (surveyUrl !== undefined) updateData.surveyUrl = surveyUrl || null
-    if (attendanceDeadline !== undefined) {
-      if (attendanceDeadline) {
-        // datetime-localの値はタイムゾーンなしなので、JSTとして解釈する
-        // 例: "2024-12-20T23:59" -> JST 2024-12-20 23:59
-        const deadlineDate = new Date(attendanceDeadline + '+09:00')
-        updateData.attendanceDeadline = deadlineDate
-      } else {
-        updateData.attendanceDeadline = null
-      }
+    // 期限設定（日数ベース）
+    if (applicationDeadlineDays !== undefined) {
+      updateData.applicationDeadlineDays = applicationDeadlineDays !== null ? Number(applicationDeadlineDays) : null
+    }
+    if (attendanceDeadlineDays !== undefined) {
+      updateData.attendanceDeadlineDays = attendanceDeadlineDays !== null ? Number(attendanceDeadlineDays) : null
     }
 
     // 定期開催関連
@@ -142,24 +123,11 @@ export async function PUT(
     } else if (isRecurring !== undefined && isRecurring) {
       updateData.eventCategory = 'MTG'
     }
-    if (applicationDeadline !== undefined) {
-      if (applicationDeadline) {
-        // datetime-localの値はタイムゾーンなしなので、JSTとして解釈する
-        const deadlineDate = new Date(applicationDeadline + '+09:00')
-        updateData.applicationDeadline = deadlineDate
-      } else {
-        updateData.applicationDeadline = null
-      }
-    }
 
     // 過去イベント記録用
     if (summary !== undefined) updateData.summary = summary || null
     if (photos !== undefined) updateData.photos = photos || []
     if (materialsUrl !== undefined) updateData.materialsUrl = materialsUrl || null
-    if (actualParticipants !== undefined) {
-      updateData.actualParticipants = actualParticipants !== null ? Number(actualParticipants) : null
-    }
-    if (actualLocation !== undefined) updateData.actualLocation = actualLocation || null
     if (adminNotes !== undefined) updateData.adminNotes = adminNotes || null
     if (isArchiveOnly !== undefined) updateData.isArchiveOnly = isArchiveOnly
 
@@ -226,7 +194,23 @@ export async function PUT(
     const updatedEvent = await prisma.event.update({
       where: { id: eventId },
       data: updateData,
+      include: {
+        schedules: {
+          orderBy: { date: 'asc' },
+          include: {
+            _count: {
+              select: {
+                registrations: true,
+                externalRegistrations: true,
+              }
+            }
+          }
+        }
+      }
     })
+
+    // 最初のスケジュール（後方互換性用）
+    const firstSchedule = updatedEvent.schedules[0]
 
     return NextResponse.json({
       success: true,
@@ -234,41 +218,53 @@ export async function PUT(
         id: updatedEvent.id,
         title: updatedEvent.title,
         description: updatedEvent.description ?? '',
-        date: updatedEvent.date.toISOString(),
-        time: updatedEvent.time ?? '',
+        // 後方互換性：最初のスケジュールの日付を使用
+        date: firstSchedule?.date.toISOString() ?? null,
+        time: firstSchedule?.time ?? '',
         type: updatedEvent.type,
         targetRoles: updatedEvent.targetRoles,
         attendanceType: updatedEvent.attendanceType,
         venueType: updatedEvent.venueType,
-        location: updatedEvent.location ?? '',
-        onlineMeetingUrl: updatedEvent.onlineMeetingUrl ?? null,
-        maxParticipants: updatedEvent.maxParticipants ?? null,
+        location: firstSchedule?.location ?? '',
+        onlineMeetingUrl: firstSchedule?.onlineMeetingUrl ?? null,
         status: updatedEvent.status,
         thumbnailUrl: updatedEvent.thumbnailUrl ?? null,
         isPaid: updatedEvent.isPaid,
         price: updatedEvent.price ?? null,
         // 出席確認関連
-        attendanceCode: updatedEvent.attendanceCode ?? null,
+        attendanceCode: firstSchedule?.attendanceCode ?? null,
         vimeoUrl: updatedEvent.vimeoUrl ?? null,
         surveyUrl: updatedEvent.surveyUrl ?? null,
-        attendanceDeadline: updatedEvent.attendanceDeadline?.toISOString() ?? null,
+        // 期限設定（日数ベース）
+        applicationDeadlineDays: updatedEvent.applicationDeadlineDays ?? null,
+        attendanceDeadlineDays: updatedEvent.attendanceDeadlineDays ?? null,
         // 定期開催関連
         isRecurring: updatedEvent.isRecurring,
         recurrencePattern: updatedEvent.recurrencePattern ?? null,
-        applicationDeadline: updatedEvent.applicationDeadline?.toISOString() ?? null,
         // イベントカテゴリ
         eventCategory: updatedEvent.eventCategory,
         // 過去イベント記録用
         summary: updatedEvent.summary ?? null,
         photos: updatedEvent.photos ?? [],
         materialsUrl: updatedEvent.materialsUrl ?? null,
-        actualParticipants: updatedEvent.actualParticipants ?? null,
-        actualLocation: updatedEvent.actualLocation ?? null,
         adminNotes: updatedEvent.adminNotes ?? null,
         isArchiveOnly: updatedEvent.isArchiveOnly ?? false,
         // 外部参加者設定
         allowExternalParticipation: updatedEvent.allowExternalParticipation ?? false,
         externalRegistrationToken: updatedEvent.externalRegistrationToken ?? null,
+        // 日程一覧
+        schedules: updatedEvent.schedules.map(schedule => ({
+          id: schedule.id,
+          date: schedule.date.toISOString(),
+          time: schedule.time ?? '',
+          location: schedule.location ?? '',
+          onlineMeetingUrl: schedule.onlineMeetingUrl ?? null,
+          status: schedule.status,
+          attendanceCode: schedule.attendanceCode ?? null,
+          registrationCount: schedule._count.registrations + schedule._count.externalRegistrations,
+          createdAt: schedule.createdAt.toISOString(),
+          updatedAt: schedule.updatedAt.toISOString(),
+        })),
       },
     })
   } catch (error) {

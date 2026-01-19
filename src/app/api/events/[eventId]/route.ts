@@ -53,11 +53,23 @@ export async function GET(
     const event = await prisma.event.findUnique({
       where: { id: eventId },
       include: {
-        _count: { select: { registrations: true } },
+        _count: { select: { registrations: true, externalRegistrations: true } },
+        schedules: {
+          orderBy: { date: 'asc' },
+          include: {
+            _count: {
+              select: {
+                registrations: true,
+                externalRegistrations: true,
+              }
+            }
+          }
+        },
         registrations: {
           where: { userId: authUser!.id },
           select: {
             id: true,
+            scheduleId: true,
             paymentStatus: true,
             paidAt: true,
             attendanceMethod: true,
@@ -120,11 +132,18 @@ export async function GET(
     const statusKey = event.status as keyof typeof EVENT_STATUS_MAP
     const venueTypeKey = event.venueType as keyof typeof EVENT_VENUE_TYPE_MAP
 
-    const currentParticipants = event._count.registrations
+    const currentParticipants = event._count.registrations + event._count.externalRegistrations
 
     const isRegistered = event.registrations.length > 0
     const registration = event.registrations.length > 0 ? event.registrations[0] : null
     const exemption = event.mtgExemptions.length > 0 ? event.mtgExemptions[0] : null
+
+    // 最初のスケジュール（後方互換性用）
+    const firstSchedule = event.schedules[0]
+    // 登録しているスケジュール
+    const registeredSchedule = registration?.scheduleId
+      ? event.schedules.find(s => s.id === registration.scheduleId)
+      : null
 
     return NextResponse.json({
       success: true,
@@ -132,16 +151,16 @@ export async function GET(
         id: event.id,
         title: event.title,
         description: event.description ?? '',
-        date: event.date.toISOString(),
-        time: event.time ?? '',
+        // 後方互換性：最初のスケジュールの日付を使用
+        date: firstSchedule?.date.toISOString() ?? null,
+        time: firstSchedule?.time ?? '',
         type: EVENT_TYPE_MAP[typeKey] ?? 'optional',
         targetRoles: (event.targetRoles || []).map(
           (role) => EVENT_TARGET_ROLE_MAP[role as keyof typeof EVENT_TARGET_ROLE_MAP]
         ),
         attendanceType: EVENT_ATTENDANCE_TYPE_MAP[attendanceTypeKey] ?? 'optional',
         venueType: EVENT_VENUE_TYPE_MAP[venueTypeKey] ?? 'online',
-        location: event.location ?? '',
-        maxParticipants: event.maxParticipants ?? null,
+        location: firstSchedule?.location ?? '',
         currentParticipants,
         status: EVENT_STATUS_MAP[statusKey] ?? 'upcoming',
         thumbnailUrl: event.thumbnailUrl ?? null,
@@ -150,12 +169,13 @@ export async function GET(
         isPaid: event.isPaid,
         price: event.price ?? null,
         paymentStatus: registration?.paymentStatus ?? null,
-        // オンライン参加URL
-        onlineMeetingUrl: event.onlineMeetingUrl ?? null,
+        // オンライン参加URL（登録スケジュールのURLを使用）
+        onlineMeetingUrl: registeredSchedule?.onlineMeetingUrl ?? firstSchedule?.onlineMeetingUrl ?? null,
         // 出席確認関連
-        hasAttendanceCode: !!event.attendanceCode,
-        applicationDeadline: event.applicationDeadline?.toISOString() ?? null,
-        attendanceDeadline: event.attendanceDeadline?.toISOString() ?? null,
+        hasAttendanceCode: event.schedules.some(s => !!s.attendanceCode),
+        // 期限設定（日数ベース）
+        applicationDeadlineDays: event.applicationDeadlineDays ?? null,
+        attendanceDeadlineDays: event.attendanceDeadlineDays ?? null,
         vimeoUrl: event.vimeoUrl ?? null,
         surveyUrl: event.surveyUrl ?? null,
         hasInternalSurvey: !!(event.eventSurvey && event.eventSurvey.isActive), // 内部アンケートが設定されているか
@@ -167,8 +187,6 @@ export async function GET(
         summary: event.summary ?? null,
         photos: event.photos ?? [],
         materialsUrl: event.materialsUrl ?? null,
-        actualParticipants: event.actualParticipants ?? null,
-        actualLocation: event.actualLocation ?? null,
         // 定期開催（全体MTG）判定用
         isRecurring: event.isRecurring,
         // 参加意思（全体MTG用）
@@ -183,6 +201,30 @@ export async function GET(
           reviewedAt: exemption.reviewedAt?.toISOString() ?? null,
           createdAt: exemption.createdAt.toISOString(),
         } : null,
+        // 登録済みスケジュール情報
+        registeredScheduleId: registration?.scheduleId ?? null,
+        registeredSchedule: registeredSchedule ? {
+          id: registeredSchedule.id,
+          date: registeredSchedule.date.toISOString(),
+          time: registeredSchedule.time ?? '',
+          location: registeredSchedule.location ?? '',
+          onlineMeetingUrl: registeredSchedule.onlineMeetingUrl ?? null,
+          hasAttendanceCode: !!registeredSchedule.attendanceCode,
+        } : null,
+        // 日程一覧
+        schedules: event.schedules.map(schedule => ({
+          id: schedule.id,
+          date: schedule.date.toISOString(),
+          time: schedule.time ?? '',
+          location: schedule.location ?? '',
+          onlineMeetingUrl: schedule.onlineMeetingUrl ?? null,
+          status: schedule.status,
+          hasAttendanceCode: !!schedule.attendanceCode,
+          registrationCount: schedule._count.registrations + schedule._count.externalRegistrations,
+        })),
+        // 外部参加者設定
+        allowExternalParticipation: event.allowExternalParticipation,
+        externalRegistrationToken: event.externalRegistrationToken ?? null,
       },
     })
   } catch (error) {

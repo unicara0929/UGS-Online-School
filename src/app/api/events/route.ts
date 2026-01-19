@@ -55,11 +55,20 @@ export async function GET(request: NextRequest) {
 
     const includeOptions = userId
       ? {
-          _count: { select: { registrations: true } },
+          _count: { select: { registrations: true, externalRegistrations: true } },
+          schedules: {
+            orderBy: { date: 'asc' as const },
+            include: {
+              _count: {
+                select: { registrations: true, externalRegistrations: true }
+              }
+            }
+          },
           registrations: {
             where: { userId },
             select: {
               id: true,
+              scheduleId: true,
               paymentStatus: true,
               paidAt: true,
               attendanceMethod: true,
@@ -71,7 +80,15 @@ export async function GET(request: NextRequest) {
           },
         }
       : {
-          _count: { select: { registrations: true } },
+          _count: { select: { registrations: true, externalRegistrations: true } },
+          schedules: {
+            orderBy: { date: 'asc' as const },
+            include: {
+              _count: {
+                select: { registrations: true, externalRegistrations: true }
+              }
+            }
+          },
         }
 
     // タイムアウト設定（8秒）
@@ -128,7 +145,7 @@ export async function GET(request: NextRequest) {
           },
         ],
       },
-      orderBy: { date: 'asc' },
+      orderBy: { createdAt: 'desc' },
       include: includeOptions,
       take: 100, // 最大100件に制限
     })
@@ -156,8 +173,16 @@ export async function GET(request: NextRequest) {
       const statusKey = event.status as keyof typeof EVENT_STATUS_MAP
       const venueTypeKey = event.venueType as keyof typeof EVENT_VENUE_TYPE_MAP
 
-      const currentParticipants =
-        '_count' in event ? (event._count as { registrations: number }).registrations : 0
+      // スケジュール情報
+      const schedules = 'schedules' in event ? event.schedules : []
+      const firstSchedule = schedules[0]
+
+      // 全登録者数を計算
+      const totalRegistrations =
+        '_count' in event
+          ? (event._count as { registrations: number; externalRegistrations: number }).registrations +
+            (event._count as { registrations: number; externalRegistrations: number }).externalRegistrations
+          : 0
 
       const isRegistered =
         'registrations' in event
@@ -177,15 +202,15 @@ export async function GET(request: NextRequest) {
         id: event.id,
         title: event.title,
         description: event.description ?? '',
-        date: event.date.toISOString(),
-        time: event.time ?? '',
+        // 後方互換性：最初のスケジュールの日付を使用
+        date: firstSchedule?.date?.toISOString() ?? null,
+        time: firstSchedule?.time ?? '',
         type: EVENT_TYPE_MAP[typeKey] ?? 'optional', // 後方互換性のため残す
         targetRoles: (event.targetRoles || []).map(role => EVENT_TARGET_ROLE_MAP[role as keyof typeof EVENT_TARGET_ROLE_MAP]),
         attendanceType: EVENT_ATTENDANCE_TYPE_MAP[attendanceTypeKey] ?? 'optional',
         venueType: EVENT_VENUE_TYPE_MAP[venueTypeKey] ?? 'online',
-        location: event.location ?? '',
-        maxParticipants: event.maxParticipants ?? null,
-        currentParticipants,
+        location: firstSchedule?.location ?? '',
+        currentParticipants: totalRegistrations,
         status: EVENT_STATUS_MAP[statusKey] ?? 'upcoming',
         thumbnailUrl: event.thumbnailUrl ?? null,
         isRegistered,
@@ -196,9 +221,9 @@ export async function GET(request: NextRequest) {
         price: event.price ?? null,
         paymentStatus: registration?.paymentStatus ?? null,
         // 出席確認関連
-        hasAttendanceCode: !!event.attendanceCode, // コードの有無のみ（コード自体は返さない）
-        applicationDeadline: event.applicationDeadline?.toISOString() ?? null,
-        attendanceDeadline: event.attendanceDeadline?.toISOString() ?? null,
+        hasAttendanceCode: schedules.some((s: any) => !!s.attendanceCode), // コードの有無のみ
+        applicationDeadlineDays: event.applicationDeadlineDays ?? null,
+        attendanceDeadlineDays: event.attendanceDeadlineDays ?? null,
         vimeoUrl: event.vimeoUrl ?? null,
         surveyUrl: event.surveyUrl ?? null,
         materialsUrl: event.materialsUrl ?? null,
@@ -208,6 +233,15 @@ export async function GET(request: NextRequest) {
         surveyCompleted: registration?.surveyCompleted ?? false,
         // 全体MTG関連
         isRecurring: event.isRecurring,
+        // スケジュール一覧
+        schedules: schedules.map((schedule: any) => ({
+          id: schedule.id,
+          date: schedule.date?.toISOString() ?? null,
+          time: schedule.time ?? '',
+          location: schedule.location ?? '',
+          status: schedule.status,
+          registrationCount: (schedule._count?.registrations ?? 0) + (schedule._count?.externalRegistrations ?? 0),
+        })),
       }
     })
 

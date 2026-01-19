@@ -27,10 +27,14 @@ export async function GET(request: NextRequest) {
         title: true,
         price: true,
         stripePriceId: true,
-        date: true,
         status: true,
+        schedules: {
+          orderBy: { date: 'asc' },
+          take: 1,
+          select: { date: true }
+        }
       },
-      orderBy: { date: 'desc' },
+      orderBy: { createdAt: 'desc' },
     })
 
     const results = []
@@ -80,7 +84,7 @@ export async function GET(request: NextRequest) {
         results.push({
           eventId: event.id,
           title: event.title,
-          date: event.date.toISOString(),
+          date: event.schedules[0]?.date?.toISOString() ?? null,
           status: event.status,
           price: event.price,
           stripePriceId: event.stripePriceId,

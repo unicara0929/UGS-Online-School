@@ -31,28 +31,42 @@ export async function POST(request: NextRequest) {
 
     // テンプレートイベントを取得（指定されている場合）
     let templateEvent = null
+    let templateSchedule = null
     if (templateEventId) {
       templateEvent = await prisma.event.findUnique({
         where: { id: templateEventId, isRecurring: true },
+        include: {
+          schedules: {
+            orderBy: { date: 'asc' },
+            take: 1,
+          }
+        }
       })
+      templateSchedule = templateEvent?.schedules[0] || null
     }
 
     // 各月の第1日曜日を計算して作成
     for (let i = 0; i < monthsAhead; i++) {
       const targetDate = getNextFirstSundayOfMonth(i + 1)
+      const dateStart = new Date(targetDate)
+      dateStart.setHours(0, 0, 0, 0)
+      const dateEnd = new Date(targetDate)
+      dateEnd.setHours(23, 59, 59, 999)
 
-      // 既に同じ日付でイベントが存在するかチェック
-      const existingEvent = await prisma.event.findFirst({
+      // 既に同じ日付でイベントが存在するかチェック（スケジュールで確認）
+      const existingSchedule = await prisma.eventSchedule.findFirst({
         where: {
           date: {
-            gte: new Date(targetDate.setHours(0, 0, 0, 0)),
-            lt: new Date(targetDate.setHours(23, 59, 59, 999)),
+            gte: dateStart,
+            lt: dateEnd,
           },
-          isRecurring: true,
+          event: {
+            isRecurring: true,
+          },
         },
       })
 
-      if (existingEvent) {
+      if (existingSchedule) {
         console.log(`Event already exists for ${targetDate.toISOString()}`)
         continue
       }
@@ -66,32 +80,44 @@ export async function POST(request: NextRequest) {
         data: {
           title: templateEvent?.title || `全体MTG ${targetDate.getFullYear()}年${targetDate.getMonth() + 1}月`,
           description: templateEvent?.description || '月1回の全体MTG。オフライン会場またはオンラインで参加してください。参加できない方は録画視聴+アンケート回答で出席扱いになります。',
-          date: eventStart,
-          time: '19:00-21:00',
           type: 'OPTIONAL',
           targetRoles: ['ALL'],
           attendanceType: 'OPTIONAL',
           venueType: 'HYBRID',
-          location: templateEvent?.location || 'オフライン会場 + オンライン',
-          maxParticipants: templateEvent?.maxParticipants || null,
           status: 'UPCOMING',
           isPaid: false,
           price: null,
           // 出席確認関連（後から管理者が設定）
-          attendanceCode: null,
           vimeoUrl: null,
           surveyUrl: null,
           // 定期開催設定
           isRecurring: true,
           recurrencePattern: 'monthly-first-sunday',
+          // スケジュールを同時に作成
+          schedules: {
+            create: {
+              date: eventStart,
+              time: '19:00-21:00',
+              location: templateSchedule?.location || 'オフライン会場 + オンライン',
+              status: 'OPEN',
+              attendanceCode: null,
+            }
+          }
         },
+        include: {
+          schedules: {
+            orderBy: { date: 'asc' },
+            take: 1,
+          }
+        }
       })
 
+      const firstSchedule = event.schedules[0]
       createdEvents.push({
         id: event.id,
         title: event.title,
-        date: event.date.toISOString(),
-        time: event.time,
+        date: firstSchedule?.date?.toISOString() ?? null,
+        time: firstSchedule?.time ?? null,
       })
     }
 

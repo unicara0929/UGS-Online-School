@@ -31,8 +31,19 @@ export async function GET(request: NextRequest) {
 
     const events = await prisma.event.findMany({
       where: category ? { eventCategory: category as 'MTG' | 'REGULAR' | 'TRAINING' } : undefined,
-      orderBy: { date: 'asc' },
+      orderBy: { createdAt: 'desc' },
       include: {
+        schedules: {
+          orderBy: { date: 'asc' },
+          include: {
+            _count: {
+              select: {
+                registrations: true,
+                externalRegistrations: true,
+              }
+            }
+          }
+        },
         registrations: {
           include: {
             user: {
@@ -43,9 +54,10 @@ export async function GET(request: NextRequest) {
                 memberId: true,
               },
             },
+            schedule: true,
           },
         },
-        _count: { select: { registrations: true } },
+        _count: { select: { registrations: true, externalRegistrations: true } },
       },
     })
 
@@ -78,36 +90,41 @@ export async function GET(request: NextRequest) {
       const statusKey = event.status as keyof typeof EVENT_STATUS_MAP
       const venueTypeKey = event.venueType as keyof typeof EVENT_VENUE_TYPE_MAP
 
+      // 最初のスケジュールを取得（後方互換性用）
+      const firstSchedule = event.schedules[0]
+      // 全スケジュールの登録者数を合計
+      const totalRegistrations = event._count.registrations + event._count.externalRegistrations
+
       return {
         id: event.id,
         title: event.title,
         description: event.description ?? '',
-        date: event.date.toISOString(),
-        time: event.time ?? '',
+        // 後方互換性：最初のスケジュールの日付を使用
+        date: firstSchedule?.date.toISOString() ?? null,
+        time: firstSchedule?.time ?? '',
         type: EVENT_TYPE_MAP[typeKey] ?? 'optional', // 後方互換性のため残す
         targetRoles: (event.targetRoles || []).map(role => EVENT_TARGET_ROLE_MAP[role as keyof typeof EVENT_TARGET_ROLE_MAP]),
         attendanceType: EVENT_ATTENDANCE_TYPE_MAP[attendanceTypeKey] ?? 'optional',
         venueType: EVENT_VENUE_TYPE_MAP[venueTypeKey] ?? 'online',
-        location: event.location ?? '',
-        onlineMeetingUrl: event.onlineMeetingUrl ?? null,
-        maxParticipants: event.maxParticipants ?? null,
+        // 後方互換性：最初のスケジュールの場所を使用
+        location: firstSchedule?.location ?? '',
+        onlineMeetingUrl: firstSchedule?.onlineMeetingUrl ?? null,
         status: EVENT_STATUS_MAP[statusKey] ?? 'upcoming',
         thumbnailUrl: event.thumbnailUrl ?? null,
-        currentParticipants: event._count.registrations,
+        currentParticipants: totalRegistrations,
         // 過去イベント記録用フィールド
         summary: event.summary ?? null,
         photos: event.photos ?? [],
         materialsUrl: event.materialsUrl ?? null,
-        actualParticipants: event.actualParticipants ?? null,
-        actualLocation: event.actualLocation ?? null,
         adminNotes: event.adminNotes ?? null,
         isArchiveOnly: event.isArchiveOnly ?? false,
         // 出席確認関連
-        attendanceCode: event.attendanceCode ?? null,
+        attendanceCode: firstSchedule?.attendanceCode ?? null,
         vimeoUrl: event.vimeoUrl ?? null,
         surveyUrl: event.surveyUrl ?? null,
-        applicationDeadline: event.applicationDeadline?.toISOString() ?? null,
-        attendanceDeadline: event.attendanceDeadline?.toISOString() ?? null,
+        // 日数ベースの期限
+        applicationDeadlineDays: event.applicationDeadlineDays ?? null,
+        attendanceDeadlineDays: event.attendanceDeadlineDays ?? null,
         // 全体MTGフラグ
         isRecurring: event.isRecurring ?? false,
         // イベントカテゴリ
@@ -115,6 +132,19 @@ export async function GET(request: NextRequest) {
         // 外部参加者設定
         allowExternalParticipation: event.allowExternalParticipation ?? false,
         externalRegistrationToken: event.externalRegistrationToken ?? null,
+        // 日程一覧
+        schedules: event.schedules.map(schedule => ({
+          id: schedule.id,
+          date: schedule.date.toISOString(),
+          time: schedule.time ?? '',
+          location: schedule.location ?? '',
+          onlineMeetingUrl: schedule.onlineMeetingUrl ?? null,
+          status: schedule.status,
+          attendanceCode: schedule.attendanceCode ?? null,
+          registrationCount: schedule._count.registrations + schedule._count.externalRegistrations,
+          createdAt: schedule.createdAt.toISOString(),
+          updatedAt: schedule.updatedAt.toISOString(),
+        })),
         registrations: event.registrations.map((registration) => {
           // 免除申請情報を取得
           const exemption = event.isRecurring
@@ -151,6 +181,10 @@ export async function GET(request: NextRequest) {
             userEmail: registration.user?.email ?? '',
             userMemberId: registration.user?.memberId ?? null,
             registeredAt: registration.createdAt.toISOString(),
+            // スケジュール情報
+            scheduleId: registration.scheduleId ?? null,
+            scheduleDate: registration.schedule?.date?.toISOString() ?? null,
+            scheduleTime: registration.schedule?.time ?? null,
             // 出席状況
             attendanceMethod: registration.attendanceMethod ?? null,
             attendanceCompletedAt: registration.attendanceCompletedAt?.toISOString() ?? null,
@@ -192,25 +226,20 @@ export async function POST(request: NextRequest) {
     const {
       title,
       description,
-      date,
-      time,
       type = 'optional', // 後方互換性のため残す
       targetRoles = [],
       attendanceType = 'optional',
       venueType = 'online',
-      location,
-      onlineMeetingUrl,
-      maxParticipants,
       status = 'upcoming',
       thumbnailUrl,
       isPaid = false,
       price,
-      // 出席確認関連
-      attendanceCode,
+      // 出席確認関連（イベントレベル）
       vimeoUrl,
       surveyUrl,
-      applicationDeadline,
-      attendanceDeadline,
+      // 期限設定（日数ベース）
+      applicationDeadlineDays,
+      attendanceDeadlineDays,
       // 定期開催関連
       isRecurring = false,
       recurrencePattern,
@@ -222,15 +251,21 @@ export async function POST(request: NextRequest) {
       summary,
       photos = [],
       materialsUrl,
-      actualParticipants,
-      actualLocation,
       adminNotes,
       isArchiveOnly = false,
+      // スケジュール情報（初回日程）
+      schedules = [],
+      // 後方互換性：単一日程として渡された場合
+      date,
+      time,
+      location,
+      onlineMeetingUrl,
+      attendanceCode,
     } = body || {}
 
-    if (!title || !date) {
+    if (!title) {
       return NextResponse.json(
-        { success: false, error: 'title と date は必須です' },
+        { success: false, error: 'タイトルは必須です' },
         { status: 400 }
       )
     }
@@ -253,26 +288,20 @@ export async function POST(request: NextRequest) {
       data: {
         title,
         description,
-        date: new Date(date),
-        time,
         type: eventType, // 後方互換性のため残す
         targetRoles: eventTargetRoles,
         attendanceType: eventAttendanceType,
         venueType: eventVenueType,
-        location,
-        onlineMeetingUrl: onlineMeetingUrl || null,
-        // 0, 空文字, undefinedはnull（制限なし）として扱う
-        maxParticipants: maxParticipants && Number(maxParticipants) > 0 ? Number(maxParticipants) : null,
         status: eventStatus,
         thumbnailUrl: thumbnailUrl || null,
         isPaid,
         price: isPaid ? Number(price) : null,
-        // 出席確認関連
-        attendanceCode: attendanceCode || null,
+        // 出席確認関連（イベントレベル）
         vimeoUrl: vimeoUrl || null,
         surveyUrl: surveyUrl || null,
-        applicationDeadline: applicationDeadline ? new Date(applicationDeadline + '+09:00') : null,
-        attendanceDeadline: attendanceDeadline ? new Date(attendanceDeadline + '+09:00') : null,
+        // 期限設定（日数ベース）
+        applicationDeadlineDays: applicationDeadlineDays !== undefined ? Number(applicationDeadlineDays) : null,
+        attendanceDeadlineDays: attendanceDeadlineDays !== undefined ? Number(attendanceDeadlineDays) : null,
         // 定期開催関連
         isRecurring,
         recurrencePattern: recurrencePattern || null,
@@ -282,8 +311,6 @@ export async function POST(request: NextRequest) {
         summary: summary || null,
         photos: photos || [],
         materialsUrl: materialsUrl || null,
-        actualParticipants: actualParticipants !== undefined ? Number(actualParticipants) : null,
-        actualLocation: actualLocation || null,
         adminNotes: adminNotes || null,
         isArchiveOnly,
         // 外部参加者設定
@@ -291,6 +318,30 @@ export async function POST(request: NextRequest) {
         externalRegistrationToken: allowExternalParticipation ? crypto.randomUUID() : null,
       },
     })
+
+    // スケジュールを作成
+    // 後方互換性：単一日程として渡された場合
+    const schedulesToCreate = schedules.length > 0
+      ? schedules
+      : date
+        ? [{ date, time, location, onlineMeetingUrl, attendanceCode }]
+        : []
+
+    const createdSchedules = []
+    for (const scheduleData of schedulesToCreate) {
+      const schedule = await prisma.eventSchedule.create({
+        data: {
+          eventId: createdEvent.id,
+          date: new Date(scheduleData.date),
+          time: scheduleData.time || null,
+          location: scheduleData.location || null,
+          onlineMeetingUrl: scheduleData.onlineMeetingUrl || null,
+          attendanceCode: scheduleData.attendanceCode || null,
+          status: 'OPEN',
+        }
+      })
+      createdSchedules.push(schedule)
+    }
 
     // 有料イベントの場合、Stripe Priceを作成
     if (isPaid && price) {
@@ -381,23 +432,40 @@ export async function POST(request: NextRequest) {
     const attendanceTypeKey = createdEvent.attendanceType as keyof typeof EVENT_ATTENDANCE_TYPE_MAP
     const venueTypeKey = createdEvent.venueType as keyof typeof EVENT_VENUE_TYPE_MAP
 
+    // 最初のスケジュール（後方互換性用）
+    const firstSchedule = createdSchedules[0]
+
     return NextResponse.json({
       success: true,
       event: {
         id: createdEvent.id,
         title: createdEvent.title,
         description: createdEvent.description ?? '',
-        date: createdEvent.date.toISOString(),
-        time: createdEvent.time ?? '',
+        // 後方互換性：最初のスケジュールの日付を使用
+        date: firstSchedule?.date.toISOString() ?? null,
+        time: firstSchedule?.time ?? '',
         type, // 後方互換性のため残す
         targetRoles: (createdEvent.targetRoles || []).map(role => EVENT_TARGET_ROLE_MAP[role as keyof typeof EVENT_TARGET_ROLE_MAP]),
         attendanceType: EVENT_ATTENDANCE_TYPE_MAP[attendanceTypeKey] ?? 'optional',
         venueType: EVENT_VENUE_TYPE_MAP[venueTypeKey] ?? 'online',
-        location: createdEvent.location ?? '',
-        maxParticipants: createdEvent.maxParticipants ?? null,
+        location: firstSchedule?.location ?? '',
+        onlineMeetingUrl: firstSchedule?.onlineMeetingUrl ?? null,
         status,
         thumbnailUrl: createdEvent.thumbnailUrl ?? null,
         currentParticipants: 0,
+        // 日程一覧
+        schedules: createdSchedules.map(schedule => ({
+          id: schedule.id,
+          date: schedule.date.toISOString(),
+          time: schedule.time ?? '',
+          location: schedule.location ?? '',
+          onlineMeetingUrl: schedule.onlineMeetingUrl ?? null,
+          status: schedule.status,
+          attendanceCode: schedule.attendanceCode ?? null,
+          registrationCount: 0,
+          createdAt: schedule.createdAt.toISOString(),
+          updatedAt: schedule.updatedAt.toISOString(),
+        })),
         registrations: [],
       },
     })

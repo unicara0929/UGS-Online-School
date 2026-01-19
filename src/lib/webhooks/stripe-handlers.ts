@@ -339,12 +339,23 @@ async function handleEventPaymentCompleted(session: Stripe.Checkout.Session): Pr
         paidAt: new Date(),
       },
       include: {
-        event: true,
+        event: {
+          include: {
+            schedules: {
+              orderBy: { date: 'asc' },
+              take: 1,
+            }
+          }
+        },
         user: true,
+        schedule: true,
       }
     })
 
     console.log(`Event payment completed: eventId=${eventId}, userId=${userId}, registrationId=${registrationId}`)
+
+    // 対象スケジュール（登録スケジュール優先、なければ最初のスケジュール）
+    const targetSchedule = registration.schedule || registration.event.schedules[0]
 
     // イベント参加確定メールを送信
     try {
@@ -352,14 +363,14 @@ async function handleEventPaymentCompleted(session: Stripe.Checkout.Session): Pr
         to: registration.user.email,
         userName: registration.user.name,
         eventTitle: registration.event.title,
-        eventDate: registration.event.date.toLocaleDateString('ja-JP', {
+        eventDate: targetSchedule?.date ? targetSchedule.date.toLocaleDateString('ja-JP', {
           year: 'numeric',
           month: 'long',
           day: 'numeric',
           weekday: 'long'
-        }),
-        eventTime: registration.event.time || undefined,
-        eventLocation: registration.event.location || undefined,
+        }) : '',
+        eventTime: targetSchedule?.time || undefined,
+        eventLocation: targetSchedule?.location || undefined,
         venueType: registration.event.venueType,
         eventId: registration.event.id,
       })
@@ -395,11 +406,22 @@ async function handleExternalEventPaymentCompleted(session: Stripe.Checkout.Sess
         paidAt: new Date(),
       },
       include: {
-        event: true,
+        event: {
+          include: {
+            schedules: {
+              orderBy: { date: 'asc' },
+              take: 1,
+            }
+          }
+        },
+        schedule: true,
       }
     })
 
     console.log(`External event payment completed: eventId=${eventId}, registrationId=${externalRegistrationId}`)
+
+    // 対象スケジュール（登録スケジュール優先、なければ最初のスケジュール）
+    const targetSchedule = registration.schedule || registration.event.schedules[0]
 
     // 外部参加者への確認メールを送信
     try {
@@ -407,10 +429,10 @@ async function handleExternalEventPaymentCompleted(session: Stripe.Checkout.Sess
         to: registration.email,
         name: registration.name,
         eventTitle: registration.event.title,
-        eventDate: registration.event.date,
-        eventTime: registration.event.time || undefined,
-        eventLocation: registration.event.location || undefined,
-        onlineMeetingUrl: registration.event.onlineMeetingUrl || undefined,
+        eventDate: targetSchedule?.date ?? new Date(),
+        eventTime: targetSchedule?.time || undefined,
+        eventLocation: targetSchedule?.location || undefined,
+        onlineMeetingUrl: targetSchedule?.onlineMeetingUrl || undefined,
       })
       console.log('External event confirmation email sent to:', registration.email)
     } catch (emailError) {

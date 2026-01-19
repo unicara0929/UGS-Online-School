@@ -34,12 +34,10 @@ export async function POST(request: NextRequest) {
     }
 
     // 既存のRegistrationを確認
-    const registration = await prisma.eventRegistration.findUnique({
+    const registration = await prisma.eventRegistration.findFirst({
       where: {
-        userId_eventId: {
-          userId: authUser.id,
-          eventId: eventId,
-        },
+        userId: authUser.id,
+        eventId: eventId,
       },
       include: {
         event: true,
@@ -80,12 +78,7 @@ export async function POST(request: NextRequest) {
 
       // EventRegistrationを削除
       await prisma.eventRegistration.delete({
-        where: {
-          userId_eventId: {
-            userId: authUser.id,
-            eventId: eventId,
-          },
-        },
+        where: { id: registration.id },
       })
 
       console.log(`Event registration refunded and deleted: userId=${authUser.id}, eventId=${eventId}`)

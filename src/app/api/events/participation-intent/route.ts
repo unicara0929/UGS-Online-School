@@ -50,12 +50,10 @@ export async function POST(request: NextRequest) {
     }
 
     // 参加登録を取得/作成
-    let registration = await prisma.eventRegistration.findUnique({
+    let registration = await prisma.eventRegistration.findFirst({
       where: {
-        userId_eventId: {
-          userId: authUser!.id,
-          eventId: eventId,
-        },
+        userId: authUser!.id,
+        eventId: eventId,
       },
     })
 

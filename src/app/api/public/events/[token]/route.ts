@@ -22,6 +22,17 @@ export async function GET(
         externalRegistrationToken: token,
       },
       include: {
+        schedules: {
+          orderBy: { date: 'asc' },
+          include: {
+            _count: {
+              select: {
+                registrations: true,
+                externalRegistrations: true,
+              }
+            }
+          }
+        },
         _count: {
           select: {
             registrations: true,
@@ -54,19 +65,23 @@ export async function GET(
       )
     }
 
-    // 申込期限チェック
-    if (event.applicationDeadline && new Date(event.applicationDeadline) < new Date()) {
-      return NextResponse.json(
-        { success: false, error: '申込期限が過ぎています' },
-        { status: 410 }
-      )
+    // 最初のスケジュール
+    const firstSchedule = event.schedules[0]
+
+    // 申込期限チェック（日数ベース）
+    if (event.applicationDeadlineDays !== null && firstSchedule) {
+      const deadline = new Date(firstSchedule.date)
+      deadline.setDate(deadline.getDate() - event.applicationDeadlineDays)
+      if (new Date() > deadline) {
+        return NextResponse.json(
+          { success: false, error: '申込期限が過ぎています' },
+          { status: 410 }
+        )
+      }
     }
 
     // 現在の参加者数を計算
     const currentParticipants = event._count.registrations + event._count.externalRegistrations
-
-    // 定員チェック（0またはnullは制限なし）
-    const isFull = event.maxParticipants !== null && event.maxParticipants > 0 && currentParticipants >= event.maxParticipants
 
     // 公開用の情報のみを返す（機密情報を除外）
     return NextResponse.json({
@@ -75,18 +90,26 @@ export async function GET(
         id: event.id,
         title: event.title,
         description: event.description,
-        date: event.date,
-        time: event.time,
-        location: event.location,
+        // 後方互換性：最初のスケジュールの情報を使用
+        date: firstSchedule?.date ?? null,
+        time: firstSchedule?.time ?? null,
+        location: firstSchedule?.location ?? null,
         venueType: event.venueType,
         thumbnailUrl: event.thumbnailUrl,
         isPaid: event.isPaid,
         price: event.price,
-        maxParticipants: event.maxParticipants,
         currentParticipants,
-        isFull,
-        applicationDeadline: event.applicationDeadline,
+        applicationDeadlineDays: event.applicationDeadlineDays,
         status: event.status,
+        // スケジュール一覧
+        schedules: event.schedules.map(schedule => ({
+          id: schedule.id,
+          date: schedule.date,
+          time: schedule.time,
+          location: schedule.location,
+          status: schedule.status,
+          registrationCount: schedule._count.registrations + schedule._count.externalRegistrations,
+        })),
       }
     })
   } catch (error) {

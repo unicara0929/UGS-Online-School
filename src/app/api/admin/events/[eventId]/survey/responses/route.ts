@@ -19,7 +19,15 @@ export async function GET(
     // イベント存在確認
     const event = await prisma.event.findUnique({
       where: { id: eventId },
-      select: { id: true, title: true, date: true }
+      select: {
+        id: true,
+        title: true,
+        schedules: {
+          orderBy: { date: 'asc' },
+          take: 1,
+          select: { date: true }
+        }
+      }
     })
 
     if (!event) {

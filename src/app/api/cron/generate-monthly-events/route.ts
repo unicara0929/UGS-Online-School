@@ -34,24 +34,26 @@ export async function GET(request: NextRequest) {
     for (let i = 0; i <= monthsAhead; i++) {
       const targetDate = getNextFirstSundayOfMonth(i)
 
-      // 既に同じ日付でイベントが存在するかチェック
+      // 既に同じ日付でイベントが存在するかチェック（スケジュールで確認）
       const startOfDay = new Date(targetDate)
       startOfDay.setHours(0, 0, 0, 0)
 
       const endOfDay = new Date(targetDate)
       endOfDay.setHours(23, 59, 59, 999)
 
-      const existingEvent = await prisma.event.findFirst({
+      const existingSchedule = await prisma.eventSchedule.findFirst({
         where: {
           date: {
             gte: startOfDay,
             lt: endOfDay,
           },
-          isRecurring: true,
+          event: {
+            isRecurring: true,
+          },
         },
       })
 
-      if (existingEvent) {
+      if (existingSchedule) {
         continue // 既に存在する場合はスキップ
       }
 
@@ -64,29 +66,41 @@ export async function GET(request: NextRequest) {
         data: {
           title: `全体MTG ${targetDate.getFullYear()}年${targetDate.getMonth() + 1}月`,
           description: '月1回の全体MTG。オフライン会場またはオンラインで参加してください。参加できない方は録画視聴+アンケート回答で出席扱いになります。',
-          date: eventStart,
-          time: '19:00-21:00',
           type: 'OPTIONAL',
           targetRoles: ['ALL'],
           attendanceType: 'OPTIONAL',
           venueType: 'HYBRID',
-          location: 'オフライン会場 + オンライン',
-          maxParticipants: null,
           status: 'UPCOMING',
           isPaid: false,
           price: null,
-          attendanceCode: null,
           vimeoUrl: null,
           surveyUrl: null,
           isRecurring: true,
           recurrencePattern: 'monthly-first-sunday',
+          // スケジュールを同時に作成
+          schedules: {
+            create: {
+              date: eventStart,
+              time: '19:00-21:00',
+              location: 'オフライン会場 + オンライン',
+              status: 'OPEN',
+              attendanceCode: null,
+            }
+          }
         },
+        include: {
+          schedules: {
+            orderBy: { date: 'asc' },
+            take: 1,
+          }
+        }
       })
 
+      const firstSchedule = event.schedules[0]
       createdEvents.push({
         id: event.id,
         title: event.title,
-        date: event.date.toISOString(),
+        date: firstSchedule?.date?.toISOString() ?? null,
       })
     }
 

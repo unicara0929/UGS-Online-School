@@ -55,7 +55,11 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             title: true,
-            date: true,
+            schedules: {
+              orderBy: { date: 'asc' },
+              take: 1,
+              select: { date: true }
+            }
           },
         },
       },
@@ -104,7 +108,7 @@ export async function GET(request: NextRequest) {
         event: {
           id: e.event.id,
           title: e.event.title,
-          date: e.event.date.toISOString(),
+          date: e.event.schedules[0]?.date?.toISOString() ?? null,
         },
       })),
       pagination: {

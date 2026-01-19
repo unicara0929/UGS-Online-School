@@ -46,12 +46,10 @@ export async function POST(request: NextRequest) {
     }
 
     // イベント登録を確認
-    const registration = await prisma.eventRegistration.findUnique({
+    const registration = await prisma.eventRegistration.findFirst({
       where: {
-        userId_eventId: {
-          userId,
-          eventId,
-        },
+        userId,
+        eventId,
       },
     })
 
@@ -77,12 +75,7 @@ export async function POST(request: NextRequest) {
     })
 
     const updatedRegistration = await prisma.eventRegistration.update({
-      where: {
-        userId_eventId: {
-          userId,
-          eventId,
-        },
-      },
+      where: { id: registration.id },
       data: {
         surveyCompleted: true,
         surveyCompletedAt: new Date(),
@@ -104,12 +97,7 @@ export async function POST(request: NextRequest) {
 
       // 通常のケース（参加選択者 or 欠席申請者）: 出席完了として記録
       await prisma.eventRegistration.update({
-        where: {
-          userId_eventId: {
-            userId,
-            eventId,
-          },
-        },
+        where: { id: registration.id },
         data: {
           attendanceMethod: 'VIDEO_SURVEY',
           attendanceCompletedAt: new Date(),

@@ -132,12 +132,10 @@ export async function POST(request: NextRequest) {
     }
 
     // 既に登録済みかチェック
-    const existingRegistration = await prisma.eventRegistration.findUnique({
+    const existingRegistration = await prisma.eventRegistration.findFirst({
       where: {
-        userId_eventId: {
-          userId: user.id,
-          eventId: event.id,
-        },
+        userId: user.id,
+        eventId: event.id,
       },
     })
 

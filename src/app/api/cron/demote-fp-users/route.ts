@@ -30,20 +30,36 @@ export async function GET(request: NextRequest) {
     const firstDayOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
 
     // 前月の全体MTGイベント（isRecurring=true）を取得
-    const lastMonthMtgEvents = await prisma.event.findMany({
+    // スケジュールの日付で検索
+    const lastMonthSchedules = await prisma.eventSchedule.findMany({
       where: {
-        isRecurring: true,
         date: {
           gte: firstDayOfLastMonth,
           lt: firstDayOfCurrentMonth,
         },
+        event: {
+          isRecurring: true,
+        },
       },
       select: {
-        id: true,
-        title: true,
+        event: {
+          select: {
+            id: true,
+            title: true,
+          }
+        },
         date: true,
       },
     })
+
+    // 重複を除いてイベントリストを作成
+    const eventMap = new Map<string, { id: string; title: string; date: Date }>()
+    lastMonthSchedules.forEach(s => {
+      if (!eventMap.has(s.event.id)) {
+        eventMap.set(s.event.id, { id: s.event.id, title: s.event.title, date: s.date })
+      }
+    })
+    const lastMonthMtgEvents = Array.from(eventMap.values())
 
     if (lastMonthMtgEvents.length === 0) {
       console.log('[DEMOTE_FP_CRON] No MTG events found for last month')

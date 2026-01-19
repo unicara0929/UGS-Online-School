@@ -33,15 +33,29 @@ export async function GET(request: NextRequest) {
             select: {
               id: true,
               title: true,
-              date: true,
+              schedules: {
+                orderBy: { date: 'asc' },
+                take: 1,
+                select: { date: true }
+              }
             },
           },
         },
       })
 
+      // レスポンス整形（後方互換性）
+      const formattedExemption = exemption ? {
+        ...exemption,
+        event: {
+          id: exemption.event.id,
+          title: exemption.event.title,
+          date: exemption.event.schedules[0]?.date ?? null,
+        }
+      } : null
+
       return NextResponse.json({
         success: true,
-        exemption,
+        exemption: formattedExemption,
       })
     }
 
@@ -55,7 +69,11 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             title: true,
-            date: true,
+            schedules: {
+              orderBy: { date: 'asc' },
+              take: 1,
+              select: { date: true }
+            }
           },
         },
       },
@@ -64,9 +82,19 @@ export async function GET(request: NextRequest) {
       },
     })
 
+    // レスポンス整形（後方互換性）
+    const formattedExemptions = exemptions.map(e => ({
+      ...e,
+      event: {
+        id: e.event.id,
+        title: e.event.title,
+        date: e.event.schedules[0]?.date ?? null,
+      }
+    }))
+
     return NextResponse.json({
       success: true,
-      exemptions,
+      exemptions: formattedExemptions,
     })
   } catch (error) {
     console.error('[GET_EXEMPTION_ERROR]', error)
@@ -123,8 +151,12 @@ export async function POST(request: NextRequest) {
       select: {
         id: true,
         title: true,
-        date: true,
         isRecurring: true,
+        schedules: {
+          orderBy: { date: 'asc' },
+          take: 1,
+          select: { date: true }
+        }
       },
     })
 
@@ -137,7 +169,8 @@ export async function POST(request: NextRequest) {
 
     // イベント開始前かチェック（イベント開始後は申請不可）
     const now = new Date()
-    if (event.date < now) {
+    const firstScheduleDate = event.schedules[0]?.date
+    if (firstScheduleDate && firstScheduleDate < now) {
       return NextResponse.json(
         { success: false, error: 'イベント開始後は欠席申請できません' },
         { status: 400 }
@@ -189,12 +222,7 @@ export async function POST(request: NextRequest) {
 
       // 審査中の場合は理由を更新
       exemption = await prisma.mtgExemption.update({
-        where: {
-          userId_eventId: {
-            userId: authUser!.id,
-            eventId,
-          },
-        },
+        where: { id: existingExemption.id },
         data: {
           reason: trimmedReason,
           updatedAt: new Date(),
@@ -204,7 +232,11 @@ export async function POST(request: NextRequest) {
             select: {
               id: true,
               title: true,
-              date: true,
+              schedules: {
+                orderBy: { date: 'asc' },
+                take: 1,
+                select: { date: true }
+              }
             },
           },
         },
@@ -223,7 +255,11 @@ export async function POST(request: NextRequest) {
             select: {
               id: true,
               title: true,
-              date: true,
+              schedules: {
+                orderBy: { date: 'asc' },
+                take: 1,
+                select: { date: true }
+              }
             },
           },
         },
@@ -231,30 +267,47 @@ export async function POST(request: NextRequest) {
     }
 
     // EventRegistrationのparticipationIntentをWILL_NOT_ATTENDに更新
-    await prisma.eventRegistration.upsert({
+    const existingRegistration = await prisma.eventRegistration.findFirst({
       where: {
-        userId_eventId: {
-          userId: authUser!.id,
-          eventId,
-        },
-      },
-      update: {
-        participationIntent: 'WILL_NOT_ATTEND',
-        participationIntentAt: new Date(),
-      },
-      create: {
         userId: authUser!.id,
         eventId,
-        paymentStatus: 'FREE',
-        participationIntent: 'WILL_NOT_ATTEND',
-        participationIntentAt: new Date(),
       },
     })
+
+    if (existingRegistration) {
+      await prisma.eventRegistration.update({
+        where: { id: existingRegistration.id },
+        data: {
+          participationIntent: 'WILL_NOT_ATTEND',
+          participationIntentAt: new Date(),
+        },
+      })
+    } else {
+      await prisma.eventRegistration.create({
+        data: {
+          userId: authUser!.id,
+          eventId,
+          paymentStatus: 'FREE',
+          participationIntent: 'WILL_NOT_ATTEND',
+          participationIntentAt: new Date(),
+        },
+      })
+    }
+
+    // レスポンス整形（後方互換性）
+    const formattedExemption = {
+      ...exemption,
+      event: {
+        id: exemption.event.id,
+        title: exemption.event.title,
+        date: exemption.event.schedules[0]?.date ?? null,
+      }
+    }
 
     return NextResponse.json({
       success: true,
       message: existingExemption ? '欠席申請を更新しました' : '欠席申請を受け付けました。管理者による審査をお待ちください。',
-      exemption,
+      exemption: formattedExemption,
       isUpdate: !!existingExemption,
     })
   } catch (error) {

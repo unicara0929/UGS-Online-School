@@ -27,14 +27,20 @@ export async function GET(
       select: {
         id: true,
         title: true,
-        date: true,
-        time: true,
         status: true,
         isRecurring: true,
-        attendanceCode: true,
         vimeoUrl: true,
         surveyUrl: true,
         materialsUrl: true,
+        schedules: {
+          orderBy: { date: 'asc' },
+          take: 1,
+          select: {
+            date: true,
+            time: true,
+            attendanceCode: true,
+          }
+        }
       }
     })
 
@@ -229,16 +235,17 @@ export async function GET(
       paymentUnpaid: participants.filter(p => p.paymentStatus === 'unpaid').length,
     }
 
+    const firstSchedule = event.schedules[0]
     return NextResponse.json({
       success: true,
       event: {
         id: event.id,
         title: event.title,
-        date: event.date.toISOString(),
-        time: event.time,
+        date: firstSchedule?.date?.toISOString() ?? null,
+        time: firstSchedule?.time ?? null,
         status: event.status.toLowerCase(),
-        hasAttendanceCode: !!event.attendanceCode,
-        attendanceCode: event.attendanceCode, // 管理者には表示
+        hasAttendanceCode: !!firstSchedule?.attendanceCode,
+        attendanceCode: firstSchedule?.attendanceCode ?? null, // 管理者には表示
         hasVideo: !!event.vimeoUrl,
         hasSurvey: !!event.surveyUrl,
         hasMaterials: !!event.materialsUrl,

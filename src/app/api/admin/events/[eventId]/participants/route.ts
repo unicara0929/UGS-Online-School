@@ -32,6 +32,12 @@ export async function GET(
     // イベント情報を取得
     const event = await prisma.event.findUnique({
       where: { id: eventId },
+      include: {
+        schedules: {
+          orderBy: { date: 'asc' },
+          take: 1,
+        }
+      }
     })
 
     if (!event) {
@@ -172,13 +178,14 @@ export async function GET(
         allExternalRegistrations.filter((r) => r.paymentStatus === 'REFUNDED').length,
     }
 
+    const firstSchedule = event.schedules[0]
     return NextResponse.json({
       success: true,
       event: {
         id: event.id,
         title: event.title,
-        date: event.date.toISOString(),
-        time: event.time || '',
+        date: firstSchedule?.date?.toISOString() ?? null,
+        time: firstSchedule?.time || '',
         isPaid: event.isPaid,
         price: event.price,
         isRecurring: event.isRecurring || false,

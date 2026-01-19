@@ -29,7 +29,11 @@ export async function GET(
           select: {
             id: true,
             title: true,
-            date: true,
+            schedules: {
+              orderBy: { date: 'asc' },
+              take: 1,
+              select: { date: true }
+            }
           },
         },
         logs: {
