@@ -292,6 +292,12 @@ function EventDetailPageContent() {
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-2xl">{event.title}</CardTitle>
                     <div className="flex items-center gap-2">
+                      <Link href={`/dashboard/admin/events/${eventId}/schedules`}>
+                        <Button variant="outline" size="sm">
+                          <Calendar className="h-4 w-4 mr-2" />
+                          日程管理
+                        </Button>
+                      </Link>
                       <Link href={`/dashboard/admin/events/${eventId}/survey`}>
                         <Button variant="outline" size="sm">
                           <FileText className="h-4 w-4 mr-2" />
