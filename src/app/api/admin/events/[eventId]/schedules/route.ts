@@ -20,6 +20,23 @@ export async function GET(
 
     const { eventId } = await context.params
 
+    // イベント情報を取得
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: {
+        id: true,
+        title: true,
+        eventCategory: true,
+      }
+    })
+
+    if (!event) {
+      return NextResponse.json(
+        { success: false, error: 'イベントが見つかりません' },
+        { status: 404 }
+      )
+    }
+
     const schedules = await prisma.eventSchedule.findMany({
       where: { eventId },
       orderBy: { date: 'asc' },
@@ -35,6 +52,7 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
+      event,
       schedules: schedules.map(schedule => ({
         id: schedule.id,
         eventId: schedule.eventId,
@@ -44,7 +62,10 @@ export async function GET(
         onlineMeetingUrl: schedule.onlineMeetingUrl,
         status: schedule.status,
         attendanceCode: schedule.attendanceCode,
-        registrationCount: schedule._count.registrations + schedule._count.externalRegistrations,
+        _count: {
+          registrations: schedule._count.registrations,
+          externalRegistrations: schedule._count.externalRegistrations,
+        },
         createdAt: schedule.createdAt,
         updatedAt: schedule.updatedAt,
       }))
