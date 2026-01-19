@@ -124,21 +124,20 @@ export async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Se
               console.log('User already exists, reusing:', existingUser.id)
             } else {
               // 2. トランザクション内でユニークなmemberIdを生成
-              const latestUser = await tx.user.findFirst({
+              // 注意: memberIdは文字列なので、数値として最大値を取得する必要がある
+              const allMemberIds = await tx.user.findMany({
                 where: { memberId: { startsWith: 'UGS' } },
-                orderBy: { memberId: 'desc' },
                 select: { memberId: true }
               })
 
-              let nextNumber = 1
-              if (latestUser?.memberId) {
-                const numberPart = latestUser.memberId.replace('UGS', '')
-                const currentNumber = parseInt(numberPart, 10)
-                if (!isNaN(currentNumber)) {
-                  nextNumber = currentNumber + 1
+              let maxNumber = 0
+              for (const u of allMemberIds) {
+                const num = parseInt(u.memberId.replace('UGS', ''), 10)
+                if (!isNaN(num) && num > maxNumber) {
+                  maxNumber = num
                 }
               }
-              const memberId = `UGS${nextNumber.toString().padStart(7, '0')}`
+              const memberId = `UGS${(maxNumber + 1).toString().padStart(7, '0')}`
 
               // 3. トランザクション内でユニークなreferralCodeを生成
               const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -323,64 +322,75 @@ export async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Se
 async function handleEventPaymentCompleted(session: Stripe.Checkout.Session): Promise<void> {
   const { eventId, userId, registrationId } = session.metadata || {}
 
-  if (!registrationId) {
-    console.error('Missing registrationId in event payment session metadata')
+  // registrationIdがない場合、stripeSessionIdで検索を試みる
+  let regId = registrationId
+  if (!regId && session.id) {
+    console.log('registrationId not in metadata, searching by stripeSessionId:', session.id)
+    const existingRegistration = await prisma.eventRegistration.findFirst({
+      where: { stripeSessionId: session.id },
+      select: { id: true }
+    })
+    if (existingRegistration) {
+      regId = existingRegistration.id
+      console.log('Found registration by stripeSessionId:', regId)
+    }
+  }
+
+  if (!regId) {
+    console.error('Missing registrationId in event payment session metadata and no matching stripeSessionId found')
+    // ここではエラーをthrowしない（セッションに紐づく登録がない場合はリトライしても無意味）
     return
   }
 
-  try {
-    // EventRegistrationを更新: PENDING → PAID
-    const registration = await prisma.eventRegistration.update({
-      where: { id: registrationId },
-      data: {
-        paymentStatus: 'PAID',
-        stripePaymentIntentId: session.payment_intent as string,
-        paidAmount: session.amount_total || 0,
-        paidAt: new Date(),
-      },
-      include: {
-        event: {
-          include: {
-            schedules: {
-              orderBy: { date: 'asc' },
-              take: 1,
-            }
+  // EventRegistrationを更新: PENDING → PAID
+  const registration = await prisma.eventRegistration.update({
+    where: { id: regId },
+    data: {
+      paymentStatus: 'PAID',
+      stripePaymentIntentId: session.payment_intent as string,
+      paidAmount: session.amount_total || 0,
+      paidAt: new Date(),
+    },
+    include: {
+      event: {
+        include: {
+          schedules: {
+            orderBy: { date: 'asc' },
+            take: 1,
           }
-        },
-        user: true,
-        schedule: true,
-      }
-    })
-
-    console.log(`Event payment completed: eventId=${eventId}, userId=${userId}, registrationId=${registrationId}`)
-
-    // 対象スケジュール（登録スケジュール優先、なければ最初のスケジュール）
-    const targetSchedule = registration.schedule || registration.event.schedules[0]
-
-    // イベント参加確定メールを送信
-    try {
-      await sendEventConfirmationEmail({
-        to: registration.user.email,
-        userName: registration.user.name,
-        eventTitle: registration.event.title,
-        eventDate: targetSchedule?.date ? targetSchedule.date.toLocaleDateString('ja-JP', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          weekday: 'long'
-        }) : '',
-        eventTime: targetSchedule?.time || undefined,
-        eventLocation: targetSchedule?.location || undefined,
-        venueType: registration.event.venueType,
-        eventId: registration.event.id,
-      })
-      console.log('Event confirmation email sent to:', registration.user.email)
-    } catch (emailError) {
-      console.error('Failed to send event confirmation email:', emailError)
-      // メール送信失敗でも処理は続行
+        }
+      },
+      user: true,
+      schedule: true,
     }
-  } catch (error) {
-    console.error('Failed to update event registration payment status:', error)
+  })
+
+  console.log(`Event payment completed: eventId=${eventId}, userId=${userId}, registrationId=${regId}`)
+
+  // 対象スケジュール（登録スケジュール優先、なければ最初のスケジュール）
+  const targetSchedule = registration.schedule || registration.event.schedules[0]
+
+  // イベント参加確定メールを送信
+  try {
+    await sendEventConfirmationEmail({
+      to: registration.user.email,
+      userName: registration.user.name,
+      eventTitle: registration.event.title,
+      eventDate: targetSchedule?.date ? targetSchedule.date.toLocaleDateString('ja-JP', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        weekday: 'long'
+      }) : '',
+      eventTime: targetSchedule?.time || undefined,
+      eventLocation: targetSchedule?.location || undefined,
+      venueType: registration.event.venueType,
+      eventId: registration.event.id,
+    })
+    console.log('Event confirmation email sent to:', registration.user.email)
+  } catch (emailError) {
+    console.error('Failed to send event confirmation email:', emailError)
+    // メール送信失敗でも処理は続行
   }
 }
 
@@ -390,57 +400,68 @@ async function handleEventPaymentCompleted(session: Stripe.Checkout.Session): Pr
 async function handleExternalEventPaymentCompleted(session: Stripe.Checkout.Session): Promise<void> {
   const { eventId, externalRegistrationId } = session.metadata || {}
 
-  if (!externalRegistrationId) {
-    console.error('Missing externalRegistrationId in external event payment session metadata')
+  // externalRegistrationIdがない場合、stripeSessionIdで検索を試みる
+  let registrationId = externalRegistrationId
+  if (!registrationId && session.id) {
+    console.log('externalRegistrationId not in metadata, searching by stripeSessionId:', session.id)
+    const existingRegistration = await prisma.externalEventRegistration.findFirst({
+      where: { stripeSessionId: session.id },
+      select: { id: true }
+    })
+    if (existingRegistration) {
+      registrationId = existingRegistration.id
+      console.log('Found registration by stripeSessionId:', registrationId)
+    }
+  }
+
+  if (!registrationId) {
+    console.error('Missing externalRegistrationId in external event payment session metadata and no matching stripeSessionId found')
+    // ここではエラーをthrowしない（セッションに紐づく登録がない場合はリトライしても無意味）
     return
   }
 
-  try {
-    // ExternalEventRegistrationを更新: PENDING → PAID
-    const registration = await prisma.externalEventRegistration.update({
-      where: { id: externalRegistrationId },
-      data: {
-        paymentStatus: 'PAID',
-        stripePaymentIntentId: session.payment_intent as string,
-        paidAmount: session.amount_total || 0,
-        paidAt: new Date(),
-      },
-      include: {
-        event: {
-          include: {
-            schedules: {
-              orderBy: { date: 'asc' },
-              take: 1,
-            }
+  // ExternalEventRegistrationを更新: PENDING → PAID
+  const registration = await prisma.externalEventRegistration.update({
+    where: { id: registrationId },
+    data: {
+      paymentStatus: 'PAID',
+      stripePaymentIntentId: session.payment_intent as string,
+      paidAmount: session.amount_total || 0,
+      paidAt: new Date(),
+    },
+    include: {
+      event: {
+        include: {
+          schedules: {
+            orderBy: { date: 'asc' },
+            take: 1,
           }
-        },
-        schedule: true,
-      }
-    })
-
-    console.log(`External event payment completed: eventId=${eventId}, registrationId=${externalRegistrationId}`)
-
-    // 対象スケジュール（登録スケジュール優先、なければ最初のスケジュール）
-    const targetSchedule = registration.schedule || registration.event.schedules[0]
-
-    // 外部参加者への確認メールを送信
-    try {
-      await sendExternalEventConfirmationEmail({
-        to: registration.email,
-        name: registration.name,
-        eventTitle: registration.event.title,
-        eventDate: targetSchedule?.date ?? new Date(),
-        eventTime: targetSchedule?.time || undefined,
-        eventLocation: targetSchedule?.location || undefined,
-        onlineMeetingUrl: targetSchedule?.onlineMeetingUrl || undefined,
-      })
-      console.log('External event confirmation email sent to:', registration.email)
-    } catch (emailError) {
-      console.error('Failed to send external event confirmation email:', emailError)
-      // メール送信失敗でも処理は続行
+        }
+      },
+      schedule: true,
     }
-  } catch (error) {
-    console.error('Failed to update external event registration payment status:', error)
+  })
+
+  console.log(`External event payment completed: eventId=${eventId}, registrationId=${registrationId}`)
+
+  // 対象スケジュール（登録スケジュール優先、なければ最初のスケジュール）
+  const targetSchedule = registration.schedule || registration.event.schedules[0]
+
+  // 外部参加者への確認メールを送信
+  try {
+    await sendExternalEventConfirmationEmail({
+      to: registration.email,
+      name: registration.name,
+      eventTitle: registration.event.title,
+      eventDate: targetSchedule?.date ?? new Date(),
+      eventTime: targetSchedule?.time || undefined,
+      eventLocation: targetSchedule?.location || undefined,
+      onlineMeetingUrl: targetSchedule?.onlineMeetingUrl || undefined,
+    })
+    console.log('External event confirmation email sent to:', registration.email)
+  } catch (emailError) {
+    console.error('Failed to send external event confirmation email:', emailError)
+    // メール送信失敗でも処理は続行
   }
 }
 
