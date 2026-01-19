@@ -99,6 +99,7 @@ export async function GET(request: NextRequest) {
     // ユーザーのロールに基づいてイベントをフィルタリング
     const userRole = authUser!.role
     const userTargetRole = USER_ROLE_TO_EVENT_TARGET_ROLE[userRole as keyof typeof USER_ROLE_TO_EVENT_TARGET_ROLE] || 'MEMBER'
+    const isAdmin = userRole === 'ADMIN'
 
     const now = new Date()
 
@@ -109,20 +110,22 @@ export async function GET(request: NextRequest) {
           { isArchiveOnly: false },
           // カテゴリフィルター（指定されている場合）
           ...(category ? [{ eventCategory: category as 'MTG' | 'REGULAR' | 'TRAINING' }] : []),
-          // ロールによるフィルタリング
-          {
-            OR: [
-              // 全員対象イベント（ただし全体MTGはMEMBER除外）
-              {
-                AND: [
-                  { targetRoles: { has: 'ALL' } },
-                  // 全体MTG（isRecurring=true）はMEMBER以外のみ表示
-                  ...(userRole === 'MEMBER' ? [{ isRecurring: { not: true } }] : []),
-                ],
-              },
-              { targetRoles: { has: userTargetRole } }, // ユーザーのロールに一致するイベント
-            ],
-          },
+          // ロールによるフィルタリング（管理者は全イベント表示）
+          ...(isAdmin ? [] : [
+            {
+              OR: [
+                // 全員対象イベント（ただし全体MTGはMEMBER除外）
+                {
+                  AND: [
+                    { targetRoles: { has: 'ALL' } },
+                    // 全体MTG（isRecurring=true）はMEMBER以外のみ表示
+                    ...(userRole === 'MEMBER' ? [{ isRecurring: { not: true } }] : []),
+                  ],
+                },
+                { targetRoles: { has: userTargetRole } }, // ユーザーのロールに一致するイベント
+              ],
+            },
+          ]),
           // ステータスフィルタリング
           {
             OR: [
