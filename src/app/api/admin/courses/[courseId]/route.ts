@@ -103,7 +103,12 @@ export async function PUT(
     if (category !== undefined) updateData.category = category
     if (level !== undefined) updateData.level = level
     if (isLocked !== undefined) updateData.isLocked = isLocked
-    if (viewableRoles !== undefined) updateData.viewableRoles = viewableRoles
+    if (viewableRoles !== undefined) {
+      updateData.viewableRoles = viewableRoles
+      // viewableRolesが設定された場合（空配列含む）、isLockedは無効化
+      // 空配列 = 全員閲覧可能なのでisLocked=falseにする
+      updateData.isLocked = false
+    }
     if (isPublished !== undefined) updateData.isPublished = isPublished
     if (order !== undefined) updateData.order = order
 
