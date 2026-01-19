@@ -25,6 +25,7 @@ interface Course {
   category: 'MONEY_LITERACY' | 'PRACTICAL_SKILL' | 'STARTUP_SUPPORT' | 'STARTUP_GUIDE'
   level: 'BASIC' | 'ADVANCED'
   isLocked: boolean
+  viewableRoles: string[]
   isPublished: boolean
   order: number
   lessonCount: number
@@ -208,10 +209,24 @@ export default function AdminCoursesPage() {
                                 非公開
                               </Badge>
                             )}
-                            {course.isLocked && (
+                            {course.viewableRoles && course.viewableRoles.length > 0 && (
                               <Badge variant="outline">
                                 <Lock className="h-3 w-3 mr-1" />
-                                FP限定
+                                {course.viewableRoles.map((role: string) => {
+                                  switch(role) {
+                                    case 'MEMBER': return 'メンバー'
+                                    case 'FP': return 'FP'
+                                    case 'MANAGER': return 'MGR'
+                                    case 'ADMIN': return '管理者'
+                                    default: return role
+                                  }
+                                }).join('・')}限定
+                              </Badge>
+                            )}
+                            {course.isLocked && (!course.viewableRoles || course.viewableRoles.length === 0) && (
+                              <Badge variant="outline">
+                                <Lock className="h-3 w-3 mr-1" />
+                                FP以上限定
                               </Badge>
                             )}
                           </div>

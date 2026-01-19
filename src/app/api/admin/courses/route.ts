@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
       category: course.category,
       level: course.level,
       isLocked: course.isLocked,
+      viewableRoles: course.viewableRoles,
       isPublished: course.isPublished,
       order: course.order,
       lessonCount: course._count.lessons,
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
     if (roleError) return roleError
 
     const body = await request.json()
-    const { title, description, category, level, isLocked, isPublished, order } = body
+    const { title, description, category, level, isLocked, viewableRoles, isPublished, order } = body
 
     // バリデーション
     if (!title) {
@@ -110,6 +111,7 @@ export async function POST(request: NextRequest) {
         category,
         level,
         isLocked: isLocked === true,
+        viewableRoles: viewableRoles || [],
         isPublished: isPublished !== false, // デフォルトはtrue
         order: order || 0
       }

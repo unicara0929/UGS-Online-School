@@ -286,7 +286,7 @@ export function CourseList() {
             {/* ロック理由 */}
             {stats.isLocked && (
               <div className="text-xs text-slate-500 bg-white/50 p-2 rounded">
-                FPエイド昇格後に利用可能
+                このカテゴリは現在のロールでは閲覧できません
               </div>
             )}
           </div>
@@ -379,7 +379,7 @@ export function CourseList() {
           {/* ロック理由 */}
           {course.isLocked && (
             <div className="text-xs text-slate-500 bg-slate-50 p-2 rounded">
-              FPエイド昇格後に利用可能
+              このコースは現在のロールでは閲覧できません
             </div>
           )}
         </div>

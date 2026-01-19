@@ -135,18 +135,19 @@ model Subscription {
 }
 
 model Course {
-  id          String           @id @default(cuid())
-  title       String
-  description String?
-  category    CourseCategory
-  level       CourseLevel
-  isLocked    Boolean          @default(false)
-  isPublished Boolean          @default(true) // 公開/非公開管理
-  order       Int              @default(0) // コース間の並び順
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  progress    CourseProgress[]
-  lessons     Lesson[]
+  id            String                 @id @default(cuid())
+  title         String
+  description   String?
+  category      CourseCategory
+  level         CourseLevel
+  isLocked      Boolean                @default(false) // 旧フィールド（後方互換性）
+  viewableRoles MaterialViewableRole[] // 閲覧可能ロール（空の場合は全員閲覧可能）
+  isPublished   Boolean                @default(true) // 公開/非公開管理
+  order         Int                    @default(0) // コース間の並び順
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+  progress      CourseProgress[]
+  lessons       Lesson[]
 
   @@map("courses")
 }

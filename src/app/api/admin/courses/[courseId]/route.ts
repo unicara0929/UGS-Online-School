@@ -72,7 +72,7 @@ export async function PUT(
 
     const { courseId } = await context.params
     const body = await request.json()
-    const { title, description, category, level, isLocked, isPublished, order } = body
+    const { title, description, category, level, isLocked, viewableRoles, isPublished, order } = body
 
     // バリデーション
     if (title !== undefined && !title) {
@@ -103,6 +103,7 @@ export async function PUT(
     if (category !== undefined) updateData.category = category
     if (level !== undefined) updateData.level = level
     if (isLocked !== undefined) updateData.isLocked = isLocked
+    if (viewableRoles !== undefined) updateData.viewableRoles = viewableRoles
     if (isPublished !== undefined) updateData.isPublished = isPublished
     if (order !== undefined) updateData.order = order
 

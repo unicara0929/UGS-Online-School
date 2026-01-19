@@ -1,6 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
+import { MaterialViewableRole } from '@prisma/client'
+
+// ユーザーロールをMaterialViewableRoleに変換
+function userRoleToViewableRole(role: string): MaterialViewableRole {
+  switch (role) {
+    case 'ADMIN': return 'ADMIN'
+    case 'MANAGER': return 'MANAGER'
+    case 'FP': return 'FP'
+    case 'MEMBER':
+    default: return 'MEMBER'
+  }
+}
+
+// コースにアクセス可能か判定
+function canAccessCourse(
+  viewableRoles: MaterialViewableRole[],
+  isLocked: boolean,
+  userRole: string
+): boolean {
+  // viewableRolesが設定されている場合はそれを使用
+  if (viewableRoles && viewableRoles.length > 0) {
+    const userViewableRole = userRoleToViewableRole(userRole)
+    return viewableRoles.includes(userViewableRole)
+  }
+
+  // viewableRolesが空の場合、旧ロジック（isLockedフィールド）を使用
+  // isLocked=true の場合はFPエイド以上のみアクセス可能
+  if (isLocked) {
+    return ['FP', 'MANAGER', 'ADMIN'].includes(userRole)
+  }
+
+  // それ以外は全員アクセス可能
+  return true
+}
 
 export async function GET(
   request: NextRequest,
@@ -44,10 +78,10 @@ export async function GET(
       )
     }
 
-    // FPエイド以上のみアクセス可能なコンテンツの制御
-    const canAccessFPContent = ['FP', 'MANAGER', 'ADMIN'].includes(userRole)
+    // アクセス権限チェック
+    const hasAccess = canAccessCourse(course.viewableRoles, course.isLocked, userRole)
 
-    if (course.isLocked && !canAccessFPContent) {
+    if (!hasAccess) {
       return NextResponse.json(
         { success: false, error: 'このコースにアクセスする権限がありません' },
         { status: 403 }

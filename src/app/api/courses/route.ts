@@ -1,9 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
+import { MaterialViewableRole } from '@prisma/client'
 
 // NEW判定の日数
 const NEW_BADGE_DAYS = 7
+
+// ユーザーロールをMaterialViewableRoleに変換
+function userRoleToViewableRole(role: string): MaterialViewableRole {
+  switch (role) {
+    case 'ADMIN': return 'ADMIN'
+    case 'MANAGER': return 'MANAGER'
+    case 'FP': return 'FP'
+    case 'MEMBER':
+    default: return 'MEMBER'
+  }
+}
+
+// コースにアクセス可能か判定
+function canAccessCourse(
+  viewableRoles: MaterialViewableRole[],
+  isLocked: boolean,
+  userRole: string
+): boolean {
+  // viewableRolesが設定されている場合はそれを使用
+  if (viewableRoles && viewableRoles.length > 0) {
+    const userViewableRole = userRoleToViewableRole(userRole)
+    return viewableRoles.includes(userViewableRole)
+  }
+
+  // viewableRolesが空の場合、旧ロジック（isLockedフィールド）を使用
+  // isLocked=true の場合はFPエイド以上のみアクセス可能
+  if (isLocked) {
+    return ['FP', 'MANAGER', 'ADMIN'].includes(userRole)
+  }
+
+  // それ以外は全員アクセス可能
+  return true
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -56,9 +90,6 @@ export async function GET(request: NextRequest) {
       ],
     })
 
-    // FPエイド以上のみアクセス可能なコンテンツの制御
-    const canAccessFPContent = ['FP', 'MANAGER', 'ADMIN'].includes(userRole)
-
     // ユーザーのコース閲覧履歴を取得
     const viewedCourseIds = (await prisma.userContentView.findMany({
       where: {
@@ -94,6 +125,9 @@ export async function GET(request: NextRequest) {
       // NEW判定: 7日以内に更新され、かつユーザーがまだ閲覧していない
       const isNew = course.updatedAt >= newBadgeThreshold && !viewedCourseIds.includes(course.id)
 
+      // アクセス可能かどうか判定
+      const hasAccess = canAccessCourse(course.viewableRoles, course.isLocked, userRole)
+
       return {
         id: course.id,
         title: course.title,
@@ -101,7 +135,8 @@ export async function GET(request: NextRequest) {
         category: course.category,
         level: course.level,
         lessons,
-        isLocked: course.isLocked && !canAccessFPContent,
+        isLocked: !hasAccess,
+        viewableRoles: course.viewableRoles,
         progress,
         isNew,
         updatedAt: course.updatedAt.toISOString(),

@@ -191,6 +191,7 @@ export default function EditCoursePage() {
     category: 'MONEY_LITERACY' as 'MONEY_LITERACY' | 'PRACTICAL_SKILL' | 'STARTUP_SUPPORT' | 'STARTUP_GUIDE',
     level: 'BASIC' as 'BASIC' | 'ADVANCED',
     isLocked: false,
+    viewableRoles: [] as string[],
     isPublished: true,
     order: 0
   })
@@ -241,6 +242,7 @@ export default function EditCoursePage() {
         category: data.course.category,
         level: data.course.level,
         isLocked: data.course.isLocked,
+        viewableRoles: data.course.viewableRoles || [],
         isPublished: data.course.isPublished,
         order: data.course.order
       })
@@ -571,20 +573,9 @@ export default function EditCoursePage() {
                 </div>
               </div>
 
-              {/* オプション */}
+              {/* 公開設定 */}
               <div className="space-y-4 border-t pt-6">
-                <div className="flex items-center space-x-3">
-                  <input
-                    id="isLocked"
-                    type="checkbox"
-                    checked={courseForm.isLocked}
-                    onChange={(e) => setCourseForm({ ...courseForm, isLocked: e.target.checked })}
-                    className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
-                  />
-                  <label htmlFor="isLocked" className="text-sm font-medium text-slate-700">
-                    FPエイド以上のユーザーのみ閲覧可能にする
-                  </label>
-                </div>
+                <h3 className="text-sm font-semibold text-slate-700 mb-3">公開設定</h3>
 
                 <div className="flex items-center space-x-3">
                   <input
@@ -597,6 +588,50 @@ export default function EditCoursePage() {
                   <label htmlFor="isPublished" className="text-sm font-medium text-slate-700">
                     公開する
                   </label>
+                </div>
+
+                {/* 閲覧可能ロール選択 */}
+                <div className="mt-4">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    閲覧可能なロール（選択しない場合は全員閲覧可能）
+                  </label>
+                  <div className="space-y-2 bg-slate-50 p-4 rounded-lg">
+                    {[
+                      { value: 'MEMBER', label: 'UGS会員（メンバー）' },
+                      { value: 'FP', label: 'FPエイド' },
+                      { value: 'MANAGER', label: 'マネージャー' },
+                      { value: 'ADMIN', label: '管理者' },
+                    ].map((role) => (
+                      <div key={role.value} className="flex items-center space-x-3">
+                        <input
+                          id={`role-${role.value}`}
+                          type="checkbox"
+                          checked={courseForm.viewableRoles.includes(role.value)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setCourseForm({
+                                ...courseForm,
+                                viewableRoles: [...courseForm.viewableRoles, role.value]
+                              })
+                            } else {
+                              setCourseForm({
+                                ...courseForm,
+                                viewableRoles: courseForm.viewableRoles.filter(r => r !== role.value)
+                              })
+                            }
+                          }}
+                          className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
+                        />
+                        <label htmlFor={`role-${role.value}`} className="text-sm text-slate-700">
+                          {role.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-slate-500 mt-2">
+                    ※ ロールを選択すると、選択したロールのユーザーのみが閲覧できます。
+                    何も選択しない場合は全員が閲覧可能です。
+                  </p>
                 </div>
               </div>
 
