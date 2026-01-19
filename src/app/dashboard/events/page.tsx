@@ -124,7 +124,8 @@ function EventsPageContent() {
     fetchEvents()
   }, [user?.id])
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return '未定'
     try {
       return format(new Date(dateString), "M/d(E)", { locale: ja })
     } catch {
@@ -359,7 +360,7 @@ type Schedule = {
 type EventItem = {
   id: string
   title: string
-  date: string
+  date: string | null
   time: string
   status: 'upcoming' | 'completed' | 'cancelled'
   isRegistered: boolean
