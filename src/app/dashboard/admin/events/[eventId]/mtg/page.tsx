@@ -921,7 +921,17 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                             )}
                           </TableCell>
                           <TableCell>
-                            {getIntentBadge()}
+                            <div className="flex flex-col gap-1">
+                              {getIntentBadge()}
+                              {participant.hasExemption && participant.exemptionReason && (
+                                <div
+                                  className="text-xs text-slate-600 max-w-[150px] truncate cursor-help"
+                                  title={participant.exemptionReason}
+                                >
+                                  理由: {participant.exemptionReason}
+                                </div>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell>
                             {officialStatus.attended ? (
