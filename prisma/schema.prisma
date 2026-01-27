@@ -313,7 +313,7 @@ model EventRegistration {
   user                   User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   schedule               EventSchedule?       @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
 
-  @@unique([userId, eventId]) // 移行後に [userId, eventId, scheduleId] に変更予定
+  @@unique([userId, scheduleId]) // ユーザーは同一日程に1回のみ登録可能（複数日程には登録可能）
   @@index([scheduleId])
   @@map("event_registrations")
 }

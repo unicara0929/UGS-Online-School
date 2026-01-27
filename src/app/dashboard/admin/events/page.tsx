@@ -78,6 +78,7 @@ function AdminEventsPageContent() {
         thumbnailUrl: event.thumbnailUrl || null,
         currentParticipants: event.currentParticipants,
         registrations: event.registrations,
+        schedules: event.schedules || [],
         attendanceCode: event.attendanceCode || null,
         vimeoUrl: event.vimeoUrl || null,
         surveyUrl: event.surveyUrl || null,
@@ -448,95 +449,118 @@ function AdminEventsPageContent() {
                   {displayedEvents.map(event => (
                     <div
                       key={event.id}
-                      className="flex items-center px-4 py-3 hover:bg-slate-50 transition-colors group"
+                      className="px-4 py-3 hover:bg-slate-50 transition-colors group"
                     >
-                      {/* 日付 */}
-                      <div className="flex-shrink-0 w-20 text-center">
-                        <div className="text-sm font-semibold text-slate-900">
-                          {formatDate(event.date)}
-                        </div>
-                        <div className="text-xs text-slate-500">
-                          {event.time || '-'}
-                        </div>
-                      </div>
-
-                      {/* タイトル・バッジ */}
-                      <div
-                        className="flex-1 ml-4 min-w-0 cursor-pointer"
-                        onClick={() => router.push(`/dashboard/admin/events/${event.id}`)}
-                      >
-                        <div className="flex items-center gap-2 flex-wrap mb-1">
-                          {event.targetRoles.map(role => (
-                            <Badge key={role} variant="outline" className="text-[10px] px-1.5 py-0">
-                              {getTargetRoleLabel(role)}
-                            </Badge>
-                          ))}
-                          <Badge
-                            variant={event.attendanceType === 'required' ? 'destructive' : 'secondary'}
-                            className="text-[10px] px-1.5 py-0"
-                          >
-                            {getAttendanceTypeLabel(event.attendanceType)}
-                          </Badge>
-                          {event.venueType === 'online' && (
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-blue-50 border-blue-200 text-blue-700">
-                              <Video className="h-2.5 w-2.5 mr-0.5" />
-                              オンライン
-                            </Badge>
-                          )}
-                          {event.venueType === 'offline' && (
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-green-50 border-green-200 text-green-700">
-                              <MapPin className="h-2.5 w-2.5 mr-0.5" />
-                              オフライン
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-sm font-medium text-slate-900 truncate group-hover:text-primary-600">
-                          {event.title}
-                        </p>
-                      </div>
-
-                      {/* 参加者数 */}
-                      <div className="flex-shrink-0 mx-4 text-center">
-                        <div className="flex items-center text-xs text-slate-600">
-                          <Users className="h-3.5 w-3.5 mr-1" />
-                          <span>{event.currentParticipants}名</span>
-                        </div>
-                      </div>
-
-                      {/* アクションボタン */}
-                      <div className="flex-shrink-0 flex items-center gap-2">
-                        {isAdmin && (
-                          <>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-8 w-8 p-0"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleEditEvent(events.find(e => e.id === event.id)!)
-                              }}
-                              disabled={isSubmitting}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleDeleteEvent(event.id)
-                              }}
-                              disabled={isSubmitting}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </>
-                        )}
-                        <ChevronRight
-                          className="h-4 w-4 text-slate-400 group-hover:text-slate-600 cursor-pointer"
+                      <div className="flex items-center">
+                        {/* タイトル・バッジ */}
+                        <div
+                          className="flex-1 min-w-0 cursor-pointer"
                           onClick={() => router.push(`/dashboard/admin/events/${event.id}`)}
-                        />
+                        >
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            {event.targetRoles.map(role => (
+                              <Badge key={role} variant="outline" className="text-[10px] px-1.5 py-0">
+                                {getTargetRoleLabel(role)}
+                              </Badge>
+                            ))}
+                            <Badge
+                              variant={event.attendanceType === 'required' ? 'destructive' : 'secondary'}
+                              className="text-[10px] px-1.5 py-0"
+                            >
+                              {getAttendanceTypeLabel(event.attendanceType)}
+                            </Badge>
+                            {event.venueType === 'online' && (
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-blue-50 border-blue-200 text-blue-700">
+                                <Video className="h-2.5 w-2.5 mr-0.5" />
+                                オンライン
+                              </Badge>
+                            )}
+                            {event.venueType === 'offline' && (
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-green-50 border-green-200 text-green-700">
+                                <MapPin className="h-2.5 w-2.5 mr-0.5" />
+                                オフライン
+                              </Badge>
+                            )}
+                            {event.schedules && event.schedules.length > 1 && (
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-purple-50 border-purple-200 text-purple-700">
+                                {event.schedules.length}日程
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm font-medium text-slate-900 group-hover:text-primary-600">
+                            {event.title}
+                          </p>
+                        </div>
+
+                        {/* 参加者数 */}
+                        <div className="flex-shrink-0 mx-4 text-center">
+                          <div className="flex items-center text-xs text-slate-600">
+                            <Users className="h-3.5 w-3.5 mr-1" />
+                            <span>{event.currentParticipants}名</span>
+                          </div>
+                        </div>
+
+                        {/* アクションボタン */}
+                        <div className="flex-shrink-0 flex items-center gap-2">
+                          {isAdmin && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 w-8 p-0"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleEditEvent(events.find(e => e.id === event.id)!)
+                                }}
+                                disabled={isSubmitting}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleDeleteEvent(event.id)
+                                }}
+                                disabled={isSubmitting}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </>
+                          )}
+                          <ChevronRight
+                            className="h-4 w-4 text-slate-400 group-hover:text-slate-600 cursor-pointer"
+                            onClick={() => router.push(`/dashboard/admin/events/${event.id}`)}
+                          />
+                        </div>
+                      </div>
+
+                      {/* 日程を表示 */}
+                      <div className="mt-2 space-y-1">
+                        {event.schedules && event.schedules.length > 0 ? (
+                          event.schedules.map((schedule, index) => (
+                            <div key={schedule.id} className="flex items-center text-xs text-slate-500">
+                              {event.schedules!.length > 1 && (
+                                <span className="w-4 text-center text-slate-400">{index + 1}.</span>
+                              )}
+                              <span className={`font-medium ${event.schedules!.length > 1 ? 'ml-1' : ''}`}>
+                                {formatDate(schedule.date)}
+                              </span>
+                              <span className="ml-2">{schedule.time || ''}</span>
+                              {schedule.location && (
+                                <span className="ml-2 text-slate-400">@ {schedule.location}</span>
+                              )}
+                              <span className="ml-2 text-slate-400">({schedule.registrationCount}名)</span>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-xs text-slate-500">
+                            <span className="font-medium">{formatDate(event.date)}</span>
+                            <span className="ml-2">{event.time || ''}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

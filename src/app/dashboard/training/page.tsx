@@ -160,18 +160,8 @@ function TrainingPageContent() {
                             className="px-4 py-3 hover:bg-emerald-50 cursor-pointer transition-colors group"
                           >
                             <div className="flex items-center">
-                              {/* 日付 */}
-                              <div className="flex-shrink-0 w-16 text-center">
-                                <div className="text-sm font-semibold text-slate-900">
-                                  {formatDate(event.date)}
-                                </div>
-                                <div className="text-xs text-slate-500">
-                                  {event.time || '-'}
-                                </div>
-                              </div>
-
                               {/* タイトル・バッジ */}
-                              <div className="flex-1 ml-4 min-w-0">
+                              <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 flex-wrap">
                                   {event.isNew && (
                                     <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 text-[10px] px-1.5 py-0">
@@ -198,7 +188,7 @@ function TrainingPageContent() {
                                     </Badge>
                                   )}
                                 </div>
-                                <p className="text-sm font-medium text-slate-900 truncate group-hover:text-primary-600">
+                                <p className="text-sm font-medium text-slate-900 group-hover:text-primary-600 mt-1">
                                   {event.title}
                                 </p>
                               </div>
@@ -207,21 +197,30 @@ function TrainingPageContent() {
                               <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-slate-600 flex-shrink-0" />
                             </div>
 
-                            {/* 複数日程がある場合、全日程を表示 */}
-                            {event.schedules.length > 1 && (
-                              <div className="mt-2 ml-20 space-y-1">
-                                {event.schedules.map((schedule, index) => (
+                            {/* 日程を表示（すべてのイベントで統一フォーマット） */}
+                            <div className="mt-2 space-y-1">
+                              {event.schedules.length > 0 ? (
+                                event.schedules.map((schedule, index) => (
                                   <div key={schedule.id} className="flex items-center text-xs text-slate-500">
-                                    <span className="w-4 text-center text-slate-400">{index + 1}.</span>
-                                    <span className="ml-1 font-medium">{formatDate(schedule.date)}</span>
+                                    {event.schedules.length > 1 && (
+                                      <span className="w-4 text-center text-slate-400">{index + 1}.</span>
+                                    )}
+                                    <span className={`font-medium ${event.schedules.length > 1 ? 'ml-1' : ''}`}>
+                                      {formatDate(schedule.date)}
+                                    </span>
                                     <span className="ml-2">{schedule.time || ''}</span>
                                     {schedule.location && (
                                       <span className="ml-2 text-slate-400">@ {schedule.location}</span>
                                     )}
                                   </div>
-                                ))}
-                              </div>
-                            )}
+                                ))
+                              ) : (
+                                <div className="text-xs text-slate-500">
+                                  <span className="font-medium">{formatDate(event.date)}</span>
+                                  <span className="ml-2">{event.time || ''}</span>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -241,32 +240,49 @@ function TrainingPageContent() {
                           <div
                             key={event.id}
                             onClick={() => handleEventClick(event.id)}
-                            className="flex items-center px-4 py-3 hover:bg-slate-50 cursor-pointer transition-colors group opacity-70"
+                            className="px-4 py-3 hover:bg-slate-50 cursor-pointer transition-colors group opacity-70"
                           >
-                            {/* 日付 */}
-                            <div className="flex-shrink-0 w-16 text-center">
-                              <div className="text-sm font-semibold text-slate-600">
-                                {formatDate(event.date)}
+                            <div className="flex items-center">
+                              {/* タイトル・バッジ */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  {event.isRegistered && (
+                                    <Badge variant="outline" className="bg-green-50 border-green-300 text-green-700 text-[10px] px-1.5 py-0">
+                                      <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" />
+                                      参加済
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-sm font-medium text-slate-700 group-hover:text-primary-600 mt-1">
+                                  {event.title}
+                                </p>
                               </div>
+
+                              {/* 矢印 */}
+                              <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-slate-600 flex-shrink-0" />
                             </div>
 
-                            {/* タイトル・バッジ */}
-                            <div className="flex-1 ml-4 min-w-0">
-                              <div className="flex items-center gap-2">
-                                {event.isRegistered && (
-                                  <Badge variant="outline" className="bg-green-50 border-green-300 text-green-700 text-[10px] px-1.5 py-0">
-                                    <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" />
-                                    参加済
-                                  </Badge>
-                                )}
-                              </div>
-                              <p className="text-sm font-medium text-slate-700 truncate group-hover:text-primary-600">
-                                {event.title}
-                              </p>
+                            {/* 日程を表示 */}
+                            <div className="mt-2 space-y-1">
+                              {event.schedules.length > 0 ? (
+                                event.schedules.map((schedule, index) => (
+                                  <div key={schedule.id} className="flex items-center text-xs text-slate-500">
+                                    {event.schedules.length > 1 && (
+                                      <span className="w-4 text-center text-slate-400">{index + 1}.</span>
+                                    )}
+                                    <span className={`font-medium ${event.schedules.length > 1 ? 'ml-1' : ''}`}>
+                                      {formatDate(schedule.date)}
+                                    </span>
+                                    <span className="ml-2">{schedule.time || ''}</span>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="text-xs text-slate-500">
+                                  <span className="font-medium">{formatDate(event.date)}</span>
+                                  <span className="ml-2">{event.time || ''}</span>
+                                </div>
+                              )}
                             </div>
-
-                            {/* 矢印 */}
-                            <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-slate-600 flex-shrink-0" />
                           </div>
                         ))}
                       </div>

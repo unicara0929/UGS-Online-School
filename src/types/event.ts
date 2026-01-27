@@ -28,6 +28,17 @@ export interface EventRegistration {
   exemptionReason: string | null
 }
 
+export interface EventSchedule {
+  id: string
+  date: string
+  time: string
+  location: string
+  onlineMeetingUrl: string | null
+  status: string
+  attendanceCode: string | null
+  registrationCount: number
+}
+
 export interface AdminEventItem {
   id: string
   title: string
@@ -44,6 +55,8 @@ export interface AdminEventItem {
   thumbnailUrl: string | null
   currentParticipants: number
   registrations: EventRegistration[]
+  // スケジュール一覧
+  schedules?: EventSchedule[]
   // 出席確認関連
   attendanceCode: string | null
   vimeoUrl: string | null
