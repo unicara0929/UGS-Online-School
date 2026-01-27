@@ -394,62 +394,84 @@ function TrainingEventDetailPageContent() {
                 </div>
 
                 {/* 開催情報 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
-                  <div className="flex items-center text-slate-600">
-                    <Calendar className="h-5 w-5 mr-3 text-slate-400" />
-                    <div>
-                      <div className="text-sm text-slate-500">開催日</div>
-                      <div className="font-medium">{formatDate(event.date)}</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center text-slate-600">
-                    <Clock className="h-5 w-5 mr-3 text-slate-400" />
-                    <div>
-                      <div className="text-sm text-slate-500">時間</div>
-                      <div className="font-medium">{event.time || '時間未定'}</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center text-slate-600">
-                    {event.venueType === 'online' ? (
-                      <Video className="h-5 w-5 mr-3 text-slate-400" />
-                    ) : (
-                      <MapPin className="h-5 w-5 mr-3 text-slate-400" />
-                    )}
-                    <div>
-                      <div className="text-sm text-slate-500">場所</div>
-                      <div className="font-medium">{event.location}</div>
-                    </div>
-                  </div>
-                  {/* オンライン参加URL */}
-                  {event.onlineMeetingUrl && (
-                    <div className="flex items-center text-slate-600 md:col-span-2">
-                      <ExternalLink className="h-5 w-5 mr-3 text-slate-400" />
-                      <div>
-                        <div className="text-sm text-slate-500">オンライン参加URL</div>
-                        <a
-                          href={event.onlineMeetingUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-medium text-blue-600 hover:text-blue-700 hover:underline break-all"
-                        >
-                          {event.onlineMeetingUrl}
-                        </a>
-                      </div>
-                    </div>
-                  )}
-                  {!event.isRecurring && (
-                    <div className="flex items-center text-slate-600">
-                      <Users className="h-5 w-5 mr-3 text-slate-400" />
-                      <div>
-                        <div className="text-sm text-slate-500">参加者</div>
-                        <div className="font-medium">
-                          {event.currentParticipants}
-                          {event.maxParticipants && `/${event.maxParticipants}`}名
+                {(() => {
+                  // 申し込み済みで複数日程がある場合は、登録済みスケジュールの情報を表示
+                  const registeredSchedule = event.isRegistered && event.registeredScheduleId && event.schedules.length > 1
+                    ? event.schedules.find(s => s.id === event.registeredScheduleId)
+                    : null
+
+                  const displayDate = registeredSchedule?.date || event.date
+                  const displayTime = registeredSchedule?.time || event.time
+                  const displayLocation = registeredSchedule?.location || event.location
+                  const displayUrl = registeredSchedule?.onlineMeetingUrl || event.onlineMeetingUrl
+
+                  return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+                      {registeredSchedule && (
+                        <div className="md:col-span-2 mb-2">
+                          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-full text-sm text-emerald-700">
+                            <CheckCircle2 className="h-4 w-4" />
+                            あなたの参加予定日程
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex items-center text-slate-600">
+                        <Calendar className="h-5 w-5 mr-3 text-slate-400" />
+                        <div>
+                          <div className="text-sm text-slate-500">開催日</div>
+                          <div className="font-medium">{formatDate(displayDate)}</div>
                         </div>
                       </div>
+                      <div className="flex items-center text-slate-600">
+                        <Clock className="h-5 w-5 mr-3 text-slate-400" />
+                        <div>
+                          <div className="text-sm text-slate-500">時間</div>
+                          <div className="font-medium">{displayTime || '時間未定'}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center text-slate-600">
+                        {event.venueType === 'online' ? (
+                          <Video className="h-5 w-5 mr-3 text-slate-400" />
+                        ) : (
+                          <MapPin className="h-5 w-5 mr-3 text-slate-400" />
+                        )}
+                        <div>
+                          <div className="text-sm text-slate-500">場所</div>
+                          <div className="font-medium">{displayLocation}</div>
+                        </div>
+                      </div>
+                      {/* オンライン参加URL（申込済みの場合のみ表示） */}
+                      {displayUrl && event.isRegistered && (
+                        <div className="flex items-center text-slate-600 md:col-span-2">
+                          <ExternalLink className="h-5 w-5 mr-3 text-slate-400" />
+                          <div>
+                            <div className="text-sm text-slate-500">オンライン参加URL</div>
+                            <a
+                              href={displayUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-medium text-blue-600 hover:text-blue-700 hover:underline break-all"
+                            >
+                              {displayUrl}
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                      {!event.isRecurring && (
+                        <div className="flex items-center text-slate-600">
+                          <Users className="h-5 w-5 mr-3 text-slate-400" />
+                          <div>
+                            <div className="text-sm text-slate-500">参加者</div>
+                            <div className="font-medium">
+                              {event.currentParticipants}
+                              {event.maxParticipants && `/${event.maxParticipants}`}名
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                  )
+                })()}
 
                 {/* 日程選択（複数日程がある場合） */}
                 {event.schedules.length > 1 && !event.isRegistered && (
@@ -509,32 +531,6 @@ function TrainingEventDetailPageContent() {
                   </div>
                 )}
 
-                {/* 登録済みの日程表示 */}
-                {event.isRegistered && event.registeredScheduleId && event.schedules.length > 1 && (
-                  <div className="pt-4 border-t">
-                    <h3 className="font-semibold text-slate-900 mb-2">申込済みの日程</h3>
-                    {(() => {
-                      const registeredSchedule = event.schedules.find(s => s.id === event.registeredScheduleId)
-                      if (!registeredSchedule) return null
-                      return (
-                        <div className="p-3 rounded-lg border border-emerald-500 bg-emerald-50">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-                            <span className="font-medium text-slate-900">
-                              {formatDate(registeredSchedule.date)}
-                            </span>
-                            <span className="text-slate-600">{registeredSchedule.time}</span>
-                          </div>
-                          {registeredSchedule.location && (
-                            <div className="text-sm text-slate-500 mt-1 ml-7">
-                              {registeredSchedule.location}
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })()}
-                  </div>
-                )}
 
                 {/* 参加登録ボタン */}
                 <div className="pt-4 border-t">

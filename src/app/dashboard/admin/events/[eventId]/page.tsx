@@ -38,6 +38,15 @@ type Participant = {
   paidAt: string | null
   canceledAt: string | null
   cancelReason: string | null
+  scheduleId: string | null
+  scheduleDate: string | null
+  scheduleTime: string | null
+}
+
+type Schedule = {
+  id: string
+  date: string | null
+  time: string
 }
 
 type EventSummary = {
@@ -67,6 +76,7 @@ function EventDetailPageContent() {
   const [roleFilter, setRoleFilter] = useState<string>('all')
   const [participantTypeFilter, setParticipantTypeFilter] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState<string>('')
+  const [scheduleFilter, setScheduleFilter] = useState<string>('all')
 
   // メール送信関連
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([])
@@ -106,7 +116,12 @@ function EventDetailPageContent() {
 
       setEvent(data.event)
       setParticipants(data.participants)
-      setFilteredParticipants(data.participants)
+      // スケジュールフィルターを適用
+      if (scheduleFilter === 'all') {
+        setFilteredParticipants(data.participants)
+      } else {
+        setFilteredParticipants(data.participants.filter((p: Participant) => p.scheduleId === scheduleFilter))
+      }
       setSummary(data.summary)
     } catch (err) {
       console.error('Failed to fetch participants:', err)
@@ -121,6 +136,15 @@ function EventDetailPageContent() {
       fetchParticipants()
     }
   }, [eventId, paymentStatusFilter, roleFilter, participantTypeFilter, searchQuery])
+
+  // スケジュールフィルターが変更されたときにクライアント側でフィルタリング
+  useEffect(() => {
+    if (scheduleFilter === 'all') {
+      setFilteredParticipants(participants)
+    } else {
+      setFilteredParticipants(participants.filter((p) => p.scheduleId === scheduleFilter))
+    }
+  }, [scheduleFilter, participants])
 
   const formatDate = (dateString: string) => {
     try {
@@ -483,10 +507,63 @@ function EventDetailPageContent() {
               </CardContent>
             </Card>
 
+            {/* 日程タブ（複数スケジュールがある場合のみ表示） */}
+            {event?.schedules && event.schedules.length > 1 && (
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setScheduleFilter('all')}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        scheduleFilter === 'all'
+                          ? 'bg-slate-900 text-white'
+                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      }`}
+                    >
+                      全て ({participants.length})
+                    </button>
+                    {event.schedules.map((schedule: Schedule) => {
+                      const count = participants.filter((p) => p.scheduleId === schedule.id).length
+                      const dateStr = schedule.date
+                        ? format(new Date(schedule.date), 'M/d(E)', { locale: ja })
+                        : '日程未設定'
+                      return (
+                        <button
+                          key={schedule.id}
+                          onClick={() => setScheduleFilter(schedule.id)}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            scheduleFilter === schedule.id
+                              ? 'bg-slate-900 text-white'
+                              : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                          }`}
+                        >
+                          {dateStr} {schedule.time && `${schedule.time}`} ({count})
+                        </button>
+                      )
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* 参加者一覧テーブル */}
             <Card>
               <CardHeader>
-                <CardTitle>参加者一覧</CardTitle>
+                <CardTitle>
+                  参加者一覧
+                  {scheduleFilter !== 'all' && event?.schedules && (
+                    <span className="ml-2 text-base font-normal text-slate-500">
+                      - {(() => {
+                        const schedule = event.schedules.find((s: Schedule) => s.id === scheduleFilter)
+                        if (!schedule) return ''
+                        const dateStr = schedule.date
+                          ? format(new Date(schedule.date), 'M月d日(E)', { locale: ja })
+                          : '日程未設定'
+                        return `${dateStr} ${schedule.time || ''}`
+                      })()}
+                    </span>
+                  )}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 {filteredParticipants.length === 0 ? (
@@ -511,6 +588,9 @@ function EventDetailPageContent() {
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">名前</th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">メール</th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">電話番号</th>
+                          {event?.schedules && event.schedules.length > 1 && (
+                            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">参加日程</th>
+                          )}
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">種別</th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">支払いステータス</th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">申込日時</th>
@@ -538,6 +618,14 @@ function EventDetailPageContent() {
                             <td className="px-4 py-3 text-sm text-slate-600">
                               {participant.userPhone || '-'}
                             </td>
+                            {event?.schedules && event.schedules.length > 1 && (
+                              <td className="px-4 py-3 text-sm text-slate-600">
+                                {participant.scheduleDate
+                                  ? format(new Date(participant.scheduleDate), 'M/d(E)', { locale: ja })
+                                  : '-'}
+                                {participant.scheduleTime && ` ${participant.scheduleTime}`}
+                              </td>
+                            )}
                             <td className="px-4 py-3 text-sm">
                               {participant.isExternal ? (
                                 <Badge variant="outline" className="bg-purple-50 border-purple-300 text-purple-700">

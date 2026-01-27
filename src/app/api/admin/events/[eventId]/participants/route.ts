@@ -29,13 +29,12 @@ export async function GET(
     const participantType = searchParams.get('participantType') // internal, external, all
     const search = searchParams.get('search') // 名前・メールで検索
 
-    // イベント情報を取得
+    // イベント情報を取得（全スケジュール含む）
     const event = await prisma.event.findUnique({
       where: { id: eventId },
       include: {
         schedules: {
           orderBy: { date: 'asc' },
-          take: 1,
         }
       }
     })
@@ -85,6 +84,13 @@ export async function GET(
               role: true,
             },
           },
+          schedule: {
+            select: {
+              id: true,
+              date: true,
+              time: true,
+            },
+          },
         },
         orderBy: {
           createdAt: 'desc',
@@ -105,6 +111,9 @@ export async function GET(
         paidAt: reg.paidAt?.toISOString() || null,
         canceledAt: reg.canceledAt?.toISOString() || null,
         cancelReason: reg.cancelReason || null,
+        scheduleId: reg.scheduleId || null,
+        scheduleDate: reg.schedule?.date?.toISOString() || null,
+        scheduleTime: reg.schedule?.time || null,
       }))
     }
 
@@ -130,6 +139,15 @@ export async function GET(
 
       const externalRegistrations = await prisma.externalEventRegistration.findMany({
         where: externalWhereClause,
+        include: {
+          schedule: {
+            select: {
+              id: true,
+              date: true,
+              time: true,
+            },
+          },
+        },
         orderBy: {
           createdAt: 'desc',
         },
@@ -149,6 +167,9 @@ export async function GET(
         paidAt: reg.paidAt?.toISOString() || null,
         canceledAt: null,
         cancelReason: null,
+        scheduleId: reg.scheduleId || null,
+        scheduleDate: reg.schedule?.date?.toISOString() || null,
+        scheduleTime: reg.schedule?.time || null,
       }))
     }
 
@@ -190,6 +211,11 @@ export async function GET(
         price: event.price,
         isRecurring: event.isRecurring || false,
         allowExternalParticipation: event.allowExternalParticipation || false,
+        schedules: event.schedules.map((s) => ({
+          id: s.id,
+          date: s.date?.toISOString() ?? null,
+          time: s.time || '',
+        })),
       },
       summary,
       participants: allParticipants,

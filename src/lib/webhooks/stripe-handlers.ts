@@ -58,6 +58,9 @@ export async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Se
     return
   }
 
+  // 新規登録かどうかを追跡（Chatwork通知の判定に使用）
+  let isNewUserRegistration = false
+
   // 1. PendingUserが存在するか確認（新規登録の場合）
   const pendingUser = await prisma.pendingUser.findUnique({
     where: { email: userEmail },
@@ -72,6 +75,7 @@ export async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Se
   })
 
   if (pendingUser) {
+    isNewUserRegistration = true // 新規登録フラグを立てる
     // 新規登録フロー: PendingUserからUserを作成
     console.log('New user registration detected, creating user from PendingUser:', userEmail)
 
@@ -301,15 +305,17 @@ export async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Se
 
   console.log('Payment confirmation email sent for subscription:', subscription.id)
 
-  // Chatwork通知を送信
-  try {
-    await sendRegistrationPaymentChatworkNotification({
-      userName: session.metadata?.userName || '',
-      email: userEmail || '',
-      registeredAt: new Date(),
-    })
-  } catch (chatworkError) {
-    console.error('Failed to send registration Chatwork notification:', chatworkError)
+  // Chatwork通知を送信（新規登録時のみ）
+  if (isNewUserRegistration) {
+    try {
+      await sendRegistrationPaymentChatworkNotification({
+        userName: session.metadata?.userName || '',
+        email: userEmail || '',
+        registeredAt: new Date(),
+      })
+    } catch (chatworkError) {
+      console.error('Failed to send registration Chatwork notification:', chatworkError)
+    }
   }
 
   // 紹介コードが含まれている場合、紹介を自動登録
