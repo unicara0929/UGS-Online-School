@@ -515,6 +515,7 @@ function EventDetailPageContent() {
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">支払いステータス</th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">申込日時</th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">支払い日時</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">キャンセル</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-200">
@@ -556,6 +557,22 @@ function EventDetailPageContent() {
                             </td>
                             <td className="px-4 py-3 text-sm text-slate-600">
                               {participant.paidAt ? formatDate(participant.paidAt) : '-'}
+                            </td>
+                            <td className="px-4 py-3 text-sm">
+                              {participant.canceledAt ? (
+                                <div>
+                                  <div className="text-red-600 text-xs">
+                                    {formatDate(participant.canceledAt)}
+                                  </div>
+                                  {participant.cancelReason && (
+                                    <div className="text-slate-600 mt-1 max-w-xs truncate" title={participant.cancelReason}>
+                                      理由: {participant.cancelReason}
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-slate-400">-</span>
+                              )}
                             </td>
                           </tr>
                         ))}
