@@ -280,6 +280,7 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState<ColumnFilters>(initialFilters)
+  const [expandedReasonIds, setExpandedReasonIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     fetchData()
@@ -924,12 +925,27 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                             <div className="flex flex-col gap-1">
                               {getIntentBadge()}
                               {participant.hasExemption && participant.exemptionReason && (
-                                <div
-                                  className="text-xs text-slate-600 max-w-[150px] truncate cursor-help"
-                                  title={participant.exemptionReason}
+                                <button
+                                  onClick={() => {
+                                    const newSet = new Set(expandedReasonIds)
+                                    if (newSet.has(participant.exemptionId!)) {
+                                      newSet.delete(participant.exemptionId!)
+                                    } else {
+                                      newSet.add(participant.exemptionId!)
+                                    }
+                                    setExpandedReasonIds(newSet)
+                                  }}
+                                  className={`text-xs text-left text-slate-600 hover:text-slate-900 ${
+                                    expandedReasonIds.has(participant.exemptionId!)
+                                      ? 'max-w-[300px] whitespace-pre-wrap'
+                                      : 'max-w-[150px] truncate'
+                                  }`}
                                 >
                                   理由: {participant.exemptionReason}
-                                </div>
+                                  {!expandedReasonIds.has(participant.exemptionId!) && (
+                                    <span className="text-blue-500 ml-1">▼</span>
+                                  )}
+                                </button>
                               )}
                             </div>
                           </TableCell>
