@@ -102,10 +102,23 @@ export async function POST(request: NextRequest) {
         },
       })
     } else if (action === 'unregister') {
-      // 登録を探す（scheduleIdを考慮）
-      const targetRegistration = scheduleId
+      // 登録を探す
+      // 1. まずscheduleIdで完全一致を探す
+      // 2. 見つからなければ、scheduleId=nullの登録を探す（旧データ対応）
+      // 3. それでもなければ最初の登録を使用
+      let targetRegistration = scheduleId
         ? event.registrations.find(r => r.scheduleId === scheduleId)
-        : event.registrations[0]
+        : null
+
+      if (!targetRegistration) {
+        // scheduleIdがnullの登録を探す（移行前のデータ）
+        targetRegistration = event.registrations.find(r => r.scheduleId === null)
+      }
+
+      if (!targetRegistration && event.registrations.length > 0) {
+        // それでも見つからなければ最初の登録を使用
+        targetRegistration = event.registrations[0]
+      }
 
       if (!targetRegistration) {
         return NextResponse.json({
