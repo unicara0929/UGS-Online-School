@@ -74,6 +74,7 @@ function AdminTrainingPageContent() {
         thumbnailUrl: event.thumbnailUrl || null,
         currentParticipants: event.currentParticipants,
         registrations: event.registrations,
+        schedules: event.schedules || [],
         attendanceCode: event.attendanceCode || null,
         vimeoUrl: event.vimeoUrl || null,
         surveyUrl: event.surveyUrl || null,
@@ -372,19 +373,9 @@ function AdminTrainingPageContent() {
                       key={event.id}
                       className="flex items-center px-4 py-3 hover:bg-emerald-50 transition-colors group"
                     >
-                      {/* 日付 */}
-                      <div className="flex-shrink-0 w-20 text-center">
-                        <div className="text-sm font-semibold text-slate-900">
-                          {formatDate(event.date)}
-                        </div>
-                        <div className="text-xs text-slate-500">
-                          {event.time || '-'}
-                        </div>
-                      </div>
-
                       {/* タイトル・バッジ */}
                       <div
-                        className="flex-1 ml-4 min-w-0 cursor-pointer"
+                        className="flex-1 min-w-0 cursor-pointer"
                         onClick={() => router.push(`/dashboard/admin/events/${event.id}`)}
                       >
                         <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -414,8 +405,13 @@ function AdminTrainingPageContent() {
                               オフライン
                             </Badge>
                           )}
+                          {event.schedules && event.schedules.length > 1 && (
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-purple-50 border-purple-200 text-purple-700">
+                              {event.schedules.length}日程
+                            </Badge>
+                          )}
                         </div>
-                        <p className="text-sm font-medium text-slate-900 truncate group-hover:text-primary-600">
+                        <p className="text-sm font-medium text-slate-900 group-hover:text-primary-600">
                           {event.title}
                         </p>
                       </div>
