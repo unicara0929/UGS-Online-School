@@ -82,6 +82,12 @@ export async function GET(
               name: true,
               email: true,
               role: true,
+              manager: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
             },
           },
           schedule: {
@@ -105,6 +111,8 @@ export async function GET(
         userEmail: reg.user.email,
         userRole: reg.user.role,
         userPhone: null,
+        managerId: reg.user.manager?.id || null,
+        managerName: reg.user.manager?.name || null,
         paymentStatus: reg.paymentStatus,
         paidAmount: reg.paidAmount,
         registeredAt: reg.createdAt.toISOString(),
@@ -161,6 +169,8 @@ export async function GET(
         userEmail: reg.email,
         userRole: 'EXTERNAL',
         userPhone: reg.phone,
+        managerId: null,
+        managerName: null,
         paymentStatus: reg.paymentStatus,
         paidAmount: reg.paidAmount,
         registeredAt: reg.createdAt.toISOString(),

@@ -32,6 +32,8 @@ type Participant = {
   userEmail: string
   userRole: string
   userPhone: string | null
+  managerId: string | null
+  managerName: string | null
   paymentStatus: string
   paidAmount: number | null
   registeredAt: string
@@ -592,6 +594,7 @@ function EventDetailPageContent() {
                             <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">参加日程</th>
                           )}
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">種別</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">管轄MGR</th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">支払いステータス</th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">申込日時</th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">支払い日時</th>
@@ -634,6 +637,11 @@ function EventDetailPageContent() {
                               ) : (
                                 <Badge variant="outline">{getRoleLabel(participant.userRole)}</Badge>
                               )}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-slate-600">
+                              {participant.userRole === 'FP' && participant.managerName
+                                ? participant.managerName
+                                : '-'}
                             </td>
                             <td className="px-4 py-3 text-sm">
                               <Badge variant="outline" className={getPaymentStatusColor(participant.paymentStatus)}>
