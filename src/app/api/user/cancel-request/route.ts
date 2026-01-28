@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { stripe } from '@/lib/stripe'
 import { getAuthenticatedUser } from '@/lib/auth/api-helpers'
+import { sendCancellationChatworkNotification } from '@/lib/chatwork'
 
 // 最低契約期間（月数）
 const MINIMUM_CONTRACT_MONTHS = 6
@@ -99,6 +100,18 @@ export async function POST(request: NextRequest) {
       contractEndDate: isWithinMinimumPeriod ? contractEndDate.toISOString() : null,
       submittedAt: cancelRequest.createdAt.toISOString()
     })
+
+    // Chatwork通知を送信
+    try {
+      await sendCancellationChatworkNotification({
+        userName: name,
+        email,
+        cancelledAt: new Date(),
+      })
+    } catch (chatworkError) {
+      console.error('Chatwork通知の送信に失敗:', chatworkError)
+      // 通知失敗でも退会申請処理は続行
+    }
 
     // Stripeサブスクリプションのキャンセル予約を設定
     const subscription = user.subscriptions?.[0]
