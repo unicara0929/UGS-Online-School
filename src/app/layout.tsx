@@ -12,6 +12,16 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "UGS",
   description: "\"勉強だけで終わらない\" 「お金の知識×稼げる力」がコンセプトのビジネスコミュニティ",
+  icons: {
+    icon: '/ugs-logomark.png',
+    shortcut: '/ugs-logomark.png',
+    apple: '/ugs-logomark.png',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'UGS',
+  },
 };
 
 export default function RootLayout({
