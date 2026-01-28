@@ -115,6 +115,7 @@ interface Summary {
 // フィルター状態の型定義
 interface ColumnFilters {
   payment: string // 'all' | 'paid' | 'unpaid'
+  manager: string // 'all' | managerId | 'none'(未設定)
   intent: string // 'all' | 'WILL_ATTEND' | 'WILL_NOT_ATTEND' | 'UNDECIDED' | 'exemption'
   official: string // 'all' | 'attended' | 'not_attended'
   video: string // 'all' | 'watched' | 'not_watched'
@@ -126,6 +127,7 @@ interface ColumnFilters {
 
 const initialFilters: ColumnFilters = {
   payment: 'all',
+  manager: 'all',
   intent: 'all',
   official: 'all',
   video: 'all',
@@ -429,6 +431,12 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
       if (filters.payment === 'unpaid' && p.paymentStatus !== 'unpaid') return false
     }
 
+    // 管轄MGRフィルター
+    if (filters.manager !== 'all') {
+      if (filters.manager === 'none' && p.managerId !== null) return false
+      if (filters.manager !== 'none' && p.managerId !== filters.manager) return false
+    }
+
     // 選択（参加意思）フィルター
     if (filters.intent !== 'all') {
       if (filters.intent === 'exemption') {
@@ -488,6 +496,7 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
   // フィルターが適用されているかどうか
   const hasActiveFilters =
     filters.payment !== 'all' ||
+    filters.manager !== 'all' ||
     filters.intent !== 'all' ||
     filters.official !== 'all' ||
     filters.video !== 'all' ||
@@ -775,7 +784,24 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                   <TableRow className="bg-slate-50">
                     <TableHead>会員番号</TableHead>
                     <TableHead>名前</TableHead>
-                    <TableHead>管轄MGR</TableHead>
+                    <TableHead className="p-1">
+                      <FilterDropdown
+                        label="管轄MGR"
+                        value={filters.manager}
+                        options={[
+                          { value: 'all', label: 'すべて' },
+                          { value: 'none', label: '未設定' },
+                          ...Array.from(
+                            new Map(
+                              participants
+                                .filter(p => p.managerId && p.managerName)
+                                .map(p => [p.managerId, { value: p.managerId!, label: p.managerName! }])
+                            ).values()
+                          ).sort((a, b) => a.label.localeCompare(b.label, 'ja'))
+                        ]}
+                        onChange={(v) => setFilters({ ...filters, manager: v })}
+                      />
+                    </TableHead>
                     <TableHead className="p-1">
                       <FilterDropdown
                         label="月額費"
