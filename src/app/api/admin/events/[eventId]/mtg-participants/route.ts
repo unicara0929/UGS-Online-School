@@ -58,7 +58,7 @@ export async function GET(
       )
     }
 
-    // 全FPエイドを取得（サブスクリプション情報も含む）
+    // 全FPエイドを取得（サブスクリプション情報・マネージャー情報も含む）
     const fpUsers = await prisma.user.findMany({
       where: {
         role: 'FP',
@@ -68,6 +68,12 @@ export async function GET(
         name: true,
         email: true,
         memberId: true,
+        manager: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         subscriptions: {
           select: {
             status: true,
@@ -168,6 +174,8 @@ export async function GET(
         name: user.name,
         email: user.email,
         memberId: user.memberId,
+        managerId: user.manager?.id ?? null,
+        managerName: user.manager?.name ?? null,
         status,
         statusLabel,
         // 登録情報

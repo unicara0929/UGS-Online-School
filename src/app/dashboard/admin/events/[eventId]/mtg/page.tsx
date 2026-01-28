@@ -40,6 +40,8 @@ interface MtgParticipant {
   name: string
   email: string
   memberId: string | null
+  managerId: string | null
+  managerName: string | null
   status: 'not_responded' | 'registered' | 'exempted' | 'attended_code' | 'attended_video' | 'video_incomplete'
   statusLabel: string
   registrationId: string | null
@@ -773,6 +775,7 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                   <TableRow className="bg-slate-50">
                     <TableHead>会員番号</TableHead>
                     <TableHead>名前</TableHead>
+                    <TableHead>管轄MGR</TableHead>
                     <TableHead className="p-1">
                       <FilterDropdown
                         label="月額費"
@@ -858,7 +861,7 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                 <TableBody>
                   {filteredParticipants.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center py-8 text-slate-500">
+                      <TableCell colSpan={10} className="text-center py-8 text-slate-500">
                         該当するFPエイドがいません
                       </TableCell>
                     </TableRow>
@@ -910,6 +913,9 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                                 <Badge className="bg-orange-500 text-xs">期限超過</Badge>
                               )}
                             </div>
+                          </TableCell>
+                          <TableCell className="text-sm text-slate-600">
+                            {participant.managerName || '-'}
                           </TableCell>
                           {/* 月額費決済 */}
                           <TableCell>
