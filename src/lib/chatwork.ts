@@ -237,15 +237,17 @@ export async function sendBusinessCardOrderChatworkNotification(params: {
 export async function sendRegistrationPaymentChatworkNotification(params: {
   userName: string
   email: string
+  referrerName?: string
   registeredAt?: Date
 }): Promise<void> {
-  const { userName, email, registeredAt = new Date() } = params
+  const { userName, email, referrerName, registeredAt = new Date() } = params
   const roomId = CHATWORK_ROOM_IDS.PAYMENT
 
   const message = `${NOTIFICATION_MENTIONS}
 
 [info][title]アプリ登録決済通知[/title]名前：${userName}
 メールアドレス：${email}
+紹介者：${referrerName || 'なし'}
 登録日時：${formatJapaneseDateTime(registeredAt)}[/info]`
 
   try {

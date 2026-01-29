@@ -308,9 +308,22 @@ export async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Se
   // Chatwork通知を送信（新規登録時のみ）
   if (isNewUserRegistration) {
     try {
+      // 紹介者名を取得
+      let referrerName: string | undefined
+      if (pendingUser?.referralCode) {
+        const referrer = await prisma.user.findUnique({
+          where: { referralCode: pendingUser.referralCode },
+          select: { name: true },
+        })
+        if (referrer) {
+          referrerName = referrer.name
+        }
+      }
+
       await sendRegistrationPaymentChatworkNotification({
         userName: session.metadata?.userName || '',
         email: userEmail || '',
+        referrerName,
         registeredAt: new Date(),
       })
     } catch (chatworkError) {
