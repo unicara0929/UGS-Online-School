@@ -852,7 +852,13 @@ function EventDetailPageContent() {
                       {/* 参加コード入力（イベント開催中 or 完了後）- 動画URLが設定されていない場合のみ */}
                       {event.hasAttendanceCode && !event.vimeoUrl && (
                         <>
-                          {event.attendanceDeadline && new Date(event.attendanceDeadline) < new Date() ? (
+                          {event.isRecurring && event.participationIntent === 'WILL_NOT_ATTEND' ? (
+                            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                              <p className="text-sm text-orange-700">欠席申請しているため参加コードは入力できません</p>
+                            </div>
+                          ) : event.isRecurring && event.participationIntent === 'UNDECIDED' ? (
+                            null
+                          ) : event.attendanceDeadline && new Date(event.attendanceDeadline) < new Date() ? (
                             <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
                               <p className="text-sm text-slate-600">参加コード入力の期限が過ぎました</p>
                             </div>

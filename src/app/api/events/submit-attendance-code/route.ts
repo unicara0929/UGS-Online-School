@@ -32,6 +32,7 @@ export async function POST(request: NextRequest) {
         id: true,
         title: true,
         vimeoUrl: true,
+        isRecurring: true,
         attendanceDeadlineDays: true,
         schedules: {
           orderBy: { date: 'asc' },
@@ -120,6 +121,22 @@ export async function POST(request: NextRequest) {
         { success: false, error: 'このイベントに申し込みされていません' },
         { status: 400 }
       )
+    }
+
+    // 全体MTG: 参加意思チェック（「参加する」以外はコード入力不可）
+    if (event.isRecurring) {
+      if (registration.participationIntent === 'WILL_NOT_ATTEND') {
+        return NextResponse.json(
+          { success: false, error: '欠席申請しているため参加コードは入力できません' },
+          { status: 400 }
+        )
+      }
+      if (registration.participationIntent === 'UNDECIDED') {
+        return NextResponse.json(
+          { success: false, error: '参加意思が未回答のため参加コードは入力できません' },
+          { status: 400 }
+        )
+      }
     }
 
     // 既に出席完了済みか確認
