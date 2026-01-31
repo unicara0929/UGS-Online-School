@@ -19,6 +19,7 @@ import {
 } from '@/lib/chatwork'
 import { sendEventConfirmationEmail } from '@/lib/services/email-service'
 import { prisma } from '@/lib/prisma'
+import { supabaseAdmin } from '@/lib/supabase'
 import { ReferralStatus, UserRole } from '@prisma/client'
 import Stripe from 'stripe'
 // Note: memberId/referralCode generation is now done inline within the transaction
@@ -666,11 +667,18 @@ async function handleBusinessCardPaymentCompleted(session: Stripe.Checkout.Sessi
 
     // Chatwork通知を送信
     try {
+      // 紹介者名を取得
+      const businessCardReferral = await prisma.referral.findFirst({
+        where: { referredId: updatedOrder.user.id },
+        select: { referrer: { select: { name: true } } },
+      })
+
       await sendBusinessCardOrderChatworkNotification({
         userName: updatedOrder.user.name,
         deliveryMethod: updatedOrder.deliveryMethod,
         email: updatedOrder.email,
         phoneNumber: updatedOrder.phoneNumber,
+        referrerName: businessCardReferral?.referrer?.name,
         // 名刺記載住所
         cardAddress: {
           postalCode: updatedOrder.cardPostalCode,
@@ -849,17 +857,27 @@ export async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice): Pr
         }
       })
 
-      // 会員ステータスを ACTIVE に更新（PAST_DUE から復帰）
-      await prisma.user.update({
-        where: { id: subscription.userId },
-        data: {
-          membershipStatus: 'ACTIVE',
-          membershipStatusChangedAt: new Date(),
-          membershipStatusReason: '決済成功により正常状態に復帰',
-          delinquentSince: null // 滞納フラグをクリア
-        }
-      })
-      console.log('Membership status updated to ACTIVE for user:', subscription.userId)
+      // 会員ステータスを更新（CANCELLATION_PENDING の場合はステータスを維持し、滞納フラグのクリアのみ行う）
+      if (subscription.user.membershipStatus === 'CANCELLATION_PENDING') {
+        await prisma.user.update({
+          where: { id: subscription.userId },
+          data: {
+            delinquentSince: null // 滞納フラグをクリア
+          }
+        })
+        console.log('Delinquent flag cleared for CANCELLATION_PENDING user (status preserved):', subscription.userId)
+      } else {
+        await prisma.user.update({
+          where: { id: subscription.userId },
+          data: {
+            membershipStatus: 'ACTIVE',
+            membershipStatusChangedAt: new Date(),
+            membershipStatusReason: '決済成功により正常状態に復帰',
+            delinquentSince: null // 滞納フラグをクリア
+          }
+        })
+        console.log('Membership status updated to ACTIVE for user:', subscription.userId)
+      }
     }
   }
 }
@@ -923,9 +941,16 @@ export async function handleInvoicePaymentFailed(invoice: Stripe.Invoice): Promi
 
   // Chatwork通知を送信
   try {
+    // 紹介者名を取得
+    const paymentFailedReferral = await prisma.referral.findFirst({
+      where: { referredId: subscription.userId },
+      select: { referrer: { select: { name: true } } },
+    })
+
     await sendPaymentFailedChatworkNotification({
       userName: subscription.user.name,
       email: subscription.user.email,
+      referrerName: paymentFailedReferral?.referrer?.name,
       failedAt: new Date(),
       amount: invoice.amount_due || 0,
     })
@@ -968,6 +993,17 @@ export async function handleSubscriptionDeleted(subscription: Stripe.Subscriptio
   })
   console.log('Membership status updated to CANCELED for user:', subscriptionRecord.userId)
 
+  // Supabaseユーザーを永久banしてログインを不可にする
+  try {
+    await supabaseAdmin.auth.admin.updateUserById(subscriptionRecord.userId, {
+      ban_duration: 'none' // 永久ban
+    })
+    console.log('Supabase user banned for canceled subscription:', subscriptionRecord.userId)
+  } catch (banError) {
+    console.error('Failed to ban Supabase user (cancellation processing continues):', banError)
+    // ban失敗時もキャンセル処理は続行
+  }
+
   // キャンセルメールを送信
   try {
     const reactivateUrl = `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings/subscription`
@@ -985,9 +1021,16 @@ export async function handleSubscriptionDeleted(subscription: Stripe.Subscriptio
 
   // Chatwork通知を送信
   try {
+    // 紹介者名を取得
+    const cancellationReferral = await prisma.referral.findFirst({
+      where: { referredId: subscriptionRecord.userId },
+      select: { referrer: { select: { name: true } } },
+    })
+
     await sendCancellationChatworkNotification({
       userName: subscriptionRecord.user.name,
       email: subscriptionRecord.user.email,
+      referrerName: cancellationReferral?.referrer?.name,
       cancelledAt: new Date(),
     })
   } catch (chatworkError) {

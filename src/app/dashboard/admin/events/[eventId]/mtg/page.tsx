@@ -483,11 +483,16 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
       if (filters.gmInterview === 'not_completed' && p.gmInterviewCompleted) return false
     }
 
-    // 最終承認フィルター
+    // 最終承認フィルター（表示と同じeffectiveApprovalロジックを使用）
     if (filters.finalApproval !== 'all') {
-      if (filters.finalApproval === 'MAINTAINED' && p.finalApproval !== 'MAINTAINED') return false
-      if (filters.finalApproval === 'DEMOTED' && p.finalApproval !== 'DEMOTED') return false
-      if (filters.finalApproval === 'not_set' && p.finalApproval !== null) return false
+      const isOfficiallyAttendedForApproval = p.status === 'attended_code' || p.status === 'attended_video' ||
+        (p.hasExemption && p.exemptionStatus === 'APPROVED')
+      const effectiveApproval = isOfficiallyAttendedForApproval && !p.finalApproval
+        ? 'MAINTAINED'
+        : p.finalApproval
+      if (filters.finalApproval === 'MAINTAINED' && effectiveApproval !== 'MAINTAINED') return false
+      if (filters.finalApproval === 'DEMOTED' && effectiveApproval !== 'DEMOTED') return false
+      if (filters.finalApproval === 'not_set' && effectiveApproval !== null) return false
     }
 
     return true

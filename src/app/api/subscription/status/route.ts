@@ -50,7 +50,9 @@ export async function GET(request: NextRequest) {
     // アクティブなサブスクリプションの判定
     // 1. membershipStatus === 'ACTIVE' の場合: 管理者による直接作成ユーザー等 → true
     // 2. subscription.status === 'ACTIVE' の場合: 正規の決済済みユーザー → true
+    //    ※ CANCELLATION_PENDING + subscription ACTIVE のユーザーもここで通る（退会申請中でも月額費決済済みならダッシュボード利用OK）
     // 3. それ以外: 未決済/支払い遅延等 → false
+    //    ※ CANCELLATION_PENDING + subscription 非ACTIVE の場合は月額費支払いページへ誘導される
     const hasActiveSubscription =
       user?.membershipStatus === 'ACTIVE' ||
       subscription?.status === 'ACTIVE'
