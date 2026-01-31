@@ -68,11 +68,16 @@ export async function GET(
     // 最初のスケジュール
     const firstSchedule = event.schedules[0]
 
-    // 申込期限チェック（日数ベース）
-    if (event.applicationDeadlineDays !== null && firstSchedule) {
-      const deadline = new Date(firstSchedule.date)
-      deadline.setDate(deadline.getDate() - event.applicationDeadlineDays)
-      if (new Date() > deadline) {
+    // 申込期限チェック（日数ベース）- 全てのOPENスケジュールが期限切れの場合のみブロック
+    if (event.applicationDeadlineDays !== null && event.schedules.length > 0) {
+      const now = new Date()
+      const hasOpenSchedule = event.schedules.some(schedule => {
+        if (schedule.status !== 'OPEN') return false
+        const deadline = new Date(schedule.date)
+        deadline.setDate(deadline.getDate() - event.applicationDeadlineDays!)
+        return now <= deadline
+      })
+      if (!hasOpenSchedule) {
         return NextResponse.json(
           { success: false, error: '申込期限が過ぎています' },
           { status: 410 }

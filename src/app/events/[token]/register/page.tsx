@@ -7,7 +7,16 @@ import { ja } from 'date-fns/locale'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Calendar, Clock, MapPin, Users, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Calendar, Clock, MapPin, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
+
+type Schedule = {
+  id: string
+  date: string
+  time: string | null
+  location: string | null
+  status: 'OPEN' | 'CLOSED' | 'CANCELLED'
+  registrationCount: number
+}
 
 interface EventInfo {
   id: string
@@ -20,11 +29,10 @@ interface EventInfo {
   thumbnailUrl: string | null
   isPaid: boolean
   price: number | null
-  maxParticipants: number | null
   currentParticipants: number
-  isFull: boolean
-  applicationDeadline: string | null
+  applicationDeadlineDays: number | null
   status: string
+  schedules: Schedule[]
 }
 
 export default function ExternalEventRegisterPage() {
@@ -38,6 +46,7 @@ export default function ExternalEventRegisterPage() {
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isRegistered, setIsRegistered] = useState(false)
+  const [selectedScheduleId, setSelectedScheduleId] = useState<string | null>(null)
 
   // フォーム
   const [name, setName] = useState('')
@@ -58,6 +67,13 @@ export default function ExternalEventRegisterPage() {
         }
 
         setEvent(data.event)
+
+        // 日程選択の初期化：最初のOPENスケジュールを選択
+        const schedules = data.event.schedules as Schedule[]
+        if (schedules && schedules.length > 0) {
+          const firstOpen = schedules.find(s => s.status === 'OPEN' && !isScheduleDeadlinePassed(s, data.event.applicationDeadlineDays))
+          setSelectedScheduleId(firstOpen?.id ?? schedules[0].id)
+        }
       } catch (err) {
         console.error('Error fetching event:', err)
         setError('イベント情報の取得に失敗しました')
@@ -68,6 +84,26 @@ export default function ExternalEventRegisterPage() {
 
     fetchEvent()
   }, [token])
+
+  const isScheduleDeadlinePassed = (schedule: Schedule, applicationDeadlineDays: number | null) => {
+    if (applicationDeadlineDays === null) return false
+    const deadline = new Date(schedule.date)
+    deadline.setDate(deadline.getDate() - applicationDeadlineDays)
+    return new Date() > deadline
+  }
+
+  const isScheduleSelectable = (schedule: Schedule) => {
+    if (!event) return false
+    if (schedule.status !== 'OPEN') return false
+    if (isScheduleDeadlinePassed(schedule, event.applicationDeadlineDays)) return false
+    return true
+  }
+
+  // 選択中のスケジュール情報を取得
+  const selectedSchedule = event?.schedules.find(s => s.id === selectedScheduleId) ?? null
+  const displayDate = selectedSchedule?.date ?? event?.date ?? ''
+  const displayTime = selectedSchedule?.time ?? event?.time ?? null
+  const displayLocation = selectedSchedule?.location ?? event?.location ?? null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -87,13 +123,25 @@ export default function ExternalEventRegisterPage() {
       return
     }
 
+    // 複数日程がある場合、日程が選択されているか確認
+    if (event && event.schedules.length > 1 && !selectedScheduleId) {
+      setFormError('参加日程を選択してください')
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
       const response = await fetch(`/api/public/events/${token}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, phone, referrer: referrer.trim() || null }),
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          referrer: referrer.trim() || null,
+          scheduleId: selectedScheduleId,
+        }),
       })
 
       const data = await response.json()
@@ -127,11 +175,13 @@ export default function ExternalEventRegisterPage() {
     }
   }
 
-  const formatDeadline = (dateString: string) => {
+  const formatDeadline = (schedule: Schedule, applicationDeadlineDays: number) => {
     try {
-      return format(new Date(dateString), 'M月d日(E) HH:mm', { locale: ja })
+      const deadline = new Date(schedule.date)
+      deadline.setDate(deadline.getDate() - applicationDeadlineDays)
+      return format(deadline, 'M月d日(E) HH:mm', { locale: ja })
     } catch {
-      return dateString
+      return ''
     }
   }
 
@@ -188,10 +238,10 @@ export default function ExternalEventRegisterPage() {
               <div className="bg-white rounded-lg p-4 text-left">
                 <h3 className="font-semibold text-slate-900">{event.title}</h3>
                 <p className="text-sm text-slate-600 mt-2">
-                  {formatDate(event.date)} {event.time && `${event.time}`}
+                  {formatDate(displayDate)} {displayTime && `${displayTime}`}
                 </p>
-                {event.location && (
-                  <p className="text-sm text-slate-600">{event.location}</p>
+                {displayLocation && (
+                  <p className="text-sm text-slate-600">{displayLocation}</p>
                 )}
               </div>
               <p className="text-sm text-green-600 mt-4">
@@ -239,8 +289,8 @@ export default function ExternalEventRegisterPage() {
               {!event.isPaid && (
                 <Badge variant="secondary">無料</Badge>
               )}
-              {event.isFull && (
-                <Badge variant="destructive">満席</Badge>
+              {event.schedules.length > 1 && (
+                <Badge variant="outline">{event.schedules.length}日程</Badge>
               )}
             </div>
             <CardTitle className="text-2xl">{event.title}</CardTitle>
@@ -251,142 +301,200 @@ export default function ExternalEventRegisterPage() {
             )}
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center text-slate-600">
-                <Calendar className="h-5 w-5 mr-3 text-slate-400" />
-                <span>{formatDate(event.date)}</span>
+            {/* 日程が1つの場合：従来の表示 */}
+            {event.schedules.length <= 1 && (
+              <div className="space-y-3">
+                <div className="flex items-center text-slate-600">
+                  <Calendar className="h-5 w-5 mr-3 text-slate-400" />
+                  <span>{formatDate(displayDate)}</span>
+                </div>
+                {displayTime && (
+                  <div className="flex items-center text-slate-600">
+                    <Clock className="h-5 w-5 mr-3 text-slate-400" />
+                    <span>{displayTime}</span>
+                  </div>
+                )}
+                {displayLocation && (
+                  <div className="flex items-center text-slate-600">
+                    <MapPin className="h-5 w-5 mr-3 text-slate-400" />
+                    <span>{displayLocation}</span>
+                  </div>
+                )}
+                {event.applicationDeadlineDays !== null && event.schedules[0] && (
+                  <div className="text-sm text-orange-600 mt-2">
+                    申込期限: {formatDeadline(event.schedules[0], event.applicationDeadlineDays)}
+                  </div>
+                )}
               </div>
-              {event.time && (
-                <div className="flex items-center text-slate-600">
-                  <Clock className="h-5 w-5 mr-3 text-slate-400" />
-                  <span>{event.time}</span>
+            )}
+
+            {/* 日程が複数の場合：日程選択UI */}
+            {event.schedules.length > 1 && (
+              <div>
+                <h3 className="font-semibold text-slate-900 mb-3">参加日程を選択してください</h3>
+                <div className="space-y-2">
+                  {event.schedules.map((schedule) => {
+                    const selectable = isScheduleSelectable(schedule)
+                    const isSelected = selectedScheduleId === schedule.id
+                    const deadlinePassed = isScheduleDeadlinePassed(schedule, event.applicationDeadlineDays)
+                    return (
+                      <label
+                        key={schedule.id}
+                        className={`flex items-center p-3 rounded-lg border cursor-pointer transition-all ${
+                          isSelected
+                            ? 'border-emerald-500 bg-emerald-50'
+                            : selectable
+                            ? 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                            : 'border-slate-200 bg-slate-100 opacity-60 cursor-not-allowed'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="schedule"
+                          value={schedule.id}
+                          checked={isSelected}
+                          disabled={!selectable}
+                          onChange={() => setSelectedScheduleId(schedule.id)}
+                          className="sr-only"
+                        />
+                        <div className={`w-4 h-4 rounded-full border-2 mr-3 flex-shrink-0 flex items-center justify-center ${
+                          isSelected ? 'border-emerald-500' : 'border-slate-300'
+                        }`}>
+                          {isSelected && <div className="w-2 h-2 rounded-full bg-emerald-500" />}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-medium text-slate-900">
+                              {formatDate(schedule.date)}
+                            </span>
+                            {schedule.time && (
+                              <span className="text-slate-600">{schedule.time}</span>
+                            )}
+                            {schedule.status !== 'OPEN' && (
+                              <Badge variant="outline" className="text-xs bg-slate-200 text-slate-600">
+                                募集終了
+                              </Badge>
+                            )}
+                            {schedule.status === 'OPEN' && deadlinePassed && (
+                              <Badge variant="outline" className="text-xs bg-slate-200 text-slate-600">
+                                申込期限切れ
+                              </Badge>
+                            )}
+                          </div>
+                          {schedule.location && (
+                            <div className="text-sm text-slate-500 mt-0.5">
+                              {schedule.location}
+                            </div>
+                          )}
+                        </div>
+                      </label>
+                    )
+                  })}
                 </div>
-              )}
-              {event.location && (
-                <div className="flex items-center text-slate-600">
-                  <MapPin className="h-5 w-5 mr-3 text-slate-400" />
-                  <span>{event.location}</span>
-                </div>
-              )}
-              {event.applicationDeadline && (
-                <div className="text-sm text-orange-600 mt-2">
-                  申込期限: {formatDeadline(event.applicationDeadline)}
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
         {/* 申し込みフォーム */}
-        {!event.isFull && (
-          <Card>
-            <CardHeader>
-              <CardTitle>参加申し込み</CardTitle>
-              <CardDescription>
-                以下の情報を入力してお申し込みください
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {formError && (
-                  <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
-                    {formError}
-                  </div>
-                )}
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    お名前 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
-                    placeholder="山田 太郎"
-                    disabled={isSubmitting}
-                  />
+        <Card>
+          <CardHeader>
+            <CardTitle>参加申し込み</CardTitle>
+            <CardDescription>
+              以下の情報を入力してお申し込みください
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {formError && (
+                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+                  {formError}
                 </div>
+              )}
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    メールアドレス <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
-                    placeholder="example@email.com"
-                    disabled={isSubmitting}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    電話番号 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
-                    placeholder="090-1234-5678"
-                    disabled={isSubmitting}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    紹介者
-                  </label>
-                  <input
-                    type="text"
-                    value={referrer}
-                    onChange={(e) => setReferrer(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
-                    placeholder="紹介者のお名前（任意）"
-                    disabled={isSubmitting}
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full"
-                  size="lg"
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  お名前 <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  placeholder="山田 太郎"
                   disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <span className="flex items-center">
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      処理中...
-                    </span>
-                  ) : event.isPaid ? (
-                    `¥${event.price?.toLocaleString()} で申し込む`
-                  ) : (
-                    '申し込む'
-                  )}
-                </Button>
+                />
+              </div>
 
-                {event.isPaid && (
-                  <p className="text-xs text-slate-500 text-center">
-                    申し込み後、決済画面に移動します
-                  </p>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  メールアドレス <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  placeholder="example@email.com"
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  電話番号 <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  placeholder="090-1234-5678"
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  紹介者
+                </label>
+                <input
+                  type="text"
+                  value={referrer}
+                  onChange={(e) => setReferrer(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  placeholder="紹介者のお名前（任意）"
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full"
+                size="lg"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center">
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    処理中...
+                  </span>
+                ) : event.isPaid ? (
+                  `¥${event.price?.toLocaleString()} で申し込む`
+                ) : (
+                  '申し込む'
                 )}
-              </form>
-            </CardContent>
-          </Card>
-        )}
+              </Button>
 
-        {event.isFull && (
-          <Card className="border-slate-200 bg-slate-50">
-            <CardContent className="py-6">
-              <p className="text-center text-slate-600">
-                このイベントは定員に達しました
-              </p>
-            </CardContent>
-          </Card>
-        )}
+              {event.isPaid && (
+                <p className="text-xs text-slate-500 text-center">
+                  申し込み後、決済画面に移動します
+                </p>
+              )}
+            </form>
+          </CardContent>
+        </Card>
+
       </div>
     </div>
   )
