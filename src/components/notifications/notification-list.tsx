@@ -79,6 +79,15 @@ export function NotificationList() {
       const data = await response.json()
       setNotifications(data.notifications || [])
       setUnreadCount(data.unreadCount || 0)
+
+      // 未読通知がある場合、バックグラウンドで既読にしてサイドバーのバッジを消す
+      if ((data.unreadCount || 0) > 0) {
+        fetch('/api/notifications/mark-all-read', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+        }).then(() => fetchBadgeStatus()).catch(console.error)
+      }
     } catch (error) {
       console.error('Error fetching notifications:', error)
     } finally {
