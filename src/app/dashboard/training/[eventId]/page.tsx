@@ -24,6 +24,8 @@ import {
   Image as ImageIcon,
   FileText,
   ExternalLink,
+  Link,
+  Copy,
 } from 'lucide-react'
 import { AttendanceCodeInput } from '@/components/events/attendance-code-input'
 import { VideoSurveyAttendance } from '@/components/events/video-survey-attendance'
@@ -92,6 +94,9 @@ type EventDetail = {
     reviewedAt: string | null
     createdAt: string
   } | null
+  // 外部参加者向け
+  allowExternalParticipation: boolean
+  externalRegistrationToken: string | null
   // スケジュール関連
   schedules: Schedule[]
   registeredScheduleId: string | null
@@ -531,6 +536,38 @@ function TrainingEventDetailPageContent() {
                   </div>
                 )}
 
+
+                {/* 外部参加者向け申込URL */}
+                {event.allowExternalParticipation && event.externalRegistrationToken && (
+                  <div className="flex items-start text-slate-600 md:col-span-2">
+                    <Link className="h-5 w-5 mr-3 mt-0.5 text-slate-400" />
+                    <div className="flex-1">
+                      <div className="text-sm text-slate-500">外部参加者向け申込URL</div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <input
+                          type="text"
+                          readOnly
+                          value={`${typeof window !== 'undefined' ? window.location.origin : ''}/events/${event.externalRegistrationToken}/register`}
+                          className="flex-1 text-sm px-2 py-1 bg-slate-50 border border-slate-200 rounded text-slate-700 min-w-0"
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="shrink-0"
+                          onClick={() => {
+                            const url = `${window.location.origin}/events/${event.externalRegistrationToken}/register`
+                            navigator.clipboard.writeText(url)
+                            alert('URLをコピーしました')
+                          }}
+                        >
+                          <Copy className="h-4 w-4 mr-1" />
+                          コピー
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* 参加登録ボタン */}
                 <div className="pt-4 border-t">
