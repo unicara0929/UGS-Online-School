@@ -103,9 +103,15 @@ export async function POST(request: NextRequest) {
 
     // Chatwork通知を送信
     try {
+      // 紹介者名を取得
+      const cancelReferral = await prisma.referral.findFirst({
+        where: { referredId: userId },
+        select: { referrer: { select: { name: true } } },
+      })
       await sendCancellationChatworkNotification({
         userName: name,
         email,
+        referrerName: cancelReferral?.referrer?.name,
         cancelledAt: new Date(),
       })
     } catch (chatworkError) {

@@ -114,9 +114,15 @@ export async function POST(request: NextRequest) {
         TECHNICAL: '技術的な問題',
         OTHER: 'その他',
       }
+      // 紹介者名を取得
+      const contactReferral = await prisma.referral.findFirst({
+        where: { referredId: user.id },
+        select: { referrer: { select: { name: true } } },
+      })
       await sendContactChatworkNotification({
         userName: user.name,
         email: user.email,
+        referrerName: contactReferral?.referrer?.name,
         contactType: contactTypeLabels[type] || type,
         submittedAt: submission.createdAt,
       })

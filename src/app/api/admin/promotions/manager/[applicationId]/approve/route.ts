@@ -107,9 +107,15 @@ export async function POST(
 
     // Chatwork通知を送信
     try {
+      // 紹介者名を取得
+      const mgrReferral = await prisma.referral.findFirst({
+        where: { referredId: application.userId },
+        select: { referrer: { select: { name: true } } },
+      })
       await sendMGRPromotionChatworkNotification({
         userName: application.user.name,
         email: application.user.email,
+        referrerName: mgrReferral?.referrer?.name,
         approvedAt: new Date(),
       })
     } catch (chatworkError) {

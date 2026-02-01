@@ -170,9 +170,15 @@ export async function POST(
           select: { name: true, email: true }
         })
         if (user) {
+          // 紹介者名を取得
+          const fpReferral = await prisma.referral.findFirst({
+            where: { referredId: application.userId },
+            select: { referrer: { select: { name: true } } },
+          })
           await sendFPPromotionChatworkNotification({
             userName: user.name,
             email: user.email,
+            referrerName: fpReferral?.referrer?.name,
             approvedAt: new Date(),
           })
         }

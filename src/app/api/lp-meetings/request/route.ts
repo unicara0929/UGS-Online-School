@@ -123,9 +123,15 @@ export async function POST(request: NextRequest) {
 
     // Chatwork通知を送信
     try {
+      // 紹介者名を取得
+      const meetingReferral = await prisma.referral.findFirst({
+        where: { referredId: memberId },
+        select: { referrer: { select: { name: true } } },
+      })
       await sendLPMeetingRequestChatworkNotification({
         userName: meeting.member.name,
         email: meeting.member.email,
+        referrerName: meetingReferral?.referrer?.name,
         preferredDates: (preferredDates as string[]).map(d => new Date(d)),
         requestedAt: meeting.createdAt,
       })

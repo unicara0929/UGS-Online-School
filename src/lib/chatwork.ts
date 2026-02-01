@@ -145,6 +145,7 @@ export async function sendBusinessCardOrderChatworkNotification(params: {
   // 名刺に記載する連絡先
   email?: string | null
   phoneNumber?: string | null
+  referrerName?: string
   // 名刺記載住所
   cardAddress?: {
     postalCode?: string | null
@@ -162,7 +163,7 @@ export async function sendBusinessCardOrderChatworkNotification(params: {
     addressLine2?: string | null
   }
 }): Promise<void> {
-  const { userName, deliveryMethod, email, phoneNumber, cardAddress, shippingAddress } = params
+  const { userName, deliveryMethod, email, phoneNumber, referrerName, cardAddress, shippingAddress } = params
   const roomId = process.env.CHATWORK_BUSINESS_CARD_ROOM_ID
 
   if (!roomId) {
@@ -210,6 +211,7 @@ export async function sendBusinessCardOrderChatworkNotification(params: {
   const message = `${mentions}[info][title]名刺注文決済完了[/title]ユーザー名: ${userName}
 メールアドレス: ${email || '未設定'}
 電話番号: ${phoneNumber || '未設定'}
+紹介者: ${referrerName || 'なし'}
 名刺記載住所: ${cardAddressText}
 渡す方法: ${deliveryMethodLabel}${shippingAddressText}[/info]`
 
@@ -264,10 +266,11 @@ export async function sendRegistrationPaymentChatworkNotification(params: {
 export async function sendPaymentFailedChatworkNotification(params: {
   userName: string
   email: string
+  referrerName?: string
   failedAt?: Date
   amount: number
 }): Promise<void> {
-  const { userName, email, failedAt = new Date(), amount } = params
+  const { userName, email, referrerName, failedAt = new Date(), amount } = params
   const roomId = CHATWORK_ROOM_IDS.PAYMENT
 
   const formattedAmount = new Intl.NumberFormat('ja-JP', {
@@ -279,6 +282,7 @@ export async function sendPaymentFailedChatworkNotification(params: {
 
 [info][title]決済失敗通知[/title]名前：${userName}
 メールアドレス：${email}
+紹介者：${referrerName || 'なし'}
 失敗日時：${formatJapaneseDateTime(failedAt)}
 未納金額：${formattedAmount}[/info]`
 
@@ -296,15 +300,17 @@ export async function sendPaymentFailedChatworkNotification(params: {
 export async function sendCancellationChatworkNotification(params: {
   userName: string
   email: string
+  referrerName?: string
   cancelledAt?: Date
 }): Promise<void> {
-  const { userName, email, cancelledAt = new Date() } = params
+  const { userName, email, referrerName, cancelledAt = new Date() } = params
   const roomId = CHATWORK_ROOM_IDS.PAYMENT
 
   const message = `${NOTIFICATION_MENTIONS}
 
 [info][title]退会申請通知[/title]名前：${userName}
 メールアドレス：${email}
+紹介者：${referrerName || 'なし'}
 退会日時：${formatJapaneseDateTime(cancelledAt)}[/info]`
 
   try {
@@ -321,16 +327,18 @@ export async function sendCancellationChatworkNotification(params: {
 export async function sendConsultationChatworkNotification(params: {
   userName: string
   email: string
+  referrerName?: string
   consultationType: string
   submittedAt?: Date
 }): Promise<void> {
-  const { userName, email, consultationType, submittedAt = new Date() } = params
+  const { userName, email, referrerName, consultationType, submittedAt = new Date() } = params
   const roomId = CHATWORK_ROOM_IDS.SUPPORT
 
   const message = `${NOTIFICATION_MENTIONS}
 
 [info][title]個別相談提出通知[/title]名前：${userName}
 メールアドレス：${email}
+紹介者：${referrerName || 'なし'}
 相談ジャンル：${consultationType}
 提出日時：${formatJapaneseDateTime(submittedAt)}[/info]`
 
@@ -348,16 +356,18 @@ export async function sendConsultationChatworkNotification(params: {
 export async function sendContactChatworkNotification(params: {
   userName: string
   email: string
+  referrerName?: string
   contactType: string
   submittedAt?: Date
 }): Promise<void> {
-  const { userName, email, contactType, submittedAt = new Date() } = params
+  const { userName, email, referrerName, contactType, submittedAt = new Date() } = params
   const roomId = CHATWORK_ROOM_IDS.SUPPORT
 
   const message = `${NOTIFICATION_MENTIONS}
 
 [info][title]お問い合わせ通知[/title]名前：${userName}
 メールアドレス：${email}
+紹介者：${referrerName || 'なし'}
 問い合わせ種別：${contactType}
 提出日時：${formatJapaneseDateTime(submittedAt)}[/info]`
 
@@ -375,15 +385,17 @@ export async function sendContactChatworkNotification(params: {
 export async function sendFPPromotionChatworkNotification(params: {
   userName: string
   email: string
+  referrerName?: string
   approvedAt?: Date
 }): Promise<void> {
-  const { userName, email, approvedAt = new Date() } = params
+  const { userName, email, referrerName, approvedAt = new Date() } = params
   const roomId = CHATWORK_ROOM_IDS.PROMOTION
 
   const message = `${NOTIFICATION_MENTIONS}
 
 [info][title]FPエイド昇格承認通知[/title]名前：${userName}
 メールアドレス：${email}
+紹介者：${referrerName || 'なし'}
 承認日時：${formatJapaneseDateTime(approvedAt)}[/info]`
 
   try {
@@ -400,15 +412,17 @@ export async function sendFPPromotionChatworkNotification(params: {
 export async function sendMGRPromotionChatworkNotification(params: {
   userName: string
   email: string
+  referrerName?: string
   approvedAt?: Date
 }): Promise<void> {
-  const { userName, email, approvedAt = new Date() } = params
+  const { userName, email, referrerName, approvedAt = new Date() } = params
   const roomId = CHATWORK_ROOM_IDS.PROMOTION
 
   const message = `${NOTIFICATION_MENTIONS}
 
 [info][title]MGR昇格承認通知[/title]名前：${userName}
 メールアドレス：${email}
+紹介者：${referrerName || 'なし'}
 承認日時：${formatJapaneseDateTime(approvedAt)}[/info]`
 
   try {
@@ -425,10 +439,11 @@ export async function sendMGRPromotionChatworkNotification(params: {
 export async function sendLPMeetingRequestChatworkNotification(params: {
   userName: string
   email: string
+  referrerName?: string
   preferredDates: Date[]
   requestedAt?: Date
 }): Promise<void> {
-  const { userName, email, preferredDates, requestedAt = new Date() } = params
+  const { userName, email, referrerName, preferredDates, requestedAt = new Date() } = params
   const roomId = CHATWORK_ROOM_IDS.PROMOTION
 
   const formattedPreferredDates = preferredDates
@@ -439,6 +454,7 @@ export async function sendLPMeetingRequestChatworkNotification(params: {
 
 [info][title]LP面談リクエスト通知[/title]名前：${userName}
 メールアドレス：${email}
+紹介者：${referrerName || 'なし'}
 希望日時：${formattedPreferredDates}
 申請日時：${formatJapaneseDateTime(requestedAt)}[/info]`
 
@@ -456,16 +472,18 @@ export async function sendLPMeetingRequestChatworkNotification(params: {
 export async function sendLPMeetingScheduledChatworkNotification(params: {
   userName: string
   email: string
+  referrerName?: string
   scheduledAt: Date
   counselorName: string
 }): Promise<void> {
-  const { userName, email, scheduledAt, counselorName } = params
+  const { userName, email, referrerName, scheduledAt, counselorName } = params
   const roomId = CHATWORK_ROOM_IDS.PROMOTION
 
   const message = `${NOTIFICATION_MENTIONS}
 
 [info][title]LP面談確定通知[/title]名前：${userName}
 メールアドレス：${email}
+紹介者：${referrerName || 'なし'}
 確定日時：${formatJapaneseDateTime(scheduledAt)}
 面談者：${counselorName}[/info]`
 

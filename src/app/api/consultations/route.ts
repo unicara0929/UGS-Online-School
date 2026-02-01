@@ -123,9 +123,15 @@ export async function POST(request: NextRequest) {
 
     // Chatwork通知を送信
     try {
+      // 紹介者名を取得
+      const consultationReferral = await prisma.referral.findFirst({
+        where: { referredId: user.id },
+        select: { referrer: { select: { name: true } } },
+      })
       await sendConsultationChatworkNotification({
         userName: user.name,
         email: user.email,
+        referrerName: consultationReferral?.referrer?.name,
         consultationType: typeLabel,
         submittedAt: consultation.createdAt,
       })
