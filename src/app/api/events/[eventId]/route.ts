@@ -173,7 +173,8 @@ export async function GET(
         onlineMeetingUrl: registeredSchedule?.onlineMeetingUrl ?? firstSchedule?.onlineMeetingUrl ?? null,
         // 出席確認関連（参加コードは全体MTGのみで使用）
         hasAttendanceCode: event.isRecurring && event.schedules.some(s => !!s.attendanceCode),
-        // 期限設定（日数ベース）
+        // 期限設定
+        applicationDeadline: event.applicationDeadline?.toISOString() ?? null,
         applicationDeadlineDays: event.applicationDeadlineDays ?? null,
         attendanceDeadlineDays: event.attendanceDeadlineDays ?? null,
         vimeoUrl: event.vimeoUrl ?? null,

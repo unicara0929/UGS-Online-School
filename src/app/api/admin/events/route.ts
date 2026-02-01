@@ -122,7 +122,8 @@ export async function GET(request: NextRequest) {
         attendanceCode: firstSchedule?.attendanceCode ?? null,
         vimeoUrl: event.vimeoUrl ?? null,
         surveyUrl: event.surveyUrl ?? null,
-        // 日数ベースの期限
+        // 期限設定
+        applicationDeadline: event.applicationDeadline?.toISOString() ?? null,
         applicationDeadlineDays: event.applicationDeadlineDays ?? null,
         attendanceDeadlineDays: event.attendanceDeadlineDays ?? null,
         // 全体MTGフラグ
@@ -240,6 +241,8 @@ export async function POST(request: NextRequest) {
       // 期限設定（日数ベース）
       applicationDeadlineDays,
       attendanceDeadlineDays,
+      // 期限設定（DateTime直接指定 - 全体MTG用）
+      applicationDeadline,
       // 定期開催関連
       isRecurring = false,
       recurrencePattern,
@@ -302,6 +305,8 @@ export async function POST(request: NextRequest) {
         // 期限設定（日数ベース）
         applicationDeadlineDays: applicationDeadlineDays !== undefined ? Number(applicationDeadlineDays) : null,
         attendanceDeadlineDays: attendanceDeadlineDays !== undefined ? Number(attendanceDeadlineDays) : null,
+        // 期限設定（DateTime直接指定 - 全体MTG用）
+        applicationDeadline: applicationDeadline ? new Date(applicationDeadline) : null,
         // 定期開催関連
         isRecurring,
         recurrencePattern: recurrencePattern || null,

@@ -66,6 +66,14 @@ export async function PUT(
       // 期限設定（日数ベース）
       applicationDeadlineDays,
       attendanceDeadlineDays,
+      // 期限設定（DateTime直接指定 - 全体MTG用）
+      applicationDeadline,
+      // スケジュール関連（全体MTG編集時に使用）
+      attendanceCode,
+      date,
+      time,
+      location,
+      onlineMeetingUrl,
       // 定期開催関連
       isRecurring,
       recurrencePattern,
@@ -112,6 +120,10 @@ export async function PUT(
     }
     if (attendanceDeadlineDays !== undefined) {
       updateData.attendanceDeadlineDays = attendanceDeadlineDays !== null ? Number(attendanceDeadlineDays) : null
+    }
+    // 期限設定（DateTime直接指定 - 全体MTG用）
+    if (applicationDeadline !== undefined) {
+      updateData.applicationDeadline = applicationDeadline ? new Date(applicationDeadline) : null
     }
 
     // 定期開催関連
@@ -209,51 +221,88 @@ export async function PUT(
       }
     })
 
+    // スケジュール関連フィールドの更新（全体MTG編集時）
+    const firstScheduleForUpdate = updatedEvent.schedules[0]
+    if (firstScheduleForUpdate) {
+      const scheduleUpdateData: Record<string, unknown> = {}
+      if (attendanceCode !== undefined) scheduleUpdateData.attendanceCode = attendanceCode || null
+      if (date !== undefined) scheduleUpdateData.date = new Date(date)
+      if (time !== undefined) scheduleUpdateData.time = time || null
+      if (location !== undefined) scheduleUpdateData.location = location || null
+      if (onlineMeetingUrl !== undefined) scheduleUpdateData.onlineMeetingUrl = onlineMeetingUrl || null
+
+      if (Object.keys(scheduleUpdateData).length > 0) {
+        await prisma.eventSchedule.update({
+          where: { id: firstScheduleForUpdate.id },
+          data: scheduleUpdateData,
+        })
+      }
+    }
+
+    // 更新後のイベントを再取得（スケジュール更新を反映）
+    const refreshedEvent = await prisma.event.findUnique({
+      where: { id: eventId },
+      include: {
+        schedules: {
+          orderBy: { date: 'asc' },
+          include: {
+            _count: {
+              select: {
+                registrations: true,
+                externalRegistrations: true,
+              }
+            }
+          }
+        }
+      }
+    })
+
     // 最初のスケジュール（後方互換性用）
-    const firstSchedule = updatedEvent.schedules[0]
+    const firstSchedule = refreshedEvent!.schedules[0]
 
     return NextResponse.json({
       success: true,
       event: {
-        id: updatedEvent.id,
-        title: updatedEvent.title,
-        description: updatedEvent.description ?? '',
+        id: refreshedEvent!.id,
+        title: refreshedEvent!.title,
+        description: refreshedEvent!.description ?? '',
         // 後方互換性：最初のスケジュールの日付を使用
         date: firstSchedule?.date.toISOString() ?? null,
         time: firstSchedule?.time ?? '',
-        type: updatedEvent.type,
-        targetRoles: updatedEvent.targetRoles,
-        attendanceType: updatedEvent.attendanceType,
-        venueType: updatedEvent.venueType,
+        type: refreshedEvent!.type,
+        targetRoles: refreshedEvent!.targetRoles,
+        attendanceType: refreshedEvent!.attendanceType,
+        venueType: refreshedEvent!.venueType,
         location: firstSchedule?.location ?? '',
         onlineMeetingUrl: firstSchedule?.onlineMeetingUrl ?? null,
-        status: updatedEvent.status,
-        thumbnailUrl: updatedEvent.thumbnailUrl ?? null,
-        isPaid: updatedEvent.isPaid,
-        price: updatedEvent.price ?? null,
+        status: refreshedEvent!.status,
+        thumbnailUrl: refreshedEvent!.thumbnailUrl ?? null,
+        isPaid: refreshedEvent!.isPaid,
+        price: refreshedEvent!.price ?? null,
         // 出席確認関連
         attendanceCode: firstSchedule?.attendanceCode ?? null,
-        vimeoUrl: updatedEvent.vimeoUrl ?? null,
-        surveyUrl: updatedEvent.surveyUrl ?? null,
-        // 期限設定（日数ベース）
-        applicationDeadlineDays: updatedEvent.applicationDeadlineDays ?? null,
-        attendanceDeadlineDays: updatedEvent.attendanceDeadlineDays ?? null,
+        vimeoUrl: refreshedEvent!.vimeoUrl ?? null,
+        surveyUrl: refreshedEvent!.surveyUrl ?? null,
+        // 期限設定
+        applicationDeadline: refreshedEvent!.applicationDeadline?.toISOString() ?? null,
+        applicationDeadlineDays: refreshedEvent!.applicationDeadlineDays ?? null,
+        attendanceDeadlineDays: refreshedEvent!.attendanceDeadlineDays ?? null,
         // 定期開催関連
-        isRecurring: updatedEvent.isRecurring,
-        recurrencePattern: updatedEvent.recurrencePattern ?? null,
+        isRecurring: refreshedEvent!.isRecurring,
+        recurrencePattern: refreshedEvent!.recurrencePattern ?? null,
         // イベントカテゴリ
-        eventCategory: updatedEvent.eventCategory,
+        eventCategory: refreshedEvent!.eventCategory,
         // 過去イベント記録用
-        summary: updatedEvent.summary ?? null,
-        photos: updatedEvent.photos ?? [],
-        materialsUrl: updatedEvent.materialsUrl ?? null,
-        adminNotes: updatedEvent.adminNotes ?? null,
-        isArchiveOnly: updatedEvent.isArchiveOnly ?? false,
+        summary: refreshedEvent!.summary ?? null,
+        photos: refreshedEvent!.photos ?? [],
+        materialsUrl: refreshedEvent!.materialsUrl ?? null,
+        adminNotes: refreshedEvent!.adminNotes ?? null,
+        isArchiveOnly: refreshedEvent!.isArchiveOnly ?? false,
         // 外部参加者設定
-        allowExternalParticipation: updatedEvent.allowExternalParticipation ?? false,
-        externalRegistrationToken: updatedEvent.externalRegistrationToken ?? null,
+        allowExternalParticipation: refreshedEvent!.allowExternalParticipation ?? false,
+        externalRegistrationToken: refreshedEvent!.externalRegistrationToken ?? null,
         // 日程一覧
-        schedules: updatedEvent.schedules.map(schedule => ({
+        schedules: refreshedEvent!.schedules.map(schedule => ({
           id: schedule.id,
           date: schedule.date.toISOString(),
           time: schedule.time ?? '',
