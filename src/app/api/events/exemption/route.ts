@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
         schedules: {
           orderBy: { date: 'asc' },
           take: 1,
-          select: { date: true }
+          select: { date: true, time: true }
         }
       },
     })
@@ -167,14 +167,24 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // イベント開始前かチェック（イベント開始後は申請不可）
+    // イベント開始時間前かチェック（開始時間を過ぎたら申請不可）
     const now = new Date()
-    const firstScheduleDate = event.schedules[0]?.date
-    if (firstScheduleDate && firstScheduleDate < now) {
-      return NextResponse.json(
-        { success: false, error: 'イベント開始後は欠席申請できません' },
-        { status: 400 }
-      )
+    const firstSchedule = event.schedules[0]
+    if (firstSchedule) {
+      const eventStart = new Date(firstSchedule.date)
+      // 開催時間が設定されている場合（例: "19:00"）、その時間を反映
+      if (firstSchedule.time) {
+        const [hours, minutes] = firstSchedule.time.split(':').map(Number)
+        if (!isNaN(hours) && !isNaN(minutes)) {
+          eventStart.setHours(hours, minutes, 0, 0)
+        }
+      }
+      if (eventStart < now) {
+        return NextResponse.json(
+          { success: false, error: 'イベント開始後は欠席申請できません' },
+          { status: 400 }
+        )
+      }
     }
 
     // ユーザー情報を取得
