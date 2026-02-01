@@ -104,10 +104,10 @@ function MtgPageContent() {
     <div className="min-h-screen bg-slate-50 flex">
       <Sidebar />
 
-      <div className="flex-1 md:ml-64">
+      <div className="flex-1 md:ml-64 min-w-0">
         <PageHeader title="月初（全体MTG）" />
 
-        <main className="px-4 sm:px-6 lg:px-8 py-8">
+        <main className="px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-bold text-slate-900">月初（全体MTG）</h2>

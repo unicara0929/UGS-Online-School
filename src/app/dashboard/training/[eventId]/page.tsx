@@ -299,9 +299,9 @@ function TrainingEventDetailPageContent() {
     return (
       <div className="min-h-screen bg-slate-50 flex">
         <Sidebar />
-        <div className="flex-1 md:ml-64">
+        <div className="flex-1 md:ml-64 min-w-0">
           <PageHeader title="イベント詳細" />
-          <main className="px-4 sm:px-6 lg:px-8 py-8">
+          <main className="px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
             <div className="flex items-center justify-center py-12">
               <div className="flex items-center text-slate-500">
                 <Loader2 className="h-5 w-5 mr-2 animate-spin" />
@@ -318,9 +318,9 @@ function TrainingEventDetailPageContent() {
     return (
       <div className="min-h-screen bg-slate-50 flex">
         <Sidebar />
-        <div className="flex-1 md:ml-64">
+        <div className="flex-1 md:ml-64 min-w-0">
           <PageHeader title="イベント詳細" />
-          <main className="px-4 sm:px-6 lg:px-8 py-8">
+          <main className="px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
             <Card className="border-red-200 bg-red-50">
               <CardContent className="py-4">
                 <p className="text-sm text-red-600">{error || 'イベントが見つかりません'}</p>
@@ -340,10 +340,10 @@ function TrainingEventDetailPageContent() {
     <div className="min-h-screen bg-slate-50 flex">
       <Sidebar />
 
-      <div className="flex-1 md:ml-64">
+      <div className="flex-1 md:ml-64 min-w-0">
         <PageHeader title="イベント詳細" />
 
-        <main className="px-4 sm:px-6 lg:px-8 py-8">
+        <main className="px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div className="space-y-6 max-w-4xl mx-auto">
             {/* 戻るボタン */}
             <Button variant="outline" onClick={() => router.push('/dashboard/training')}>
@@ -368,9 +368,9 @@ function TrainingEventDetailPageContent() {
             )}
 
             {/* イベント情報 */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2 mb-2">
+            <Card className="overflow-hidden">
+              <CardHeader className="p-4 sm:p-6">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
                   <Badge variant={getEventTypeColor(event.type)}>
                     {getEventTypeLabel(event.type)}
                   </Badge>
@@ -390,9 +390,9 @@ function TrainingEventDetailPageContent() {
                     </Badge>
                   )}
                 </div>
-                <CardTitle className="text-3xl">{event.title}</CardTitle>
+                <CardTitle className="text-2xl sm:text-3xl break-words">{event.title}</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-6 p-4 sm:p-6 pt-0 sm:pt-0">
                 {/* イベント説明 */}
                 <div className="prose max-w-none">
                   <p className="text-slate-700 whitespace-pre-wrap">{event.description}</p>
@@ -447,9 +447,9 @@ function TrainingEventDetailPageContent() {
                       </div>
                       {/* オンライン参加URL（申込済みの場合のみ表示） */}
                       {displayUrl && event.isRegistered && (
-                        <div className="flex items-center text-slate-600 md:col-span-2">
-                          <ExternalLink className="h-5 w-5 mr-3 text-slate-400" />
-                          <div>
+                        <div className="flex items-center text-slate-600 md:col-span-2 min-w-0">
+                          <ExternalLink className="h-5 w-5 mr-3 text-slate-400 shrink-0" />
+                          <div className="min-w-0">
                             <div className="text-sm text-slate-500">オンライン参加URL</div>
                             <a
                               href={displayUrl}
@@ -539,9 +539,9 @@ function TrainingEventDetailPageContent() {
 
                 {/* 外部参加者向け申込URL */}
                 {event.allowExternalParticipation && event.externalRegistrationToken && (
-                  <div className="flex items-start text-slate-600 md:col-span-2">
-                    <Link className="h-5 w-5 mr-3 mt-0.5 text-slate-400" />
-                    <div className="flex-1">
+                  <div className="flex items-start text-slate-600 md:col-span-2 min-w-0">
+                    <Link className="h-5 w-5 mr-3 mt-0.5 text-slate-400 shrink-0" />
+                    <div className="flex-1 min-w-0">
                       <div className="text-sm text-slate-500">外部参加者向け申込URL</div>
                       <div className="flex items-center gap-2 mt-1">
                         <input
@@ -636,12 +636,12 @@ function TrainingEventDetailPageContent() {
 
             {/* 出席確認セクション */}
             {event.isRegistered && !event.attendanceCompletedAt && (
-              <Card id="attendance-section">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
+              <Card id="attendance-section" className="overflow-hidden">
+                <CardHeader className="p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <CardTitle>出席確認</CardTitle>
                     {event.attendanceDeadline && (
-                      <div className={`text-sm px-3 py-1 rounded-full ${
+                      <div className={`text-xs sm:text-sm px-3 py-1 rounded-full ${
                         new Date(event.attendanceDeadline) < new Date()
                           ? 'bg-red-100 text-red-700'
                           : 'bg-blue-100 text-blue-700'
@@ -653,7 +653,7 @@ function TrainingEventDetailPageContent() {
                     )}
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
                   {event.hasAttendanceCode && !event.vimeoUrl && (
                     <>
                       {event.attendanceDeadline && new Date(event.attendanceDeadline) < new Date() ? (
@@ -738,10 +738,10 @@ function TrainingEventDetailPageContent() {
 
             {/* 出席完了表示 */}
             {event.isRegistered && event.attendanceCompletedAt && (
-              <Card className="border-green-200 bg-green-50">
-                <CardContent className="py-6">
+              <Card className="border-green-200 bg-green-50 overflow-hidden">
+                <CardContent className="p-4 sm:py-6 sm:px-6">
                   <div className="flex items-center gap-3 text-green-800">
-                    <CheckCircle2 className="h-6 w-6" />
+                    <CheckCircle2 className="h-6 w-6 shrink-0" />
                     <div>
                       <p className="font-semibold text-lg">
                         {event.attendanceMethod === 'CODE' ? '出席完了' : '動画視聴+アンケート完了'}
@@ -758,11 +758,11 @@ function TrainingEventDetailPageContent() {
 
             {/* 過去イベント記録（完了イベントのみ） */}
             {event.status === 'completed' && (event.summary || event.photos.length > 0 || event.materialsUrl) && (
-              <Card>
-                <CardHeader>
+              <Card className="overflow-hidden">
+                <CardHeader className="p-4 sm:p-6">
                   <CardTitle>イベント記録</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-6 p-4 sm:p-6 pt-0 sm:pt-0">
                   {event.summary && (
                     <div>
                       <h3 className="font-semibold text-slate-900 mb-2">開催報告</h3>

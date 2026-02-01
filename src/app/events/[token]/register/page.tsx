@@ -255,7 +255,7 @@ export default function ExternalEventRegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4">
+    <div className="min-h-screen bg-slate-50 py-6 sm:py-8 px-3 sm:px-4">
       <div className="max-w-2xl mx-auto space-y-6">
         {/* キャンセル通知 */}
         {canceled && (
@@ -269,18 +269,18 @@ export default function ExternalEventRegisterPage() {
         )}
 
         {/* イベント情報 */}
-        <Card>
+        <Card className="overflow-hidden">
           {event.thumbnailUrl && (
-            <div className="w-full aspect-video overflow-hidden rounded-t-lg">
+            <div className="w-full overflow-hidden rounded-t-lg">
               <img
                 src={event.thumbnailUrl}
                 alt={event.title}
-                className="w-full h-full object-cover"
+                className="w-full h-auto object-contain"
               />
             </div>
           )}
-          <CardHeader>
-            <div className="flex items-center gap-2 mb-2">
+          <CardHeader className="p-4 sm:p-6">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
               {event.isPaid && (
                 <Badge className="bg-amber-500">
                   ¥{event.price?.toLocaleString()}
@@ -293,14 +293,14 @@ export default function ExternalEventRegisterPage() {
                 <Badge variant="outline">{event.schedules.length}日程</Badge>
               )}
             </div>
-            <CardTitle className="text-2xl">{event.title}</CardTitle>
+            <CardTitle className="text-xl sm:text-2xl break-words">{event.title}</CardTitle>
             {event.description && (
               <CardDescription className="whitespace-pre-wrap mt-2">
                 {event.description}
               </CardDescription>
             )}
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
             {/* 日程が1つの場合：従来の表示 */}
             {event.schedules.length <= 1 && (
               <div className="space-y-3">
@@ -397,14 +397,14 @@ export default function ExternalEventRegisterPage() {
         </Card>
 
         {/* 申し込みフォーム */}
-        <Card>
-          <CardHeader>
+        <Card className="overflow-hidden">
+          <CardHeader className="p-4 sm:p-6">
             <CardTitle>参加申し込み</CardTitle>
             <CardDescription>
               以下の情報を入力してお申し込みください
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
             <form onSubmit={handleSubmit} className="space-y-4">
               {formError && (
                 <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
