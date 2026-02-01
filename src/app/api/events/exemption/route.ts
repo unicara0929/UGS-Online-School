@@ -172,12 +172,16 @@ export async function POST(request: NextRequest) {
     const firstSchedule = event.schedules[0]
     if (firstSchedule) {
       const eventStart = new Date(firstSchedule.date)
-      // 開催時間が設定されている場合（例: "19:00"）、その時間を反映
-      if (firstSchedule.time) {
-        const [hours, minutes] = firstSchedule.time.split(':').map(Number)
-        if (!isNaN(hours) && !isNaN(minutes)) {
-          eventStart.setHours(hours, minutes, 0, 0)
-        }
+      // 開催時間を解析（例: "19:00" or "19:00〜21:00"）
+      const timeMatch = firstSchedule.time?.match(/(\d{1,2}):(\d{2})/)
+      if (timeMatch) {
+        const jstHours = parseInt(timeMatch[1], 10)
+        const jstMinutes = parseInt(timeMatch[2], 10)
+        // JST → UTC変換（-9時間）
+        eventStart.setUTCHours(jstHours - 9, jstMinutes, 0, 0)
+      } else {
+        // 時間未設定の場合、当日の23:59 JSTまで許可
+        eventStart.setUTCHours(14, 59, 0, 0)
       }
       if (eventStart < now) {
         return NextResponse.json(
