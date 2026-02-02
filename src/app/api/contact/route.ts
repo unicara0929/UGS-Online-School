@@ -124,6 +124,7 @@ export async function POST(request: NextRequest) {
         email: user.email,
         referrerName: contactReferral?.referrer?.name,
         contactType: contactTypeLabels[type] || type,
+        contactMessage: message.trim(),
         submittedAt: submission.createdAt,
       })
     } catch (chatworkError) {

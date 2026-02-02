@@ -358,9 +358,10 @@ export async function sendContactChatworkNotification(params: {
   email: string
   referrerName?: string
   contactType: string
+  contactMessage: string
   submittedAt?: Date
 }): Promise<void> {
-  const { userName, email, referrerName, contactType, submittedAt = new Date() } = params
+  const { userName, email, referrerName, contactType, contactMessage, submittedAt = new Date() } = params
   const roomId = CHATWORK_ROOM_IDS.SUPPORT
 
   const message = `${NOTIFICATION_MENTIONS}
@@ -369,7 +370,10 @@ export async function sendContactChatworkNotification(params: {
 メールアドレス：${email}
 紹介者：${referrerName || 'なし'}
 問い合わせ種別：${contactType}
-提出日時：${formatJapaneseDateTime(submittedAt)}[/info]`
+提出日時：${formatJapaneseDateTime(submittedAt)}
+
+【問い合わせ内容】
+${contactMessage}[/info]`
 
   try {
     await sendChatworkMessage({ roomId, message })
