@@ -354,9 +354,6 @@ function CheckoutContent() {
                       <p>
                         <strong>{referrerInfo.name}</strong>さんの紹介で登録されました
                       </p>
-                      <p className="text-xs text-blue-600">
-                        紹介コード: <span className="font-mono">{referralCode}</span>
-                      </p>
                       <Badge variant="secondary" className="mt-2 bg-blue-100 text-blue-800 border-blue-300">
                         紹介特典適用
                       </Badge>
