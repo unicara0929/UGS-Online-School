@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/contexts/auth-context'
@@ -15,6 +15,8 @@ export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false)
   const { user, hasAnyRole } = useAuth()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const fromPage = searchParams.get('from') // 遷移元ページを識別
   const [logoError, setLogoError] = useState(false)
   const [profileImage, setProfileImage] = useState<string | null>(null)
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
@@ -91,11 +93,26 @@ export function Sidebar() {
       if (currentPath.includes('/events/') && currentPath.endsWith('/mtg')) {
         return true
       }
+      // from=mtg の場合もMTGメニューにマッチ
+      if (fromPage === 'mtg' && currentPath.startsWith('/dashboard/admin/events/')) {
+        return true
+      }
     }
 
-    // イベント管理の特殊ケース: /events/[id]/mtg は除外
+    // イベント・研修管理の特殊ケース: from=training の場合にマッチ
+    if (href === '/dashboard/admin/training') {
+      if (fromPage === 'training' && currentPath.startsWith('/dashboard/admin/events/')) {
+        return true
+      }
+    }
+
+    // イベント管理の特殊ケース: /events/[id]/mtg は除外、from=training/mtg の場合も除外
     if (href === '/dashboard/admin/events' || href === '/dashboard/events') {
       if (currentPath.includes('/events/') && currentPath.endsWith('/mtg')) {
+        return false
+      }
+      // from=training または from=mtg の場合はキャンペーン案内にマッチさせない
+      if ((fromPage === 'training' || fromPage === 'mtg') && currentPath.startsWith('/dashboard/admin/events/')) {
         return false
       }
     }

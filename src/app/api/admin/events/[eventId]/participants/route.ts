@@ -221,6 +221,7 @@ export async function GET(
         price: event.price,
         isRecurring: event.isRecurring || false,
         allowExternalParticipation: event.allowExternalParticipation || false,
+        eventCategory: event.eventCategory || 'REGULAR',
         schedules: event.schedules.map((s) => ({
           id: s.id,
           date: s.date?.toISOString() ?? null,

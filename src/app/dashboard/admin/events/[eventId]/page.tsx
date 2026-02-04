@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import { ProtectedRoute } from '@/components/auth/protected-route'
@@ -138,7 +138,9 @@ type EventSummary = {
 function EventDetailPageContent() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const eventId = params.eventId as string
+  const fromPage = searchParams.get('from') // 'training' など遷移元を識別
 
   const [event, setEvent] = useState<any>(null)
   const [participants, setParticipants] = useState<Participant[]>([])
@@ -405,7 +407,20 @@ function EventDetailPageContent() {
             {/* 戻るボタン */}
             <Button
               variant="outline"
-              onClick={() => router.push('/dashboard/admin/events')}
+              onClick={() => {
+                // fromパラメータがあればそれを優先、なければeventCategoryを使用
+                let backPath = '/dashboard/admin/events'
+                if (fromPage === 'training') {
+                  backPath = '/dashboard/admin/training'
+                } else if (fromPage === 'mtg') {
+                  backPath = '/dashboard/admin/mtg'
+                } else if (event?.eventCategory === 'TRAINING') {
+                  backPath = '/dashboard/admin/training'
+                } else if (event?.eventCategory === 'MTG') {
+                  backPath = '/dashboard/admin/mtg'
+                }
+                router.push(backPath)
+              }}
               className="mb-4"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />

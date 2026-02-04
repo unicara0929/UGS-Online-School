@@ -376,7 +376,7 @@ function AdminTrainingPageContent() {
                       {/* タイトル・バッジ */}
                       <div
                         className="flex-1 min-w-0 cursor-pointer"
-                        onClick={() => router.push(`/dashboard/admin/events/${event.id}`)}
+                        onClick={() => router.push(`/dashboard/admin/events/${event.id}?from=training`)}
                       >
                         <div className="flex items-center gap-2 flex-wrap mb-1">
                           <Badge className="bg-emerald-600 text-[10px] px-1.5 py-0">
@@ -456,7 +456,7 @@ function AdminTrainingPageContent() {
                         )}
                         <ChevronRight
                           className="h-4 w-4 text-slate-400 group-hover:text-slate-600 cursor-pointer"
-                          onClick={() => router.push(`/dashboard/admin/events/${event.id}`)}
+                          onClick={() => router.push(`/dashboard/admin/events/${event.id}?from=training`)}
                         />
                       </div>
                     </div>
