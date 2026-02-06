@@ -7,7 +7,7 @@ import { Sidebar } from '@/components/navigation/sidebar'
 import { PageHeader } from '@/components/dashboard/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2, CreditCard, ChevronRight, ChevronLeft, Check, AlertCircle, MapPin, Truck, User, Info } from 'lucide-react'
+import { Loader2, CreditCard, ChevronRight, ChevronLeft, Check, AlertCircle, MapPin, Truck, User } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 
 interface Design {
@@ -121,6 +121,7 @@ function BusinessCardOrderContent() {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
   // 保有資格の選択状態
+  const [hasQualifications, setHasQualifications] = useState<'yes' | 'no' | ''>('')
   const [selectedQualifications, setSelectedQualifications] = useState<string[]>([])
   const [otherQualification, setOtherQualification] = useState('')
   const [showOtherInput, setShowOtherInput] = useState(false)
@@ -688,69 +689,102 @@ function BusinessCardOrderContent() {
                     </div>
 
                     <div>
-                      <label className="flex items-center gap-1 text-sm font-medium text-slate-700 mb-2">
-                        保有資格（名刺記載用）
-                        <div className="relative group">
-                          <Info className="h-4 w-4 text-slate-500 cursor-help" />
-                          <div className="absolute left-0 top-6 z-50 hidden group-hover:block w-64 p-3 text-xs text-white bg-slate-800 rounded-lg shadow-lg">
-                            不動産、保険、金融など、事業に関連する資格のみご記載ください。
-                          </div>
-                        </div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        保有資格
                       </label>
-                      <div className="space-y-2 border border-slate-200 rounded-lg p-3 bg-slate-50">
-                        {QUALIFICATION_OPTIONS.map((qual) => (
-                          <label key={qual} className="flex items-center gap-2 cursor-pointer">
+                      <div className="flex items-center gap-6">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="hasQualifications"
+                            checked={hasQualifications === 'yes'}
+                            onChange={() => {
+                              setHasQualifications('yes')
+                            }}
+                            className="h-4 w-4 text-slate-600 border-slate-300 focus:ring-slate-500"
+                          />
+                          <span className="text-sm text-slate-700">有</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="hasQualifications"
+                            checked={hasQualifications === 'no'}
+                            onChange={() => {
+                              setHasQualifications('no')
+                              // 無を選択したら資格をクリア
+                              setSelectedQualifications([])
+                              setOtherQualification('')
+                              setShowOtherInput(false)
+                              handleInputChange('qualifications', '')
+                            }}
+                            className="h-4 w-4 text-slate-600 border-slate-300 focus:ring-slate-500"
+                          />
+                          <span className="text-sm text-slate-700">無</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {hasQualifications === 'yes' && (
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          保有資格（名刺記載用）
+                        </label>
+                        <div className="space-y-2 border border-slate-200 rounded-lg p-3 bg-slate-50">
+                          {QUALIFICATION_OPTIONS.map((qual) => (
+                            <label key={qual} className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={selectedQualifications.includes(qual)}
+                                onChange={(e) => {
+                                  const newSelected = e.target.checked
+                                    ? [...selectedQualifications, qual]
+                                    : selectedQualifications.filter(q => q !== qual)
+                                  setSelectedQualifications(newSelected)
+                                  // formDataも更新
+                                  const allQuals = showOtherInput && otherQualification
+                                    ? [...newSelected, otherQualification]
+                                    : newSelected
+                                  handleInputChange('qualifications', allQuals.join('、'))
+                                }}
+                                className="h-4 w-4 text-slate-600 border-slate-300 rounded focus:ring-slate-500"
+                              />
+                              <span className="text-sm text-slate-700">{qual}</span>
+                            </label>
+                          ))}
+                          <label className="flex items-center gap-2 cursor-pointer">
                             <input
                               type="checkbox"
-                              checked={selectedQualifications.includes(qual)}
+                              checked={showOtherInput}
                               onChange={(e) => {
-                                const newSelected = e.target.checked
-                                  ? [...selectedQualifications, qual]
-                                  : selectedQualifications.filter(q => q !== qual)
-                                setSelectedQualifications(newSelected)
-                                // formDataも更新
-                                const allQuals = showOtherInput && otherQualification
-                                  ? [...newSelected, otherQualification]
-                                  : newSelected
-                                handleInputChange('qualifications', allQuals.join('、'))
+                                setShowOtherInput(e.target.checked)
+                                if (!e.target.checked) {
+                                  setOtherQualification('')
+                                  handleInputChange('qualifications', selectedQualifications.join('、'))
+                                }
                               }}
                               className="h-4 w-4 text-slate-600 border-slate-300 rounded focus:ring-slate-500"
                             />
-                            <span className="text-sm text-slate-700">{qual}</span>
+                            <span className="text-sm text-slate-700">その他</span>
                           </label>
-                        ))}
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={showOtherInput}
-                            onChange={(e) => {
-                              setShowOtherInput(e.target.checked)
-                              if (!e.target.checked) {
-                                setOtherQualification('')
-                                handleInputChange('qualifications', selectedQualifications.join('、'))
-                              }
-                            }}
-                            className="h-4 w-4 text-slate-600 border-slate-300 rounded focus:ring-slate-500"
-                          />
-                          <span className="text-sm text-slate-700">その他</span>
-                        </label>
-                        {showOtherInput && (
-                          <input
-                            type="text"
-                            value={otherQualification}
-                            onChange={(e) => {
-                              setOtherQualification(e.target.value)
-                              const allQuals = e.target.value
-                                ? [...selectedQualifications, e.target.value]
-                                : selectedQualifications
-                              handleInputChange('qualifications', allQuals.join('、'))
-                            }}
-                            className="w-full ml-6 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm"
-                            placeholder="その他の資格を入力"
-                          />
-                        )}
+                          {showOtherInput && (
+                            <input
+                              type="text"
+                              value={otherQualification}
+                              onChange={(e) => {
+                                setOtherQualification(e.target.value)
+                                const allQuals = e.target.value
+                                  ? [...selectedQualifications, e.target.value]
+                                  : selectedQualifications
+                                handleInputChange('qualifications', allQuals.join('、'))
+                              }}
+                              className="w-full ml-6 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm"
+                              placeholder="その他の資格を入力"
+                            />
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
