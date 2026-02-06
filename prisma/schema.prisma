@@ -1081,6 +1081,8 @@ model BusinessCardOrder {
   // 名刺に印字する情報
   displayName               String // 表示名（名刺に印字する氏名）
   displayNameKana           String // 氏名フリガナ
+  position                  String? // 役職（FPエイド / FPエイドマネージャー）
+  qualifications            String? // 保有金融資格（名刺記載用）
   phoneNumber               String // 電話番号
   email                     String // メールアドレス
   // 名刺記載住所

@@ -24,6 +24,8 @@ interface FormData {
   designId: string
   displayName: string
   displayNameKana: string
+  position: string
+  qualifications: string
   phoneNumber: string
   email: string
   // 名刺記載用住所
@@ -81,6 +83,8 @@ function BusinessCardOrderContent() {
     designId: '',
     displayName: '',
     displayNameKana: '',
+    position: '',
+    qualifications: '',
     phoneNumber: '',
     email: '',
     // 名刺記載用住所
@@ -211,6 +215,9 @@ function BusinessCardOrderContent() {
       errors.displayNameKana = 'フリガナを入力してください'
     } else if (!/^[\u30A0-\u30FF\u3000\s]+$/.test(formData.displayNameKana)) {
       errors.displayNameKana = 'フリガナはカタカナで入力してください'
+    }
+    if (!formData.position) {
+      errors.position = '役職を選択してください'
     }
     if (!formData.phoneNumber.trim()) {
       errors.phoneNumber = '電話番号を入力してください'
@@ -644,6 +651,40 @@ function BusinessCardOrderContent() {
 
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
+                        役職 <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={formData.position}
+                        onChange={(e) => handleInputChange('position', e.target.value)}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 ${
+                          validationErrors.position ? 'border-red-300' : 'border-slate-300'
+                        }`}
+                      >
+                        <option value="">選択してください</option>
+                        <option value="FPエイド">FPエイド</option>
+                        <option value="FPエイドマネージャー">FPエイドマネージャー</option>
+                      </select>
+                      {validationErrors.position && (
+                        <p className="text-sm text-red-600 mt-1">{validationErrors.position}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        保有金融資格（名刺記載用）
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.qualifications}
+                        onChange={(e) => handleInputChange('qualifications', e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                        placeholder="例: FP2級、証券外務員一種"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">複数ある場合はカンマ区切りで入力</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
                         電話番号 <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -979,6 +1020,14 @@ function BusinessCardOrderContent() {
                         <div>
                           <dt className="text-sm text-slate-500">フリガナ</dt>
                           <dd className="font-medium">{formData.displayNameKana}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm text-slate-500">役職</dt>
+                          <dd className="font-medium">{formData.position}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm text-slate-500">保有金融資格</dt>
+                          <dd className="font-medium">{formData.qualifications || '未入力'}</dd>
                         </div>
                         <div>
                           <dt className="text-sm text-slate-500">電話番号</dt>

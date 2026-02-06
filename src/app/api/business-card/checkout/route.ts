@@ -32,6 +32,8 @@ export async function POST(request: NextRequest) {
       designId,
       displayName,
       displayNameKana,
+      position,
+      qualifications,
       phoneNumber,
       email,
       // 名刺記載住所
@@ -58,6 +60,7 @@ export async function POST(request: NextRequest) {
     if (!designId) errors.push('デザインを選択してください')
     if (!displayName?.trim()) errors.push('表示名を入力してください')
     if (!displayNameKana?.trim()) errors.push('フリガナを入力してください')
+    if (!position?.trim()) errors.push('役職を選択してください')
     if (!phoneNumber?.trim()) errors.push('電話番号を入力してください')
     if (!email?.trim()) errors.push('メールアドレスを入力してください')
     if (!deliveryMethod || !['PICKUP', 'SHIPPING'].includes(deliveryMethod)) {
@@ -130,6 +133,8 @@ export async function POST(request: NextRequest) {
         designId,
         displayName: displayName.trim(),
         displayNameKana: displayNameKana.trim(),
+        position: position?.trim() || null,
+        qualifications: qualifications?.trim() || null,
         phoneNumber: phoneNumber.trim(),
         email: email.trim(),
         // 名刺記載住所

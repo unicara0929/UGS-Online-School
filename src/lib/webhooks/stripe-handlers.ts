@@ -676,6 +676,8 @@ async function handleBusinessCardPaymentCompleted(session: Stripe.Checkout.Sessi
       await sendBusinessCardOrderChatworkNotification({
         userName: updatedOrder.user.name,
         deliveryMethod: updatedOrder.deliveryMethod,
+        position: updatedOrder.position,
+        qualifications: updatedOrder.qualifications,
         email: updatedOrder.email,
         phoneNumber: updatedOrder.phoneNumber,
         referrerName: businessCardReferral?.referrer?.name,

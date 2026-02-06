@@ -142,7 +142,9 @@ async function addChatworkTask({ roomId, body, assigneeIds, limitType = 'none' }
 export async function sendBusinessCardOrderChatworkNotification(params: {
   userName: string
   deliveryMethod: 'PICKUP' | 'SHIPPING'
-  // 名刺に記載する連絡先
+  // 名刺に記載する情報
+  position?: string | null
+  qualifications?: string | null
   email?: string | null
   phoneNumber?: string | null
   referrerName?: string
@@ -163,7 +165,7 @@ export async function sendBusinessCardOrderChatworkNotification(params: {
     addressLine2?: string | null
   }
 }): Promise<void> {
-  const { userName, deliveryMethod, email, phoneNumber, referrerName, cardAddress, shippingAddress } = params
+  const { userName, deliveryMethod, position, qualifications, email, phoneNumber, referrerName, cardAddress, shippingAddress } = params
   const roomId = process.env.CHATWORK_BUSINESS_CARD_ROOM_ID
 
   if (!roomId) {
@@ -209,6 +211,8 @@ export async function sendBusinessCardOrderChatworkNotification(params: {
   const mentions = '[To:9252602]土岐成美さん\n\n'
 
   const message = `${mentions}[info][title]名刺注文決済完了[/title]ユーザー名: ${userName}
+役職: ${position || '未設定'}
+保有金融資格: ${qualifications || 'なし'}
 メールアドレス: ${email || '未設定'}
 電話番号: ${phoneNumber || '未設定'}
 紹介者: ${referrerName || 'なし'}
