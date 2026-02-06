@@ -7,7 +7,7 @@ import { Sidebar } from '@/components/navigation/sidebar'
 import { PageHeader } from '@/components/dashboard/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2, CreditCard, ChevronRight, ChevronLeft, Check, AlertCircle, MapPin, Truck, User } from 'lucide-react'
+import { Loader2, CreditCard, ChevronRight, ChevronLeft, Check, AlertCircle, MapPin, Truck, User, Info } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 
 interface Design {
@@ -670,8 +670,14 @@ function BusinessCardOrderContent() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                      <label className="flex items-center gap-1 text-sm font-medium text-slate-700 mb-1">
                         保有資格（名刺記載用）
+                        <div className="relative group">
+                          <Info className="h-4 w-4 text-slate-500 cursor-help" />
+                          <div className="absolute left-0 top-6 z-50 hidden group-hover:block w-64 p-3 text-xs text-white bg-slate-800 rounded-lg shadow-lg">
+                            不動産、保険、金融など、事業に関連する資格のみご記載ください。
+                          </div>
+                        </div>
                       </label>
                       <input
                         type="text"
