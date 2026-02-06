@@ -68,6 +68,19 @@ const PREFECTURES = [
   '熊本県', '大分県', '宮崎県', '鹿児島県', '沖縄県'
 ]
 
+// 保有資格の選択肢
+const QUALIFICATION_OPTIONS = [
+  '3級ファイナンシャルプランニング技能士',
+  '2級ファイナンシャルプランニング技能士',
+  'AFP',
+  'CFP®',
+  '宅地建物取引士',
+  '日商簿記3級',
+  '日商簿記2級',
+  '証券外務員二種',
+  '証券外務員一種',
+]
+
 function BusinessCardOrderContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -106,6 +119,11 @@ function BusinessCardOrderContent() {
   })
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
+
+  // 保有資格の選択状態
+  const [selectedQualifications, setSelectedQualifications] = useState<string[]>([])
+  const [otherQualification, setOtherQualification] = useState('')
+  const [showOtherInput, setShowOtherInput] = useState(false)
 
   // 決済完了後の処理
   useEffect(() => {
@@ -670,7 +688,7 @@ function BusinessCardOrderContent() {
                     </div>
 
                     <div>
-                      <label className="flex items-center gap-1 text-sm font-medium text-slate-700 mb-1">
+                      <label className="flex items-center gap-1 text-sm font-medium text-slate-700 mb-2">
                         保有資格（名刺記載用）
                         <div className="relative group">
                           <Info className="h-4 w-4 text-slate-500 cursor-help" />
@@ -679,14 +697,59 @@ function BusinessCardOrderContent() {
                           </div>
                         </div>
                       </label>
-                      <input
-                        type="text"
-                        value={formData.qualifications}
-                        onChange={(e) => handleInputChange('qualifications', e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
-                        placeholder="例: FP2級、宅地建物取引士"
-                      />
-                      <p className="text-xs text-slate-500 mt-1">複数ある場合はカンマ区切りで入力</p>
+                      <div className="space-y-2 border border-slate-200 rounded-lg p-3 bg-slate-50">
+                        {QUALIFICATION_OPTIONS.map((qual) => (
+                          <label key={qual} className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={selectedQualifications.includes(qual)}
+                              onChange={(e) => {
+                                const newSelected = e.target.checked
+                                  ? [...selectedQualifications, qual]
+                                  : selectedQualifications.filter(q => q !== qual)
+                                setSelectedQualifications(newSelected)
+                                // formDataも更新
+                                const allQuals = showOtherInput && otherQualification
+                                  ? [...newSelected, otherQualification]
+                                  : newSelected
+                                handleInputChange('qualifications', allQuals.join('、'))
+                              }}
+                              className="h-4 w-4 text-slate-600 border-slate-300 rounded focus:ring-slate-500"
+                            />
+                            <span className="text-sm text-slate-700">{qual}</span>
+                          </label>
+                        ))}
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={showOtherInput}
+                            onChange={(e) => {
+                              setShowOtherInput(e.target.checked)
+                              if (!e.target.checked) {
+                                setOtherQualification('')
+                                handleInputChange('qualifications', selectedQualifications.join('、'))
+                              }
+                            }}
+                            className="h-4 w-4 text-slate-600 border-slate-300 rounded focus:ring-slate-500"
+                          />
+                          <span className="text-sm text-slate-700">その他</span>
+                        </label>
+                        {showOtherInput && (
+                          <input
+                            type="text"
+                            value={otherQualification}
+                            onChange={(e) => {
+                              setOtherQualification(e.target.value)
+                              const allQuals = e.target.value
+                                ? [...selectedQualifications, e.target.value]
+                                : selectedQualifications
+                              handleInputChange('qualifications', allQuals.join('、'))
+                            }}
+                            className="w-full ml-6 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm"
+                            placeholder="その他の資格を入力"
+                          />
+                        )}
+                      </div>
                     </div>
 
                     <div>
