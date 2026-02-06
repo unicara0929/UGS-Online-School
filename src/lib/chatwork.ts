@@ -212,7 +212,7 @@ export async function sendBusinessCardOrderChatworkNotification(params: {
 
   const message = `${mentions}[info][title]名刺注文決済完了[/title]ユーザー名: ${userName}
 役職: ${position || '未設定'}
-保有金融資格: ${qualifications || 'なし'}
+保有資格: ${qualifications || 'なし'}
 メールアドレス: ${email || '未設定'}
 電話番号: ${phoneNumber || '未設定'}
 紹介者: ${referrerName || 'なし'}

@@ -671,14 +671,14 @@ function BusinessCardOrderContent() {
 
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
-                        保有金融資格（名刺記載用）
+                        保有資格（名刺記載用）
                       </label>
                       <input
                         type="text"
                         value={formData.qualifications}
                         onChange={(e) => handleInputChange('qualifications', e.target.value)}
                         className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
-                        placeholder="例: FP2級、証券外務員一種"
+                        placeholder="例: FP2級、宅地建物取引士"
                       />
                       <p className="text-xs text-slate-500 mt-1">複数ある場合はカンマ区切りで入力</p>
                     </div>
@@ -1026,7 +1026,7 @@ function BusinessCardOrderContent() {
                           <dd className="font-medium">{formData.position}</dd>
                         </div>
                         <div>
-                          <dt className="text-sm text-slate-500">保有金融資格</dt>
+                          <dt className="text-sm text-slate-500">保有資格</dt>
                           <dd className="font-medium">{formData.qualifications || '未入力'}</dd>
                         </div>
                         <div>
