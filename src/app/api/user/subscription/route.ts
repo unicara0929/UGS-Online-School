@@ -21,17 +21,9 @@ export async function GET(request: NextRequest) {
     })
 
     if (!subscription || !subscription.stripeSubscriptionId) {
-      // サブスクリプションレコードがない場合でもmembershipStatusを返す
-      // SubscriptionGuardがPAST_DUE等のユーザーを適切にブロックするため
-      const userRecord = await prisma.user.findUnique({
-        where: { id: authUser!.id },
-        select: { membershipStatus: true }
-      })
-
       return NextResponse.json({
         success: true,
-        subscription: null,
-        membershipStatus: userRecord?.membershipStatus || null
+        subscription: null
       })
     }
 

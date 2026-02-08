@@ -12,14 +12,6 @@ interface SubscriptionStatus {
   } | null
 }
 
-// membershipStatusからSubscriptionGuardが判定に使うステータスへのマッピング
-const MEMBERSHIP_TO_SUBSCRIPTION_STATUS: Record<string, string> = {
-  PAST_DUE: 'past_due',
-  DELINQUENT: 'past_due',
-  CANCELED: 'canceled',
-  TERMINATED: 'canceled',
-}
-
 interface SubscriptionGuardProps {
   children: React.ReactNode
   allowAccess?: boolean
@@ -35,7 +27,6 @@ export function SubscriptionGuard({ children, allowAccess = false, allowedPaths 
   const router = useRouter()
   const pathname = usePathname()
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null)
-  const [membershipStatus, setMembershipStatus] = useState<string | null>(null)
   const [isChecking, setIsChecking] = useState(true)
   const [isUpdatingPayment, setIsUpdatingPayment] = useState(false)
   const [hasError, setHasError] = useState(false)
@@ -62,7 +53,6 @@ export function SubscriptionGuard({ children, allowAccess = false, allowedPaths 
         }
         const data = await response.json()
         setSubscriptionStatus(data.subscription)
-        setMembershipStatus(data.membershipStatus || null)
         setHasError(false)
       } catch (error) {
         console.error('Error checking subscription:', error)
@@ -144,22 +134,12 @@ export function SubscriptionGuard({ children, allowAccess = false, allowedPaths 
     )
   }
 
-  // サブスクリプションのステータスを決定
-  // 1. subscriptionStatus がある場合: Stripe詳細 or DBステータスを使用
-  // 2. subscriptionStatus がない場合: membershipStatus から判定（サブスクレコードなしでも対応）
-  let status: string | null = null
-
-  if (subscriptionStatus) {
-    status = subscriptionStatus.stripeDetails?.status || subscriptionStatus.status.toLowerCase()
-  } else if (membershipStatus && MEMBERSHIP_TO_SUBSCRIPTION_STATUS[membershipStatus]) {
-    status = MEMBERSHIP_TO_SUBSCRIPTION_STATUS[membershipStatus]
-  }
-
-  if (!status) {
-    // ステータスを判定できない場合はアクセス可能（新規登録フロー等）
+  if (!subscriptionStatus) {
+    // サブスクリプションがない場合はアクセス可能（新規登録フロー）
     return <>{children}</>
   }
 
+  const status = subscriptionStatus.stripeDetails?.status || subscriptionStatus.status.toLowerCase()
   const restrictedStatuses = ['past_due', 'unpaid', 'canceled', 'cancelled']
 
   // カード情報更新ページを直接開く
