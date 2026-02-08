@@ -11,10 +11,9 @@ import { getAuthenticatedUser, Roles } from '@/lib/auth/api-helpers'
  *
  * セキュリティポリシー:
  * - 管理者は常にアクセス可能
- * - membershipStatus === 'ACTIVE' の場合もアクセス可能（管理者による直接作成ユーザー等）
- * - subscriptionレコードが存在する場合もアクセス可能（初回決済済み）
+ * - PENDING/EXPIRED かつ subscriptionレコードなし → 初回決済ページへ誘導
+ * - それ以外（ACTIVE, CANCELLATION_PENDING, PAST_DUE等）→ ダッシュボードへ
  *   ※ PAST_DUE, CANCELED等はダッシュボード側のSubscriptionGuardで処理
- * - subscriptionレコードが存在しない場合のみ初回決済ページへ誘導
  */
 export async function GET(request: NextRequest) {
   try {
@@ -48,15 +47,16 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // サブスクリプション判定（初回決済済みかどうか）
-    // 1. membershipStatus === 'ACTIVE' の場合: 管理者による直接作成ユーザー等 → true
-    // 2. subscription レコードが存在する場合: 初回決済済み → true
-    //    ※ PAST_DUE, CANCELED 等の状態はダッシュボード側の SubscriptionGuard が
-    //      適切な画面（カード更新画面、退会済み画面等）を表示する
-    //    ※ サブスクリプションが存在しない場合のみ初回決済ページ（/complete-payment）へ誘導
-    const hasActiveSubscription =
-      user?.membershipStatus === 'ACTIVE' ||
-      subscription !== null
+    // 初回決済ページへ誘導する条件:
+    // membershipStatus が PENDING（仮登録）または EXPIRED（期限切れ）で、
+    // かつサブスクリプションレコードが存在しない場合のみ
+    // それ以外のステータス（ACTIVE, CANCELLATION_PENDING, PAST_DUE等）は
+    // 初回決済済みとみなし、ダッシュボード側の SubscriptionGuard で処理する
+    const needsInitialPayment =
+      (user?.membershipStatus === 'PENDING' || user?.membershipStatus === 'EXPIRED') &&
+      subscription === null
+
+    const hasActiveSubscription = !needsInitialPayment
 
     return NextResponse.json({
       success: true,
