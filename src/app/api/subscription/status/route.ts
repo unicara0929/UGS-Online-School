@@ -12,8 +12,9 @@ import { getAuthenticatedUser, Roles } from '@/lib/auth/api-helpers'
  * セキュリティポリシー:
  * - 管理者は常にアクセス可能
  * - membershipStatus === 'ACTIVE' の場合もアクセス可能（管理者による直接作成ユーザー等）
- * - subscription.status === 'ACTIVE' の場合もアクセス可能
- * - PAST_DUE, UNPAID, CANCELEDはアクセス不可（決済が必要）
+ * - subscriptionレコードが存在する場合もアクセス可能（初回決済済み）
+ *   ※ PAST_DUE, CANCELED等はダッシュボード側のSubscriptionGuardで処理
+ * - subscriptionレコードが存在しない場合のみ初回決済ページへ誘導
  */
 export async function GET(request: NextRequest) {
   try {
@@ -47,15 +48,15 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // アクティブなサブスクリプションの判定
+    // サブスクリプション判定（初回決済済みかどうか）
     // 1. membershipStatus === 'ACTIVE' の場合: 管理者による直接作成ユーザー等 → true
-    // 2. subscription.status === 'ACTIVE' の場合: 正規の決済済みユーザー → true
-    //    ※ CANCELLATION_PENDING + subscription ACTIVE のユーザーもここで通る（退会申請中でも月額費決済済みならダッシュボード利用OK）
-    // 3. それ以外: 未決済/支払い遅延等 → false
-    //    ※ CANCELLATION_PENDING + subscription 非ACTIVE の場合は月額費支払いページへ誘導される
+    // 2. subscription レコードが存在する場合: 初回決済済み → true
+    //    ※ PAST_DUE, CANCELED 等の状態はダッシュボード側の SubscriptionGuard が
+    //      適切な画面（カード更新画面、退会済み画面等）を表示する
+    //    ※ サブスクリプションが存在しない場合のみ初回決済ページ（/complete-payment）へ誘導
     const hasActiveSubscription =
       user?.membershipStatus === 'ACTIVE' ||
-      subscription?.status === 'ACTIVE'
+      subscription !== null
 
     return NextResponse.json({
       success: true,
