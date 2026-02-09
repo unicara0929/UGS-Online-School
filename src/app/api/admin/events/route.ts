@@ -130,6 +130,9 @@ export async function GET(request: NextRequest) {
         isRecurring: event.isRecurring ?? false,
         // イベントカテゴリ
         eventCategory: event.eventCategory ?? 'REGULAR',
+        // 有料設定
+        isPaid: event.isPaid ?? false,
+        price: event.price ?? null,
         // 外部参加者設定
         allowExternalParticipation: event.allowExternalParticipation ?? false,
         externalRegistrationToken: event.externalRegistrationToken ?? null,

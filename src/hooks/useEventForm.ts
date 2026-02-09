@@ -106,8 +106,8 @@ export function useEventForm(): UseEventFormReturn {
       maxParticipants: event.maxParticipants,
       status: event.status,
       thumbnailUrl: event.thumbnailUrl,
-      isPaid: false,
-      price: null,
+      isPaid: event.isPaid ?? false,
+      price: event.price ?? null,
       // オンライン参加URL
       onlineMeetingUrl: event.onlineMeetingUrl ?? null,
       // 過去イベント記録用

@@ -66,6 +66,9 @@ export interface AdminEventItem {
   isRecurring: boolean
   applicationDeadline: string | null
   onlineMeetingUrl: string | null
+  // 有料設定
+  isPaid: boolean
+  price: number | null
   // 外部参加者設定
   allowExternalParticipation: boolean
   externalRegistrationToken: string | null

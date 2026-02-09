@@ -94,6 +94,9 @@ function AdminEventsPageContent() {
         actualLocation: event.actualLocation || null,
         adminNotes: event.adminNotes || null,
         isArchiveOnly: event.isArchiveOnly || false,
+        // 有料設定
+        isPaid: event.isPaid || false,
+        price: event.price ?? null,
         // 外部参加者設定
         allowExternalParticipation: event.allowExternalParticipation || false,
         externalRegistrationToken: event.externalRegistrationToken || null,
