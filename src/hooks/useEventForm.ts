@@ -95,9 +95,9 @@ export function useEventForm(): UseEventFormReturn {
   const initializeFromEvent = useCallback((event: AdminEventItem) => {
     setFormData({
       title: event.title,
-      description: event.description,
-      date: event.date.split('T')[0],
-      time: event.time,
+      description: event.description ?? '',
+      date: event.date ? event.date.split('T')[0] : '',
+      time: event.time ?? '',
       type: event.type,
       targetRoles: event.targetRoles,
       attendanceType: event.attendanceType,
