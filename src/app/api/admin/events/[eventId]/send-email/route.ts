@@ -161,13 +161,13 @@ export async function POST(
  * 支払いリマインドメールの本文を生成
  */
 function generatePaymentReminderEmail(event: any, registration: any): string {
-  const eventDate = new Date(event.date).toLocaleString('ja-JP', {
+  const eventDate = event.date ? new Date(event.date).toLocaleString('ja-JP', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  })
+  }) : '未定'
 
   return `
     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
@@ -203,13 +203,13 @@ function generatePaymentReminderEmail(event: any, registration: any): string {
  * イベントリマインドメールの本文を生成
  */
 function generateEventReminderEmail(event: any, registration: any): string {
-  const eventDate = new Date(event.date).toLocaleString('ja-JP', {
+  const eventDate = event.date ? new Date(event.date).toLocaleString('ja-JP', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  })
+  }) : '未定'
 
   return `
     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">

@@ -378,10 +378,10 @@ function AdminMtgPageContent() {
                 mode="edit"
                 initialData={{
                   title: editingMtgEvent.title,
-                  description: editingMtgEvent.description,
-                  date: editingMtgEvent.date.split('T')[0],
-                  time: editingMtgEvent.time,
-                  location: editingMtgEvent.location,
+                  description: editingMtgEvent.description ?? '',
+                  date: editingMtgEvent.date ? editingMtgEvent.date.split('T')[0] : '',
+                  time: editingMtgEvent.time ?? '',
+                  location: editingMtgEvent.location ?? '',
                   onlineMeetingUrl: editingMtgEvent.onlineMeetingUrl || '',
                   attendanceCode: editingMtgEvent.attendanceCode || '',
                   applicationDeadline: editingMtgEvent.applicationDeadline
