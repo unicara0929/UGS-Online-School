@@ -20,6 +20,8 @@ interface EventFormProps {
   isUploading: boolean
   submitLabel: string
   radioGroupName?: string
+  /** Card ラッパーなしで描画（モーダル内で使用） */
+  noCard?: boolean
 }
 
 export function EventForm({
@@ -35,6 +37,7 @@ export function EventForm({
   isUploading,
   submitLabel,
   radioGroupName = 'venueType',
+  noCard = false,
 }: EventFormProps) {
   const inputClassName = 'w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500'
 
@@ -45,13 +48,9 @@ export function EventForm({
     onFormChange({ ...formData, targetRoles: roles })
   }
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  const formContent = (
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* サムネイル */}
           <ThumbnailUploader
             preview={thumbnailPreview}
@@ -338,26 +337,40 @@ export function EventForm({
           </div>
         </div>
 
-        {/* ボタン */}
-        <div className="flex gap-2 mt-4">
-          <Button onClick={onSubmit} disabled={isSubmitting || isUploading}>
-            {isSubmitting || isUploading ? (
-              <span className="flex items-center">
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                {isUploading ? 'アップロード中...' : '処理中...'}
-              </span>
-            ) : (
-              submitLabel
-            )}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={onCancel}
-            disabled={isSubmitting || isUploading}
-          >
-            キャンセル
-          </Button>
-        </div>
+      {/* ボタン */}
+      <div className="flex gap-2 mt-4">
+        <Button onClick={onSubmit} disabled={isSubmitting || isUploading}>
+          {isSubmitting || isUploading ? (
+            <span className="flex items-center">
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              {isUploading ? 'アップロード中...' : '処理中...'}
+            </span>
+          ) : (
+            submitLabel
+          )}
+        </Button>
+        <Button
+          variant="outline"
+          onClick={onCancel}
+          disabled={isSubmitting || isUploading}
+        >
+          キャンセル
+        </Button>
+      </div>
+    </>
+  )
+
+  if (noCard) {
+    return formContent
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {formContent}
       </CardContent>
     </Card>
   )
