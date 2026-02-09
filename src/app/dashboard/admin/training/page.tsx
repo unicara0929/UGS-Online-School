@@ -12,6 +12,7 @@ import { PageHeader } from '@/components/dashboard/page-header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { EventForm } from '@/components/admin/EventForm'
 import { useEventForm } from '@/hooks/useEventForm'
 import type { AdminEventItem } from '@/types/event'
@@ -326,23 +327,30 @@ function AdminTrainingPageContent() {
               />
             )}
 
-            {/* 研修編集フォーム */}
-            {showEditForm && (
-              <EventForm
-                title="研修編集"
-                formData={editForm.formData}
-                onFormChange={editForm.setFormData}
-                thumbnailPreview={editForm.thumbnailPreview}
-                onThumbnailSelect={editForm.handleThumbnailSelect}
-                onThumbnailRemove={editForm.handleThumbnailRemove}
-                onSubmit={handleUpdateEvent}
-                onCancel={handleCancelEdit}
-                isSubmitting={isSubmitting}
-                isUploading={editForm.isUploading}
-                submitLabel="研修更新"
-                radioGroupName="editVenueType"
-              />
-            )}
+            {/* 研修編集フォーム（モーダル） */}
+            <Dialog open={showEditForm} onOpenChange={(open) => { if (!open) handleCancelEdit() }}>
+              <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>研修編集</DialogTitle>
+                  <DialogDescription>研修情報を編集して更新してください</DialogDescription>
+                </DialogHeader>
+                <EventForm
+                  title=""
+                  formData={editForm.formData}
+                  onFormChange={editForm.setFormData}
+                  thumbnailPreview={editForm.thumbnailPreview}
+                  onThumbnailSelect={editForm.handleThumbnailSelect}
+                  onThumbnailRemove={editForm.handleThumbnailRemove}
+                  onSubmit={handleUpdateEvent}
+                  onCancel={handleCancelEdit}
+                  isSubmitting={isSubmitting}
+                  isUploading={editForm.isUploading}
+                  submitLabel="研修更新"
+                  radioGroupName="editVenueType"
+                  noCard
+                />
+              </DialogContent>
+            </Dialog>
 
             {/* 研修一覧 */}
             {isLoading ? (
