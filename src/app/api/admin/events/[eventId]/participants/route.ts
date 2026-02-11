@@ -46,6 +46,32 @@ export async function GET(
       )
     }
 
+    // scheduleIdがnullの登録を最初のスケジュールに自動紐付け（旧データ修復）
+    const defaultSchedule = event.schedules[0]
+    if (defaultSchedule) {
+      const nullScheduleRegistrations = await prisma.eventRegistration.findMany({
+        where: { eventId, scheduleId: null },
+        select: { id: true },
+      })
+      if (nullScheduleRegistrations.length > 0) {
+        await prisma.eventRegistration.updateMany({
+          where: { eventId, scheduleId: null },
+          data: { scheduleId: defaultSchedule.id },
+        })
+      }
+
+      const nullScheduleExternalRegs = await prisma.externalEventRegistration.findMany({
+        where: { eventId, scheduleId: null },
+        select: { id: true },
+      })
+      if (nullScheduleExternalRegs.length > 0) {
+        await prisma.externalEventRegistration.updateMany({
+          where: { eventId, scheduleId: null },
+          data: { scheduleId: defaultSchedule.id },
+        })
+      }
+    }
+
     // 内部参加者を取得（フィルター適用）
     let internalParticipants: any[] = []
     if (!participantType || participantType === 'all' || participantType === 'internal') {
