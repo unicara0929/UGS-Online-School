@@ -198,14 +198,14 @@ function TrainingEventDetailPageContent() {
     return true
   }
 
-  const handleCheckout = async (eventId: string) => {
+  const handleCheckout = async (eventId: string, scheduleId?: string | null) => {
     setIsSubmitting(true)
     try {
       const response = await fetch('/api/events/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ eventId }),
+        body: JSON.stringify({ eventId, scheduleId: scheduleId ?? null }),
       })
 
       const data = await response.json()
@@ -255,12 +255,12 @@ function TrainingEventDetailPageContent() {
     if (!user?.id) return
 
     if (event.isPaid && !event.isRegistered) {
-      await handleCheckout(event.id)
+      await handleCheckout(event.id, selectedScheduleId)
       return
     }
 
     if (event.isPaid && event.paymentStatus === 'PENDING') {
-      await handleCheckout(event.id)
+      await handleCheckout(event.id, selectedScheduleId)
       return
     }
 
@@ -578,7 +578,7 @@ function TrainingEventDetailPageContent() {
                         variant="default"
                         className="flex-1"
                         disabled={isSubmitting}
-                        onClick={() => handleCheckout(event.id)}
+                        onClick={() => handleCheckout(event.id, selectedScheduleId)}
                       >
                         支払いを完了する
                       </Button>

@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { eventId } = await request.json()
+    const { eventId, scheduleId } = await request.json()
 
     if (!eventId) {
       return NextResponse.json(
@@ -27,9 +27,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // イベント情報を取得
+    // イベント情報を取得（スケジュール含む）
     const event = await prisma.event.findUnique({
       where: { id: eventId },
+      include: {
+        schedules: {
+          orderBy: { date: 'asc' },
+        },
+      },
     })
 
     if (!event) {
@@ -131,6 +136,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // scheduleIdの決定：指定されていれば使用、なければ最初のスケジュール
+    const targetScheduleId = scheduleId
+      ? event.schedules.find(s => s.id === scheduleId)?.id ?? event.schedules[0]?.id ?? null
+      : event.schedules[0]?.id ?? null
+
     // 既に登録済みかチェック
     const existingRegistration = await prisma.eventRegistration.findFirst({
       where: {
@@ -151,7 +161,13 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // PENDING状態の場合は、新しいCheckout Sessionを作成するために既存のRegistrationを使用
+      // PENDING状態の場合：scheduleIdが未設定なら更新
+      if (!existingRegistration.scheduleId && targetScheduleId) {
+        registration = await prisma.eventRegistration.update({
+          where: { id: existingRegistration.id },
+          data: { scheduleId: targetScheduleId },
+        })
+      }
       console.log('Existing PENDING registration found, creating new checkout session')
     } else {
       // 新規登録の場合、EventRegistrationをPENDINGステータスで作成
@@ -159,6 +175,7 @@ export async function POST(request: NextRequest) {
         data: {
           userId: user.id,
           eventId: event.id,
+          scheduleId: targetScheduleId,
           paymentStatus: 'PENDING',
         },
       })
