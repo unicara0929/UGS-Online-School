@@ -611,7 +611,7 @@ function DesignManagement() {
               className={`transition-all ${!design.isActive ? 'opacity-60' : ''} ${editingDesign?.id === design.id ? 'ring-2 ring-slate-900' : ''}`}
             >
               <CardContent className="p-4">
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                   {/* プレビュー画像（表面・裏面） */}
                   <div className="flex-shrink-0 flex gap-2">
                     {/* 表面 */}
@@ -912,7 +912,7 @@ function OrderManagement() {
                         <span>金額: ¥{order.paidAmount?.toLocaleString() || '-'}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <select
                         value={order.status}
                         onChange={(e) => updateStatus(order.id, e.target.value)}
@@ -1050,7 +1050,7 @@ function AdminBusinessCardContent() {
   return (
     <div className="min-h-screen bg-slate-50 flex">
       <Sidebar />
-      <div className="flex-1 md:ml-64">
+      <div className="flex-1 min-w-0 md:ml-64">
         <PageHeader title="名刺注文管理" />
         <main className="px-4 sm:px-6 lg:px-8 py-8">
           <div className="max-w-6xl mx-auto">

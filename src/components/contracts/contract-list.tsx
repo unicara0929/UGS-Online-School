@@ -246,7 +246,7 @@ export function ContractList() {
                       <h3 className="text-lg font-bold">{config.label}</h3>
                     </div>
                     <p className="text-sm mb-4">{config.description}</p>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="bg-white/50 rounded-lg p-3 text-center">
                         <p className="text-xs font-medium">契約数</p>
                         <p className="text-xl font-bold">{stats.count}件</p>

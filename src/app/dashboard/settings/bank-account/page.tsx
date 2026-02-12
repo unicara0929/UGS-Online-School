@@ -256,7 +256,7 @@ function BankAccountSettingsPage() {
       <Sidebar />
 
       {/* メインコンテンツ */}
-      <div className="flex-1 md:ml-64">
+      <div className="flex-1 min-w-0 md:ml-64">
         {/* ヘッダー */}
         <DashboardHeader />
 

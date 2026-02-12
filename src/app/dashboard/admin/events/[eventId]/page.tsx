@@ -380,7 +380,7 @@ function EventDetailPageContent() {
     return (
       <div className="min-h-screen bg-slate-50 flex">
         <Sidebar />
-        <div className="flex-1 md:ml-64">
+        <div className="flex-1 min-w-0 md:ml-64">
           <PageHeader title="イベント詳細" />
           <main className="px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex items-center justify-center py-12">
@@ -399,7 +399,7 @@ function EventDetailPageContent() {
     <div className="min-h-screen bg-slate-50 flex">
       <Sidebar />
 
-      <div className="flex-1 md:ml-64">
+      <div className="flex-1 min-w-0 md:ml-64">
         <PageHeader title="イベント詳細" />
 
         <main className="px-4 sm:px-6 lg:px-8 py-8">
@@ -439,9 +439,9 @@ function EventDetailPageContent() {
             {event && (
               <Card>
                 <CardHeader>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <CardTitle className="text-2xl">{event.title}</CardTitle>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <Link href={`/dashboard/admin/events/${eventId}/schedules`}>
                         <Button variant="outline" size="sm">
                           <Calendar className="h-4 w-4 mr-2" />
@@ -546,7 +546,7 @@ function EventDetailPageContent() {
               <CardContent className="pt-6">
                 <div className="flex flex-wrap items-center gap-4">
                   {/* 検索 */}
-                  <div className="relative flex-1 min-w-[200px] max-w-sm">
+                  <div className="relative flex-1 min-w-0 w-full sm:min-w-[200px] sm:w-auto max-w-sm">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <input
                       type="text"
@@ -581,7 +581,7 @@ function EventDetailPageContent() {
                   </span>
 
                   {/* アクションボタン */}
-                  <div className="flex gap-2 ml-auto">
+                  <div className="flex flex-wrap gap-2 ml-auto w-full sm:w-auto">
                     <Button
                       variant="default"
                       onClick={() => setShowEmailModal(true)}

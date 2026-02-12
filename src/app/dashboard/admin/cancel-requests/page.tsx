@@ -189,7 +189,7 @@ function AdminCancelRequestsPageContent() {
   return (
     <div className="min-h-screen bg-slate-50 flex">
       <Sidebar />
-      <div className="flex-1 md:ml-64">
+      <div className="flex-1 min-w-0 md:ml-64">
         <PageHeader title="退会申請管理" />
 
         <main className="px-4 sm:px-6 lg:px-8 py-8">
@@ -269,9 +269,9 @@ function AdminCancelRequestsPageContent() {
                       className="p-4 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors"
                       onClick={() => handleOpenDetail(request)}
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
                             <span className="font-medium text-slate-900">{request.name}</span>
                             <Badge variant="outline" className="text-xs">
                               {ROLE_LABELS[request.user.role] || request.user.role}
@@ -284,17 +284,17 @@ function AdminCancelRequestsPageContent() {
                             )}
                           </div>
                           <div className="text-sm text-slate-600 space-y-1">
-                            <div className="flex items-center gap-4">
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                               <span className="flex items-center">
-                                <Mail className="h-3.5 w-3.5 mr-1" />
-                                {request.email}
+                                <Mail className="h-3.5 w-3.5 mr-1 shrink-0" />
+                                <span className="truncate">{request.email}</span>
                               </span>
                               <span className="flex items-center">
-                                <Clock className="h-3.5 w-3.5 mr-1" />
+                                <Clock className="h-3.5 w-3.5 mr-1 shrink-0" />
                                 {formatDateTime(request.createdAt)}
                               </span>
                             </div>
-                            <div className="flex items-center gap-4">
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                               <span>理由: {REASON_LABELS[request.reason] || request.reason}</span>
                               <span>種別: {CONTINUATION_LABELS[request.continuationOption] || request.continuationOption}</span>
                             </div>

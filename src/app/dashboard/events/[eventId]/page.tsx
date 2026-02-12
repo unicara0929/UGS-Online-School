@@ -487,7 +487,7 @@ function EventDetailPageContent() {
                       <Link className="h-5 w-5 mr-3 mt-0.5 text-slate-400 shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="text-sm text-slate-500">外部参加者向け申込URL</div>
-                        <div className="flex items-center gap-2 mt-1">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-1">
                           <input
                             type="text"
                             readOnly

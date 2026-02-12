@@ -118,7 +118,7 @@ export function AdminCompensationManagement() {
               {compensations.map((compensation) => (
                 <div
                   key={compensation.id}
-                  className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+                  className="flex flex-wrap items-center justify-between gap-2 p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
                 >
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">

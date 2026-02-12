@@ -314,7 +314,7 @@ function BusinessCardOrderContent() {
     return (
       <div className="min-h-screen bg-slate-50 flex">
         <Sidebar />
-        <div className="flex-1 md:ml-64">
+        <div className="flex-1 min-w-0 md:ml-64">
           <PageHeader title="名刺注文" />
           <main className="px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex flex-col items-center justify-center py-12">
@@ -331,7 +331,7 @@ function BusinessCardOrderContent() {
     return (
       <div className="min-h-screen bg-slate-50 flex">
         <Sidebar />
-        <div className="flex-1 md:ml-64">
+        <div className="flex-1 min-w-0 md:ml-64">
           <PageHeader title="名刺注文" />
           <main className="px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex items-center justify-center py-12">
@@ -347,7 +347,7 @@ function BusinessCardOrderContent() {
     return (
       <div className="min-h-screen bg-slate-50 flex">
         <Sidebar />
-        <div className="flex-1 md:ml-64">
+        <div className="flex-1 min-w-0 md:ml-64">
           <PageHeader title="名刺注文" />
           <main className="px-4 sm:px-6 lg:px-8 py-8">
             <Card className="border-red-200 bg-red-50">
@@ -374,38 +374,38 @@ function BusinessCardOrderContent() {
   return (
     <div className="min-h-screen bg-slate-50 flex">
       <Sidebar />
-      <div className="flex-1 md:ml-64">
+      <div className="flex-1 min-w-0 md:ml-64">
         <PageHeader title="名刺注文" />
         <main className="px-4 sm:px-6 lg:px-8 py-8">
           <div className="max-w-3xl mx-auto">
             {/* ステップインジケーター */}
             <div className="mb-8">
-              <div className="flex items-center justify-center gap-4">
-                <div className={`flex items-center gap-2 ${step === 'form' ? 'text-slate-900' : 'text-slate-400'}`}>
+              <div className="flex items-center justify-center gap-1 sm:gap-4">
+                <div className={`flex items-center gap-1 sm:gap-2 ${step === 'form' ? 'text-slate-900' : 'text-slate-400'}`}>
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                     step === 'form' ? 'bg-slate-900 text-white' : step === 'confirm' || step === 'complete' ? 'bg-green-500 text-white' : 'bg-slate-200'
                   }`}>
                     {step === 'confirm' || step === 'complete' ? <Check className="h-4 w-4" /> : '1'}
                   </div>
-                  <span className="text-sm font-medium">入力</span>
+                  <span className="text-sm font-medium hidden sm:inline">入力</span>
                 </div>
                 <ChevronRight className="h-4 w-4 text-slate-300" />
-                <div className={`flex items-center gap-2 ${step === 'confirm' ? 'text-slate-900' : 'text-slate-400'}`}>
+                <div className={`flex items-center gap-1 sm:gap-2 ${step === 'confirm' ? 'text-slate-900' : 'text-slate-400'}`}>
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                     step === 'confirm' ? 'bg-slate-900 text-white' : step === 'complete' ? 'bg-green-500 text-white' : 'bg-slate-200'
                   }`}>
                     {step === 'complete' ? <Check className="h-4 w-4" /> : '2'}
                   </div>
-                  <span className="text-sm font-medium">確認・決済</span>
+                  <span className="text-sm font-medium hidden sm:inline">確認・決済</span>
                 </div>
                 <ChevronRight className="h-4 w-4 text-slate-300" />
-                <div className={`flex items-center gap-2 ${step === 'complete' ? 'text-slate-900' : 'text-slate-400'}`}>
+                <div className={`flex items-center gap-1 sm:gap-2 ${step === 'complete' ? 'text-slate-900' : 'text-slate-400'}`}>
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                     step === 'complete' ? 'bg-green-500 text-white' : 'bg-slate-200'
                   }`}>
                     {step === 'complete' ? <Check className="h-4 w-4" /> : '3'}
                   </div>
-                  <span className="text-sm font-medium">完了</span>
+                  <span className="text-sm font-medium hidden sm:inline">完了</span>
                 </div>
               </div>
             </div>
@@ -514,7 +514,7 @@ function BusinessCardOrderContent() {
                   <CardContent>
                     <div className="space-y-3">
                       <label
-                        className={`flex items-start gap-4 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                        className={`flex items-start gap-3 sm:gap-4 p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${
                           formData.deliveryMethod === 'PICKUP'
                             ? 'border-slate-900 bg-slate-50'
                             : 'border-slate-200 hover:border-slate-300'
@@ -528,16 +528,16 @@ function BusinessCardOrderContent() {
                           onChange={(e) => handleInputChange('deliveryMethod', e.target.value as DeliveryMethod)}
                           className="mt-1"
                         />
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4 text-slate-600" />
+                            <MapPin className="h-4 w-4 text-slate-600 shrink-0" />
                             <span className="font-medium">{DELIVERY_LABELS.PICKUP}</span>
                           </div>
                           <p className="text-sm text-slate-500 mt-1">
                             UGS本社にて直接お受け取りいただけます。郵送先の入力は不要です。
                           </p>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right shrink-0">
                           <span className="text-lg font-bold text-slate-900">
                             ¥{DELIVERY_PRICES.PICKUP.toLocaleString()}
                           </span>
@@ -546,7 +546,7 @@ function BusinessCardOrderContent() {
                       </label>
 
                       <label
-                        className={`flex items-start gap-4 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                        className={`flex items-start gap-3 sm:gap-4 p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${
                           formData.deliveryMethod === 'SHIPPING'
                             ? 'border-slate-900 bg-slate-50'
                             : 'border-slate-200 hover:border-slate-300'
@@ -560,16 +560,16 @@ function BusinessCardOrderContent() {
                           onChange={(e) => handleInputChange('deliveryMethod', e.target.value as DeliveryMethod)}
                           className="mt-1"
                         />
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <Truck className="h-4 w-4 text-slate-600" />
+                            <Truck className="h-4 w-4 text-slate-600 shrink-0" />
                             <span className="font-medium">{DELIVERY_LABELS.SHIPPING}</span>
                           </div>
                           <p className="text-sm text-slate-500 mt-1">
                             ご指定の住所にレターパックでお届けします。
                           </p>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right shrink-0">
                           <span className="text-lg font-bold text-slate-900">
                             ¥{DELIVERY_PRICES.SHIPPING.toLocaleString()}
                           </span>

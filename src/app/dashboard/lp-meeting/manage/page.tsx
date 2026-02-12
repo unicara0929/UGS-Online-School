@@ -132,7 +132,7 @@ function FPLPMeetingsPageContent() {
     <div className="min-h-screen bg-slate-50 flex">
       <Sidebar />
 
-      <div className="flex-1 md:ml-64">
+      <div className="flex-1 min-w-0 md:ml-64">
         <PageHeader title="LP面談管理" />
 
         <main className="px-4 sm:px-6 lg:px-8 py-8">

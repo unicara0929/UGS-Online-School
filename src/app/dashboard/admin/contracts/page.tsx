@@ -87,7 +87,7 @@ UGS00003,RENTAL-2024-001,賃貸,アパート仲介,鈴木次郎,80000,8000,2024-
     <div className="min-h-screen bg-slate-50 flex">
       <Sidebar />
 
-      <div className="flex-1 md:ml-64">
+      <div className="flex-1 min-w-0 md:ml-64">
         <PageHeader title="契約管理" />
 
         <main className="px-4 sm:px-6 lg:px-8 py-8 space-y-6">
@@ -225,7 +225,7 @@ UGS00003,RENTAL-2024-001,賃貸,アパート仲介,鈴木次郎,80000,8000,2024-
                   <p className="text-slate-700 font-medium">{uploadMessage}</p>
                 )}
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="bg-green-50 rounded-xl p-4 text-center">
                     <p className="text-sm text-green-600 font-medium">成功</p>
                     <p className="text-2xl font-bold text-green-800">{uploadResult.success}件</p>

@@ -12,7 +12,7 @@ function CoursesPageContent() {
       <Sidebar />
 
       {/* メインコンテンツ */}
-      <div className="flex-1 md:ml-64">
+      <div className="flex-1 min-w-0 md:ml-64">
         <PageHeader title="教育コンテンツ" />
 
         <main className="px-4 sm:px-6 lg:px-8 py-8">

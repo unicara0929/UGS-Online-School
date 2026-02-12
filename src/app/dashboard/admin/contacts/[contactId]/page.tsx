@@ -123,7 +123,7 @@ function ContactDetailContent({ params }: { params: Promise<{ contactId: string 
     return (
       <div className="min-h-screen bg-slate-50 flex">
         <Sidebar />
-        <div className="flex-1 md:ml-64">
+        <div className="flex-1 min-w-0 md:ml-64">
           <PageHeader title="お問い合わせ詳細" />
           <main className="px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex items-center justify-center py-12">
@@ -139,7 +139,7 @@ function ContactDetailContent({ params }: { params: Promise<{ contactId: string 
     return (
       <div className="min-h-screen bg-slate-50 flex">
         <Sidebar />
-        <div className="flex-1 md:ml-64">
+        <div className="flex-1 min-w-0 md:ml-64">
           <PageHeader title="お問い合わせ詳細" />
           <main className="px-4 sm:px-6 lg:px-8 py-8">
             <Card className="border-red-200 bg-red-50">
@@ -156,7 +156,7 @@ function ContactDetailContent({ params }: { params: Promise<{ contactId: string 
   return (
     <div className="min-h-screen bg-slate-50 flex">
       <Sidebar />
-      <div className="flex-1 md:ml-64">
+      <div className="flex-1 min-w-0 md:ml-64">
         <PageHeader title="お問い合わせ詳細" />
         <main className="px-4 sm:px-6 lg:px-8 py-8">
           <div className="max-w-4xl mx-auto space-y-6">
