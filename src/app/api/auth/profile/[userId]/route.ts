@@ -71,6 +71,7 @@ export async function GET(
         profileImageUrl: user.profileImageUrl,
         mbtiType: user.mbtiType,
         discType: user.discType,
+        invoiceNumber: user.invoiceNumber,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
         lastLoginAt: user.lastLoginAt
