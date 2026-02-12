@@ -119,11 +119,16 @@ async function testAllNotifications() {
   // 3. 退会申請通知
   console.log('3. 退会申請通知を送信中...')
   try {
+    const registeredAt = new Date('2025-10-01T10:00:00')
     const message = `${NOTIFICATION_MENTIONS}
 
 [info][title]【テスト】退会申請通知[/title]名前：${testUser.name}
 メールアドレス：${testUser.email}
-退会日時：${formatJapaneseDateTime(new Date())}[/info]`
+紹介者：なし
+退会日時：${formatJapaneseDateTime(new Date())}
+登録日：${formatJapaneseDateTime(registeredAt)}
+退会申請理由：金額が高いと感じた（他のサービスの方が安い）
+契約期間：6ヶ月以上[/info]`
     await sendChatworkMessage(CHATWORK_ROOM_IDS.PAYMENT, message)
     console.log('   ✅ 送信完了')
   } catch (error) {

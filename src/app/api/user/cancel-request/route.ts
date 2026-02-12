@@ -113,6 +113,9 @@ export async function POST(request: NextRequest) {
         email,
         referrerName: cancelReferral?.referrer?.name,
         cancelledAt: new Date(),
+        reason: reason + (otherReason ? `（${otherReason}）` : ''),
+        registeredAt: user.createdAt,
+        isWithinMinimumPeriod: isWithinMinimumPeriod,
       })
     } catch (chatworkError) {
       console.error('Chatwork通知の送信に失敗:', chatworkError)

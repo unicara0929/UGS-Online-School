@@ -306,16 +306,25 @@ export async function sendCancellationChatworkNotification(params: {
   email: string
   referrerName?: string
   cancelledAt?: Date
+  reason?: string
+  registeredAt?: Date
+  isWithinMinimumPeriod?: boolean
 }): Promise<void> {
-  const { userName, email, referrerName, cancelledAt = new Date() } = params
+  const { userName, email, referrerName, cancelledAt = new Date(), reason, registeredAt, isWithinMinimumPeriod } = params
   const roomId = CHATWORK_ROOM_IDS.PAYMENT
+
+  const registeredAtLine = registeredAt ? `\n登録日：${formatJapaneseDateTime(registeredAt)}` : ''
+  const reasonLine = reason ? `\n退会申請理由：${reason}` : ''
+  const periodFlag = isWithinMinimumPeriod !== undefined
+    ? `\n契約期間：${isWithinMinimumPeriod ? '⚠ 6ヶ月未満' : '6ヶ月以上'}`
+    : ''
 
   const message = `${NOTIFICATION_MENTIONS}
 
 [info][title]退会申請通知[/title]名前：${userName}
 メールアドレス：${email}
 紹介者：${referrerName || 'なし'}
-退会日時：${formatJapaneseDateTime(cancelledAt)}[/info]`
+退会日時：${formatJapaneseDateTime(cancelledAt)}${registeredAtLine}${reasonLine}${periodFlag}[/info]`
 
   try {
     await sendChatworkMessage({ roomId, message })

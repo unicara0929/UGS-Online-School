@@ -1029,11 +1029,18 @@ export async function handleSubscriptionDeleted(subscription: Stripe.Subscriptio
       select: { referrer: { select: { name: true } } },
     })
 
+    const sixMonthsAgo = new Date()
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+    const isWithinMinimumPeriod = subscriptionRecord.user.createdAt > sixMonthsAgo
+
     await sendCancellationChatworkNotification({
       userName: subscriptionRecord.user.name,
       email: subscriptionRecord.user.email,
       referrerName: cancellationReferral?.referrer?.name,
       cancelledAt: new Date(),
+      reason: subscriptionRecord.user.cancellationReason || undefined,
+      registeredAt: subscriptionRecord.user.createdAt,
+      isWithinMinimumPeriod,
     })
   } catch (chatworkError) {
     console.error('Failed to send cancellation Chatwork notification:', chatworkError)
