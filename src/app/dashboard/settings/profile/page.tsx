@@ -81,7 +81,7 @@ const DISC_TYPES = [
 ]
 
 function ProfileSettingsPage() {
-  const { user } = useAuth()
+  const { user, canAccessFPContent } = useAuth()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -98,9 +98,11 @@ function ProfileSettingsPage() {
     birthDate: "",
     prefecture: "",
     mbtiType: "",
-    discType: ""
+    discType: "",
+    invoiceNumber: ""
   })
   const [phoneError, setPhoneError] = useState('')
+  const [invoiceNumberError, setInvoiceNumberError] = useState('')
 
   // ユーザー情報とプロフィール画像を読み込む
   useEffect(() => {
@@ -130,7 +132,8 @@ function ProfileSettingsPage() {
               birthDate: data.user.birthDate ? new Date(data.user.birthDate).toISOString().split('T')[0] : "",
               prefecture: data.user.prefecture || "",
               mbtiType: data.user.mbtiType || "",
-              discType: data.user.discType || ""
+              discType: data.user.discType || "",
+              invoiceNumber: data.user.invoiceNumber || ""
             })
             
             // プロフィール画像を設定（APIから取得したURLまたはlocalStorageから）
@@ -256,6 +259,12 @@ function ProfileSettingsPage() {
         return
       }
 
+      // インボイス登録番号バリデーション
+      if (profile.invoiceNumber && !/^T\d{13}$/.test(profile.invoiceNumber)) {
+        alert('インボイス登録番号はT+13桁の数字で入力してください（例：T1234567890123）')
+        return
+      }
+
       // プロフィール画像も含めて保存
       if (profileImage && fileInputRef.current?.files?.[0]) {
         // 画像をアップロード
@@ -305,7 +314,8 @@ function ProfileSettingsPage() {
           prefecture: profile.prefecture || null,
           profileImageUrl: profileImage || null,
           mbtiType: profile.mbtiType || null,
-          discType: profile.discType || null
+          discType: profile.discType || null,
+          invoiceNumber: profile.invoiceNumber || null
         }),
       })
 
@@ -634,6 +644,57 @@ function ProfileSettingsPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* インボイス登録番号（FPエイド以上のみ表示） */}
+            {canAccessFPContent() && (
+              <Card className="shadow-xl border-0">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <FileText className="h-5 w-5 mr-2 text-blue-600" />
+                    インボイス登録番号
+                  </CardTitle>
+                  <CardDescription>
+                    適格請求書発行事業者の登録番号を入力してください
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      インボイス登録番号
+                    </label>
+                    <input
+                      type="text"
+                      value={profile.invoiceNumber}
+                      onChange={(e) => {
+                        let value = e.target.value
+                        // 先頭にTがない場合は自動付与
+                        if (value && !value.startsWith('T')) {
+                          value = 'T' + value.replace(/[^0-9]/g, '')
+                        } else {
+                          // T以降は数字のみ
+                          value = 'T' + value.slice(1).replace(/[^0-9]/g, '')
+                        }
+                        // T+13桁まで
+                        value = value.slice(0, 14)
+                        setProfile({...profile, invoiceNumber: value === 'T' ? '' : value})
+                        if (value && value !== 'T' && !/^T\d{13}$/.test(value)) {
+                          setInvoiceNumberError('T+13桁の数字で入力してください（例：T1234567890123）')
+                        } else {
+                          setInvoiceNumberError('')
+                        }
+                      }}
+                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md font-mono text-lg tracking-wider ${invoiceNumberError ? 'border-red-300' : 'border-slate-300'}`}
+                      placeholder="T1234567890123"
+                      maxLength={14}
+                    />
+                    {invoiceNumberError && (
+                      <p className="text-sm text-red-500 mt-1">{invoiceNumberError}</p>
+                    )}
+                    <p className="text-xs text-slate-500 mt-1">T+13桁の数字（例：T1234567890123）</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* 更新ボタン */}
             <div className="flex justify-end space-x-3">

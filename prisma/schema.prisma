@@ -28,6 +28,7 @@ model User {
   profileImageUrl           String?
   mbtiType                  String? // MBTIタイプ（16タイプ）
   discType                  String? // DISCタイプ（12タイプ）
+  invoiceNumber             String? // インボイス登録番号（T+13桁）
   notificationPreferences   Json?
   lastLoginAt               DateTime?
   // FPエイド オンボーディング関連

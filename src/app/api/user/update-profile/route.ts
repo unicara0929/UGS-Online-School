@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     if (authError) return authError
 
     const body = await request.json()
-    const { name, phone, address, bio, attribute, gender, birthDate, prefecture, profileImageUrl, mbtiType, discType } = body || {}
+    const { name, phone, address, bio, attribute, gender, birthDate, prefecture, profileImageUrl, mbtiType, discType, invoiceNumber } = body || {}
 
     // 認証ユーザーのIDを使用
     const userId = authUser!.id
@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
       profileImageUrl: profileImageUrl || null,
       mbtiType: mbtiType || null,
       discType: discType || null,
+      invoiceNumber: invoiceNumber || null,
     }
 
     // 生年月日の処理
