@@ -259,8 +259,9 @@ function ProfileSettingsPage() {
         return
       }
 
-      // インボイス登録番号バリデーション
-      if (profile.invoiceNumber && !/^T\d{13}$/.test(profile.invoiceNumber)) {
+      // インボイス登録番号バリデーション（Tのみは空として扱う）
+      const invoiceValue = profile.invoiceNumber === 'T' ? '' : profile.invoiceNumber
+      if (invoiceValue && !/^T\d{13}$/.test(invoiceValue)) {
         alert('インボイス登録番号はT+13桁の数字で入力してください（例：T1234567890123）')
         return
       }
@@ -315,7 +316,7 @@ function ProfileSettingsPage() {
           profileImageUrl: profileImage || null,
           mbtiType: profile.mbtiType || null,
           discType: profile.discType || null,
-          invoiceNumber: profile.invoiceNumber || null
+          invoiceNumber: invoiceValue || null
         }),
       })
 
@@ -665,6 +666,17 @@ function ProfileSettingsPage() {
                     <input
                       type="text"
                       value={profile.invoiceNumber}
+                      onFocus={() => {
+                        if (!profile.invoiceNumber) {
+                          setProfile({...profile, invoiceNumber: 'T'})
+                        }
+                      }}
+                      onBlur={() => {
+                        if (profile.invoiceNumber === 'T') {
+                          setProfile({...profile, invoiceNumber: ''})
+                          setInvoiceNumberError('')
+                        }
+                      }}
                       onChange={(e) => {
                         let value = e.target.value
                         // 先頭にTがない場合は自動付与
@@ -676,8 +688,8 @@ function ProfileSettingsPage() {
                         }
                         // T+13桁まで
                         value = value.slice(0, 14)
-                        setProfile({...profile, invoiceNumber: value === 'T' ? '' : value})
-                        if (value && value !== 'T' && !/^T\d{13}$/.test(value)) {
+                        setProfile({...profile, invoiceNumber: value})
+                        if (value.length > 1 && !/^T\d{13}$/.test(value)) {
                           setInvoiceNumberError('T+13桁の数字で入力してください（例：T1234567890123）')
                         } else {
                           setInvoiceNumberError('')
