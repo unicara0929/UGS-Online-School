@@ -464,15 +464,25 @@ export async function sendLPMeetingRequestChatworkNotification(params: {
   const roomId = CHATWORK_ROOM_IDS.PROMOTION
 
   const formattedPreferredDates = preferredDates
-    .map(date => formatJapaneseDate(date))
-    .join(', ')
+    .map(date => date.toLocaleDateString('ja-JP', {
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Asia/Tokyo',
+    }))
+    .map(d => `・${d}`)
+    .join('\n')
 
   const message = `${NOTIFICATION_MENTIONS}
 
 [info][title]LP面談リクエスト通知[/title]名前：${userName}
 メールアドレス：${email}
 紹介者：${referrerName || 'なし'}
-希望日時：${formattedPreferredDates}
+
+希望日時：
+${formattedPreferredDates}
+
 申請日時：${formatJapaneseDateTime(requestedAt)}[/info]`
 
   try {
