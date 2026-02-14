@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 契約タイプの検証
-    if (!['INSURANCE', 'OTHER'].includes(contractType)) {
+    if (!['INSURANCE', 'REAL_ESTATE', 'RENTAL', 'SOLAR_BATTERY', 'CAREER', 'HOUSING', 'OTHER'].includes(contractType)) {
       return NextResponse.json(
         { error: '無効な契約タイプです' },
         { status: 400 }

@@ -22,6 +22,7 @@ import { prisma } from '@/lib/prisma'
 import { supabaseAdmin } from '@/lib/supabase'
 import { ReferralStatus, UserRole } from '@prisma/client'
 import Stripe from 'stripe'
+import { hasPassedMinimumContractPeriod } from '@/lib/utils/contract-period'
 // Note: memberId/referralCode generation is now done inline within the transaction
 // to prevent race conditions (see handleCheckoutSessionCompleted)
 
@@ -1029,9 +1030,7 @@ export async function handleSubscriptionDeleted(subscription: Stripe.Subscriptio
       select: { referrer: { select: { name: true } } },
     })
 
-    const sixMonthsAgo = new Date()
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
-    const isWithinMinimumPeriod = subscriptionRecord.user.createdAt > sixMonthsAgo
+    const isWithinMinimumPeriod = !hasPassedMinimumContractPeriod(subscriptionRecord.user.createdAt)
 
     await sendCancellationChatworkNotification({
       userName: subscriptionRecord.user.name,

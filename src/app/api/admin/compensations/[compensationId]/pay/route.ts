@@ -40,6 +40,14 @@ export async function POST(
       )
     }
 
+    // ステータスチェック: CONFIRMEDのみPAIDに変更可能
+    if (compensation.status !== 'CONFIRMED') {
+      return NextResponse.json(
+        { error: `現在のステータス「${compensation.status}」からは支払い済みに変更できません。先に確定（CONFIRMED）にしてください。` },
+        { status: 400 }
+      )
+    }
+
     // 報酬を支払い済みにマーク
     const updatedCompensation = await prisma.compensation.update({
       where: { id: compensationId },

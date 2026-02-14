@@ -18,6 +18,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '名前は必須です' }, { status: 400 })
     }
 
+    // インボイス登録番号のバリデーション
+    if (invoiceNumber) {
+      // フォーマットチェック: T+13桁の数字
+      if (!/^T\d{13}$/.test(invoiceNumber)) {
+        return NextResponse.json({ error: 'インボイス登録番号はT+13桁の数字で入力してください' }, { status: 400 })
+      }
+      // ロールチェック: FPエイド以上のみ
+      const isFPOrAbove = ['fp', 'manager', 'admin'].includes(authUser!.role)
+      if (!isFPOrAbove) {
+        return NextResponse.json({ error: 'インボイス登録番号はFPエイド以上のユーザーのみ設定できます' }, { status: 403 })
+      }
+    }
+
     // データベースを更新
     const updateData: any = {
       name,

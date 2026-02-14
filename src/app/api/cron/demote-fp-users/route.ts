@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     const authHeader = request.headers.get('authorization')
     const cronSecret = process.env.CRON_SECRET
 
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -204,7 +204,7 @@ export async function POST(request: NextRequest) {
   const modifiedRequest = new NextRequest(request.url, {
     headers: {
       ...Object.fromEntries(request.headers),
-      authorization: `Bearer ${process.env.CRON_SECRET || 'admin-manual-execution'}`,
+      authorization: `Bearer ${process.env.CRON_SECRET}`,
     },
   })
 

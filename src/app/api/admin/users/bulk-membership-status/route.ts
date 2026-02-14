@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const validStatuses = ['PENDING', 'ACTIVE', 'PAST_DUE', 'DELINQUENT', 'CANCELED', 'TERMINATED', 'EXPIRED']
+    const validStatuses = ['PENDING', 'ACTIVE', 'PAST_DUE', 'DELINQUENT', 'CANCELLATION_PENDING', 'CANCELED', 'TERMINATED', 'EXPIRED']
     if (!validStatuses.includes(membershipStatus)) {
       return NextResponse.json(
         { error: '無効なステータスです' },

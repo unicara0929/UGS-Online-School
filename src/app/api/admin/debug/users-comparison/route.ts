@@ -8,6 +8,11 @@ import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
  * GET /api/admin/debug/users-comparison
  */
 export async function GET(request: NextRequest) {
+  // 本番環境では無効化
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'This endpoint is disabled in production' }, { status: 403 })
+  }
+
   // 認証チェック
   const { user: authUser, error: authError } = await getAuthenticatedUser(request)
   if (authError) return authError

@@ -17,18 +17,14 @@ export function extractUserName(
 }
 
 /**
- * Supabaseユーザー情報からロールを取得し、正規化
+ * 一時ユーザーのデフォルトロールを返す
+ * セキュリティ上、user_metadataからのロール取得は行わず常にMEMBERを返す
+ * 正式なロールはDBのUserレコードから取得すべき
  */
 export function extractAndNormalizeRole(
-  userMetadata: Record<string, any> | null | undefined
+  _userMetadata: Record<string, any> | null | undefined
 ): UserRole {
-  let role = userMetadata?.role || 'MEMBER'
-  
-  if (typeof role === 'string') {
-    role = role.toLowerCase()
-  }
-  
-  return role as UserRole
+  return 'member'
 }
 
 /**
