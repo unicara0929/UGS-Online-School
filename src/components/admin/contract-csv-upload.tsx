@@ -123,7 +123,7 @@ user456,CONTRACT-2025-002,医療保険スタンダード,30000,2025-01-20,ACTIVE
             </ul>
           </div>
           <Button variant="outline" onClick={downloadSample}>
-            <Download className="h-4 w-4 mr-2" />
+            <Download className="h-4 w-4 mr-2" aria-hidden="true" />
             サンプルCSVをダウンロード
           </Button>
         </CardContent>
@@ -154,12 +154,12 @@ user456,CONTRACT-2025-002,医療保険スタンダード,30000,2025-01-20,ACTIVE
               <Button onClick={handleUpload} disabled={isUploading}>
                 {isUploading ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                     プレビュー生成中...
                   </>
                 ) : (
                   <>
-                    <Upload className="h-4 w-4 mr-2" />
+                    <Upload className="h-4 w-4 mr-2" aria-hidden="true" />
                     プレビュー
                   </>
                 )}
@@ -199,7 +199,7 @@ user456,CONTRACT-2025-002,医療保険スタンダード,30000,2025-01-20,ACTIVE
             {preview.errors.length > 0 && (
               <div className="space-y-2">
                 <h4 className="font-semibold text-red-600 flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4" />
+                  <AlertCircle className="h-4 w-4" aria-hidden="true" />
                   エラー詳細
                 </h4>
                 <div className="max-h-60 overflow-y-auto space-y-2">
@@ -230,12 +230,12 @@ user456,CONTRACT-2025-002,医療保険スタンダード,30000,2025-01-20,ACTIVE
               >
                 {isConfirming ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                     確定中...
                   </>
                 ) : (
                   <>
-                    <CheckCircle className="h-4 w-4 mr-2" />
+                    <CheckCircle className="h-4 w-4 mr-2" aria-hidden="true" />
                     確定
                   </>
                 )}
@@ -250,7 +250,7 @@ user456,CONTRACT-2025-002,医療保険スタンダード,30000,2025-01-20,ACTIVE
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2 text-green-600">
-              <CheckCircle className="h-5 w-5" />
+              <CheckCircle className="h-5 w-5" aria-hidden="true" />
               更新完了
             </CardTitle>
           </CardHeader>

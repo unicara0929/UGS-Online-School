@@ -123,7 +123,7 @@ function DemotionCandidatesPageContent() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              <AlertTriangle className="h-6 w-6 text-red-500" />
+              <AlertTriangle className="h-6 w-6 text-red-500" aria-hidden="true" />
               MGR降格候補一覧
             </h1>
             <p className="text-muted-foreground">
@@ -137,7 +137,7 @@ function DemotionCandidatesPageContent() {
           <Card className="border-red-200 bg-red-50">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
-                <UserX className="h-8 w-8 text-red-500" />
+                <UserX className="h-8 w-8 text-red-500" aria-hidden="true" />
                 <div>
                   <p className="text-sm text-red-600">降格候補者数</p>
                   <p className="text-3xl font-bold text-red-700">{candidates.length}</p>
@@ -170,11 +170,11 @@ function DemotionCandidatesPageContent() {
           <CardContent>
             {loading ? (
               <div className="flex justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin" />
+                <Loader2 className="h-8 w-8 animate-spin" aria-hidden="true" />
               </div>
             ) : candidates.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
-                <AlertTriangle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <AlertTriangle className="h-12 w-12 mx-auto mb-4 opacity-50" aria-hidden="true" />
                 <p>降格候補者はいません</p>
               </div>
             ) : (
@@ -198,7 +198,7 @@ function DemotionCandidatesPageContent() {
                       <TableCell>{candidate.user.name}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <Calendar className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                           {formatDate(candidate.user.managerPromotedAt)}
                         </div>
                       </TableCell>
@@ -220,10 +220,10 @@ function DemotionCandidatesPageContent() {
                           disabled={demoting === candidate.id}
                         >
                           {demoting === candidate.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                           ) : (
                             <>
-                              <ArrowDownCircle className="h-4 w-4 mr-1" />
+                              <ArrowDownCircle className="h-4 w-4 mr-1" aria-hidden="true" />
                               降格
                             </>
                           )}
@@ -242,7 +242,7 @@ function DemotionCandidatesPageContent() {
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle className="text-red-600 flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5" />
+                <AlertTriangle className="h-5 w-5" aria-hidden="true" />
                 降格処理の確認
               </AlertDialogTitle>
               <AlertDialogDescription className="space-y-2">

@@ -226,7 +226,7 @@ function AdminConsultationsPageContent() {
                         className="cursor-pointer py-1.5 sm:py-2 px-2 sm:px-3 text-xs sm:text-sm"
                         onClick={() => setFilterType(filterType === type ? '' : type)}
                       >
-                        <Icon className={`h-3 w-3 sm:h-4 sm:w-4 mr-1 ${config.color}`} />
+                        <Icon className={`h-3 w-3 sm:h-4 sm:w-4 mr-1 ${config.color}`} aria-hidden="true" />
                         {config.label}: {count}
                       </Badge>
                     )
@@ -285,11 +285,11 @@ function AdminConsultationsPageContent() {
               <CardContent className="p-4 sm:p-6 pt-0">
                 {isLoading ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+                    <Loader2 className="h-5 w-5 animate-spin text-slate-400" aria-hidden="true" />
                   </div>
                 ) : consultations.length === 0 ? (
                   <div className="text-center py-8 sm:py-12">
-                    <Inbox className="h-10 w-10 sm:h-12 sm:w-12 text-slate-300 mx-auto mb-4" />
+                    <Inbox className="h-10 w-10 sm:h-12 sm:w-12 text-slate-300 mx-auto mb-4" aria-hidden="true" />
                     <p className="text-sm sm:text-base text-slate-500">相談はありません</p>
                   </div>
                 ) : (
@@ -317,7 +317,7 @@ function AdminConsultationsPageContent() {
 
                               {/* ユーザー情報 */}
                               <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-600 mb-1 flex-wrap">
-                                <User className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                                <User className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" aria-hidden="true" />
                                 <span className="font-medium">{consultation.user.name}</span>
                                 <span className="text-slate-400 hidden sm:inline">({consultation.user.memberId})</span>
                                 <Badge variant="secondary" className="text-xs">
@@ -328,11 +328,11 @@ function AdminConsultationsPageContent() {
                               {/* 連絡先 */}
                               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs sm:text-sm text-slate-500 mb-2">
                                 <div className="flex items-center gap-1 min-w-0">
-                                  <Mail className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                                  <Mail className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" aria-hidden="true" />
                                   <span className="truncate">{consultation.user.email}</span>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                  <Phone className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                                  <Phone className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" aria-hidden="true" />
                                   <span>{consultation.phoneNumber}</span>
                                 </div>
                               </div>
@@ -347,12 +347,12 @@ function AdminConsultationsPageContent() {
                                   <span>希望: {contactMethod?.label}</span>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                  <Calendar className="h-3 w-3" />
+                                  <Calendar className="h-3 w-3" aria-hidden="true" />
                                   <span>希望日時: {consultation.preferredDates.length}件</span>
                                 </div>
                                 {consultation.attachmentName && (
                                   <div className="flex items-center gap-1">
-                                    <FileText className="h-3 w-3" />
+                                    <FileText className="h-3 w-3" aria-hidden="true" />
                                     <span>添付あり</span>
                                   </div>
                                 )}
@@ -360,7 +360,7 @@ function AdminConsultationsPageContent() {
 
                               {/* 対応者と日時 */}
                               <div className="flex flex-wrap items-center gap-1 text-xs text-slate-400 mt-2">
-                                <Clock className="h-3 w-3" />
+                                <Clock className="h-3 w-3" aria-hidden="true" />
                                 <span>{formatDate(consultation.createdAt)}</span>
                                 {consultation.handler && (
                                   <span className="ml-2">/ 対応: {consultation.handler.name}</span>
@@ -385,7 +385,7 @@ function AdminConsultationsPageContent() {
                                 onClick={() => router.push(`/dashboard/admin/consultations/${consultation.id}`)}
                                 className="text-xs sm:text-sm"
                               >
-                                <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                                <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 mr-1" aria-hidden="true" />
                                 詳細
                               </Button>
                             </div>

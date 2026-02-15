@@ -108,7 +108,7 @@ export function PaymentGuard({ children }: PaymentGuardProps) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+          <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" aria-hidden="true" />
           <p className="text-slate-600">決済状態を確認中...</p>
         </div>
       </div>
@@ -119,7 +119,7 @@ export function PaymentGuard({ children }: PaymentGuardProps) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="max-w-md mx-auto text-center p-8 bg-white rounded-2xl shadow-xl">
-          <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+          <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" aria-hidden="true" />
           <h2 className="text-2xl font-bold text-slate-900 mb-2">
             アクセスエラー
           </h2>

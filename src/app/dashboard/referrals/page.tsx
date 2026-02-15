@@ -66,7 +66,7 @@ function ReferralsPageContent() {
         {isLoading ? (
           <div className="flex items-center justify-center min-h-screen">
             <div className="text-center">
-              <Loader2 className="h-8 w-8 animate-spin text-slate-600 mx-auto mb-4" />
+              <Loader2 className="h-8 w-8 animate-spin text-slate-600 mx-auto mb-4" aria-hidden="true" />
               <p className="text-slate-600">読み込み中...</p>
             </div>
           </div>
@@ -85,7 +85,7 @@ function ReferralsPageContent() {
         <Card className="shadow-lg">
           <CardHeader className="p-4 sm:p-6">
             <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-              <Gift className="h-4 w-4 sm:h-5 sm:w-5" />
+              <Gift className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
               あなたの紹介リンク
             </CardTitle>
             <CardDescription className="text-xs sm:text-sm">
@@ -104,12 +104,12 @@ function ReferralsPageContent() {
               >
                 {isCopied ? (
                   <>
-                    <Check className="h-4 w-4 mr-2" />
+                    <Check className="h-4 w-4 mr-2" aria-hidden="true" />
                     コピー済み
                   </>
                 ) : (
                   <>
-                    <Copy className="h-4 w-4 mr-2" />
+                    <Copy className="h-4 w-4 mr-2" aria-hidden="true" />
                     コピー
                   </>
                 )}
@@ -129,7 +129,7 @@ function ReferralsPageContent() {
           <Card>
             <CardHeader className="pb-2 sm:pb-3 p-4 sm:p-6">
               <CardTitle className="text-xs sm:text-sm font-medium text-slate-600 flex items-center gap-2">
-                <Users className="h-4 w-4" />
+                <Users className="h-4 w-4" aria-hidden="true" />
                 総紹介数
               </CardTitle>
             </CardHeader>
@@ -144,7 +144,7 @@ function ReferralsPageContent() {
           <Card>
             <CardHeader className="pb-2 sm:pb-3 p-4 sm:p-6">
               <CardTitle className="text-xs sm:text-sm font-medium text-slate-600 flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
+                <TrendingUp className="h-4 w-4" aria-hidden="true" />
                 承認済み
               </CardTitle>
             </CardHeader>
@@ -159,7 +159,7 @@ function ReferralsPageContent() {
           <Card>
             <CardHeader className="pb-2 sm:pb-3 p-4 sm:p-6">
               <CardTitle className="text-xs sm:text-sm font-medium text-slate-600 flex items-center gap-2">
-                <Loader2 className="h-4 w-4" />
+                <Loader2 className="h-4 w-4" aria-hidden="true" />
                 審査中
               </CardTitle>
             </CardHeader>

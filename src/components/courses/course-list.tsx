@@ -65,7 +65,7 @@ const CATEGORIES_FOR_MEMBER: CategoryInfo[] = [
     key: 'STARTUP_GUIDE',
     label: 'はじめに',
     description: 'アプリの使い方・UGSの考え方',
-    icon: <GraduationCap className="h-6 w-6 text-white" />,
+    icon: <GraduationCap className="h-6 w-6 text-white" aria-hidden="true" />,
     bgColor: 'from-amber-50 to-orange-50',
     borderColor: 'border-amber-200',
     iconBg: 'from-amber-400 to-orange-500',
@@ -74,7 +74,7 @@ const CATEGORIES_FOR_MEMBER: CategoryInfo[] = [
     key: 'MONEY_LITERACY',
     label: '所得を増やすマネーリテラシー全般',
     description: 'お金の知識を身につけ、資産形成の基礎を学ぶ',
-    icon: <DollarSign className="h-6 w-6 text-white" />,
+    icon: <DollarSign className="h-6 w-6 text-white" aria-hidden="true" />,
     bgColor: 'from-green-50 to-emerald-50',
     borderColor: 'border-green-200',
     iconBg: 'from-green-400 to-emerald-500',
@@ -83,7 +83,7 @@ const CATEGORIES_FOR_MEMBER: CategoryInfo[] = [
     key: 'PRACTICAL_SKILL',
     label: '実践スキル',
     description: '営業・ビジネススキルを実践的に学ぶ',
-    icon: <Briefcase className="h-6 w-6 text-white" />,
+    icon: <Briefcase className="h-6 w-6 text-white" aria-hidden="true" />,
     bgColor: 'from-blue-50 to-indigo-50',
     borderColor: 'border-blue-200',
     iconBg: 'from-blue-400 to-indigo-500',
@@ -92,7 +92,7 @@ const CATEGORIES_FOR_MEMBER: CategoryInfo[] = [
     key: 'STARTUP_SUPPORT',
     label: 'スタートアップ支援',
     description: '起業・独立に必要な知識とスキルを習得',
-    icon: <Rocket className="h-6 w-6 text-white" />,
+    icon: <Rocket className="h-6 w-6 text-white" aria-hidden="true" />,
     bgColor: 'from-purple-50 to-violet-50',
     borderColor: 'border-purple-200',
     iconBg: 'from-purple-400 to-violet-500',
@@ -105,7 +105,7 @@ const CATEGORIES_FOR_OTHERS: CategoryInfo[] = [
     key: 'MONEY_LITERACY',
     label: '所得を増やすマネーリテラシー全般',
     description: 'お金の知識を身につけ、資産形成の基礎を学ぶ',
-    icon: <DollarSign className="h-6 w-6 text-white" />,
+    icon: <DollarSign className="h-6 w-6 text-white" aria-hidden="true" />,
     bgColor: 'from-green-50 to-emerald-50',
     borderColor: 'border-green-200',
     iconBg: 'from-green-400 to-emerald-500',
@@ -114,7 +114,7 @@ const CATEGORIES_FOR_OTHERS: CategoryInfo[] = [
     key: 'PRACTICAL_SKILL',
     label: '実践スキル',
     description: '営業・ビジネススキルを実践的に学ぶ',
-    icon: <Briefcase className="h-6 w-6 text-white" />,
+    icon: <Briefcase className="h-6 w-6 text-white" aria-hidden="true" />,
     bgColor: 'from-blue-50 to-indigo-50',
     borderColor: 'border-blue-200',
     iconBg: 'from-blue-400 to-indigo-500',
@@ -123,7 +123,7 @@ const CATEGORIES_FOR_OTHERS: CategoryInfo[] = [
     key: 'STARTUP_SUPPORT',
     label: 'スタートアップ支援',
     description: '起業・独立に必要な知識とスキルを習得',
-    icon: <Rocket className="h-6 w-6 text-white" />,
+    icon: <Rocket className="h-6 w-6 text-white" aria-hidden="true" />,
     bgColor: 'from-purple-50 to-violet-50',
     borderColor: 'border-purple-200',
     iconBg: 'from-purple-400 to-violet-500',
@@ -176,7 +176,7 @@ export function CourseList() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" aria-hidden="true" />
       </div>
     )
   }
@@ -244,13 +244,13 @@ export function CourseList() {
             <div className="flex items-center gap-2">
               {hasNewContent && (
                 <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 animate-pulse text-xs">
-                  <Sparkles className="h-3 w-3 mr-1" />
+                  <Sparkles className="h-3 w-3 mr-1" aria-hidden="true" />
                   NEW
                 </Badge>
               )}
               {stats.isLocked && (
                 <Badge variant="secondary" className="text-xs">
-                  <Lock className="h-3 w-3 mr-1" />
+                  <Lock className="h-3 w-3 mr-1" aria-hidden="true" />
                   ロック中
                 </Badge>
               )}
@@ -278,7 +278,7 @@ export function CourseList() {
               {!stats.isLocked && (
                 <span className="flex items-center text-blue-600 font-medium">
                   詳細を見る
-                  <ChevronRight className="h-4 w-4 ml-1" />
+                  <ChevronRight className="h-4 w-4 ml-1" aria-hidden="true" />
                 </span>
               )}
             </div>
@@ -302,7 +302,7 @@ export function CourseList() {
         <div className="flex flex-wrap items-center gap-2 mb-2">
           {course.isNew && (
             <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 animate-pulse text-xs">
-              <Sparkles className="h-3 w-3 mr-1" />
+              <Sparkles className="h-3 w-3 mr-1" aria-hidden="true" />
               NEW
             </Badge>
           )}
@@ -337,14 +337,14 @@ export function CourseList() {
                 <div key={lesson.id} className="flex items-center text-[10px] sm:text-xs bg-slate-50 p-1.5 sm:p-2 rounded">
                   <div className="flex items-center flex-1 min-w-0 overflow-hidden">
                     {lesson.isCompleted ? (
-                      <CheckCircle className="h-3 w-3 text-green-500 mr-1 sm:mr-2 flex-shrink-0" />
+                      <CheckCircle className="h-3 w-3 text-green-500 mr-1 sm:mr-2 flex-shrink-0" aria-hidden="true" />
                     ) : (
                       <div className="h-3 w-3 border border-slate-300 rounded-full mr-1 sm:mr-2 flex-shrink-0" />
                     )}
                     <span className="truncate">{lesson.title}</span>
                   </div>
                   <div className="flex items-center text-slate-500 ml-1 sm:ml-2 flex-shrink-0">
-                    <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5" />
+                    <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5" aria-hidden="true" />
                     <span>{Math.round(lesson.duration / 60)}分</span>
                   </div>
                 </div>
@@ -360,7 +360,7 @@ export function CourseList() {
                 disabled
                 className="flex-1"
               >
-                <Lock className="h-4 w-4 mr-2" />
+                <Lock className="h-4 w-4 mr-2" aria-hidden="true" />
                 ロック中
               </Button>
             ) : (
@@ -369,7 +369,7 @@ export function CourseList() {
                   size="sm"
                   className="w-full"
                 >
-                  <Play className="h-4 w-4 mr-2" />
+                  <Play className="h-4 w-4 mr-2" aria-hidden="true" />
                   学習開始
                 </Button>
               </Link>
@@ -404,7 +404,7 @@ export function CourseList() {
           onClick={() => setSelectedCategory(null)}
           className="flex items-center gap-2"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           カテゴリー一覧に戻る
         </Button>
 

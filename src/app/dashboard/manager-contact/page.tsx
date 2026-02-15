@@ -133,7 +133,7 @@ function ManagerContactPageContent() {
       <DashboardLayout>
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin text-slate-600 mx-auto mb-4" />
+            <Loader2 className="h-8 w-8 animate-spin text-slate-600 mx-auto mb-4" aria-hidden="true" />
             <p className="text-slate-600">読み込み中...</p>
           </div>
         </div>
@@ -156,7 +156,7 @@ function ManagerContactPageContent() {
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0">
                 <div className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center">
-                  <PartyPopper className="h-7 w-7 text-white" />
+                  <PartyPopper className="h-7 w-7 text-white" aria-hidden="true" />
                 </div>
               </div>
               <div>
@@ -176,7 +176,7 @@ function ManagerContactPageContent() {
         <Card className="shadow-xl">
           <CardHeader>
             <CardTitle className="text-2xl flex items-center gap-2">
-              <Phone className="h-6 w-6" />
+              <Phone className="h-6 w-6" aria-hidden="true" />
               連絡先情報の確認
             </CardTitle>
             <CardDescription>
@@ -188,7 +188,7 @@ function ManagerContactPageContent() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                   <div>
                     <p className="text-sm font-medium text-red-800">エラー</p>
                     <p className="text-sm text-red-600 mt-1">{error}</p>
@@ -199,7 +199,7 @@ function ManagerContactPageContent() {
               {/* 電話番号 */}
               <div className="space-y-2">
                 <Label htmlFor="phone" className="flex items-center gap-2">
-                  <Phone className="h-4 w-4" />
+                  <Phone className="h-4 w-4" aria-hidden="true" />
                   電話番号 <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -219,7 +219,7 @@ function ManagerContactPageContent() {
               {/* LINE ID */}
               <div className="space-y-2">
                 <Label htmlFor="lineId" className="flex items-center gap-2">
-                  <MessageCircle className="h-4 w-4" />
+                  <MessageCircle className="h-4 w-4" aria-hidden="true" />
                   LINE ID <span className="text-slate-400">（任意）</span>
                 </Label>
                 <Input
@@ -256,14 +256,14 @@ function ManagerContactPageContent() {
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                      <Loader2 className="h-5 w-5 mr-2 animate-spin" aria-hidden="true" />
                       保存中...
                     </>
                   ) : (
                     <>
-                      <CheckCircle className="h-5 w-5 mr-2" />
+                      <CheckCircle className="h-5 w-5 mr-2" aria-hidden="true" />
                       確認して次へ進む
-                      <ArrowRight className="h-5 w-5 ml-2" />
+                      <ArrowRight className="h-5 w-5 ml-2" aria-hidden="true" />
                     </>
                   )}
                 </Button>

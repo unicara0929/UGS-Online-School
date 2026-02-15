@@ -36,7 +36,7 @@ function NotificationSettingsPage() {
             <div className="flex items-center space-x-4">
               <Link href="/dashboard/settings">
                 <Button variant="outline" size="icon">
-                  <ArrowLeft className="h-5 w-5" />
+                  <ArrowLeft className="h-5 w-5" aria-hidden="true" />
                 </Button>
               </Link>
               <div>
@@ -48,7 +48,7 @@ function NotificationSettingsPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Bell className="h-5 w-5 mr-2" />
+                  <Bell className="h-5 w-5 mr-2" aria-hidden="true" />
                   通知設定
                 </CardTitle>
                 <CardDescription>

@@ -211,7 +211,7 @@ export function FPPromotion() {
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-slate-600" />
+            <Loader2 className="h-8 w-8 animate-spin text-slate-600" aria-hidden="true" />
           </div>
         </CardContent>
       </Card>
@@ -222,7 +222,7 @@ export function FPPromotion() {
     <Card>
       <CardHeader className="p-4 sm:p-6">
         <CardTitle className="flex items-center text-base sm:text-lg">
-          <Award className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+          <Award className="h-4 w-4 sm:h-5 sm:w-5 mr-2" aria-hidden="true" />
           FPエイド昇格
         </CardTitle>
         <CardDescription className="text-xs sm:text-sm">
@@ -237,7 +237,7 @@ export function FPPromotion() {
             <div className="space-y-3 sm:space-y-4">
               <div className="p-3 sm:p-4 border border-slate-200 rounded-xl">
                 <div className="flex items-start gap-2 sm:gap-3">
-                  <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600 flex-shrink-0 mt-0.5" />
+                  <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                       <div>
@@ -257,7 +257,7 @@ export function FPPromotion() {
                               className="whitespace-nowrap"
                             >
                               面談を予約
-                              <ArrowRight className="h-4 w-4 ml-1" />
+                              <ArrowRight className="h-4 w-4 ml-1" aria-hidden="true" />
                             </Button>
                           </>
                         )}
@@ -269,7 +269,7 @@ export function FPPromotion() {
 
               <div className="p-3 sm:p-4 border border-slate-200 rounded-xl">
                 <div className="flex items-start gap-2 sm:gap-3">
-                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600 flex-shrink-0 mt-0.5" />
+                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                       <div>
@@ -292,7 +292,7 @@ export function FPPromotion() {
                               className="whitespace-nowrap"
                             >
                               アンケートに回答
-                              <ArrowRight className="h-4 w-4 ml-1" />
+                              <ArrowRight className="h-4 w-4 ml-1" aria-hidden="true" />
                             </Button>
                           </>
                         ) : (
@@ -324,7 +324,7 @@ export function FPPromotion() {
            !conditions.lpMeetingCompleted && (
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
               <div className="flex items-start gap-3">
-                <ClipboardList className="h-6 w-6 text-blue-600 flex-shrink-0 mt-0.5" />
+                <ClipboardList className="h-6 w-6 text-blue-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <h4 className="font-semibold text-blue-800">事前アンケートにご回答ください</h4>
@@ -351,7 +351,7 @@ export function FPPromotion() {
                   {preInterviewStatus.preInterviewDueDate &&
                    new Date(preInterviewStatus.preInterviewDueDate) < new Date() && (
                     <div className="flex items-center gap-1 text-xs text-red-600 mb-3">
-                      <AlertTriangle className="h-3 w-3" />
+                      <AlertTriangle className="h-3 w-3" aria-hidden="true" />
                       <span>回答期限を過ぎています。お早めにご回答ください。</span>
                     </div>
                   )}
@@ -360,7 +360,7 @@ export function FPPromotion() {
                     onClick={() => router.push('/dashboard/pre-interview')}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
-                    <ClipboardList className="h-4 w-4 mr-2" />
+                    <ClipboardList className="h-4 w-4 mr-2" aria-hidden="true" />
                     {preInterviewStatus.preInterviewStatus === 'IN_PROGRESS' ? '回答を続ける' : 'アンケートに回答する'}
                   </Button>
                 </div>
@@ -372,7 +372,7 @@ export function FPPromotion() {
           {applicationStatus.hasApplication && applicationStatus.status === 'PENDING' && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Clock className="h-5 w-5 text-yellow-600" />
+                <Clock className="h-5 w-5 text-yellow-600" aria-hidden="true" />
                 <h4 className="font-semibold text-yellow-800">審査中</h4>
               </div>
               <p className="text-sm text-yellow-700">
@@ -389,7 +389,7 @@ export function FPPromotion() {
           {applicationStatus.hasApplication && applicationStatus.status === 'REJECTED' && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-4">
               <div className="flex items-center gap-2 mb-2">
-                <XCircle className="h-5 w-5 text-red-600" />
+                <XCircle className="h-5 w-5 text-red-600" aria-hidden="true" />
                 <h4 className="font-semibold text-red-800">申請が却下されました</h4>
               </div>
               <p className="text-sm text-red-700">
@@ -407,7 +407,7 @@ export function FPPromotion() {
               <div className="space-y-4">
                 <div className="bg-green-50 border border-green-200 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <CheckCircle className="h-5 w-5 text-green-600" aria-hidden="true" />
                     <h4 className="font-semibold text-green-800">昇格条件を達成しました！</h4>
                   </div>
                   <p className="text-sm text-green-700">
@@ -422,12 +422,12 @@ export function FPPromotion() {
                 >
                   {isApplying ? (
                     <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                       申請中...
                     </>
                   ) : (
                     <>
-                      <Award className="h-4 w-4 mr-2" />
+                      <Award className="h-4 w-4 mr-2" aria-hidden="true" />
                       FPエイド昇格申請
                     </>
                   )}
@@ -467,12 +467,12 @@ export function FPPromotion() {
                 >
                   {isApplying ? (
                     <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                       申請中...
                     </>
                   ) : (
                     <>
-                      <Award className="h-4 w-4 mr-2" />
+                      <Award className="h-4 w-4 mr-2" aria-hidden="true" />
                       再申請する
                     </>
                   )}

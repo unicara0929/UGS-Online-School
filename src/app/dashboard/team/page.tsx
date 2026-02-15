@@ -120,7 +120,7 @@ export default function TeamPage() {
     if (progress.isEligible) {
       return (
         <div className="flex items-center gap-2">
-          <CheckCircle className="h-4 w-4 text-green-600" />
+          <CheckCircle className="h-4 w-4 text-green-600" aria-hidden="true" />
           <span className="text-green-700 font-medium text-sm">昇格可能</span>
         </div>
       )
@@ -183,7 +183,7 @@ export default function TeamPage() {
         <DashboardLayout>
           <div className="p-6 flex items-center justify-center min-h-screen">
             <div className="text-center">
-              <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+              <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" aria-hidden="true" />
               <p className="text-slate-600">チーム情報を読み込み中...</p>
             </div>
           </div>
@@ -221,7 +221,7 @@ export default function TeamPage() {
           </div>
           {isManager && stats && (
             <div className="bg-green-100 text-green-800 px-4 py-2 rounded-lg flex items-center space-x-2">
-              <UserCheck className="h-5 w-5" />
+              <UserCheck className="h-5 w-5" aria-hidden="true" />
               <span className="font-semibold">担当FPエイド：{stats.totalMembers}名</span>
             </div>
           )}
@@ -234,7 +234,7 @@ export default function TeamPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm font-medium text-slate-600">総メンバー数</CardTitle>
-                  <Users className="h-5 w-5 text-blue-600" />
+                  <Users className="h-5 w-5 text-blue-600" aria-hidden="true" />
                 </div>
               </CardHeader>
               <CardContent>
@@ -247,7 +247,7 @@ export default function TeamPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm font-medium text-slate-600">アクティブ会員</CardTitle>
-                  <Activity className="h-5 w-5 text-green-600" />
+                  <Activity className="h-5 w-5 text-green-600" aria-hidden="true" />
                 </div>
               </CardHeader>
               <CardContent>
@@ -260,7 +260,7 @@ export default function TeamPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm font-medium text-slate-600">平均学習進捗</CardTitle>
-                  <TrendingUp className="h-5 w-5 text-purple-600" />
+                  <TrendingUp className="h-5 w-5 text-purple-600" aria-hidden="true" />
                 </div>
               </CardHeader>
               <CardContent>
@@ -273,7 +273,7 @@ export default function TeamPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm font-medium text-slate-600">契約実績</CardTitle>
-                  <FileCheck className="h-5 w-5 text-orange-600" />
+                  <FileCheck className="h-5 w-5 text-orange-600" aria-hidden="true" />
                 </div>
               </CardHeader>
               <CardContent>
@@ -294,7 +294,7 @@ export default function TeamPage() {
           <CardContent className="p-0">
             {members.length === 0 ? (
               <div className="p-8 text-center text-slate-500">
-                <Users className="h-12 w-12 mx-auto mb-4 text-slate-400" />
+                <Users className="h-12 w-12 mx-auto mb-4 text-slate-400" aria-hidden="true" />
                 {isManager ? (
                   <>
                     <p className="text-lg font-medium">現在、担当しているFPエイドは登録されていません</p>
@@ -377,7 +377,7 @@ export default function TeamPage() {
                       </TableCell>
                       {isManager && (
                         <TableCell>
-                          <ChevronRight className="h-4 w-4 text-slate-400" />
+                          <ChevronRight className="h-4 w-4 text-slate-400" aria-hidden="true" />
                         </TableCell>
                       )}
                     </TableRow>

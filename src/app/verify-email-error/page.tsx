@@ -157,7 +157,7 @@ function VerifyEmailErrorContent() {
             <CardHeader className="text-center pb-6">
               <div className="flex justify-center mb-4">
                 <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
-                  <Mail className="h-8 w-8 text-white" />
+                  <Mail className="h-8 w-8 text-white" aria-hidden="true" />
                 </div>
               </div>
               <CardTitle className="text-2xl font-bold text-slate-900">
@@ -198,9 +198,9 @@ function VerifyEmailErrorContent() {
                   : 'bg-gradient-to-br from-red-500 to-orange-600'
               }`}>
                 {isEmailVerified ? (
-                  <CheckCircle className="h-8 w-8 text-white" />
+                  <CheckCircle className="h-8 w-8 text-white" aria-hidden="true" />
                 ) : (
-                  <AlertCircle className="h-8 w-8 text-white" />
+                  <AlertCircle className="h-8 w-8 text-white" aria-hidden="true" />
                 )}
               </div>
             </div>
@@ -229,7 +229,7 @@ function VerifyEmailErrorContent() {
                 onClick={handleGoToCheckout}
                 className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
               >
-                <CreditCard className="h-4 w-4 mr-2" />
+                <CreditCard className="h-4 w-4 mr-2" aria-hidden="true" />
                 決済を完了して本登録する
               </Button>
             )}
@@ -243,12 +243,12 @@ function VerifyEmailErrorContent() {
               >
                 {isResending ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                     送信中...
                   </>
                 ) : (
                   <>
-                    <RefreshCw className="h-4 w-4 mr-2" />
+                    <RefreshCw className="h-4 w-4 mr-2" aria-hidden="true" />
                     認証メールを再送信
                   </>
                 )}
@@ -267,6 +267,7 @@ function VerifyEmailErrorContent() {
                   onChange={(e) => setEmailInput(e.target.value)}
                   placeholder="example@email.com"
                   className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  spellCheck={false}
                 />
                 <Button
                   onClick={handleCheckEmail}
@@ -275,7 +276,7 @@ function VerifyEmailErrorContent() {
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                       確認中...
                     </>
                   ) : (
@@ -300,7 +301,7 @@ function VerifyEmailErrorContent() {
               <Link href="/register">
                 <Button variant="outline" className="w-full">
                   新規登録ページへ
-                  <ArrowRight className="h-4 w-4 ml-2" />
+                  <ArrowRight className="h-4 w-4 ml-2" aria-hidden="true" />
                 </Button>
               </Link>
 
@@ -321,7 +322,7 @@ export default function VerifyEmailErrorPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-slate-600" aria-hidden="true" />
       </div>
     }>
       <VerifyEmailErrorContent />

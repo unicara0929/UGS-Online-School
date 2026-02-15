@@ -266,7 +266,7 @@ function BankAccountSettingsPage() {
             <div className="flex items-center space-x-4">
               <Link href="/dashboard/settings">
                 <Button variant="outline" size="icon" className="hover:bg-white shadow-md">
-                  <ArrowLeft className="h-5 w-5" />
+                  <ArrowLeft className="h-5 w-5" aria-hidden="true" />
                 </Button>
               </Link>
               <div>
@@ -278,7 +278,7 @@ function BankAccountSettingsPage() {
             {/* エラーメッセージ */}
             {errorMessage && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start space-x-3">
-                <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-red-800">{errorMessage}</p>
                 </div>
@@ -288,7 +288,7 @@ function BankAccountSettingsPage() {
             {/* 成功メッセージ */}
             {successMessage && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start space-x-3">
-                <CreditCard className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <CreditCard className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-green-800">{successMessage}</p>
                 </div>
@@ -300,7 +300,7 @@ function BankAccountSettingsPage() {
               <Card className="shadow-xl border-0">
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <Building2 className="h-5 w-5 mr-2 text-blue-600" />
+                    <Building2 className="h-5 w-5 mr-2 text-blue-600" aria-hidden="true" />
                     口座情報
                   </CardTitle>
                   <CardDescription>
@@ -563,9 +563,9 @@ function BankAccountSettingsPage() {
                             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
                           >
                             {showAccountNumber ? (
-                              <EyeOff className="h-5 w-5" />
+                              <EyeOff className="h-5 w-5" aria-hidden="true" />
                             ) : (
-                              <Eye className="h-5 w-5" />
+                              <Eye className="h-5 w-5" aria-hidden="true" />
                             )}
                           </button>
                         </div>
@@ -642,7 +642,7 @@ function BankAccountSettingsPage() {
 export default function BankAccountSettingsPageComponent() {
   return (
     <ProtectedRoute>
-      <BankAccountSettingsPage />
+      <BankAccountSettingsPage aria-hidden="true" />
     </ProtectedRoute>
   )
 }

@@ -133,7 +133,7 @@ export default function AdminCoursesPage() {
         <div className="text-center">
           <div className="relative">
             <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
-              <BookOpen className="h-10 w-10 text-white animate-pulse" />
+              <BookOpen className="h-10 w-10 text-white animate-pulse" aria-hidden="true" />
             </div>
             <div className="absolute inset-0 w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mx-auto animate-ping opacity-20"></div>
           </div>
@@ -150,7 +150,7 @@ export default function AdminCoursesPage() {
         <Card className="max-w-2xl mx-auto border-red-200 bg-red-50">
           <CardContent className="p-6">
             <div className="flex items-center space-x-3">
-              <AlertCircle className="h-5 w-5 text-red-600" />
+              <AlertCircle className="h-5 w-5 text-red-600" aria-hidden="true" />
               <p className="text-red-800">{error}</p>
             </div>
           </CardContent>
@@ -172,7 +172,7 @@ export default function AdminCoursesPage() {
             onClick={() => router.push('/dashboard/admin/courses/new')}
             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
           >
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
             新規コース作成
           </Button>
         </div>
@@ -181,13 +181,13 @@ export default function AdminCoursesPage() {
         {courses.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center">
-              <BookOpen className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+              <BookOpen className="h-12 w-12 text-slate-400 mx-auto mb-4" aria-hidden="true" />
               <p className="text-slate-600 mb-4">まだコースが登録されていません</p>
               <Button
                 onClick={() => router.push('/dashboard/admin/courses/new')}
                 variant="outline"
               >
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
                 最初のコースを作成
               </Button>
             </CardContent>
@@ -205,13 +205,13 @@ export default function AdminCoursesPage() {
                             <h3 className="text-xl font-bold text-slate-900">{course.title}</h3>
                             {!course.isPublished && (
                               <Badge variant="secondary">
-                                <EyeOff className="h-3 w-3 mr-1" />
+                                <EyeOff className="h-3 w-3 mr-1" aria-hidden="true" />
                                 非公開
                               </Badge>
                             )}
                             {course.viewableRoles && course.viewableRoles.length > 0 && (
                               <Badge variant="outline">
-                                <Lock className="h-3 w-3 mr-1" />
+                                <Lock className="h-3 w-3 mr-1" aria-hidden="true" />
                                 {course.viewableRoles.map((role: string) => {
                                   switch(role) {
                                     case 'MEMBER': return 'メンバー'
@@ -225,7 +225,7 @@ export default function AdminCoursesPage() {
                             )}
                             {course.isLocked && (!course.viewableRoles || course.viewableRoles.length === 0) && (
                               <Badge variant="outline">
-                                <Lock className="h-3 w-3 mr-1" />
+                                <Lock className="h-3 w-3 mr-1" aria-hidden="true" />
                                 FP以上限定
                               </Badge>
                             )}
@@ -243,7 +243,7 @@ export default function AdminCoursesPage() {
                               </Badge>
                             </span>
                             <span className="flex items-center">
-                              <PlayCircle className="h-4 w-4 mr-1" />
+                              <PlayCircle className="h-4 w-4 mr-1" aria-hidden="true" />
                               {course.lessonCount}レッスン
                             </span>
                             <span>並び順: {course.order}</span>
@@ -261,9 +261,9 @@ export default function AdminCoursesPage() {
                         title={course.isPublished ? '非公開にする' : '公開する'}
                       >
                         {course.isPublished ? (
-                          <><Eye className="h-4 w-4 mr-1" />公開中</>
+                          <><Eye className="h-4 w-4 mr-1" aria-hidden="true" />公開中</>
                         ) : (
-                          <><EyeOff className="h-4 w-4 mr-1" />非公開</>
+                          <><EyeOff className="h-4 w-4 mr-1" aria-hidden="true" />非公開</>
                         )}
                       </Button>
                       <Button
@@ -271,7 +271,7 @@ export default function AdminCoursesPage() {
                         size="sm"
                         onClick={() => router.push(`/dashboard/admin/courses/${course.id}`)}
                       >
-                        <Edit className="h-4 w-4 mr-1" />
+                        <Edit className="h-4 w-4 mr-1" aria-hidden="true" />
                         編集
                       </Button>
                       <Button
@@ -279,7 +279,7 @@ export default function AdminCoursesPage() {
                         size="sm"
                         onClick={() => handleDelete(course.id, course.title)}
                       >
-                        <Trash2 className="h-4 w-4 mr-1" />
+                        <Trash2 className="h-4 w-4 mr-1" aria-hidden="true" />
                         削除
                       </Button>
                     </div>

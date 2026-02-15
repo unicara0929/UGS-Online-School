@@ -123,7 +123,7 @@ function FPLPMeetingsPageContent() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-slate-600" aria-hidden="true" />
       </div>
     )
   }
@@ -142,7 +142,7 @@ function FPLPMeetingsPageContent() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <Calendar className="h-5 w-5 mr-2" />
+                    <Calendar className="h-5 w-5 mr-2" aria-hidden="true" />
                     予約済み面談 ({scheduledMeetings.length}件)
                   </CardTitle>
                   <CardDescription>面談実施後、完了ボタンをクリックしてください</CardDescription>
@@ -157,14 +157,14 @@ function FPLPMeetingsPageContent() {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-2">
-                              <Users className="h-4 w-4 text-slate-600" />
+                              <Users className="h-4 w-4 text-slate-600" aria-hidden="true" />
                               <p className="font-medium text-slate-900">{meeting.member?.name}</p>
                               <span className="text-sm text-slate-500">({meeting.member?.email})</span>
                               {getStatusBadge(meeting.status)}
                             </div>
                             {meeting.scheduledAt && (
                               <div className="flex items-center space-x-2 mb-2">
-                                <Clock className="h-4 w-4 text-slate-600" />
+                                <Clock className="h-4 w-4 text-slate-600" aria-hidden="true" />
                                 <p className="text-sm text-slate-900">
                                   {formatDateTime(new Date(meeting.scheduledAt))}
                                 </p>
@@ -172,7 +172,7 @@ function FPLPMeetingsPageContent() {
                             )}
                             {meeting.meetingUrl && (
                               <div className="flex items-center space-x-2 mb-2">
-                                <Video className="h-4 w-4 text-slate-600" />
+                                <Video className="h-4 w-4 text-slate-600" aria-hidden="true" />
                                 <a
                                   href={meeting.meetingUrl}
                                   target="_blank"
@@ -199,7 +199,7 @@ function FPLPMeetingsPageContent() {
                               setShowCompleteForm(true)
                             }}
                           >
-                            <CheckCircle className="h-4 w-4 mr-2" />
+                            <CheckCircle className="h-4 w-4 mr-2" aria-hidden="true" />
                             完了
                           </Button>
                         </div>
@@ -237,12 +237,12 @@ function FPLPMeetingsPageContent() {
                       <Button type="submit" disabled={isSubmitting}>
                         {isSubmitting ? (
                           <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                             確認中...
                           </>
                         ) : (
                           <>
-                            <CheckCircle className="h-4 w-4 mr-2" />
+                            <CheckCircle className="h-4 w-4 mr-2" aria-hidden="true" />
                             面談完了を確認
                           </>
                         )}
@@ -269,7 +269,7 @@ function FPLPMeetingsPageContent() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <CheckCircle className="h-5 w-5 mr-2 text-green-600" />
+                    <CheckCircle className="h-5 w-5 mr-2 text-green-600" aria-hidden="true" />
                     完了済み面談 ({completedMeetings.length}件)
                   </CardTitle>
                   <CardDescription>過去に完了した面談</CardDescription>
@@ -284,7 +284,7 @@ function FPLPMeetingsPageContent() {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-2">
-                              <Users className="h-4 w-4 text-slate-600" />
+                              <Users className="h-4 w-4 text-slate-600" aria-hidden="true" />
                               <p className="font-medium text-slate-900">{meeting.member?.name}</p>
                               {getStatusBadge(meeting.status)}
                             </div>
@@ -317,7 +317,7 @@ function FPLPMeetingsPageContent() {
               <Card>
                 <CardContent className="pt-6">
                   <div className="text-center py-8">
-                    <Calendar className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                    <Calendar className="h-12 w-12 text-slate-400 mx-auto mb-4" aria-hidden="true" />
                     <p className="text-slate-600">予約済みの面談はありません</p>
                   </div>
                 </CardContent>

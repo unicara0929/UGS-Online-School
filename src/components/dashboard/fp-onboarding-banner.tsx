@@ -119,7 +119,7 @@ export function FPOnboardingBanner() {
           {/* 上段: タイトルと進捗 */}
           <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-4 min-w-0">
             <div className="flex items-center gap-2 min-w-0">
-              <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+              <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" aria-hidden="true" />
               <span className="font-medium text-sm sm:text-base truncate">FPエイド昇格</span>
             </div>
 
@@ -127,27 +127,27 @@ export function FPOnboardingBanner() {
             <div className="hidden md:flex items-center gap-2">
               <div className="flex items-center gap-1">
                 {status.managerContactConfirmed ? (
-                  <CheckCircle className="h-4 w-4 text-green-300" />
+                  <CheckCircle className="h-4 w-4 text-green-300" aria-hidden="true" />
                 ) : (
-                  <Circle className="h-4 w-4 text-white/50" />
+                  <Circle className="h-4 w-4 text-white/50" aria-hidden="true" />
                 )}
                 <span className="text-xs text-white/80">連絡先</span>
               </div>
               <div className="w-4 h-px bg-white/30" />
               <div className="flex items-center gap-1">
                 {status.complianceTestPassed ? (
-                  <CheckCircle className="h-4 w-4 text-green-300" />
+                  <CheckCircle className="h-4 w-4 text-green-300" aria-hidden="true" />
                 ) : (
-                  <Circle className="h-4 w-4 text-white/50" />
+                  <Circle className="h-4 w-4 text-white/50" aria-hidden="true" />
                 )}
                 <span className="text-xs text-white/80">テスト</span>
               </div>
               <div className="w-4 h-px bg-white/30" />
               <div className="flex items-center gap-1">
                 {status.fpOnboardingCompleted ? (
-                  <CheckCircle className="h-4 w-4 text-green-300" />
+                  <CheckCircle className="h-4 w-4 text-green-300" aria-hidden="true" />
                 ) : (
-                  <Circle className="h-4 w-4 text-white/50" />
+                  <Circle className="h-4 w-4 text-white/50" aria-hidden="true" />
                 )}
                 <span className="text-xs text-white/80">動画</span>
               </div>
@@ -163,7 +163,7 @@ export function FPOnboardingBanner() {
               className="sm:hidden p-1 hover:bg-white/10 rounded transition-colors flex-shrink-0"
               aria-label="閉じる"
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
 
@@ -176,7 +176,7 @@ export function FPOnboardingBanner() {
               className="bg-white text-blue-600 hover:bg-blue-50 text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3 flex-1 sm:flex-none"
             >
               <span className="truncate">{getNextStepName()}</span>
-              <ArrowRight className="ml-1 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+              <ArrowRight className="ml-1 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" aria-hidden="true" />
             </Button>
             {/* 閉じるボタン - PC表示 */}
             <button
@@ -184,7 +184,7 @@ export function FPOnboardingBanner() {
               className="hidden sm:block p-1 hover:bg-white/10 rounded transition-colors"
               aria-label="閉じる"
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
         </div>

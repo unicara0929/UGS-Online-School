@@ -360,7 +360,7 @@ function DesignManagement() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-slate-400" aria-hidden="true" />
       </div>
     )
   }
@@ -381,7 +381,7 @@ function DesignManagement() {
       {!isCreating && !editingDesign && (
         <div className="flex justify-end">
           <Button onClick={startCreating} className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4" aria-hidden="true" />
             新規デザイン追加
           </Button>
         </div>
@@ -460,9 +460,9 @@ function DesignManagement() {
                         disabled={isUploading !== null}
                       >
                         {isUploading === 'front' ? (
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" aria-hidden="true" />
                         ) : (
-                          <Upload className="h-4 w-4 mr-2" />
+                          <Upload className="h-4 w-4 mr-2" aria-hidden="true" />
                         )}
                         変更
                       </Button>
@@ -473,7 +473,7 @@ function DesignManagement() {
                         onClick={() => handleRemoveImage('front')}
                         className="text-red-600 hover:text-red-700"
                       >
-                        <X className="h-4 w-4 mr-2" />
+                        <X className="h-4 w-4 mr-2" aria-hidden="true" />
                         削除
                       </Button>
                     </div>
@@ -485,12 +485,12 @@ function DesignManagement() {
                   >
                     {isUploading === 'front' ? (
                       <>
-                        <Loader2 className="h-6 w-6 text-slate-400 mx-auto mb-2 animate-spin" />
+                        <Loader2 className="h-6 w-6 text-slate-400 mx-auto mb-2 animate-spin" aria-hidden="true" />
                         <p className="text-sm text-slate-500">アップロード中...</p>
                       </>
                     ) : (
                       <>
-                        <Upload className="h-6 w-6 text-slate-400 mx-auto mb-2" />
+                        <Upload className="h-6 w-6 text-slate-400 mx-auto mb-2" aria-hidden="true" />
                         <p className="text-sm text-slate-500">表面画像を選択</p>
                         <p className="text-xs text-slate-400">JPEG, PNG, WebP（5MB以下）</p>
                       </>
@@ -529,9 +529,9 @@ function DesignManagement() {
                         disabled={isUploading !== null}
                       >
                         {isUploading === 'back' ? (
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" aria-hidden="true" />
                         ) : (
-                          <Upload className="h-4 w-4 mr-2" />
+                          <Upload className="h-4 w-4 mr-2" aria-hidden="true" />
                         )}
                         変更
                       </Button>
@@ -542,7 +542,7 @@ function DesignManagement() {
                         onClick={() => handleRemoveImage('back')}
                         className="text-red-600 hover:text-red-700"
                       >
-                        <X className="h-4 w-4 mr-2" />
+                        <X className="h-4 w-4 mr-2" aria-hidden="true" />
                         削除
                       </Button>
                     </div>
@@ -554,12 +554,12 @@ function DesignManagement() {
                   >
                     {isUploading === 'back' ? (
                       <>
-                        <Loader2 className="h-6 w-6 text-slate-400 mx-auto mb-2 animate-spin" />
+                        <Loader2 className="h-6 w-6 text-slate-400 mx-auto mb-2 animate-spin" aria-hidden="true" />
                         <p className="text-sm text-slate-500">アップロード中...</p>
                       </>
                     ) : (
                       <>
-                        <Upload className="h-6 w-6 text-slate-400 mx-auto mb-2" />
+                        <Upload className="h-6 w-6 text-slate-400 mx-auto mb-2" aria-hidden="true" />
                         <p className="text-sm text-slate-500">裏面画像を選択</p>
                         <p className="text-xs text-slate-400">JPEG, PNG, WebP（5MB以下）</p>
                       </>
@@ -580,11 +580,11 @@ function DesignManagement() {
 
             <div className="flex gap-2 pt-4">
               <Button onClick={handleSave} disabled={isSaving} className="flex items-center gap-2">
-                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Save className="h-4 w-4" aria-hidden="true" />}
                 保存
               </Button>
               <Button variant="outline" onClick={resetForm} className="flex items-center gap-2">
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4" aria-hidden="true" />
                 キャンセル
               </Button>
             </div>
@@ -596,7 +596,7 @@ function DesignManagement() {
       {designs.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <Palette className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+            <Palette className="h-12 w-12 text-slate-300 mx-auto mb-4" aria-hidden="true" />
             <p className="text-slate-500 mb-4">デザインがありません</p>
             {!isCreating && (
               <Button onClick={startCreating}>最初のデザインを追加</Button>
@@ -628,7 +628,7 @@ function DesignManagement() {
                         />
                       ) : null}
                       <div className={`w-16 h-12 bg-slate-100 rounded flex items-center justify-center ${design.previewUrl ? 'hidden' : ''}`}>
-                        <ImageIcon className="h-4 w-4 text-slate-400" />
+                        <ImageIcon className="h-4 w-4 text-slate-400" aria-hidden="true" />
                       </div>
                       <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[10px] text-slate-400 bg-white px-1 rounded">表</span>
                     </div>
@@ -646,7 +646,7 @@ function DesignManagement() {
                         />
                       ) : null}
                       <div className={`w-16 h-12 bg-slate-100 rounded flex items-center justify-center ${design.previewUrlBack ? 'hidden' : ''}`}>
-                        <ImageIcon className="h-4 w-4 text-slate-400" />
+                        <ImageIcon className="h-4 w-4 text-slate-400" aria-hidden="true" />
                       </div>
                       <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[10px] text-slate-400 bg-white px-1 rounded">裏</span>
                     </div>
@@ -684,7 +684,7 @@ function DesignManagement() {
                       onClick={() => startEditing(design)}
                       disabled={!!editingDesign || isCreating}
                     >
-                      <Pencil className="h-4 w-4" />
+                      <Pencil className="h-4 w-4" aria-hidden="true" />
                     </Button>
                     <Button
                       variant="ghost"
@@ -694,7 +694,7 @@ function DesignManagement() {
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       title={design._count.orders > 0 ? '注文で使用中のため削除できません' : '削除'}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4" aria-hidden="true" />
                     </Button>
                   </div>
                 </div>
@@ -781,7 +781,7 @@ function OrderManagement() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-slate-400" aria-hidden="true" />
       </div>
     )
   }
@@ -869,7 +869,7 @@ function OrderManagement() {
       {orders.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <CreditCard className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+            <CreditCard className="h-12 w-12 text-slate-300 mx-auto mb-4" aria-hidden="true" />
             <p className="text-slate-500">
               {filterStatus ? `${STATUS_CONFIG[filterStatus]?.label || filterStatus}の注文はありません` : '名刺注文がありません'}
             </p>
@@ -906,7 +906,7 @@ function OrderManagement() {
                       <div className="flex flex-wrap gap-4 mt-2 text-sm text-slate-600">
                         <span>デザイン: {order.design.name}</span>
                         <span className="flex items-center gap-1">
-                          {order.deliveryMethod === 'PICKUP' ? <MapPin className="h-3 w-3" /> : <Truck className="h-3 w-3" />}
+                          {order.deliveryMethod === 'PICKUP' ? <MapPin className="h-3 w-3" aria-hidden="true" /> : <Truck className="h-3 w-3" aria-hidden="true" />}
                           {DELIVERY_LABELS[order.deliveryMethod]}
                         </span>
                         <span>金額: ¥{order.paidAmount?.toLocaleString() || '-'}</span>
@@ -928,7 +928,7 @@ function OrderManagement() {
                         size="sm"
                         onClick={() => toggleExpanded(order.id)}
                       >
-                        {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        {isExpanded ? <ChevronUp className="h-4 w-4" aria-hidden="true" /> : <ChevronDown className="h-4 w-4" aria-hidden="true" />}
                       </Button>
                     </div>
                   </div>
@@ -970,12 +970,12 @@ function OrderManagement() {
                           <p className="text-slate-600 mb-2">
                             {order.deliveryMethod === 'PICKUP' ? (
                               <span className="flex items-center gap-1">
-                                <MapPin className="h-4 w-4" />
+                                <MapPin className="h-4 w-4" aria-hidden="true" />
                                 UGS本社（愛知県名古屋市）で手渡し
                               </span>
                             ) : (
                               <span className="flex items-center gap-1">
-                                <Truck className="h-4 w-4" />
+                                <Truck className="h-4 w-4" aria-hidden="true" />
                                 レターパック郵送
                               </span>
                             )}
@@ -1061,7 +1061,7 @@ function AdminBusinessCardContent() {
                 onClick={() => setActiveTab('orders')}
                 className="flex items-center gap-2"
               >
-                <CreditCard className="h-4 w-4" />
+                <CreditCard className="h-4 w-4" aria-hidden="true" />
                 注文管理
               </Button>
               <Button
@@ -1069,7 +1069,7 @@ function AdminBusinessCardContent() {
                 onClick={() => setActiveTab('designs')}
                 className="flex items-center gap-2"
               >
-                <Palette className="h-4 w-4" />
+                <Palette className="h-4 w-4" aria-hidden="true" />
                 デザイン管理
               </Button>
             </div>

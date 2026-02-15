@@ -86,6 +86,14 @@ export function NotificationBar() {
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          handleClick()
+        }
+      }}
       className={`
         bg-gradient-to-r from-blue-500 to-blue-600 text-white
         px-4 py-3 md:px-6
@@ -102,7 +110,7 @@ export function NotificationBar() {
         {/* アイコン */}
         <div className="flex-shrink-0">
           <div className="relative">
-            <Bell className="h-5 w-5 md:h-6 md:w-6" />
+            <Bell className="h-5 w-5 md:h-6 md:w-6" aria-hidden="true" />
             <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full animate-pulse"></span>
           </div>
         </div>
@@ -125,19 +133,20 @@ export function NotificationBar() {
         {/* 詳細を見るボタン（PC表示） */}
         <div className="hidden md:flex items-center gap-1 text-sm font-semibold">
           <span>詳細を見る</span>
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-4 w-4" aria-hidden="true" />
         </div>
 
         {/* 矢印アイコン（スマホ表示） */}
-        <ChevronRight className="h-5 w-5 md:hidden" />
+        <ChevronRight className="h-5 w-5 md:hidden" aria-hidden="true" />
 
         {/* 閉じるボタン */}
         <button
+          type="button"
           onClick={handleDismiss}
           className="p-1 hover:bg-white/20 rounded-full transition-colors"
           aria-label="通知を閉じる"
         >
-          <X className="h-4 w-4 md:h-5 md:w-5" />
+          <X className="h-4 w-4 md:h-5 md:w-5" aria-hidden="true" />
         </button>
       </div>
     </div>

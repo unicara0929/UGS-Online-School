@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/auth-context";
@@ -24,6 +24,10 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: '#1e293b',
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -34,6 +38,9 @@ export default function RootLayout({
       <body
         className={`${inter.variable} font-sans antialiased bg-slate-50 text-slate-900`}
       >
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-white focus:text-slate-900 focus:rounded-lg focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-slate-500">
+          メインコンテンツへスキップ
+        </a>
         <ErrorBoundary>
           <AuthProvider>
             {children}

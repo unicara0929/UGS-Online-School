@@ -18,7 +18,7 @@ export function CTASection() {
           <Link href="/register">
             <Button size="lg" variant="secondary" className="w-full sm:w-auto">
               会員登録
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
             </Button>
           </Link>
           <Link href="/login">

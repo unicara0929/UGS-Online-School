@@ -245,20 +245,20 @@ function AdminCancelRequestsPageContent() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <UserX className="h-5 w-5 mr-2" />
+                <UserX className="h-5 w-5 mr-2" aria-hidden="true" />
                 退会申請一覧
               </CardTitle>
             </CardHeader>
             <CardContent>
               {isLoading ? (
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-slate-600" />
+                  <Loader2 className="h-8 w-8 animate-spin text-slate-600" aria-hidden="true" />
                 </div>
               ) : error ? (
                 <div className="text-center py-12 text-red-600">{error}</div>
               ) : cancelRequests.length === 0 ? (
                 <div className="text-center py-12 text-slate-500">
-                  <UserX className="h-12 w-12 mx-auto mb-4 text-slate-300" />
+                  <UserX className="h-12 w-12 mx-auto mb-4 text-slate-300" aria-hidden="true" />
                   <p>退会申請はありません</p>
                 </div>
               ) : (
@@ -286,11 +286,11 @@ function AdminCancelRequestsPageContent() {
                           <div className="text-sm text-slate-600 space-y-1">
                             <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                               <span className="flex items-center">
-                                <Mail className="h-3.5 w-3.5 mr-1 shrink-0" />
+                                <Mail className="h-3.5 w-3.5 mr-1 shrink-0" aria-hidden="true" />
                                 <span className="truncate">{request.email}</span>
                               </span>
                               <span className="flex items-center">
-                                <Clock className="h-3.5 w-3.5 mr-1 shrink-0" />
+                                <Clock className="h-3.5 w-3.5 mr-1 shrink-0" aria-hidden="true" />
                                 {formatDateTime(request.createdAt)}
                               </span>
                             </div>
@@ -300,7 +300,7 @@ function AdminCancelRequestsPageContent() {
                             </div>
                             {request.contractEndDate && (
                               <div className="flex items-center text-purple-600">
-                                <Calendar className="h-3.5 w-3.5 mr-1" />
+                                <Calendar className="h-3.5 w-3.5 mr-1" aria-hidden="true" />
                                 契約解除日: {formatDate(request.contractEndDate)}
                               </div>
                             )}
@@ -328,7 +328,7 @@ function AdminCancelRequestsPageContent() {
               {/* ユーザー情報 */}
               <div className="bg-slate-50 rounded-lg p-4">
                 <h3 className="font-medium text-slate-900 mb-3 flex items-center">
-                  <User className="h-4 w-4 mr-2" />
+                  <User className="h-4 w-4 mr-2" aria-hidden="true" />
                   ユーザー情報
                 </h3>
                 <div className="grid grid-cols-2 gap-3 text-sm">
@@ -354,7 +354,7 @@ function AdminCancelRequestsPageContent() {
               {/* 退会申請内容 */}
               <div className="bg-slate-50 rounded-lg p-4">
                 <h3 className="font-medium text-slate-900 mb-3 flex items-center">
-                  <FileText className="h-4 w-4 mr-2" />
+                  <FileText className="h-4 w-4 mr-2" aria-hidden="true" />
                   申請内容
                 </h3>
                 <div className="space-y-3 text-sm">
@@ -383,7 +383,7 @@ function AdminCancelRequestsPageContent() {
                   </div>
                   {selectedRequest.contractEndDate && (
                     <div className="flex items-center text-purple-600">
-                      <AlertCircle className="h-4 w-4 mr-2" />
+                      <AlertCircle className="h-4 w-4 mr-2" aria-hidden="true" />
                       契約解除日: {formatDate(selectedRequest.contractEndDate)}
                     </div>
                   )}
@@ -410,7 +410,7 @@ function AdminCancelRequestsPageContent() {
                   onChange={(e) => setAdminNote(e.target.value)}
                   rows={3}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
-                  placeholder="管理者用のメモを入力..."
+                  placeholder="管理者用のメモを入力…"
                 />
                 <Button
                   variant="outline"
@@ -419,7 +419,7 @@ function AdminCancelRequestsPageContent() {
                   disabled={isUpdating}
                   className="mt-2"
                 >
-                  {isUpdating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  {isUpdating ? <Loader2 className="h-4 w-4 animate-spin mr-2" aria-hidden="true" /> : null}
                   メモを保存
                 </Button>
               </div>

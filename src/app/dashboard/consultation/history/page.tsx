@@ -83,7 +83,7 @@ export default function ConsultationHistoryPage() {
       <DashboardLayout>
         <div className="container mx-auto px-4 py-8 max-w-4xl">
           <div className="flex justify-center items-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" aria-hidden="true" />
           </div>
         </div>
       </DashboardLayout>
@@ -94,7 +94,7 @@ export default function ConsultationHistoryPage() {
     <DashboardLayout>
       <div className="container mx-auto px-4 py-8 max-w-4xl">
       <Link href="/dashboard/consultation" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6">
-        <ArrowLeft className="w-4 h-4 mr-2" />
+        <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
         個別相談トップに戻る
       </Link>
 
@@ -120,7 +120,7 @@ export default function ConsultationHistoryPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center py-8">
-              <MessageSquare className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <MessageSquare className="w-12 h-12 text-muted-foreground mx-auto mb-4" aria-hidden="true" />
               <p className="text-muted-foreground">まだ相談履歴がありません</p>
               <Link href="/dashboard/consultation" className="mt-4 inline-block">
                 <Button>最初の相談をする</Button>
@@ -142,7 +142,7 @@ export default function ConsultationHistoryPage() {
                       </Badge>
                     </CardTitle>
                     <CardDescription className="flex items-center gap-1 mt-1">
-                      <Calendar className="w-4 h-4" />
+                      <Calendar className="w-4 h-4" aria-hidden="true" />
                       {formatDate(consultation.createdAt)}
                     </CardDescription>
                   </div>
@@ -161,9 +161,9 @@ export default function ConsultationHistoryPage() {
                   {/* 希望連絡方法 */}
                   <div className="flex items-center gap-4 text-sm">
                     <div className="flex items-center gap-1">
-                      {consultation.preferredContact === 'EMAIL' && <Mail className="w-4 h-4" />}
-                      {consultation.preferredContact === 'PHONE' && <Phone className="w-4 h-4" />}
-                      {consultation.preferredContact === 'LINE' && <MessageSquare className="w-4 h-4" />}
+                      {consultation.preferredContact === 'EMAIL' && <Mail className="w-4 h-4" aria-hidden="true" />}
+                      {consultation.preferredContact === 'PHONE' && <Phone className="w-4 h-4" aria-hidden="true" />}
+                      {consultation.preferredContact === 'LINE' && <MessageSquare className="w-4 h-4" aria-hidden="true" />}
                       <span>希望連絡方法: {CONTACT_METHOD_LABELS[consultation.preferredContact]}</span>
                     </div>
                   </div>
@@ -183,7 +183,7 @@ export default function ConsultationHistoryPage() {
                   {/* 添付ファイル */}
                   {consultation.attachmentName && (
                     <div className="flex items-center gap-2 text-sm">
-                      <FileText className="w-4 h-4" />
+                      <FileText className="w-4 h-4" aria-hidden="true" />
                       <span>添付ファイル: {consultation.attachmentName}</span>
                     </div>
                   )}

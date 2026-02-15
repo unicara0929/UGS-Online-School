@@ -113,7 +113,7 @@ export default function AnalyticsPage() {
           <Card className="border-red-200 bg-red-50">
             <CardContent className="pt-6">
               <div className="flex items-center space-x-2 text-red-600">
-                <AlertCircle className="h-5 w-5" />
+                <AlertCircle className="h-5 w-5" aria-hidden="true" />
                 <p>{error}</p>
               </div>
             </CardContent>
@@ -126,7 +126,7 @@ export default function AnalyticsPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg font-semibold text-slate-700">有料会員数</CardTitle>
-                <Users className="h-5 w-5 text-blue-600" />
+                <Users className="h-5 w-5 text-blue-600" aria-hidden="true" />
               </div>
             </CardHeader>
             <CardContent>
@@ -143,7 +143,7 @@ export default function AnalyticsPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg font-semibold text-slate-700">月額売上</CardTitle>
-                <DollarSign className="h-5 w-5 text-green-600" />
+                <DollarSign className="h-5 w-5 text-green-600" aria-hidden="true" />
               </div>
             </CardHeader>
             <CardContent>
@@ -151,7 +151,7 @@ export default function AnalyticsPage() {
               <p className="text-sm text-slate-500">有料会員数 × 月額¥5,500</p>
               <div className="mt-4 pt-4 border-t border-slate-200">
                 <div className="flex items-center space-x-1 text-xs text-green-600">
-                  <TrendingUp className="h-3 w-3" />
+                  <TrendingUp className="h-3 w-3" aria-hidden="true" />
                   <span>リアルタイム更新</span>
                 </div>
               </div>
@@ -163,7 +163,7 @@ export default function AnalyticsPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg font-semibold text-slate-700">退会（解約）数</CardTitle>
-                <UserX className="h-5 w-5 text-red-600" />
+                <UserX className="h-5 w-5 text-red-600" aria-hidden="true" />
               </div>
             </CardHeader>
             <CardContent>

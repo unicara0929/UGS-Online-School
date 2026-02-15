@@ -151,16 +151,16 @@ function ManagerAssessmentsPageContent() {
 
   const getStatusBadge = (assessment: Assessment) => {
     if (assessment.isExempt) {
-      return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />免除中</Badge>
+      return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" aria-hidden="true" />免除中</Badge>
     }
     if (assessment.status === 'CONFIRMED') {
-      return <Badge variant="default"><CheckCircle className="h-3 w-3 mr-1" />確定</Badge>
+      return <Badge variant="default"><CheckCircle className="h-3 w-3 mr-1" aria-hidden="true" />確定</Badge>
     }
     if (assessment.status === 'DEMOTED') {
-      return <Badge variant="destructive"><ArrowDown className="h-3 w-3 mr-1" />降格済</Badge>
+      return <Badge variant="destructive"><ArrowDown className="h-3 w-3 mr-1" aria-hidden="true" />降格済</Badge>
     }
     if (assessment.isDemotionCandidate) {
-      return <Badge variant="destructive"><AlertTriangle className="h-3 w-3 mr-1" />降格候補</Badge>
+      return <Badge variant="destructive"><AlertTriangle className="h-3 w-3 mr-1" aria-hidden="true" />降格候補</Badge>
     }
     return <Badge variant="outline">未確定</Badge>
   }
@@ -170,12 +170,12 @@ function ManagerAssessmentsPageContent() {
     const next = assessment.newRange?.rangeNumber
 
     if (!prev || !next || prev === next) {
-      return <Minus className="h-4 w-4 text-muted-foreground" />
+      return <Minus className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
     }
     if (next > prev) {
-      return <ArrowUp className="h-4 w-4 text-green-600" />
+      return <ArrowUp className="h-4 w-4 text-green-600" aria-hidden="true" />
     }
-    return <ArrowDown className="h-4 w-4 text-red-600" />
+    return <ArrowDown className="h-4 w-4 text-red-600" aria-hidden="true" />
   }
 
   const currentYear = new Date().getFullYear()
@@ -192,12 +192,12 @@ function ManagerAssessmentsPageContent() {
           <Button onClick={() => setShowExecuteDialog(true)} disabled={executing}>
             {executing ? (
               <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                 実行中...
               </>
             ) : (
               <>
-                <Play className="h-4 w-4 mr-2" />
+                <Play className="h-4 w-4 mr-2" aria-hidden="true" />
                 査定実行
               </>
             )}
@@ -266,7 +266,7 @@ function ManagerAssessmentsPageContent() {
           <CardContent className="pt-6">
             {loading ? (
               <div className="flex justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin" />
+                <Loader2 className="h-8 w-8 animate-spin" aria-hidden="true" />
               </div>
             ) : (
               <Table>
@@ -311,7 +311,7 @@ function ManagerAssessmentsPageContent() {
                             disabled={confirming === assessment.id}
                           >
                             {confirming === assessment.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                             ) : (
                               '確定'
                             )}

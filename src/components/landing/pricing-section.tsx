@@ -39,23 +39,23 @@ export function PricingSection() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <div className="flex items-center">
-                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" aria-hidden="true" />
                   <span>全教育コンテンツへのアクセス</span>
                 </div>
                 <div className="flex items-center">
-                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" aria-hidden="true" />
                   <span>昇格システム</span>
                 </div>
                 <div className="flex items-center">
-                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" aria-hidden="true" />
                   <span>報酬管理機能</span>
                 </div>
                 <div className="flex items-center">
-                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" aria-hidden="true" />
                   <span>イベント参加</span>
                 </div>
                 <div className="flex items-center">
-                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" aria-hidden="true" />
                   <span>LP面談サポート</span>
                 </div>
               </div>

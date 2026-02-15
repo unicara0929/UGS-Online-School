@@ -107,7 +107,7 @@ function SecuritySettingsPage() {
             <div className="flex items-center space-x-4">
               <Link href="/dashboard/settings">
                 <Button variant="outline" size="icon">
-                  <ArrowLeft className="h-5 w-5" />
+                  <ArrowLeft className="h-5 w-5" aria-hidden="true" />
                 </Button>
               </Link>
               <div>
@@ -119,7 +119,7 @@ function SecuritySettingsPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Shield className="h-5 w-5 mr-2" />
+                  <Shield className="h-5 w-5 mr-2" aria-hidden="true" />
                   セキュリティ設定
                 </CardTitle>
                 <CardDescription>
@@ -152,7 +152,7 @@ function SecuritySettingsPage() {
                       {/* エラーメッセージ */}
                       {error && (
                         <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start space-x-2">
-                          <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                          <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
                           <p className="text-sm text-red-800">{error}</p>
                         </div>
                       )}
@@ -160,7 +160,7 @@ function SecuritySettingsPage() {
                       {/* 成功メッセージ */}
                       {success && (
                         <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-start space-x-2">
-                          <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                          <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
                           <p className="text-sm text-green-800">{success}</p>
                         </div>
                       )}
@@ -171,7 +171,7 @@ function SecuritySettingsPage() {
                           現在のパスワード *
                         </label>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" aria-hidden="true" />
                           <input
                             type={showCurrentPassword ? "text" : "password"}
                             value={formData.currentPassword}
@@ -186,9 +186,9 @@ function SecuritySettingsPage() {
                             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
                           >
                             {showCurrentPassword ? (
-                              <EyeOff className="h-5 w-5" />
+                              <EyeOff className="h-5 w-5" aria-hidden="true" />
                             ) : (
-                              <Eye className="h-5 w-5" />
+                              <Eye className="h-5 w-5" aria-hidden="true" />
                             )}
                           </button>
                         </div>
@@ -200,7 +200,7 @@ function SecuritySettingsPage() {
                           新しいパスワード *
                         </label>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" aria-hidden="true" />
                           <input
                             type={showNewPassword ? "text" : "password"}
                             value={formData.newPassword}
@@ -216,9 +216,9 @@ function SecuritySettingsPage() {
                             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
                           >
                             {showNewPassword ? (
-                              <EyeOff className="h-5 w-5" />
+                              <EyeOff className="h-5 w-5" aria-hidden="true" />
                             ) : (
-                              <Eye className="h-5 w-5" />
+                              <Eye className="h-5 w-5" aria-hidden="true" />
                             )}
                           </button>
                         </div>
@@ -233,7 +233,7 @@ function SecuritySettingsPage() {
                           新しいパスワード（確認）*
                         </label>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" aria-hidden="true" />
                           <input
                             type={showConfirmPassword ? "text" : "password"}
                             value={formData.confirmPassword}
@@ -249,9 +249,9 @@ function SecuritySettingsPage() {
                             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
                           >
                             {showConfirmPassword ? (
-                              <EyeOff className="h-5 w-5" />
+                              <EyeOff className="h-5 w-5" aria-hidden="true" />
                             ) : (
-                              <Eye className="h-5 w-5" />
+                              <Eye className="h-5 w-5" aria-hidden="true" />
                             )}
                           </button>
                         </div>

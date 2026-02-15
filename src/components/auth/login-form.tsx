@@ -67,7 +67,7 @@ export function LoginForm() {
                 height={32}
                 className="object-contain w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0"
                 priority
-                onError={() => setLogoError(true)}
+                onError={() => setLogoError(true)} aria-hidden="true"
               />
             )}
             <CardTitle className="text-lg sm:text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
@@ -82,7 +82,7 @@ export function LoginForm() {
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
               <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-3">
-                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-red-800">エラー</p>
                   <p className="text-sm text-red-700 mt-1">{error}</p>
@@ -95,7 +95,7 @@ export function LoginForm() {
                 メールアドレス
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" aria-hidden="true" />
                 <input
                   id="email"
                   type="email"
@@ -104,6 +104,7 @@ export function LoginForm() {
                   className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-[box-shadow,border-color] shadow-sm hover:shadow-md"
                   placeholder="example@email.com"
                   required
+                  spellCheck={false}
                 />
               </div>
             </div>
@@ -114,12 +115,12 @@ export function LoginForm() {
                   パスワード
                 </label>
                 <Link href="/forgot-password" className="text-xs text-slate-600 hover:text-slate-900">
-                  <HelpCircle className="h-3 w-3 inline mr-1" />
+                  <HelpCircle className="h-3 w-3 inline mr-1" aria-hidden="true" />
                   パスワードを忘れた場合
                 </Link>
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" aria-hidden="true" />
                 <input
                   id="password"
                   type="password"

@@ -23,7 +23,7 @@ export function UpcomingEvents({ events }: UpcomingEventsProps) {
     <Card>
       <CardHeader className="p-4 sm:p-6">
         <CardTitle className="flex items-center text-base sm:text-lg">
-          <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+          <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" aria-hidden="true" />
           今後のイベント
         </CardTitle>
         <CardDescription className="text-xs sm:text-sm">

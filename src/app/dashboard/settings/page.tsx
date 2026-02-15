@@ -90,9 +90,9 @@ function SettingsListPage() {
                       <CardHeader>
                         <div className="flex items-center justify-between">
                           <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                            <Icon className="h-6 w-6 text-white" />
+                            <Icon className="h-6 w-6 text-white" aria-hidden="true" />
                           </div>
-                          <ArrowRight className="h-5 w-5 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-1 transition-transform" />
+                          <ArrowRight className="h-5 w-5 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
                         </div>
                         <CardTitle className="mt-4">{item.title}</CardTitle>
                         <CardDescription>{item.description}</CardDescription>

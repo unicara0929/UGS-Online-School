@@ -335,7 +335,7 @@ function AdminEventsPageContent() {
               </div>
               {isAdmin && (
                 <Button onClick={() => setShowCreateForm(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
                   新規イベント作成
                 </Button>
               )}
@@ -349,7 +349,7 @@ function AdminEventsPageContent() {
                   onClick={() => setActiveTab('upcoming')}
                   className="flex items-center gap-2"
                 >
-                  <Calendar className="h-4 w-4" />
+                  <Calendar className="h-4 w-4" aria-hidden="true" />
                   開催予定 ({upcomingEvents.length})
                 </Button>
                 <Button
@@ -357,7 +357,7 @@ function AdminEventsPageContent() {
                   onClick={() => setActiveTab('past')}
                   className="flex items-center gap-2"
                 >
-                  <Archive className="h-4 w-4" />
+                  <Archive className="h-4 w-4" aria-hidden="true" />
                   過去イベント ({pastEvents.length})
                 </Button>
               </div>
@@ -367,7 +367,7 @@ function AdminEventsPageContent() {
                   onClick={() => setShowArchiveForm(true)}
                   className="flex items-center gap-2"
                 >
-                  <FileText className="h-4 w-4" />
+                  <FileText className="h-4 w-4" aria-hidden="true" />
                   過去イベントを記録
                 </Button>
               )}
@@ -438,7 +438,7 @@ function AdminEventsPageContent() {
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="flex items-center text-slate-500">
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" aria-hidden="true" />
                   読み込み中です
                 </div>
               </div>
@@ -481,13 +481,13 @@ function AdminEventsPageContent() {
                           </Badge>
                           {event.venueType === 'online' && (
                             <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-blue-50 border-blue-200 text-blue-700">
-                              <Video className="h-2.5 w-2.5 mr-0.5" />
+                              <Video className="h-2.5 w-2.5 mr-0.5" aria-hidden="true" />
                               オンライン
                             </Badge>
                           )}
                           {event.venueType === 'offline' && (
                             <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-green-50 border-green-200 text-green-700">
-                              <MapPin className="h-2.5 w-2.5 mr-0.5" />
+                              <MapPin className="h-2.5 w-2.5 mr-0.5" aria-hidden="true" />
                               オフライン
                             </Badge>
                           )}
@@ -505,7 +505,7 @@ function AdminEventsPageContent() {
                       {/* 参加者数 */}
                       <div className="flex-shrink-0 mx-4 text-center">
                         <div className="flex items-center text-xs text-slate-600">
-                          <Users className="h-3.5 w-3.5 mr-1" />
+                          <Users className="h-3.5 w-3.5 mr-1" aria-hidden="true" />
                           <span>{event.currentParticipants}名</span>
                         </div>
                       </div>
@@ -524,7 +524,7 @@ function AdminEventsPageContent() {
                               }}
                               disabled={isSubmitting}
                             >
-                              <Edit className="h-4 w-4" />
+                              <Edit className="h-4 w-4" aria-hidden="true" />
                             </Button>
                             <Button
                               size="sm"
@@ -536,13 +536,13 @@ function AdminEventsPageContent() {
                               }}
                               disabled={isSubmitting}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-4 w-4" aria-hidden="true" />
                             </Button>
                           </>
                         )}
                         <ChevronRight
                           className="h-4 w-4 text-slate-400 group-hover:text-slate-600 cursor-pointer"
-                          onClick={() => router.push(`/dashboard/admin/events/${event.id}`)}
+                          onClick={() => router.push(`/dashboard/admin/events/${event.id}`)} aria-hidden="true"
                         />
                       </div>
                     </div>

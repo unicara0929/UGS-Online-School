@@ -214,11 +214,11 @@ function AdminContactsPageContent() {
               <CardContent>
                 {isLoading ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+                    <Loader2 className="h-5 w-5 animate-spin text-slate-400" aria-hidden="true" />
                   </div>
                 ) : submissions.length === 0 ? (
                   <div className="text-center py-12">
-                    <Inbox className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                    <Inbox className="h-12 w-12 text-slate-300 mx-auto mb-4" aria-hidden="true" />
                     <p className="text-slate-500">お問い合わせはありません</p>
                   </div>
                 ) : (
@@ -234,14 +234,14 @@ function AdminContactsPageContent() {
                               <Badge variant="outline">{CONTACT_TYPES[submission.type] || submission.type}</Badge>
                             </div>
                             <div className="flex items-center gap-2 text-sm text-slate-600 mb-1">
-                              <User className="h-4 w-4" />
+                              <User className="h-4 w-4" aria-hidden="true" />
                               <span>{submission.user.name}</span>
                               <Badge variant="secondary" className="text-xs">
                                 {ROLE_LABELS[submission.user.role] || submission.user.role}
                               </Badge>
                             </div>
                             <div className="flex items-center gap-2 text-sm text-slate-500 mb-2">
-                              <Mail className="h-4 w-4" />
+                              <Mail className="h-4 w-4" aria-hidden="true" />
                               <span>{submission.user.email}</span>
                             </div>
                             {submission.subject && (
@@ -249,7 +249,7 @@ function AdminContactsPageContent() {
                             )}
                             <p className="text-sm text-slate-600 line-clamp-2">{submission.message}</p>
                             <div className="flex items-center gap-1 text-xs text-slate-400 mt-2">
-                              <Clock className="h-3 w-3" />
+                              <Clock className="h-3 w-3" aria-hidden="true" />
                               {new Date(submission.createdAt).toLocaleString('ja-JP')}
                             </div>
                           </div>
@@ -268,7 +268,7 @@ function AdminContactsPageContent() {
                               variant="outline"
                               onClick={() => router.push(`/dashboard/admin/contacts/${submission.id}`)}
                             >
-                              <ExternalLink className="h-4 w-4 mr-1" />
+                              <ExternalLink className="h-4 w-4 mr-1" aria-hidden="true" />
                               詳細
                             </Button>
                           </div>

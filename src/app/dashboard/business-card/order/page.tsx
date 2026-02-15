@@ -318,7 +318,7 @@ function BusinessCardOrderContent() {
           <PageHeader title="名刺注文" />
           <main className="px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex flex-col items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-slate-400 mb-4" />
+              <Loader2 className="h-8 w-8 animate-spin text-slate-400 mb-4" aria-hidden="true" />
               <p className="text-slate-600">決済を確認中...</p>
             </div>
           </main>
@@ -335,7 +335,7 @@ function BusinessCardOrderContent() {
           <PageHeader title="名刺注文" />
           <main className="px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+              <Loader2 className="h-8 w-8 animate-spin text-slate-400" aria-hidden="true" />
             </div>
           </main>
         </div>
@@ -385,25 +385,25 @@ function BusinessCardOrderContent() {
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                     step === 'form' ? 'bg-slate-900 text-white' : step === 'confirm' || step === 'complete' ? 'bg-green-500 text-white' : 'bg-slate-200'
                   }`}>
-                    {step === 'confirm' || step === 'complete' ? <Check className="h-4 w-4" /> : '1'}
+                    {step === 'confirm' || step === 'complete' ? <Check className="h-4 w-4" aria-hidden="true" /> : '1'}
                   </div>
                   <span className="text-sm font-medium hidden sm:inline">入力</span>
                 </div>
-                <ChevronRight className="h-4 w-4 text-slate-300" />
+                <ChevronRight className="h-4 w-4 text-slate-300" aria-hidden="true" />
                 <div className={`flex items-center gap-1 sm:gap-2 ${step === 'confirm' ? 'text-slate-900' : 'text-slate-400'}`}>
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                     step === 'confirm' ? 'bg-slate-900 text-white' : step === 'complete' ? 'bg-green-500 text-white' : 'bg-slate-200'
                   }`}>
-                    {step === 'complete' ? <Check className="h-4 w-4" /> : '2'}
+                    {step === 'complete' ? <Check className="h-4 w-4" aria-hidden="true" /> : '2'}
                   </div>
                   <span className="text-sm font-medium hidden sm:inline">確認・決済</span>
                 </div>
-                <ChevronRight className="h-4 w-4 text-slate-300" />
+                <ChevronRight className="h-4 w-4 text-slate-300" aria-hidden="true" />
                 <div className={`flex items-center gap-1 sm:gap-2 ${step === 'complete' ? 'text-slate-900' : 'text-slate-400'}`}>
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                     step === 'complete' ? 'bg-green-500 text-white' : 'bg-slate-200'
                   }`}>
-                    {step === 'complete' ? <Check className="h-4 w-4" /> : '3'}
+                    {step === 'complete' ? <Check className="h-4 w-4" aria-hidden="true" /> : '3'}
                   </div>
                   <span className="text-sm font-medium hidden sm:inline">完了</span>
                 </div>
@@ -416,14 +416,14 @@ function BusinessCardOrderContent() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <CreditCard className="h-5 w-5" />
+                      <CreditCard className="h-5 w-5" aria-hidden="true" />
                       名刺デザイン選択
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     {designs.length === 0 ? (
                       <div className="text-center py-8">
-                        <CreditCard className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                        <CreditCard className="h-12 w-12 text-slate-300 mx-auto mb-4" aria-hidden="true" />
                         <p className="text-slate-600 font-medium mb-2">利用可能なデザインがありません</p>
                         <p className="text-sm text-slate-500">
                           現在、選択可能な名刺デザインが登録されていません。<br />
@@ -482,7 +482,7 @@ function BusinessCardOrderContent() {
                               )}
                               {!design.previewUrl && !design.previewUrlBack && (
                                 <div className="w-full h-24 bg-slate-100 rounded flex items-center justify-center">
-                                  <CreditCard className="h-8 w-8 text-slate-300" />
+                                  <CreditCard className="h-8 w-8 text-slate-300" aria-hidden="true" />
                                 </div>
                               )}
                             </div>
@@ -496,7 +496,7 @@ function BusinessCardOrderContent() {
                     )}
                     {validationErrors.designId && (
                       <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
-                        <AlertCircle className="h-4 w-4" />
+                        <AlertCircle className="h-4 w-4" aria-hidden="true" />
                         {validationErrors.designId}
                       </p>
                     )}
@@ -507,7 +507,7 @@ function BusinessCardOrderContent() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Truck className="h-5 w-5" />
+                      <Truck className="h-5 w-5" aria-hidden="true" />
                       受取方法
                     </CardTitle>
                   </CardHeader>
@@ -530,7 +530,7 @@ function BusinessCardOrderContent() {
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4 text-slate-600 shrink-0" />
+                            <MapPin className="h-4 w-4 text-slate-600 shrink-0" aria-hidden="true" />
                             <span className="font-medium">{DELIVERY_LABELS.PICKUP}</span>
                           </div>
                           <p className="text-sm text-slate-500 mt-1">
@@ -562,7 +562,7 @@ function BusinessCardOrderContent() {
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <Truck className="h-4 w-4 text-slate-600 shrink-0" />
+                            <Truck className="h-4 w-4 text-slate-600 shrink-0" aria-hidden="true" />
                             <span className="font-medium">{DELIVERY_LABELS.SHIPPING}</span>
                           </div>
                           <p className="text-sm text-slate-500 mt-1">
@@ -584,7 +584,7 @@ function BusinessCardOrderContent() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <User className="h-5 w-5" />
+                      <User className="h-5 w-5" aria-hidden="true" />
                       注文者情報
                     </CardTitle>
                   </CardHeader>
@@ -821,6 +821,7 @@ function BusinessCardOrderContent() {
                           validationErrors.email ? 'border-red-300' : 'border-slate-300'
                         }`}
                         placeholder="example@email.com"
+                        spellCheck={false}
                       />
                       {validationErrors.email && (
                         <p className="text-sm text-red-600 mt-1">{validationErrors.email}</p>
@@ -1089,7 +1090,7 @@ function BusinessCardOrderContent() {
                     className="flex items-center gap-2"
                   >
                     確認画面へ
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-4 w-4" aria-hidden="true" />
                   </Button>
                 </div>
               </div>
@@ -1194,14 +1195,14 @@ function BusinessCardOrderContent() {
 
                 <div className="flex justify-between">
                   <Button variant="outline" onClick={() => setStep('form')} className="flex items-center gap-2">
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeft className="h-4 w-4" aria-hidden="true" />
                     入力画面に戻る
                   </Button>
                   <Button onClick={handleSubmit} disabled={isSubmitting} className="flex items-center gap-2">
                     {isSubmitting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                     ) : (
-                      <CreditCard className="h-4 w-4" />
+                      <CreditCard className="h-4 w-4" aria-hidden="true" />
                     )}
                     決済に進む（¥{currentPrice.toLocaleString()}）
                   </Button>
@@ -1214,7 +1215,7 @@ function BusinessCardOrderContent() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Check className="h-8 w-8 text-green-600" />
+                    <Check className="h-8 w-8 text-green-600" aria-hidden="true" />
                   </div>
                   <h2 className="text-2xl font-bold text-slate-900 mb-2">注文が完了しました</h2>
                   <p className="text-slate-600 mb-6">

@@ -102,7 +102,7 @@ function SortableLessonCard({
               {...listeners}
               className="cursor-grab active:cursor-grabbing p-2 -ml-2 mr-2 text-slate-400 hover:text-slate-600"
             >
-              <GripVertical className="h-5 w-5" />
+              <GripVertical className="h-5 w-5" aria-hidden="true" />
             </div>
             <div className="flex-1">
               <div className="flex items-center space-x-3 mb-2">
@@ -110,7 +110,7 @@ function SortableLessonCard({
                 <h4 className="font-semibold text-slate-900">{lesson.title}</h4>
                 {!lesson.isPublished && (
                   <Badge variant="secondary" className="text-xs">
-                    <EyeOff className="h-3 w-3 mr-1" />
+                    <EyeOff className="h-3 w-3 mr-1" aria-hidden="true" />
                     非公開
                   </Badge>
                 )}
@@ -120,18 +120,18 @@ function SortableLessonCard({
               )}
               <div className="flex items-center space-x-4 text-sm text-slate-500 ml-8">
                 <span className="flex items-center">
-                  <Clock className="h-3 w-3 mr-1" />
+                  <Clock className="h-3 w-3 mr-1" aria-hidden="true" />
                   {Math.floor(lesson.duration / 60)}分{lesson.duration % 60}秒
                 </span>
                 {lesson.videoUrl && (
                   <span className="flex items-center">
-                    <PlayCircle className="h-3 w-3 mr-1" />
+                    <PlayCircle className="h-3 w-3 mr-1" aria-hidden="true" />
                     動画あり
                   </span>
                 )}
                 {lesson.pdfUrl && (
                   <span className="flex items-center">
-                    <FileText className="h-3 w-3 mr-1" />
+                    <FileText className="h-3 w-3 mr-1" aria-hidden="true" />
                     PDFあり
                   </span>
                 )}
@@ -145,9 +145,9 @@ function SortableLessonCard({
               onClick={() => onTogglePublish(lesson.id, lesson.isPublished)}
             >
               {lesson.isPublished ? (
-                <><Eye className="h-3 w-3 mr-1" />公開</>
+                <><Eye className="h-3 w-3 mr-1" aria-hidden="true" />公開</>
               ) : (
-                <><EyeOff className="h-3 w-3 mr-1" />非公開</>
+                <><EyeOff className="h-3 w-3 mr-1" aria-hidden="true" />非公開</>
               )}
             </Button>
             <Button
@@ -155,7 +155,7 @@ function SortableLessonCard({
               size="sm"
               onClick={() => onEdit(lesson)}
             >
-              <Edit className="h-3 w-3 mr-1" />
+              <Edit className="h-3 w-3 mr-1" aria-hidden="true" />
               編集
             </Button>
             <Button
@@ -163,7 +163,7 @@ function SortableLessonCard({
               size="sm"
               onClick={() => onDelete(lesson.id, lesson.title)}
             >
-              <Trash2 className="h-3 w-3 mr-1" />
+              <Trash2 className="h-3 w-3 mr-1" aria-hidden="true" />
               削除
             </Button>
           </div>
@@ -449,7 +449,7 @@ export default function EditCoursePage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl animate-pulse">
-            <PlayCircle className="h-8 w-8 text-white" />
+            <PlayCircle className="h-8 w-8 text-white" aria-hidden="true" />
           </div>
           <h2 className="text-xl font-semibold text-slate-900">読み込み中...</h2>
         </div>
@@ -463,7 +463,7 @@ export default function EditCoursePage() {
         <Card className="max-w-2xl mx-auto border-red-200 bg-red-50">
           <CardContent className="p-6">
             <div className="flex items-center space-x-3">
-              <AlertCircle className="h-5 w-5 text-red-600" />
+              <AlertCircle className="h-5 w-5 text-red-600" aria-hidden="true" />
               <p className="text-red-800">{error || 'コースが見つかりません'}</p>
             </div>
           </CardContent>
@@ -481,7 +481,7 @@ export default function EditCoursePage() {
           onClick={() => router.push('/dashboard/admin/courses')}
           className="bg-white hover:bg-slate-50"
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
+          <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
           コース一覧に戻る
         </Button>
 
@@ -642,7 +642,7 @@ export default function EditCoursePage() {
                   disabled={saving}
                   className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                 >
-                  <Save className="h-4 w-4 mr-2" />
+                  <Save className="h-4 w-4 mr-2" aria-hidden="true" />
                   {saving ? '保存中...' : 'コース情報を保存'}
                 </Button>
               </div>
@@ -665,7 +665,7 @@ export default function EditCoursePage() {
                 onClick={handleAddLesson}
                 className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
               >
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
                 レッスンを追加
               </Button>
             </div>
@@ -673,10 +673,10 @@ export default function EditCoursePage() {
           <CardContent className="p-6">
             {course.lessons.length === 0 ? (
               <div className="text-center py-12">
-                <PlayCircle className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                <PlayCircle className="h-12 w-12 text-slate-400 mx-auto mb-4" aria-hidden="true" />
                 <p className="text-slate-600 mb-4">まだレッスンが登録されていません</p>
                 <Button onClick={handleAddLesson} variant="outline">
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
                   最初のレッスンを追加
                 </Button>
               </div>
@@ -853,7 +853,7 @@ export default function EditCoursePage() {
                       disabled={saving}
                       className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
                     >
-                      <Save className="h-4 w-4 mr-2" />
+                      <Save className="h-4 w-4 mr-2" aria-hidden="true" />
                       {saving ? '保存中...' : editingLesson ? 'レッスンを更新' : 'レッスンを追加'}
                     </Button>
                   </div>

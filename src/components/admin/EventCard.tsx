@@ -42,14 +42,14 @@ export function EventCard({ event, onEdit, onDelete, onMtgComplete, isSubmitting
   const renderVenueIcon = () => {
     switch (event.venueType) {
       case 'online':
-        return <Video className="h-4 w-4 mr-2" />
+        return <Video className="h-4 w-4 mr-2" aria-hidden="true" />
       case 'offline':
-        return <MapPin className="h-4 w-4 mr-2" />
+        return <MapPin className="h-4 w-4 mr-2" aria-hidden="true" />
       default:
         return (
           <>
-            <Video className="h-4 w-4 mr-1" />
-            <MapPin className="h-4 w-4 mr-2" />
+            <Video className="h-4 w-4 mr-1" aria-hidden="true" />
+            <MapPin className="h-4 w-4 mr-2" aria-hidden="true" />
           </>
         )
     }
@@ -93,7 +93,7 @@ export function EventCard({ event, onEdit, onDelete, onMtgComplete, isSubmitting
               onClick={() => onEdit(event)}
               disabled={isSubmitting}
             >
-              <Edit className="h-4 w-4" />
+              <Edit className="h-4 w-4" aria-hidden="true" />
             </Button>
             <Button
               size="sm"
@@ -101,7 +101,7 @@ export function EventCard({ event, onEdit, onDelete, onMtgComplete, isSubmitting
               onClick={() => onDelete(event.id)}
               disabled={isSubmitting}
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
         </div>
@@ -114,11 +114,11 @@ export function EventCard({ event, onEdit, onDelete, onMtgComplete, isSubmitting
         {/* イベント情報 */}
         <div className="space-y-3">
           <div className="flex items-center text-sm text-slate-600">
-            <Calendar className="h-4 w-4 mr-2" />
+            <Calendar className="h-4 w-4 mr-2" aria-hidden="true" />
             {formatDate(event.date)}
           </div>
           <div className="flex items-center text-sm text-slate-600">
-            <Clock className="h-4 w-4 mr-2" />
+            <Clock className="h-4 w-4 mr-2" aria-hidden="true" />
             {event.time || '時間未定'}
           </div>
           <div className="flex items-center text-sm text-slate-600">
@@ -139,31 +139,31 @@ export function EventCard({ event, onEdit, onDelete, onMtgComplete, isSubmitting
               <div className="flex flex-wrap gap-2">
                 {event.summary && (
                   <div className="flex items-center text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
-                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                    <CheckCircle2 className="h-3 w-3 mr-1" aria-hidden="true" />
                     概要あり
                   </div>
                 )}
                 {event.photos && event.photos.length > 0 && (
                   <div className="flex items-center text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                    <Image className="h-3 w-3 mr-1" />
+                    <Image className="h-3 w-3 mr-1" aria-hidden="true" />
                     写真 {event.photos.length}枚
                   </div>
                 )}
                 {event.materialsUrl && (
                   <div className="flex items-center text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded">
-                    <FileText className="h-3 w-3 mr-1" />
+                    <FileText className="h-3 w-3 mr-1" aria-hidden="true" />
                     資料あり
                   </div>
                 )}
                 {event.vimeoUrl && (
                   <div className="flex items-center text-xs text-red-600 bg-red-50 px-2 py-1 rounded">
-                    <Link2 className="h-3 w-3 mr-1" />
+                    <Link2 className="h-3 w-3 mr-1" aria-hidden="true" />
                     録画あり
                   </div>
                 )}
                 {event.actualParticipants && (
                   <div className="flex items-center text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
-                    <Users className="h-3 w-3 mr-1" />
+                    <Users className="h-3 w-3 mr-1" aria-hidden="true" />
                     実参加 {event.actualParticipants}名
                   </div>
                 )}
@@ -226,13 +226,13 @@ export function EventCard({ event, onEdit, onDelete, onMtgComplete, isSubmitting
                         {/* 動画・アンケート状況（出席完了・欠席承認以外の人のみ表示） */}
                         {!isAttendanceCompleted && !isExempted && (
                           <div className="flex items-center gap-1">
-                            <Video className={`h-3 w-3 ${registration.videoWatched ? 'text-green-600' : 'text-slate-300'}`} />
-                            <FileText className={`h-3 w-3 ${registration.surveyCompleted ? 'text-green-600' : 'text-slate-300'}`} />
+                            <Video className={`h-3 w-3 ${registration.videoWatched ? 'text-green-600' : 'text-slate-300'}`} aria-hidden="true" />
+                            <FileText className={`h-3 w-3 ${registration.surveyCompleted ? 'text-green-600' : 'text-slate-300'}`} aria-hidden="true" />
                           </div>
                         )}
                         {/* 欠席申請がある場合のアイコン表示（未承認） */}
                         {registration.hasExemption && registration.exemptionStatus === 'PENDING' && (
-                          <AlertCircle className="h-3 w-3 text-yellow-600" />
+                          <AlertCircle className="h-3 w-3 text-yellow-600" aria-hidden="true" />
                         )}
                         {getStatusBadge()}
                       </div>
@@ -270,7 +270,7 @@ export function EventCard({ event, onEdit, onDelete, onMtgComplete, isSubmitting
                 : `/dashboard/admin/events/${event.id}`
             )}
           >
-            <Users className="h-4 w-4 mr-2" />
+            <Users className="h-4 w-4 mr-2" aria-hidden="true" />
             {event.isRecurring ? 'FPエイド参加状況' : '参加者を管理'}
           </Button>
 
@@ -281,7 +281,7 @@ export function EventCard({ event, onEdit, onDelete, onMtgComplete, isSubmitting
               className="w-full"
               onClick={() => router.push(`/dashboard/admin/events/${event.id}/archive`)}
             >
-              <FileText className="h-4 w-4 mr-2" />
+              <FileText className="h-4 w-4 mr-2" aria-hidden="true" />
               記録を編集
             </Button>
           ) : (
@@ -293,7 +293,7 @@ export function EventCard({ event, onEdit, onDelete, onMtgComplete, isSubmitting
                   className="w-full bg-blue-600 hover:bg-blue-700"
                   onClick={() => onMtgComplete(event)}
                 >
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  <CheckCircle2 className="h-4 w-4 mr-2" aria-hidden="true" />
                   完了設定（動画・資料）
                 </Button>
               )}

@@ -22,7 +22,7 @@ export function ActionNotifications({ notifications }: ActionNotificationsProps)
       <Card className="border-red-200 bg-red-50">
         <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-4">
           <CardTitle className="text-red-800 flex items-center text-base sm:text-lg">
-            <Bell className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+            <Bell className="h-4 w-4 sm:h-5 sm:w-5 mr-2" aria-hidden="true" />
             アクション必須
           </CardTitle>
         </CardHeader>

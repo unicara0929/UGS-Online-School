@@ -31,13 +31,13 @@ export function ThumbnailUploader({ preview, onSelect, onRemove }: ThumbnailUplo
             onClick={onRemove}
             className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
       ) : (
         <label className="flex flex-col items-center justify-center w-full max-w-md h-48 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:bg-slate-50">
           <div className="flex flex-col items-center justify-center pt-5 pb-6">
-            <ImageIcon className="h-10 w-10 text-slate-400 mb-3" />
+            <ImageIcon className="h-10 w-10 text-slate-400 mb-3" aria-hidden="true" />
             <p className="mb-2 text-sm text-slate-500">
               <span className="font-semibold">クリックしてアップロード</span>
             </p>

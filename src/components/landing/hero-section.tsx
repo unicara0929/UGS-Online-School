@@ -23,7 +23,7 @@ export function HeroSection() {
               <Link href="/register">
                 <Button size="lg" className="w-full sm:w-auto">
                   今すぐ始める
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
                 </Button>
               </Link>
               <Link href="/login">

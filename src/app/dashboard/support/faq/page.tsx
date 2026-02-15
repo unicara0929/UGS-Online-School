@@ -106,10 +106,10 @@ function FAQPageContent() {
             <Card>
               <CardContent className="py-4">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" aria-hidden="true" />
                   <input
                     type="text"
-                    placeholder="キーワードで検索..."
+                    placeholder="キーワードで検索…"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 text-lg"
@@ -136,14 +136,14 @@ function FAQPageContent() {
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="flex items-center text-slate-500">
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" aria-hidden="true" />
                   読み込み中...
                 </div>
               </div>
             ) : categories.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <HelpCircle className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                  <HelpCircle className="h-12 w-12 text-slate-300 mx-auto mb-4" aria-hidden="true" />
                   <p className="text-slate-500">
                     {debouncedSearch
                       ? '検索結果が見つかりませんでした'
@@ -175,9 +175,9 @@ function FAQPageContent() {
                                 Q. {faq.question}
                               </span>
                               {expandedFAQs.has(faq.id) ? (
-                                <ChevronUp className="h-5 w-5 text-slate-400 flex-shrink-0" />
+                                <ChevronUp className="h-5 w-5 text-slate-400 flex-shrink-0" aria-hidden="true" />
                               ) : (
-                                <ChevronDown className="h-5 w-5 text-slate-400 flex-shrink-0" />
+                                <ChevronDown className="h-5 w-5 text-slate-400 flex-shrink-0" aria-hidden="true" />
                               )}
                             </button>
                             {expandedFAQs.has(faq.id) && (
@@ -211,7 +211,7 @@ function FAQPageContent() {
                   </div>
                   <Link href="/dashboard/support/contact">
                     <Button variant="secondary" className="whitespace-nowrap">
-                      <Send className="h-4 w-4 mr-2" />
+                      <Send className="h-4 w-4 mr-2" aria-hidden="true" />
                       お問い合わせ
                     </Button>
                   </Link>

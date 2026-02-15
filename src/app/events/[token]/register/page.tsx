@@ -189,7 +189,7 @@ export default function ExternalEventRegisterPage() {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="flex items-center text-slate-500">
-          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+          <Loader2 className="h-5 w-5 mr-2 animate-spin" aria-hidden="true" />
           読み込み中...
         </div>
       </div>
@@ -202,7 +202,7 @@ export default function ExternalEventRegisterPage() {
         <Card className="max-w-md w-full border-red-200 bg-red-50">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 text-red-600">
-              <AlertCircle className="h-5 w-5" />
+              <AlertCircle className="h-5 w-5" aria-hidden="true" />
               <p>{error}</p>
             </div>
           </CardContent>
@@ -230,7 +230,7 @@ export default function ExternalEventRegisterPage() {
         <Card className="max-w-md w-full border-green-200 bg-green-50">
           <CardContent className="pt-6">
             <div className="text-center">
-              <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-4" />
+              <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-4" aria-hidden="true" />
               <h2 className="text-xl font-bold text-green-800 mb-2">登録完了</h2>
               <p className="text-green-700 mb-4">
                 イベントへの登録が完了しました。
@@ -305,18 +305,18 @@ export default function ExternalEventRegisterPage() {
             {event.schedules.length <= 1 && (
               <div className="space-y-3">
                 <div className="flex items-center text-slate-600">
-                  <Calendar className="h-5 w-5 mr-3 text-slate-400" />
+                  <Calendar className="h-5 w-5 mr-3 text-slate-400" aria-hidden="true" />
                   <span>{formatDate(displayDate)}</span>
                 </div>
                 {displayTime && (
                   <div className="flex items-center text-slate-600">
-                    <Clock className="h-5 w-5 mr-3 text-slate-400" />
+                    <Clock className="h-5 w-5 mr-3 text-slate-400" aria-hidden="true" />
                     <span>{displayTime}</span>
                   </div>
                 )}
                 {displayLocation && (
                   <div className="flex items-center text-slate-600">
-                    <MapPin className="h-5 w-5 mr-3 text-slate-400" />
+                    <MapPin className="h-5 w-5 mr-3 text-slate-400" aria-hidden="true" />
                     <span>{displayLocation}</span>
                   </div>
                 )}
@@ -437,6 +437,7 @@ export default function ExternalEventRegisterPage() {
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
                   placeholder="example@email.com"
                   disabled={isSubmitting}
+                  spellCheck={false}
                 />
               </div>
 
@@ -476,7 +477,7 @@ export default function ExternalEventRegisterPage() {
               >
                 {isSubmitting ? (
                   <span className="flex items-center">
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                     処理中...
                   </span>
                 ) : event.isPaid ? (

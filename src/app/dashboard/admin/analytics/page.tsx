@@ -164,7 +164,7 @@ export default function AnalyticsPage() {
         {/* ヘッダー */}
         <div>
           <h1 className="text-3xl font-bold text-slate-900 flex items-center">
-            <BarChart3 className="h-8 w-8 mr-3 text-blue-600" />
+            <BarChart3 className="h-8 w-8 mr-3 text-blue-600" aria-hidden="true" />
             会員管理ダッシュボード
           </h1>
           <p className="text-slate-600 mt-2">UGS会員・FPエイドの統計情報</p>
@@ -178,7 +178,7 @@ export default function AnalyticsPage() {
             <CardHeader className="pb-2 relative">
               <CardTitle className="text-lg font-semibold text-blue-800 flex items-center">
                 <div className="p-2 bg-blue-100 rounded-lg mr-3">
-                  <Users className="h-6 w-6 text-blue-600" />
+                  <Users className="h-6 w-6 text-blue-600" aria-hidden="true" />
                 </div>
                 UGS会員
               </CardTitle>
@@ -198,7 +198,7 @@ export default function AnalyticsPage() {
             <CardHeader className="pb-2 relative">
               <CardTitle className="text-lg font-semibold text-emerald-800 flex items-center">
                 <div className="p-2 bg-emerald-100 rounded-lg mr-3">
-                  <Star className="h-6 w-6 text-emerald-600" />
+                  <Star className="h-6 w-6 text-emerald-600" aria-hidden="true" />
                 </div>
                 FPエイド
               </CardTitle>
@@ -218,7 +218,7 @@ export default function AnalyticsPage() {
             <CardHeader className="pb-2 relative">
               <CardTitle className="text-lg font-semibold text-amber-800 flex items-center">
                 <div className="p-2 bg-amber-100 rounded-lg mr-3">
-                  <Award className="h-6 w-6 text-amber-600" />
+                  <Award className="h-6 w-6 text-amber-600" aria-hidden="true" />
                 </div>
                 FPエイド昇格
               </CardTitle>
@@ -244,7 +244,7 @@ export default function AnalyticsPage() {
         <Card className="border-2 border-indigo-100">
           <CardHeader>
             <CardTitle className="flex items-center text-indigo-900">
-              <TrendingUp className="h-5 w-5 mr-2 text-indigo-600" />
+              <TrendingUp className="h-5 w-5 mr-2 text-indigo-600" aria-hidden="true" />
               キャリアパス・昇格フロー
             </CardTitle>
             <CardDescription>UGS会員からFPエイド、マネージャーへのキャリアステップ</CardDescription>
@@ -254,7 +254,7 @@ export default function AnalyticsPage() {
               {/* UGS会員 */}
               <div className="flex flex-col items-center">
                 <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex flex-col items-center justify-center text-white shadow-lg shadow-blue-200">
-                  <Users className="h-10 w-10 mb-2" />
+                  <Users className="h-10 w-10 mb-2" aria-hidden="true" />
                   <span className="font-bold text-lg">UGS会員</span>
                   <span className="text-2xl font-bold">{roleStats.overview.memberCount}</span>
                 </div>
@@ -265,7 +265,7 @@ export default function AnalyticsPage() {
               <div className="flex flex-col items-center px-4">
                 <div className="hidden md:flex items-center">
                   <div className="w-16 h-1 bg-gradient-to-r from-blue-400 to-emerald-400"></div>
-                  <ChevronRight className="h-8 w-8 text-emerald-500 -ml-2" />
+                  <ChevronRight className="h-8 w-8 text-emerald-500 -ml-2" aria-hidden="true" />
                 </div>
                 <div className="md:hidden h-8 w-1 bg-gradient-to-b from-blue-400 to-emerald-400"></div>
                 <div className="bg-amber-100 px-3 py-1 rounded-full text-amber-700 text-sm font-medium mt-2">
@@ -276,7 +276,7 @@ export default function AnalyticsPage() {
               {/* FPエイド */}
               <div className="flex flex-col items-center">
                 <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex flex-col items-center justify-center text-white shadow-lg shadow-emerald-200">
-                  <Star className="h-10 w-10 mb-2" />
+                  <Star className="h-10 w-10 mb-2" aria-hidden="true" />
                   <span className="font-bold text-lg">FPエイド</span>
                   <span className="text-2xl font-bold">{roleStats.overview.fpCount}</span>
                 </div>
@@ -287,7 +287,7 @@ export default function AnalyticsPage() {
               <div className="flex flex-col items-center px-4">
                 <div className="hidden md:flex items-center">
                   <div className="w-16 h-1 bg-gradient-to-r from-emerald-400 to-purple-400"></div>
-                  <ChevronRight className="h-8 w-8 text-purple-500 -ml-2" />
+                  <ChevronRight className="h-8 w-8 text-purple-500 -ml-2" aria-hidden="true" />
                 </div>
                 <div className="md:hidden h-8 w-1 bg-gradient-to-b from-emerald-400 to-purple-400"></div>
               </div>
@@ -295,7 +295,7 @@ export default function AnalyticsPage() {
               {/* マネージャー */}
               <div className="flex flex-col items-center">
                 <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex flex-col items-center justify-center text-white shadow-lg shadow-purple-200">
-                  <Award className="h-10 w-10 mb-2" />
+                  <Award className="h-10 w-10 mb-2" aria-hidden="true" />
                   <span className="font-bold text-lg">マネージャー</span>
                   <span className="text-2xl font-bold">{roleStats.overview.managerCount}</span>
                 </div>
@@ -309,7 +309,7 @@ export default function AnalyticsPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <BarChart3 className="h-5 w-5 mr-2 text-amber-600" />
+              <BarChart3 className="h-5 w-5 mr-2 text-amber-600" aria-hidden="true" />
               FPエイド昇格推移（過去12ヶ月）
             </CardTitle>
             <CardDescription>月別のUGS会員→FPエイド昇格人数</CardDescription>
@@ -366,7 +366,7 @@ export default function AnalyticsPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-slate-600 flex items-center">
-                <Users className="h-4 w-4 mr-2" />
+                <Users className="h-4 w-4 mr-2" aria-hidden="true" />
                 総会員数
               </CardTitle>
             </CardHeader>
@@ -379,7 +379,7 @@ export default function AnalyticsPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-slate-600 flex items-center">
-                <UserCheck className="h-4 w-4 mr-2 text-green-600" />
+                <UserCheck className="h-4 w-4 mr-2 text-green-600" aria-hidden="true" />
                 有効会員数
               </CardTitle>
             </CardHeader>
@@ -392,7 +392,7 @@ export default function AnalyticsPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-slate-600 flex items-center">
-                <TrendingUp className="h-4 w-4 mr-2 text-blue-600" />
+                <TrendingUp className="h-4 w-4 mr-2 text-blue-600" aria-hidden="true" />
                 新規登録（30日）
               </CardTitle>
             </CardHeader>
@@ -405,7 +405,7 @@ export default function AnalyticsPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-slate-600 flex items-center">
-                <TrendingDown className="h-4 w-4 mr-2 text-red-600" />
+                <TrendingDown className="h-4 w-4 mr-2 text-red-600" aria-hidden="true" />
                 退会率（30日）
               </CardTitle>
             </CardHeader>
@@ -421,7 +421,7 @@ export default function AnalyticsPage() {
           <Card className="border-orange-200 bg-orange-50">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-orange-800 flex items-center">
-                <AlertCircle className="h-4 w-4 mr-2" />
+                <AlertCircle className="h-4 w-4 mr-2" aria-hidden="true" />
                 支払い遅延
               </CardTitle>
             </CardHeader>
@@ -434,7 +434,7 @@ export default function AnalyticsPage() {
           <Card className="border-red-200 bg-red-50">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-red-800 flex items-center">
-                <UserX className="h-4 w-4 mr-2" />
+                <UserX className="h-4 w-4 mr-2" aria-hidden="true" />
                 長期滞納
               </CardTitle>
             </CardHeader>
@@ -505,15 +505,15 @@ export default function AnalyticsPage() {
                   <div className="font-medium text-slate-900 w-24">{item.month}</div>
                   <div className="flex items-center space-x-4 flex-1">
                     <div className="flex items-center space-x-2">
-                      <TrendingUp className="h-4 w-4 text-green-600" />
+                      <TrendingUp className="h-4 w-4 text-green-600" aria-hidden="true" />
                       <span className="text-sm text-slate-600">新規: {item.newUsers}名</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <TrendingDown className="h-4 w-4 text-red-600" />
+                      <TrendingDown className="h-4 w-4 text-red-600" aria-hidden="true" />
                       <span className="text-sm text-slate-600">退会: {item.canceledUsers}名</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Activity className="h-4 w-4 text-blue-600" />
+                      <Activity className="h-4 w-4 text-blue-600" aria-hidden="true" />
                       <span className={`text-sm font-medium ${item.netGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         純増: {item.netGrowth >= 0 ? '+' : ''}{item.netGrowth}名
                       </span>

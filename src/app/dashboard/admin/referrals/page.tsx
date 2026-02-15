@@ -158,13 +158,13 @@ function AdminReferralsPageContent() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'APPROVED':
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />承認済み</Badge>
+        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" aria-hidden="true" />承認済み</Badge>
       case 'REJECTED':
-        return <Badge className="bg-red-100 text-red-800"><XCircle className="h-3 w-3 mr-1" />却下</Badge>
+        return <Badge className="bg-red-100 text-red-800"><XCircle className="h-3 w-3 mr-1" aria-hidden="true" />却下</Badge>
       case 'REWARDED':
-        return <Badge className="bg-blue-100 text-blue-800"><Award className="h-3 w-3 mr-1" />報酬支払済み</Badge>
+        return <Badge className="bg-blue-100 text-blue-800"><Award className="h-3 w-3 mr-1" aria-hidden="true" />報酬支払済み</Badge>
       default:
-        return <Badge className="bg-yellow-100 text-yellow-800"><Clock className="h-3 w-3 mr-1" />審査中</Badge>
+        return <Badge className="bg-yellow-100 text-yellow-800"><Clock className="h-3 w-3 mr-1" aria-hidden="true" />審査中</Badge>
     }
   }
 
@@ -242,7 +242,7 @@ function AdminReferralsPageContent() {
                 <CardTitle className="text-2xl text-yellow-600">{stats.pending}</CardTitle>
               </CardHeader>
               <CardContent>
-                <Clock className="h-4 w-4 text-yellow-500" />
+                <Clock className="h-4 w-4 text-yellow-500" aria-hidden="true" />
               </CardContent>
             </Card>
 
@@ -252,7 +252,7 @@ function AdminReferralsPageContent() {
                 <CardTitle className="text-2xl text-green-600">{stats.approved}</CardTitle>
               </CardHeader>
               <CardContent>
-                <CheckCircle className="h-4 w-4 text-green-500" />
+                <CheckCircle className="h-4 w-4 text-green-500" aria-hidden="true" />
               </CardContent>
             </Card>
 
@@ -262,7 +262,7 @@ function AdminReferralsPageContent() {
                 <CardTitle className="text-2xl text-red-600">{stats.rejected}</CardTitle>
               </CardHeader>
               <CardContent>
-                <XCircle className="h-4 w-4 text-red-500" />
+                <XCircle className="h-4 w-4 text-red-500" aria-hidden="true" />
               </CardContent>
             </Card>
 
@@ -272,7 +272,7 @@ function AdminReferralsPageContent() {
                 <CardTitle className="text-2xl text-blue-600">{stats.rewarded}</CardTitle>
               </CardHeader>
               <CardContent>
-                <Award className="h-4 w-4 text-blue-500" />
+                <Award className="h-4 w-4 text-blue-500" aria-hidden="true" />
               </CardContent>
             </Card>
           </div>
@@ -305,11 +305,11 @@ function AdminReferralsPageContent() {
                 <TabsContent value={activeTab} className="mt-6">
                   {isLoading ? (
                     <div className="flex justify-center items-center py-12">
-                      <Loader2 className="h-8 w-8 animate-spin text-slate-500" />
+                      <Loader2 className="h-8 w-8 animate-spin text-slate-500" aria-hidden="true" />
                     </div>
                   ) : filteredReferrals.length === 0 ? (
                     <div className="text-center py-12 text-slate-500">
-                      <UserPlus className="h-12 w-12 mx-auto mb-4 text-slate-400" />
+                      <UserPlus className="h-12 w-12 mx-auto mb-4 text-slate-400" aria-hidden="true" />
                       <p>紹介がありません</p>
                     </div>
                   ) : (
@@ -322,11 +322,11 @@ function AdminReferralsPageContent() {
                               <div className="md:col-span-3">
                                 <div className="text-sm text-slate-500 mb-1">紹介者</div>
                                 <div className="flex items-center space-x-2">
-                                  <User className="h-4 w-4 text-slate-400" />
+                                  <User className="h-4 w-4 text-slate-400" aria-hidden="true" />
                                   <div>
                                     <div className="font-medium">{referral.referrer.name}</div>
                                     <div className="text-xs text-slate-500 flex items-center">
-                                      <Mail className="h-3 w-3 mr-1" />
+                                      <Mail className="h-3 w-3 mr-1" aria-hidden="true" />
                                       {referral.referrer.email}
                                     </div>
                                   </div>
@@ -337,11 +337,11 @@ function AdminReferralsPageContent() {
                               <div className="md:col-span-3">
                                 <div className="text-sm text-slate-500 mb-1">入会者</div>
                                 <div className="flex items-center space-x-2">
-                                  <User className="h-4 w-4 text-slate-400" />
+                                  <User className="h-4 w-4 text-slate-400" aria-hidden="true" />
                                   <div>
                                     <div className="font-medium">{referral.referred.name}</div>
                                     <div className="text-xs text-slate-500 flex items-center">
-                                      <Mail className="h-3 w-3 mr-1" />
+                                      <Mail className="h-3 w-3 mr-1" aria-hidden="true" />
                                       {referral.referred.email}
                                     </div>
                                   </div>
@@ -364,7 +364,7 @@ function AdminReferralsPageContent() {
                               <div className="md:col-span-3">
                                 <div className="text-sm text-slate-500 mb-1">紹介日時</div>
                                 <div className="text-sm flex items-center mb-4">
-                                  <Calendar className="h-3 w-3 mr-1 text-slate-400" />
+                                  <Calendar className="h-3 w-3 mr-1 text-slate-400" aria-hidden="true" />
                                   {new Date(referral.createdAt).toLocaleString('ja-JP')}
                                 </div>
 
@@ -378,10 +378,10 @@ function AdminReferralsPageContent() {
                                       className="bg-green-600 hover:bg-green-700"
                                     >
                                       {processingId === referral.id ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                                       ) : (
                                         <>
-                                          <CheckCircle className="h-4 w-4 mr-1" />
+                                          <CheckCircle className="h-4 w-4 mr-1" aria-hidden="true" />
                                           承認
                                         </>
                                       )}
@@ -393,10 +393,10 @@ function AdminReferralsPageContent() {
                                       disabled={processingId === referral.id}
                                     >
                                       {processingId === referral.id ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                                       ) : (
                                         <>
-                                          <XCircle className="h-4 w-4 mr-1" />
+                                          <XCircle className="h-4 w-4 mr-1" aria-hidden="true" />
                                           却下
                                         </>
                                       )}

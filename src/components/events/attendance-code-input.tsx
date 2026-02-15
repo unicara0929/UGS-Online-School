@@ -74,7 +74,7 @@ export function AttendanceCodeInput({ eventId, eventTitle, onSuccess }: Attendan
       <CardContent className="pt-6">
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Key className="h-5 w-5 text-blue-600" />
+            <Key className="h-5 w-5 text-blue-600" aria-hidden="true" />
             <h3 className="font-semibold text-blue-900">参加コードで出席確認</h3>
           </div>
 
@@ -100,12 +100,12 @@ export function AttendanceCodeInput({ eventId, eventTitle, onSuccess }: Attendan
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                   確認中...
                 </>
               ) : (
                 <>
-                  <CheckCircle className="h-4 w-4 mr-2" />
+                  <CheckCircle className="h-4 w-4 mr-2" aria-hidden="true" />
                   出席を確認
                 </>
               )}

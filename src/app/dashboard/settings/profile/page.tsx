@@ -353,7 +353,7 @@ function ProfileSettingsPage() {
             <div className="flex items-center space-x-4">
               <Link href="/dashboard/settings">
                 <Button variant="outline" size="icon" className="hover:bg-white shadow-md">
-                  <ArrowLeft className="h-5 w-5" />
+                  <ArrowLeft className="h-5 w-5" aria-hidden="true" />
                 </Button>
               </Link>
               <div>
@@ -366,7 +366,7 @@ function ProfileSettingsPage() {
             <Card className="shadow-xl border-0">
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Camera className="h-5 w-5 mr-2 text-blue-600" />
+                  <Camera className="h-5 w-5 mr-2 text-blue-600" aria-hidden="true" />
                   プロフィール画像
                 </CardTitle>
                 <CardDescription>
@@ -383,10 +383,10 @@ function ProfileSettingsPage() {
                           alt="プロフィール画像"
                           width={128}
                           height={128}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover" aria-hidden="true"
                         />
                       ) : (
-                        <UserCircle className="h-16 w-16 text-white" />
+                        <UserCircle className="h-16 w-16 text-white" aria-hidden="true" />
                       )}
                     </div>
                     {profileImage && (
@@ -394,7 +394,7 @@ function ProfileSettingsPage() {
                         onClick={handleRemoveImage}
                         className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors"
                       >
-                        <X className="h-4 w-4" />
+                        <X className="h-4 w-4" aria-hidden="true" />
                       </button>
                     )}
                   </div>
@@ -415,7 +415,7 @@ function ProfileSettingsPage() {
                         asChild
                       >
                         <span>
-                          <Upload className="h-4 w-4 mr-2" />
+                          <Upload className="h-4 w-4 mr-2" aria-hidden="true" />
                           {isUploading ? 'アップロード中...' : profileImage ? '画像を変更' : '画像をアップロード'}
                         </span>
                       </Button>
@@ -432,7 +432,7 @@ function ProfileSettingsPage() {
             <Card className="shadow-xl border-0">
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <User className="h-5 w-5 mr-2 text-blue-600" />
+                  <User className="h-5 w-5 mr-2 text-blue-600" aria-hidden="true" />
                   基本情報
                 </CardTitle>
                 <CardDescription>
@@ -461,6 +461,7 @@ function ProfileSettingsPage() {
                     value={profile.email}
                     disabled
                     className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 text-slate-500 cursor-not-allowed"
+                    spellCheck={false}
                   />
                   <p className="text-xs text-slate-500 mt-1">メールアドレスは変更できません</p>
                 </div>
@@ -520,7 +521,7 @@ function ProfileSettingsPage() {
             <Card className="shadow-xl border-0">
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <FileText className="h-5 w-5 mr-2 text-blue-600" />
+                  <FileText className="h-5 w-5 mr-2 text-blue-600" aria-hidden="true" />
                   詳細情報
                 </CardTitle>
                 <CardDescription>
@@ -579,7 +580,7 @@ function ProfileSettingsPage() {
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-slate-700 mb-2 flex items-center">
-                    <CalendarIcon className="h-4 w-4 mr-2 text-slate-400" />
+                    <CalendarIcon className="h-4 w-4 mr-2 text-slate-400" aria-hidden="true" />
                     生年月日
                   </label>
                   <input
@@ -591,7 +592,7 @@ function ProfileSettingsPage() {
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-slate-700 mb-2 flex items-center">
-                    <MapPin className="h-4 w-4 mr-2 text-slate-400" />
+                    <MapPin className="h-4 w-4 mr-2 text-slate-400" aria-hidden="true" />
                     活動地域
                   </label>
                   <select
@@ -651,7 +652,7 @@ function ProfileSettingsPage() {
               <Card className="shadow-xl border-0">
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <FileText className="h-5 w-5 mr-2 text-blue-600" />
+                    <FileText className="h-5 w-5 mr-2 text-blue-600" aria-hidden="true" />
                     インボイス登録番号
                   </CardTitle>
                   <CardDescription>
@@ -732,7 +733,7 @@ function ProfileSettingsPage() {
 export default function ProfileSettingsPageComponent() {
   return (
     <ProtectedRoute>
-      <ProfileSettingsPage />
+      <ProfileSettingsPage aria-hidden="true" />
     </ProtectedRoute>
   )
 }

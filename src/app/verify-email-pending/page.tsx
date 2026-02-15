@@ -16,7 +16,7 @@ function VerifyEmailPendingContent() {
         <CardHeader className="text-center pb-4 sm:pb-6 px-4 sm:px-6">
           <div className="flex justify-center mb-3 sm:mb-4">
             <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
-              <Mail className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+              <Mail className="h-6 w-6 sm:h-8 sm:w-8 text-white" aria-hidden="true" />
             </div>
           </div>
           <CardTitle className="text-xl sm:text-3xl font-bold text-slate-900">
@@ -31,7 +31,7 @@ function VerifyEmailPendingContent() {
           {/* メール送信完了メッセージ */}
           <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 sm:p-6">
             <div className="flex items-start">
-              <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 mr-2 sm:mr-3 mt-0.5 sm:mt-1 flex-shrink-0" />
+              <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 mr-2 sm:mr-3 mt-0.5 sm:mt-1 flex-shrink-0" aria-hidden="true" />
               <div>
                 <p className="font-semibold text-blue-900 mb-1 sm:mb-2 text-sm sm:text-base">
                   確認メールを送信しました！
@@ -51,7 +51,7 @@ function VerifyEmailPendingContent() {
           {/* 次のステップ */}
           <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-6">
             <h3 className="font-semibold text-slate-900 mb-3 sm:mb-4 flex items-center text-sm sm:text-base">
-              <Clock className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-slate-600" />
+              <Clock className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-slate-600" aria-hidden="true" />
               次のステップ
             </h3>
             <div className="space-y-3">

@@ -147,7 +147,7 @@ function AdminSurveyResponsesPageContent({ params }: { params: Promise<{ eventId
           <PageHeader title="アンケート回答一覧" />
           <main className="px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+              <Loader2 className="h-8 w-8 animate-spin text-blue-600" aria-hidden="true" />
               <span className="ml-2 text-slate-600">読み込み中...</span>
             </div>
           </main>
@@ -171,7 +171,7 @@ function AdminSurveyResponsesPageContent({ params }: { params: Promise<{ eventId
                   variant="outline"
                   className="mt-4"
                 >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
                   イベント詳細に戻る
                 </Button>
               </CardContent>
@@ -196,7 +196,7 @@ function AdminSurveyResponsesPageContent({ params }: { params: Promise<{ eventId
                 variant="outline"
                 size="sm"
               >
-                <ArrowLeft className="h-4 w-4 mr-2" />
+                <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
                 戻る
               </Button>
               <div>
@@ -210,7 +210,7 @@ function AdminSurveyResponsesPageContent({ params }: { params: Promise<{ eventId
             </div>
             <Link href={`/dashboard/admin/events/${eventId}/survey`}>
               <Button variant="outline">
-                <Settings className="h-4 w-4 mr-2" />
+                <Settings className="h-4 w-4 mr-2" aria-hidden="true" />
                 アンケート設定
               </Button>
             </Link>
@@ -240,7 +240,7 @@ function AdminSurveyResponsesPageContent({ params }: { params: Promise<{ eventId
                         <p className="text-sm text-slate-600">回答数</p>
                         <p className="text-3xl font-bold">{totalResponses}</p>
                       </div>
-                      <Users className="h-10 w-10 text-blue-500" />
+                      <Users className="h-10 w-10 text-blue-500" aria-hidden="true" />
                     </div>
                   </CardContent>
                 </Card>
@@ -251,7 +251,7 @@ function AdminSurveyResponsesPageContent({ params }: { params: Promise<{ eventId
                         <p className="text-sm text-slate-600">質問数</p>
                         <p className="text-3xl font-bold">{survey.questions.length}</p>
                       </div>
-                      <FileText className="h-10 w-10 text-green-500" />
+                      <FileText className="h-10 w-10 text-green-500" aria-hidden="true" />
                     </div>
                   </CardContent>
                 </Card>
@@ -262,7 +262,7 @@ function AdminSurveyResponsesPageContent({ params }: { params: Promise<{ eventId
                         <p className="text-sm text-slate-600">回答率</p>
                         <p className="text-3xl font-bold">-</p>
                       </div>
-                      <BarChart3 className="h-10 w-10 text-purple-500" />
+                      <BarChart3 className="h-10 w-10 text-purple-500" aria-hidden="true" />
                     </div>
                   </CardContent>
                 </Card>
@@ -366,7 +366,7 @@ function AdminSurveyResponsesPageContent({ params }: { params: Promise<{ eventId
                                   <div key={rating} className="flex items-center gap-2">
                                     <div className="flex items-center gap-1 w-16">
                                       {Array.from({ length: rating }).map((_, i) => (
-                                        <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                        <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" aria-hidden="true" />
                                       ))}
                                     </div>
                                     <div className="flex-1 h-6 bg-slate-100 rounded-full overflow-hidden">

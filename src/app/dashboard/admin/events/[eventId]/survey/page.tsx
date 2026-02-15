@@ -353,7 +353,7 @@ function AdminSurveyPageContent({ params }: { params: Promise<{ eventId: string 
           <PageHeader title="アンケート設定" />
           <main className="px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+              <Loader2 className="h-8 w-8 animate-spin text-blue-600" aria-hidden="true" />
               <span className="ml-2 text-slate-600">読み込み中...</span>
             </div>
           </main>
@@ -376,7 +376,7 @@ function AdminSurveyPageContent({ params }: { params: Promise<{ eventId: string 
                 variant="outline"
                 size="sm"
               >
-                <ArrowLeft className="h-4 w-4 mr-2" />
+                <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
                 戻る
               </Button>
               <div>
@@ -395,7 +395,7 @@ function AdminSurveyPageContent({ params }: { params: Promise<{ eventId: string 
                 onClick={() => setShowTemplateDialog(true)}
                 disabled={templates.length === 0}
               >
-                <Download className="h-4 w-4 mr-2" />
+                <Download className="h-4 w-4 mr-2" aria-hidden="true" />
                 テンプレート使用
               </Button>
               {questions.length > 0 && (
@@ -403,14 +403,14 @@ function AdminSurveyPageContent({ params }: { params: Promise<{ eventId: string 
                   variant="outline"
                   onClick={() => setShowSaveTemplateDialog(true)}
                 >
-                  <Upload className="h-4 w-4 mr-2" />
+                  <Upload className="h-4 w-4 mr-2" aria-hidden="true" />
                   テンプレート保存
                 </Button>
               )}
               {survey && (
                 <Link href={`/dashboard/admin/events/${eventId}/survey/responses`}>
                   <Button variant="outline">
-                    <Eye className="h-4 w-4 mr-2" />
+                    <Eye className="h-4 w-4 mr-2" aria-hidden="true" />
                     回答を見る
                   </Button>
                 </Link>
@@ -418,12 +418,12 @@ function AdminSurveyPageContent({ params }: { params: Promise<{ eventId: string 
               <Button onClick={handleSave} disabled={isSaving}>
                 {isSaving ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                     保存中...
                   </>
                 ) : (
                   <>
-                    <Save className="h-4 w-4 mr-2" />
+                    <Save className="h-4 w-4 mr-2" aria-hidden="true" />
                     保存
                   </>
                 )}
@@ -452,7 +452,7 @@ function AdminSurveyPageContent({ params }: { params: Promise<{ eventId: string 
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
+                <FileText className="h-5 w-5" aria-hidden="true" />
                 基本設定
               </CardTitle>
             </CardHeader>
@@ -498,7 +498,7 @@ function AdminSurveyPageContent({ params }: { params: Promise<{ eventId: string 
                     <CardContent className="pt-4 space-y-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <GripVertical className="h-4 w-4 text-slate-400 cursor-move" />
+                          <GripVertical className="h-4 w-4 text-slate-400 cursor-move" aria-hidden="true" />
                           <Badge variant="outline">Q{index + 1}</Badge>
                           <Badge variant="secondary">{questionTypeLabels[question.type]}</Badge>
                           {question.required && <Badge className="bg-red-100 text-red-700">必須</Badge>}
@@ -509,7 +509,7 @@ function AdminSurveyPageContent({ params }: { params: Promise<{ eventId: string 
                           onClick={() => removeQuestion(index)}
                           className="text-red-600 hover:text-red-700"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" aria-hidden="true" />
                         </Button>
                       </div>
 
@@ -570,7 +570,7 @@ function AdminSurveyPageContent({ params }: { params: Promise<{ eventId: string 
                                   onClick={() => removeOption(index, optIndex)}
                                   className="text-red-600"
                                 >
-                                  <Trash2 className="h-4 w-4" />
+                                  <Trash2 className="h-4 w-4" aria-hidden="true" />
                                 </Button>
                               </div>
                             ))}
@@ -579,7 +579,7 @@ function AdminSurveyPageContent({ params }: { params: Promise<{ eventId: string 
                               size="sm"
                               onClick={() => addOption(index)}
                             >
-                              <Plus className="h-4 w-4 mr-1" />
+                              <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
                               選択肢を追加
                             </Button>
                           </div>
@@ -602,7 +602,7 @@ function AdminSurveyPageContent({ params }: { params: Promise<{ eventId: string 
               )}
 
               <Button variant="outline" onClick={addQuestion} className="w-full">
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
                 質問を追加
               </Button>
             </CardContent>
@@ -615,7 +615,7 @@ function AdminSurveyPageContent({ params }: { params: Promise<{ eventId: string 
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <BookTemplate className="h-5 w-5" />
+              <BookTemplate className="h-5 w-5" aria-hidden="true" />
               テンプレートを選択
             </DialogTitle>
             <DialogDescription>
@@ -658,7 +658,7 @@ function AdminSurveyPageContent({ params }: { params: Promise<{ eventId: string 
                           onClick={() => deleteTemplate(template.id)}
                           className="text-red-600 hover:text-red-700"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" aria-hidden="true" />
                         </Button>
                       </div>
                     </div>
@@ -680,7 +680,7 @@ function AdminSurveyPageContent({ params }: { params: Promise<{ eventId: string 
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Upload className="h-5 w-5" />
+              <Upload className="h-5 w-5" aria-hidden="true" />
               テンプレートとして保存
             </DialogTitle>
             <DialogDescription>
@@ -715,7 +715,7 @@ function AdminSurveyPageContent({ params }: { params: Promise<{ eventId: string 
             <Button onClick={saveAsTemplate} disabled={isSavingTemplate}>
               {isSavingTemplate ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                   保存中...
                 </>
               ) : (

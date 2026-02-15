@@ -343,7 +343,7 @@ function EventDetailPageContent() {
           <main className="px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
             <div className="flex items-center justify-center py-12">
               <div className="flex items-center text-slate-500">
-                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" aria-hidden="true" />
                 読み込み中です
               </div>
             </div>
@@ -366,7 +366,7 @@ function EventDetailPageContent() {
               </CardContent>
             </Card>
             <Button variant="outline" onClick={() => router.push('/dashboard/events')} className="mt-4">
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
               イベント一覧に戻る
             </Button>
           </main>
@@ -386,7 +386,7 @@ function EventDetailPageContent() {
           <div className="space-y-6 max-w-4xl mx-auto">
             {/* 戻るボタン */}
             <Button variant="outline" onClick={() => router.push('/dashboard/events')}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
               イベント一覧に戻る
             </Button>
 
@@ -440,14 +440,14 @@ function EventDetailPageContent() {
                 {/* 開催情報 */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
                   <div className="flex items-center text-slate-600">
-                    <Calendar className="h-5 w-5 mr-3 text-slate-400" />
+                    <Calendar className="h-5 w-5 mr-3 text-slate-400" aria-hidden="true" />
                     <div>
                       <div className="text-sm text-slate-500">開催日</div>
                       <div className="font-medium">{formatDate(event.date)}</div>
                     </div>
                   </div>
                   <div className="flex items-center text-slate-600">
-                    <Clock className="h-5 w-5 mr-3 text-slate-400" />
+                    <Clock className="h-5 w-5 mr-3 text-slate-400" aria-hidden="true" />
                     <div>
                       <div className="text-sm text-slate-500">時間</div>
                       <div className="font-medium">{event.time || '時間未定'}</div>
@@ -455,9 +455,9 @@ function EventDetailPageContent() {
                   </div>
                   <div className="flex items-center text-slate-600">
                     {event.venueType === 'online' ? (
-                      <Video className="h-5 w-5 mr-3 text-slate-400" />
+                      <Video className="h-5 w-5 mr-3 text-slate-400" aria-hidden="true" />
                     ) : (
-                      <MapPin className="h-5 w-5 mr-3 text-slate-400" />
+                      <MapPin className="h-5 w-5 mr-3 text-slate-400" aria-hidden="true" />
                     )}
                     <div>
                       <div className="text-sm text-slate-500">場所</div>
@@ -467,7 +467,7 @@ function EventDetailPageContent() {
                   {/* オンライン参加URL */}
                   {event.onlineMeetingUrl && (
                     <div className="flex items-center text-slate-600 md:col-span-2 min-w-0">
-                      <ExternalLink className="h-5 w-5 mr-3 text-slate-400 shrink-0" />
+                      <ExternalLink className="h-5 w-5 mr-3 text-slate-400 shrink-0" aria-hidden="true" />
                       <div className="min-w-0">
                         <div className="text-sm text-slate-500">オンライン参加URL</div>
                         <a
@@ -484,7 +484,7 @@ function EventDetailPageContent() {
                   {/* 外部参加者向け申込URL */}
                   {event.allowExternalParticipation && event.externalRegistrationToken && (
                     <div className="flex items-start text-slate-600 md:col-span-2 min-w-0">
-                      <Link className="h-5 w-5 mr-3 mt-0.5 text-slate-400 shrink-0" />
+                      <Link className="h-5 w-5 mr-3 mt-0.5 text-slate-400 shrink-0" aria-hidden="true" />
                       <div className="flex-1 min-w-0">
                         <div className="text-sm text-slate-500">外部参加者向け申込URL</div>
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-1">
@@ -505,7 +505,7 @@ function EventDetailPageContent() {
                               alert('URLをコピーしました')
                             }}
                           >
-                            <Copy className="h-4 w-4 mr-1" />
+                            <Copy className="h-4 w-4 mr-1" aria-hidden="true" />
                             コピー
                           </Button>
                         </div>
@@ -515,7 +515,7 @@ function EventDetailPageContent() {
                   {/* 全体MTGの場合は参加者数を非表示 */}
                   {!event.isRecurring && (
                     <div className="flex items-center text-slate-600">
-                      <Users className="h-5 w-5 mr-3 text-slate-400" />
+                      <Users className="h-5 w-5 mr-3 text-slate-400" aria-hidden="true" />
                       <div>
                         <div className="text-sm text-slate-500">参加者</div>
                         <div className="font-medium">
@@ -595,7 +595,7 @@ function EventDetailPageContent() {
                       return (
                         <div className="p-3 rounded-lg border border-blue-500 bg-blue-50">
                           <div className="flex items-center gap-2">
-                            <CheckCircle2 className="h-5 w-5 text-blue-600" />
+                            <CheckCircle2 className="h-5 w-5 text-blue-600" aria-hidden="true" />
                             <span className="font-medium text-slate-900">
                               {formatDate(registeredSchedule.date)}
                             </span>
@@ -834,7 +834,7 @@ function EventDetailPageContent() {
                           ? 'bg-red-100 text-red-700'
                           : 'bg-blue-100 text-blue-700'
                       }`}>
-                        <Clock className="inline h-3.5 w-3.5 mr-1" />
+                        <Clock className="inline h-3.5 w-3.5 mr-1" aria-hidden="true" />
                         期限: {format(new Date(event.attendanceDeadline), 'M月d日(E) HH:mm', { locale: ja })}
                         {new Date(event.attendanceDeadline) < new Date() && ' (期限切れ)'}
                       </div>
@@ -952,7 +952,7 @@ function EventDetailPageContent() {
               <Card className="border-green-200 bg-green-50 overflow-hidden">
                 <CardContent className="p-4 sm:py-6 sm:px-6">
                   <div className="flex items-center gap-3 text-green-800">
-                    <CheckCircle2 className="h-6 w-6 shrink-0" />
+                    <CheckCircle2 className="h-6 w-6 shrink-0" aria-hidden="true" />
                     <div>
                       <p className="font-semibold text-lg">
                         {event.attendanceMethod === 'CODE' ? '出席完了' : '動画視聴+アンケート完了'}
@@ -976,7 +976,7 @@ function EventDetailPageContent() {
                 <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
                   {event.exemption?.status === 'APPROVED' ? (
                     <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg border border-green-200">
-                      <CheckCircle2 className="h-6 w-6 text-green-600" />
+                      <CheckCircle2 className="h-6 w-6 text-green-600" aria-hidden="true" />
                       <div>
                         <p className="font-semibold text-green-800">欠席申請が承認されました</p>
                         <p className="text-sm text-green-700">今月の全体MTGへの参加は免除されています</p>
@@ -1066,7 +1066,7 @@ function EventDetailPageContent() {
                   {event.photos.length > 0 && (
                     <div className="pt-4 border-t">
                       <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
-                        <ImageIcon className="h-5 w-5" />
+                        <ImageIcon className="h-5 w-5" aria-hidden="true" />
                         イベント写真
                       </h3>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -1098,9 +1098,9 @@ function EventDetailPageContent() {
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
                       >
-                        <FileText className="h-5 w-5" />
+                        <FileText className="h-5 w-5" aria-hidden="true" />
                         イベント資料をダウンロード
-                        <Download className="h-4 w-4" />
+                        <Download className="h-4 w-4" aria-hidden="true" />
                       </a>
                     </div>
                   )}

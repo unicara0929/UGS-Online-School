@@ -271,7 +271,7 @@ export function ResetPasswordForm() {
                 height={32} 
                 className="object-contain"
                 priority
-                onError={() => setLogoError(true)}
+                onError={() => setLogoError(true)} aria-hidden="true"
               />
             )}
             <CardTitle className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
@@ -298,7 +298,7 @@ export function ResetPasswordForm() {
           ) : sessionError ? (
             <div className="space-y-4">
               <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-3">
-                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-red-800">セッションエラー</p>
                   <p className="text-sm text-red-700 mt-1">{sessionError}</p>
@@ -312,7 +312,7 @@ export function ResetPasswordForm() {
                 </Link>
                 <Link href="/login">
                   <Button className="w-full" variant="ghost">
-                    <ArrowLeft className="h-4 w-4 mr-1" />
+                    <ArrowLeft className="h-4 w-4 mr-1" aria-hidden="true" />
                     ログインページに戻る
                   </Button>
                 </Link>
@@ -321,7 +321,7 @@ export function ResetPasswordForm() {
           ) : success ? (
             <div className="space-y-4">
               <div className="p-4 bg-green-50 border border-green-200 rounded-xl flex items-start space-x-3">
-                <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-green-800">パスワードを更新しました</p>
                   <p className="text-sm text-green-700 mt-1">
@@ -339,7 +339,7 @@ export function ResetPasswordForm() {
             <form onSubmit={handleSubmit} className="space-y-5">
               {formError && (
                 <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-3">
-                  <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-red-800">入力エラー</p>
                     <p className="text-sm text-red-700 mt-1">{formError}</p>
@@ -355,7 +355,7 @@ export function ResetPasswordForm() {
                   新しいパスワード
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" aria-hidden="true" />
                   <input
                     id="password"
                     type="password"
@@ -377,7 +377,7 @@ export function ResetPasswordForm() {
                   パスワード（確認）
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" aria-hidden="true" />
                   <input
                     id="confirmPassword"
                     type="password"
@@ -411,7 +411,7 @@ export function ResetPasswordForm() {
 
               <div className="text-center">
                 <Link href="/login" className="text-sm text-slate-600 hover:text-slate-900">
-                  <ArrowLeft className="h-4 w-4 inline mr-1" />
+                  <ArrowLeft className="h-4 w-4 inline mr-1" aria-hidden="true" />
                   ログインページに戻る
                 </Link>
               </div>

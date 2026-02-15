@@ -375,11 +375,11 @@ function AdminFAQPageContent() {
                       </div>
                       <div className="flex gap-2">
                         <Button onClick={handleSubmitFAQ} disabled={isSubmittingFAQ}>
-                          {isSubmittingFAQ ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                          {isSubmittingFAQ ? <Loader2 className="h-4 w-4 animate-spin mr-2" aria-hidden="true" /> : <Save className="h-4 w-4 mr-2" aria-hidden="true" />}
                           {editingFAQ ? '更新' : '作成'}
                         </Button>
                         <Button variant="outline" onClick={resetFAQForm}>
-                          <X className="h-4 w-4 mr-2" />キャンセル
+                          <X className="h-4 w-4 mr-2" aria-hidden="true" />キャンセル
                         </Button>
                       </div>
                     </CardContent>
@@ -392,14 +392,14 @@ function AdminFAQPageContent() {
                     <div className="flex items-center justify-between">
                       <CardTitle>FAQ一覧</CardTitle>
                       <Button onClick={() => { resetFAQForm(); setShowFAQForm(true); }}>
-                        <Plus className="h-4 w-4 mr-2" />新規FAQ作成
+                        <Plus className="h-4 w-4 mr-2" aria-hidden="true" />新規FAQ作成
                       </Button>
                     </div>
                   </CardHeader>
                   <CardContent>
                     {isLoading ? (
                       <div className="flex items-center justify-center py-8">
-                        <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+                        <Loader2 className="h-5 w-5 animate-spin text-slate-400" aria-hidden="true" />
                       </div>
                     ) : faqs.length === 0 ? (
                       <p className="text-sm text-slate-500 text-center py-8">FAQがまだありません</p>
@@ -421,13 +421,13 @@ function AdminFAQPageContent() {
                               </div>
                               <div className="flex items-center gap-1">
                                 <Button size="sm" variant="ghost" onClick={() => handleToggleFAQPublished(faq)}>
-                                  {faq.isPublished ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                  {faq.isPublished ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
                                 </Button>
                                 <Button size="sm" variant="ghost" onClick={() => startEditFAQ(faq)}>
-                                  <Edit className="h-4 w-4" />
+                                  <Edit className="h-4 w-4" aria-hidden="true" />
                                 </Button>
                                 <Button size="sm" variant="ghost" onClick={() => handleDeleteFAQ(faq)}>
-                                  <Trash2 className="h-4 w-4" />
+                                  <Trash2 className="h-4 w-4" aria-hidden="true" />
                                 </Button>
                               </div>
                             </div>
@@ -493,11 +493,11 @@ function AdminFAQPageContent() {
                       </div>
                       <div className="flex gap-2">
                         <Button onClick={handleSubmitCategory} disabled={isSubmittingCategory}>
-                          {isSubmittingCategory ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                          {isSubmittingCategory ? <Loader2 className="h-4 w-4 animate-spin mr-2" aria-hidden="true" /> : <Save className="h-4 w-4 mr-2" aria-hidden="true" />}
                           {editingCategory ? '更新' : '作成'}
                         </Button>
                         <Button variant="outline" onClick={resetCategoryForm}>
-                          <X className="h-4 w-4 mr-2" />キャンセル
+                          <X className="h-4 w-4 mr-2" aria-hidden="true" />キャンセル
                         </Button>
                       </div>
                     </CardContent>
@@ -510,7 +510,7 @@ function AdminFAQPageContent() {
                     <div className="flex items-center justify-between">
                       <CardTitle>カテゴリ一覧</CardTitle>
                       <Button onClick={() => { resetCategoryForm(); setShowCategoryForm(true); }}>
-                        <FolderPlus className="h-4 w-4 mr-2" />新規カテゴリ作成
+                        <FolderPlus className="h-4 w-4 mr-2" aria-hidden="true" />新規カテゴリ作成
                       </Button>
                     </div>
                   </CardHeader>
@@ -536,10 +536,10 @@ function AdminFAQPageContent() {
                             </div>
                             <div className="flex items-center gap-1">
                               <Button size="sm" variant="ghost" onClick={() => startEditCategory(category)}>
-                                <Edit className="h-4 w-4" />
+                                <Edit className="h-4 w-4" aria-hidden="true" />
                               </Button>
                               <Button size="sm" variant="ghost" onClick={() => handleDeleteCategory(category)}>
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-4 w-4" aria-hidden="true" />
                               </Button>
                             </div>
                           </div>

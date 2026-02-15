@@ -127,7 +127,7 @@ export function MtgEventForm({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  <Users className="inline h-4 w-4 mr-1" />
+                  <Users className="inline h-4 w-4 mr-1" aria-hidden="true" />
                   タイトル <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -141,7 +141,7 @@ export function MtgEventForm({
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  <Calendar className="inline h-4 w-4 mr-1" />
+                  <Calendar className="inline h-4 w-4 mr-1" aria-hidden="true" />
                   開催日 <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -154,7 +154,7 @@ export function MtgEventForm({
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  <Clock className="inline h-4 w-4 mr-1" />
+                  <Clock className="inline h-4 w-4 mr-1" aria-hidden="true" />
                   時間 <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -168,7 +168,7 @@ export function MtgEventForm({
 
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  <MapPin className="inline h-4 w-4 mr-1" />
+                  <MapPin className="inline h-4 w-4 mr-1" aria-hidden="true" />
                   場所 <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -182,7 +182,7 @@ export function MtgEventForm({
 
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  <Link className="inline h-4 w-4 mr-1" />
+                  <Link className="inline h-4 w-4 mr-1" aria-hidden="true" />
                   オンライン参加URL
                 </label>
                 <input
@@ -210,7 +210,7 @@ export function MtgEventForm({
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  <Key className="inline h-4 w-4 mr-1" />
+                  <Key className="inline h-4 w-4 mr-1" aria-hidden="true" />
                   参加コード（当日入力用） <span className="text-red-500">*</span>
                 </label>
                 <div className="flex gap-2">
@@ -232,7 +232,7 @@ export function MtgEventForm({
               {/* 参加申込期限 */}
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  <Calendar className="inline h-4 w-4 mr-1" />
+                  <Calendar className="inline h-4 w-4 mr-1" aria-hidden="true" />
                   参加申込期限 <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -254,7 +254,7 @@ export function MtgEventForm({
                   </div>
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-slate-700 mb-1">
-                      <Video className="inline h-4 w-4 mr-1" />
+                      <Video className="inline h-4 w-4 mr-1" aria-hidden="true" />
                       Vimeo動画URL
                     </label>
                     <input
@@ -268,7 +268,7 @@ export function MtgEventForm({
                   </div>
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-slate-700 mb-1">
-                      <FileText className="inline h-4 w-4 mr-1" />
+                      <FileText className="inline h-4 w-4 mr-1" aria-hidden="true" />
                       資料URL
                     </label>
                     <input
@@ -291,7 +291,7 @@ export function MtgEventForm({
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  <Video className="inline h-4 w-4 mr-1" />
+                  <Video className="inline h-4 w-4 mr-1" aria-hidden="true" />
                   Vimeo動画URL <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -306,7 +306,7 @@ export function MtgEventForm({
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  <FileText className="inline h-4 w-4 mr-1" />
+                  <FileText className="inline h-4 w-4 mr-1" aria-hidden="true" />
                   資料URL
                 </label>
                 <input
@@ -330,7 +330,7 @@ export function MtgEventForm({
           <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700">
             {isSubmitting ? (
               <span className="flex items-center">
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                 処理中...
               </span>
             ) : (

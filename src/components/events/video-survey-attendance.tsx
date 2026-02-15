@@ -249,7 +249,7 @@ export function VideoSurveyAttendance({
       <CardContent className="pt-6">
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Video className="h-5 w-5 text-purple-600" />
+            <Video className="h-5 w-5 text-purple-600" aria-hidden="true" />
             <h3 className="font-semibold text-purple-900">録画視聴+アンケートで出席確認</h3>
           </div>
 
@@ -260,14 +260,14 @@ export function VideoSurveyAttendance({
           {/* 進捗状況 */}
           <div className="space-y-2">
             <div className={`flex items-center gap-2 p-3 rounded-md ${videoWatched ? 'bg-green-100' : 'bg-white'}`}>
-              <CheckCircle2 className={`h-5 w-5 ${videoWatched ? 'text-green-600' : 'text-slate-300'}`} />
+              <CheckCircle2 className={`h-5 w-5 ${videoWatched ? 'text-green-600' : 'text-slate-300'}`} aria-hidden="true" />
               <span className={`text-sm font-medium ${videoWatched ? 'text-green-800' : 'text-slate-600'}`}>
                 録画視聴 {videoWatched ? '✓' : showVideo && videoProgress > 0 ? `(${videoProgress}%)` : ''}
               </span>
             </div>
 
             <div className={`flex items-center gap-2 p-3 rounded-md ${surveyCompleted ? 'bg-green-100' : 'bg-white'}`}>
-              <CheckCircle2 className={`h-5 w-5 ${surveyCompleted ? 'text-green-600' : 'text-slate-300'}`} />
+              <CheckCircle2 className={`h-5 w-5 ${surveyCompleted ? 'text-green-600' : 'text-slate-300'}`} aria-hidden="true" />
               <span className={`text-sm font-medium ${surveyCompleted ? 'text-green-800' : 'text-slate-600'}`}>
                 アンケート回答 {surveyCompleted && '✓'}
               </span>
@@ -282,17 +282,17 @@ export function VideoSurveyAttendance({
                   <Button variant="outline" className="w-full" onClick={() => setShowVideo(true)} disabled={isLoadingProgress}>
                     {isLoadingProgress ? (
                       <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                         読み込み中...
                       </>
                     ) : savedProgress > 0 ? (
                       <>
-                        <Video className="h-4 w-4 mr-2" />
+                        <Video className="h-4 w-4 mr-2" aria-hidden="true" />
                         続きから視聴する（{Math.floor(savedProgress / 60)}分{Math.floor(savedProgress % 60)}秒〜）
                       </>
                     ) : (
                       <>
-                        <Video className="h-4 w-4 mr-2" />
+                        <Video className="h-4 w-4 mr-2" aria-hidden="true" />
                         録画を視聴する
                       </>
                     )}
@@ -335,7 +335,7 @@ export function VideoSurveyAttendance({
 
                   {isMarkingVideo && (
                     <div className="flex items-center justify-center gap-2 text-purple-600">
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                       <span className="text-sm">視聴完了を記録中...</span>
                     </div>
                   )}
@@ -348,7 +348,7 @@ export function VideoSurveyAttendance({
           {videoWatched && !surveyCompleted && (
             <div className="bg-green-100 border border-green-200 rounded-lg p-3">
               <p className="text-sm text-green-800 flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4" />
+                <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
                 動画視聴が完了しました。次にアンケートに回答してください。
               </p>
             </div>
@@ -362,8 +362,8 @@ export function VideoSurveyAttendance({
                 className="w-full"
                 onClick={handleOpenSurvey}
               >
-                <FileText className="h-4 w-4 mr-2" />
-                <ExternalLink className="h-3 w-3 mr-1" />
+                <FileText className="h-4 w-4 mr-2" aria-hidden="true" />
+                <ExternalLink className="h-3 w-3 mr-1" aria-hidden="true" />
                 アンケートに回答する（別タブで開く）
               </Button>
 
@@ -376,12 +376,12 @@ export function VideoSurveyAttendance({
                 >
                   {isMarkingSurvey ? (
                     <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                       記録中...
                     </>
                   ) : (
                     <>
-                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      <CheckCircle2 className="h-4 w-4 mr-2" aria-hidden="true" />
                       アンケート回答完了を記録
                     </>
                   )}
@@ -400,7 +400,7 @@ export function VideoSurveyAttendance({
           {surveyUrl && !videoWatched && !surveyCompleted && (
             <div className="bg-slate-100 border border-slate-200 rounded-lg p-3">
               <p className="text-sm text-slate-600 flex items-center gap-2">
-                <FileText className="h-4 w-4" />
+                <FileText className="h-4 w-4" aria-hidden="true" />
                 アンケートは動画を最後まで視聴してから回答できます
               </p>
             </div>
@@ -423,7 +423,7 @@ export function VideoSurveyAttendance({
           {bothCompleted && (
             <div className="bg-green-100 border border-green-200 rounded-lg p-4">
               <div className="flex items-center gap-2 text-green-800">
-                <CheckCircle2 className="h-5 w-5" />
+                <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
                 <div>
                   <p className="font-semibold">動画視聴+アンケート完了</p>
                 </div>

@@ -336,7 +336,7 @@ function LPMeetingRequestPageContent() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-slate-600" aria-hidden="true" />
       </div>
     )
   }
@@ -354,7 +354,7 @@ function LPMeetingRequestPageContent() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <Calendar className="h-5 w-5 mr-2" />
+                    <Calendar className="h-5 w-5 mr-2" aria-hidden="true" />
                     面談状況
                   </CardTitle>
                   <CardDescription>現在のLP面談の状況</CardDescription>
@@ -382,7 +382,7 @@ function LPMeetingRequestPageContent() {
                         )}
                         <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                           <p className="text-sm text-yellow-800">
-                            <Clock className="h-4 w-4 inline mr-1" />
+                            <Clock className="h-4 w-4 inline mr-1" aria-hidden="true" />
                             申請済みです。運営側で確認後、面談が確定されます。
                           </p>
                         </div>
@@ -405,7 +405,7 @@ function LPMeetingRequestPageContent() {
                           <div>
                             <p className="text-sm font-medium text-slate-700 mb-1">オンライン面談URL</p>
                             <div className="flex items-center space-x-2">
-                              <Video className="h-4 w-4 text-slate-600" />
+                              <Video className="h-4 w-4 text-slate-600" aria-hidden="true" />
                               <a
                                 href={meeting.meetingUrl}
                                 target="_blank"
@@ -475,7 +475,7 @@ function LPMeetingRequestPageContent() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Calendar className="h-5 w-5 mr-2" />
+                  <Calendar className="h-5 w-5 mr-2" aria-hidden="true" />
                   LP面談予約申請
                 </CardTitle>
                 <CardDescription>
@@ -590,7 +590,7 @@ function LPMeetingRequestPageContent() {
                       {validationError && (
                         <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                           <p className="text-sm text-red-800">
-                            <XCircle className="h-4 w-4 inline mr-1" />
+                            <XCircle className="h-4 w-4 inline mr-1" aria-hidden="true" />
                             {validationError}
                           </p>
                         </div>
@@ -618,12 +618,12 @@ function LPMeetingRequestPageContent() {
                   >
                     {isSubmitting ? (
                       <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                         申請中...
                       </>
                     ) : (
                       <>
-                        <Calendar className="h-4 w-4 mr-2" />
+                        <Calendar className="h-4 w-4 mr-2" aria-hidden="true" />
                         面談予約を申請
                       </>
                     )}

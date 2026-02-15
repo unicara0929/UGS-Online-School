@@ -111,7 +111,7 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-slate-600" aria-hidden="true" />
       </div>
     )
   }
@@ -138,15 +138,15 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 sm:p-6 sm:pb-2">
             <CardTitle className="text-xs sm:text-sm font-medium">今月の報酬</CardTitle>
-            <DollarSign className="h-4 w-4 text-slate-600" />
+            <DollarSign className="h-4 w-4 text-slate-600" aria-hidden="true" />
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0">
-            <div className="text-xl sm:text-2xl font-bold">
+            <div className="text-xl sm:text-2xl font-bold tabular-nums">
               {formatCurrency(stats?.currentMonth?.amount || 0)}
             </div>
             {stats?.trend !== undefined && stats.trend !== 0 && (
-              <p className={`text-xs flex items-center ${stats.trend > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                <TrendingUp className="h-3 w-3 mr-1" />
+              <p className={`text-xs flex items-center tabular-nums ${stats.trend > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <TrendingUp className="h-3 w-3 mr-1" aria-hidden="true" />
                 {stats.trend > 0 ? '+' : ''}{stats.trend}% 前月比
               </p>
             )}
@@ -156,10 +156,10 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 sm:p-6 sm:pb-2">
             <CardTitle className="text-xs sm:text-sm font-medium">先月の報酬</CardTitle>
-            <Calendar className="h-4 w-4 text-slate-600" />
+            <Calendar className="h-4 w-4 text-slate-600" aria-hidden="true" />
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0">
-            <div className="text-xl sm:text-2xl font-bold">
+            <div className="text-xl sm:text-2xl font-bold tabular-nums">
               {formatCurrency(stats?.lastMonth?.amount || 0)}
             </div>
             <p className="text-xs text-slate-600">
@@ -171,10 +171,10 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
         <Card className="sm:col-span-2 lg:col-span-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 sm:p-6 sm:pb-2">
             <CardTitle className="text-xs sm:text-sm font-medium">累計報酬</CardTitle>
-            <TrendingUp className="h-4 w-4 text-slate-600" />
+            <TrendingUp className="h-4 w-4 text-slate-600" aria-hidden="true" />
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0">
-            <div className="text-xl sm:text-2xl font-bold">{formatCurrency(stats?.total || 0)}</div>
+            <div className="text-xl sm:text-2xl font-bold tabular-nums">{formatCurrency(stats?.total || 0)}</div>
             <p className="text-xs text-slate-600">累計受取報酬</p>
           </CardContent>
         </Card>
@@ -191,15 +191,15 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               <div className="p-3 sm:p-4 bg-blue-50 rounded-lg">
                 <p className="text-xs sm:text-sm text-blue-600 font-medium">FPエイド期間</p>
-                <p className="text-lg sm:text-xl font-bold text-blue-900">{formatCurrency(stats.totalByRole.FP)}</p>
+                <p className="text-lg sm:text-xl font-bold text-blue-900 tabular-nums">{formatCurrency(stats.totalByRole.FP)}</p>
               </div>
               <div className="p-3 sm:p-4 bg-purple-50 rounded-lg">
                 <p className="text-xs sm:text-sm text-purple-600 font-medium">MGR期間</p>
-                <p className="text-lg sm:text-xl font-bold text-purple-900">{formatCurrency(stats.totalByRole.MANAGER)}</p>
+                <p className="text-lg sm:text-xl font-bold text-purple-900 tabular-nums">{formatCurrency(stats.totalByRole.MANAGER)}</p>
               </div>
               <div className="p-3 sm:p-4 bg-slate-100 rounded-lg">
                 <p className="text-xs sm:text-sm text-slate-600 font-medium">累計受取報酬</p>
-                <p className="text-lg sm:text-xl font-bold text-slate-900">{formatCurrency(stats.total)}</p>
+                <p className="text-lg sm:text-xl font-bold text-slate-900 tabular-nums">{formatCurrency(stats.total)}</p>
               </div>
             </div>
           </CardContent>
@@ -210,7 +210,7 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
       <Card>
         <CardHeader className="p-4 sm:p-6">
           <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-            <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
+            <Filter className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
             フィルタ
           </CardTitle>
         </CardHeader>
@@ -301,7 +301,7 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 mb-3">
                       <div className="flex items-center gap-2 sm:gap-3">
-                        <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600 flex-shrink-0" />
+                        <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600 flex-shrink-0" aria-hidden="true" />
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="font-semibold text-slate-900 text-sm sm:text-base">{compensation.month}</p>
@@ -315,11 +315,11 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
                               {compensation.earnedAsRole === 'FP' ? 'FPエイド' : 'マネージャー'}
                             </Badge>
                           </div>
-                          <p className="text-xs sm:text-sm text-slate-600">契約件数: {compensation.contractCount}件</p>
+                          <p className="text-xs sm:text-sm text-slate-600 tabular-nums">契約件数: {compensation.contractCount}件</p>
                         </div>
                       </div>
                       <div className="text-left sm:text-right flex sm:flex-col items-center sm:items-end gap-2 sm:gap-0">
-                        <p className="text-lg sm:text-xl font-bold text-slate-900">{formatCurrency(compensation.amount)}</p>
+                        <p className="text-lg sm:text-xl font-bold text-slate-900 tabular-nums">{formatCurrency(compensation.amount)}</p>
                         <Badge className="bg-green-100 text-green-800 text-xs">
                           支払済み
                         </Badge>
@@ -328,19 +328,19 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
                     <div className="grid grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm">
                       <div className="p-2 bg-slate-50 rounded">
                         <p className="text-slate-600">会員紹介</p>
-                        <p className="font-medium">{formatCurrency(compensation.breakdown.memberReferral)}</p>
+                        <p className="font-medium tabular-nums">{formatCurrency(compensation.breakdown.memberReferral)}</p>
                       </div>
                       <div className="p-2 bg-slate-50 rounded">
                         <p className="text-slate-600">FP紹介</p>
-                        <p className="font-medium">{formatCurrency(compensation.breakdown.fpReferral)}</p>
+                        <p className="font-medium tabular-nums">{formatCurrency(compensation.breakdown.fpReferral)}</p>
                       </div>
                       <div className="p-2 bg-slate-50 rounded">
                         <p className="text-slate-600">契約報酬</p>
-                        <p className="font-medium">{formatCurrency(compensation.breakdown.contract)}</p>
+                        <p className="font-medium tabular-nums">{formatCurrency(compensation.breakdown.contract)}</p>
                       </div>
                       <div className="p-2 bg-slate-50 rounded">
                         <p className="text-slate-600">ボーナス</p>
-                        <p className="font-medium">{formatCurrency(compensation.breakdown.bonus)}</p>
+                        <p className="font-medium tabular-nums">{formatCurrency(compensation.breakdown.bonus)}</p>
                       </div>
                     </div>
                   </div>
@@ -360,7 +360,7 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
         <Card>
           <CardContent className="pt-6">
             <div className="text-center py-8">
-              <DollarSign className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+              <DollarSign className="h-12 w-12 text-slate-400 mx-auto mb-4" aria-hidden="true" />
               <p className="text-slate-600">まだ報酬データがありません</p>
               <p className="text-sm text-slate-500 mt-2">紹介や契約実績に応じて報酬が生成されます</p>
             </div>

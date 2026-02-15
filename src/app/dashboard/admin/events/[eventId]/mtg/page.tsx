@@ -161,8 +161,8 @@ function FilterDropdown({
         }`}
       >
         {label}
-        <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-        {isFiltered && <Filter className="h-3 w-3 text-blue-600" />}
+        <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+        {isFiltered && <Filter className="h-3 w-3 text-blue-600" aria-hidden="true" />}
       </button>
       {isOpen && (
         <>
@@ -225,8 +225,8 @@ function SurveyFilterDropdown({
         }`}
       >
         アンケート
-        <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-        {isFiltered && <Filter className="h-3 w-3 text-blue-600" />}
+        <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+        {isFiltered && <Filter className="h-3 w-3 text-blue-600" aria-hidden="true" />}
       </button>
       {isOpen && (
         <>
@@ -520,7 +520,7 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
           <PageHeader title="全体MTG参加者管理" />
           <main className="px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+              <Loader2 className="h-8 w-8 animate-spin text-blue-600" aria-hidden="true" />
               <span className="ml-2 text-slate-600">読み込み中...</span>
             </div>
           </main>
@@ -544,7 +544,7 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                   variant="outline"
                   className="mt-4"
                 >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
                   イベント管理に戻る
                 </Button>
               </CardContent>
@@ -569,7 +569,7 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                 variant="outline"
                 size="sm"
               >
-                <ArrowLeft className="h-4 w-4 mr-2" />
+                <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
                 戻る
               </Button>
               <div>
@@ -584,7 +584,7 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
             </div>
             <Link href={`/dashboard/admin/events/${eventId}/survey`}>
               <Button variant="outline" size="sm">
-                <Settings className="h-4 w-4 mr-2" />
+                <Settings className="h-4 w-4 mr-2" aria-hidden="true" />
                 アンケート設定
               </Button>
             </Link>
@@ -598,7 +598,7 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="flex items-center gap-2">
-                  <Key className="h-4 w-4 text-slate-600" />
+                  <Key className="h-4 w-4 text-slate-600" aria-hidden="true" />
                   <span className="text-sm">
                     参加コード: {event?.hasAttendanceCode ? (
                       <code className="bg-slate-200 px-2 py-1 rounded font-mono">{event.attendanceCode}</code>
@@ -608,27 +608,27 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Video className="h-4 w-4 text-slate-600" />
+                  <Video className="h-4 w-4 text-slate-600" aria-hidden="true" />
                   <span className="text-sm">
                     動画: {event?.hasVideo ? (
-                      <CheckCircle className="inline h-4 w-4 text-green-600" />
+                      <CheckCircle className="inline h-4 w-4 text-green-600" aria-hidden="true" />
                     ) : (
-                      <XCircle className="inline h-4 w-4 text-slate-400" />
+                      <XCircle className="inline h-4 w-4 text-slate-400" aria-hidden="true" />
                     )}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <LinkIcon className="h-4 w-4 text-slate-600" />
+                  <LinkIcon className="h-4 w-4 text-slate-600" aria-hidden="true" />
                   <span className="text-sm">
                     アンケート: {event?.hasSurvey ? (
-                      <CheckCircle className="inline h-4 w-4 text-green-600" />
+                      <CheckCircle className="inline h-4 w-4 text-green-600" aria-hidden="true" />
                     ) : (
-                      <XCircle className="inline h-4 w-4 text-slate-400" />
+                      <XCircle className="inline h-4 w-4 text-slate-400" aria-hidden="true" />
                     )}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-slate-600" />
+                  <Calendar className="h-4 w-4 text-slate-600" aria-hidden="true" />
                   <span className="text-sm">
                     視聴期限: {event?.attendanceDeadline ? (
                       formatDate(event.attendanceDeadline)
@@ -653,7 +653,7 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                         <p className="text-xs text-slate-600">FPエイド総数</p>
                         <p className="text-2xl font-bold">{summary.total}</p>
                       </div>
-                      <Users className="h-8 w-8 text-slate-400" />
+                      <Users className="h-8 w-8 text-slate-400" aria-hidden="true" />
                     </div>
                   </CardContent>
                 </Card>
@@ -664,7 +664,7 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                         <p className="text-xs text-green-800 font-semibold">正式参加</p>
                         <p className="text-2xl font-bold text-green-700">{summary.officiallyAttended}</p>
                       </div>
-                      <CheckCircle className="h-8 w-8 text-green-500" />
+                      <CheckCircle className="h-8 w-8 text-green-500" aria-hidden="true" />
                     </div>
                   </CardContent>
                 </Card>
@@ -714,7 +714,7 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                         <p className="text-xs text-green-700">① 参加</p>
                         <p className="text-2xl font-bold text-green-700">{summary.willAttend}</p>
                       </div>
-                      <CheckCircle className="h-8 w-8 text-green-400" />
+                      <CheckCircle className="h-8 w-8 text-green-400" aria-hidden="true" />
                     </div>
                   </CardContent>
                 </Card>
@@ -725,7 +725,7 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                         <p className="text-xs text-blue-700">② 不参加</p>
                         <p className="text-2xl font-bold text-blue-700">{summary.willNotAttend}</p>
                       </div>
-                      <Video className="h-8 w-8 text-blue-400" />
+                      <Video className="h-8 w-8 text-blue-400" aria-hidden="true" />
                     </div>
                   </CardContent>
                 </Card>
@@ -736,7 +736,7 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                         <p className="text-xs text-purple-700">③ 欠席申請</p>
                         <p className="text-2xl font-bold text-purple-700">{summary.exemptionRequested}</p>
                       </div>
-                      <FileText className="h-8 w-8 text-purple-400" />
+                      <FileText className="h-8 w-8 text-purple-400" aria-hidden="true" />
                     </div>
                   </CardContent>
                 </Card>
@@ -747,7 +747,7 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                         <p className="text-xs text-slate-600">未回答</p>
                         <p className="text-2xl font-bold text-slate-600">{summary.undecided}</p>
                       </div>
-                      <AlertCircle className="h-8 w-8 text-slate-400" />
+                      <AlertCircle className="h-8 w-8 text-slate-400" aria-hidden="true" />
                     </div>
                   </CardContent>
                 </Card>
@@ -773,7 +773,7 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                       onClick={resetFilters}
                       className="text-slate-600"
                     >
-                      <X className="h-4 w-4 mr-1" />
+                      <X className="h-4 w-4 mr-1" aria-hidden="true" />
                       フィルター解除
                     </Button>
                   )}
@@ -989,25 +989,25 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                           <TableCell>
                             {officialStatus.attended ? (
                               <div className="flex items-center gap-1">
-                                <CheckCircle className="h-5 w-5 text-green-600" />
+                                <CheckCircle className="h-5 w-5 text-green-600" aria-hidden="true" />
                                 <span className="text-xs text-green-700">{officialStatus.method}</span>
                               </div>
                             ) : (
-                              <XCircle className="h-5 w-5 text-slate-300" />
+                              <XCircle className="h-5 w-5 text-slate-300" aria-hidden="true" />
                             )}
                           </TableCell>
                           <TableCell>
                             {participant.videoWatched ? (
-                              <CheckCircle className="h-5 w-5 text-green-600" />
+                              <CheckCircle className="h-5 w-5 text-green-600" aria-hidden="true" />
                             ) : (
-                              <XCircle className="h-5 w-5 text-slate-300" />
+                              <XCircle className="h-5 w-5 text-slate-300" aria-hidden="true" />
                             )}
                           </TableCell>
                           {/* アンケート提出日時 */}
                           <TableCell className="text-xs">
                             {participant.surveyCompleted ? (
                               <div className="flex items-center gap-1">
-                                <CheckCircle className="h-4 w-4 text-green-600" />
+                                <CheckCircle className="h-4 w-4 text-green-600" aria-hidden="true" />
                                 {participant.surveyCompletedAt && (
                                   <span className="text-slate-500">
                                     {formatDateTime(participant.surveyCompletedAt)}
@@ -1015,7 +1015,7 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
                                 )}
                               </div>
                             ) : (
-                              <XCircle className="h-5 w-5 text-slate-300" />
+                              <XCircle className="h-5 w-5 text-slate-300" aria-hidden="true" />
                             )}
                           </TableCell>
                           {/* GM面談 */}

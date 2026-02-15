@@ -263,7 +263,7 @@ export default function UserDetailPage() {
         <div className="text-center">
           <div className="relative">
             <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
-              <User className="h-10 w-10 text-white animate-pulse" />
+              <User className="h-10 w-10 text-white animate-pulse" aria-hidden="true" />
             </div>
             <div className="absolute inset-0 w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mx-auto animate-ping opacity-20"></div>
           </div>
@@ -283,13 +283,13 @@ export default function UserDetailPage() {
             variant="outline"
             className="mb-6"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
             ユーザー一覧に戻る
           </Button>
           <Card className="border-red-200 bg-red-50">
             <CardContent className="p-6">
               <div className="flex items-center space-x-3">
-                <AlertCircle className="h-5 w-5 text-red-600" />
+                <AlertCircle className="h-5 w-5 text-red-600" aria-hidden="true" />
                 <p className="text-red-800">{error || 'ユーザーが見つかりません'}</p>
               </div>
             </CardContent>
@@ -308,7 +308,7 @@ export default function UserDetailPage() {
           variant="outline"
           className="bg-white hover:bg-slate-50"
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
+          <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
           ユーザー一覧に戻る
         </Button>
 
@@ -336,7 +336,7 @@ export default function UserDetailPage() {
                     </Badge>
                     {!user.hasSupabaseAuth && (
                       <Badge variant="destructive" className="text-sm px-3 py-1">
-                        <AlertCircle className="h-3 w-3 mr-1" />
+                        <AlertCircle className="h-3 w-3 mr-1" aria-hidden="true" />
                         認証なし
                       </Badge>
                     )}
@@ -352,18 +352,18 @@ export default function UserDetailPage() {
           <Card className="shadow-xl border-slate-200">
             <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200">
               <CardTitle className="flex items-center text-slate-800">
-                <User className="h-5 w-5 mr-2 text-blue-600" />
+                <User className="h-5 w-5 mr-2 text-blue-600" aria-hidden="true" />
                 プロフィール情報
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
-              <InfoRow icon={<Phone className="h-4 w-4" />} label="電話番号" value={user.phone || '未設定'} />
-              <InfoRow icon={<MessageCircle className="h-4 w-4" />} label="LINE ID" value={user.lineId || '未設定'} />
-              <InfoRow icon={<MapPin className="h-4 w-4" />} label="都道府県" value={user.prefecture || '未設定'} />
-              <InfoRow icon={<MapPin className="h-4 w-4" />} label="住所" value={user.address || '未設定'} />
-              <InfoRow icon={<User className="h-4 w-4" />} label="性別" value={user.gender || '未設定'} />
-              <InfoRow icon={<Calendar className="h-4 w-4" />} label="生年月日" value={user.birthDate ? formatDate(user.birthDate) : '未設定'} />
-              <InfoRow icon={<FileText className="h-4 w-4" />} label="属性" value={user.attribute || '未設定'} />
+              <InfoRow icon={<Phone className="h-4 w-4" aria-hidden="true" />} label="電話番号" value={user.phone || '未設定'} />
+              <InfoRow icon={<MessageCircle className="h-4 w-4" aria-hidden="true" />} label="LINE ID" value={user.lineId || '未設定'} />
+              <InfoRow icon={<MapPin className="h-4 w-4" aria-hidden="true" />} label="都道府県" value={user.prefecture || '未設定'} />
+              <InfoRow icon={<MapPin className="h-4 w-4" aria-hidden="true" />} label="住所" value={user.address || '未設定'} />
+              <InfoRow icon={<User className="h-4 w-4" aria-hidden="true" />} label="性別" value={user.gender || '未設定'} />
+              <InfoRow icon={<Calendar className="h-4 w-4" aria-hidden="true" />} label="生年月日" value={user.birthDate ? formatDate(user.birthDate) : '未設定'} />
+              <InfoRow icon={<FileText className="h-4 w-4" aria-hidden="true" />} label="属性" value={user.attribute || '未設定'} />
               {user.bio && (
                 <div className="pt-4 border-t border-slate-200">
                   <p className="text-sm font-semibold text-slate-600 mb-2">自己紹介</p>
@@ -377,61 +377,61 @@ export default function UserDetailPage() {
           <Card className="shadow-xl border-slate-200">
             <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200">
               <CardTitle className="flex items-center text-slate-800">
-                <UserCheck className="h-5 w-5 mr-2 text-blue-600" />
+                <UserCheck className="h-5 w-5 mr-2 text-blue-600" aria-hidden="true" />
                 会員管理情報
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               <InfoRow 
-                icon={<AlertCircle className="h-4 w-4" />} 
+                icon={<AlertCircle className="h-4 w-4" aria-hidden="true" />} 
                 label="会員ステータス" 
                 value={getMembershipStatusLabel(user.membershipStatus)} 
               />
               {user.membershipStatusChangedAt && (
                 <InfoRow 
-                  icon={<Calendar className="h-4 w-4" />} 
+                  icon={<Calendar className="h-4 w-4" aria-hidden="true" />} 
                   label="ステータス変更日時" 
                   value={formatDate(user.membershipStatusChangedAt)} 
                 />
               )}
               {user.membershipStatusReason && (
                 <InfoRow 
-                  icon={<FileText className="h-4 w-4" />} 
+                  icon={<FileText className="h-4 w-4" aria-hidden="true" />} 
                   label="変更理由" 
                   value={user.membershipStatusReason} 
                 />
               )}
               {user.membershipStatusChangedBy && (
                 <InfoRow
-                  icon={<User className="h-4 w-4" />}
+                  icon={<User className="h-4 w-4" aria-hidden="true" />}
                   label="変更者"
                   value={user.membershipStatusChangedBy}
                 />
               )}
               {user.canceledAt && (
                 <InfoRow 
-                  icon={<Calendar className="h-4 w-4" />} 
+                  icon={<Calendar className="h-4 w-4" aria-hidden="true" />} 
                   label="退会日" 
                   value={formatDate(user.canceledAt)} 
                 />
               )}
               {user.cancellationReason && (
                 <InfoRow 
-                  icon={<FileText className="h-4 w-4" />} 
+                  icon={<FileText className="h-4 w-4" aria-hidden="true" />} 
                   label="退会理由" 
                   value={user.cancellationReason} 
                 />
               )}
               {user.delinquentSince && (
                 <InfoRow 
-                  icon={<Calendar className="h-4 w-4" />} 
+                  icon={<Calendar className="h-4 w-4" aria-hidden="true" />} 
                   label="滞納開始日" 
                   value={formatDate(user.delinquentSince)} 
                 />
               )}
               {user.reactivatedAt && (
                 <InfoRow
-                  icon={<Calendar className="h-4 w-4" />}
+                  icon={<Calendar className="h-4 w-4" aria-hidden="true" />}
                   label="再開日"
                   value={formatDate(user.reactivatedAt)}
                 />
@@ -444,12 +444,12 @@ export default function UserDetailPage() {
                   <div className="flex items-center space-x-3">
                     {user.contractCompleted ? (
                       <Badge className="bg-green-100 text-green-800 border-green-200">
-                        <FileCheck className="h-3 w-3 mr-1" />
+                        <FileCheck className="h-3 w-3 mr-1" aria-hidden="true" />
                         完了
                       </Badge>
                     ) : (
                       <Badge className="bg-orange-100 text-orange-800 border-orange-200">
-                        <FileX className="h-3 w-3 mr-1" />
+                        <FileX className="h-3 w-3 mr-1" aria-hidden="true" />
                         未完了
                       </Badge>
                     )}
@@ -480,27 +480,27 @@ export default function UserDetailPage() {
           <Card className="shadow-xl border-slate-200">
             <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200">
               <CardTitle className="flex items-center text-slate-800">
-                <Mail className="h-5 w-5 mr-2 text-blue-600" />
+                <Mail className="h-5 w-5 mr-2 text-blue-600" aria-hidden="true" />
                 認証情報
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
-              <InfoRow icon={<Calendar className="h-4 w-4" />} label="登録日" value={formatDate(user.createdAt)} />
-              <InfoRow icon={<Calendar className="h-4 w-4" />} label="更新日" value={formatDate(user.updatedAt)} />
+              <InfoRow icon={<Calendar className="h-4 w-4" aria-hidden="true" />} label="登録日" value={formatDate(user.createdAt)} />
+              <InfoRow icon={<Calendar className="h-4 w-4" aria-hidden="true" />} label="更新日" value={formatDate(user.updatedAt)} />
               <InfoRow 
-                icon={<Calendar className="h-4 w-4" />} 
+                icon={<Calendar className="h-4 w-4" aria-hidden="true" />} 
                 label="最終ログイン" 
                 value={user.lastLoginAt ? formatDate(user.lastLoginAt) : '未ログイン'} 
               />
               {user.supabaseAuth && (
                 <>
                   <InfoRow 
-                    icon={<Mail className="h-4 w-4" />} 
+                    icon={<Mail className="h-4 w-4" aria-hidden="true" />} 
                     label="メール認証日" 
                     value={user.supabaseAuth.emailConfirmedAt ? formatDate(user.supabaseAuth.emailConfirmedAt) : '未認証'} 
                   />
                   <InfoRow 
-                    icon={<Calendar className="h-4 w-4" />} 
+                    icon={<Calendar className="h-4 w-4" aria-hidden="true" />} 
                     label="最終サインイン" 
                     value={user.supabaseAuth.lastSignInAt ? formatDate(user.supabaseAuth.lastSignInAt) : '未サインイン'} 
                   />
@@ -513,13 +513,13 @@ export default function UserDetailPage() {
           <Card className="shadow-xl border-slate-200">
             <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200">
               <CardTitle className="flex items-center text-slate-800">
-                <Users className="h-5 w-5 mr-2 text-blue-600" />
+                <Users className="h-5 w-5 mr-2 text-blue-600" aria-hidden="true" />
                 紹介情報
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               <InfoRow
-                icon={<FileText className="h-4 w-4" />}
+                icon={<FileText className="h-4 w-4" aria-hidden="true" />}
                 label="紹介コード"
                 value={user.referralCode || '未設定'}
               />
@@ -530,7 +530,7 @@ export default function UserDetailPage() {
                 <div className="grid grid-cols-3 gap-3">
                   <div className="bg-slate-50 rounded-lg p-3 text-center">
                     <div className="flex items-center justify-center mb-1">
-                      <TrendingUp className="h-4 w-4 text-slate-500 mr-1" />
+                      <TrendingUp className="h-4 w-4 text-slate-500 mr-1" aria-hidden="true" />
                     </div>
                     <p className="text-2xl font-bold text-slate-700">{user.referralStats?.total ?? 0}</p>
                     <p className="text-xs text-slate-500">紹介合計</p>
@@ -538,7 +538,7 @@ export default function UserDetailPage() {
                   </div>
                   <div className="bg-blue-50 rounded-lg p-3 text-center">
                     <div className="flex items-center justify-center mb-1">
-                      <UserPlus className="h-4 w-4 text-blue-500 mr-1" />
+                      <UserPlus className="h-4 w-4 text-blue-500 mr-1" aria-hidden="true" />
                     </div>
                     <p className="text-2xl font-bold text-blue-700">{user.referralStats?.fp.total ?? 0}</p>
                     <p className="text-xs text-blue-600">FPエイド</p>
@@ -546,7 +546,7 @@ export default function UserDetailPage() {
                   </div>
                   <div className="bg-emerald-50 rounded-lg p-3 text-center">
                     <div className="flex items-center justify-center mb-1">
-                      <UserPlus className="h-4 w-4 text-emerald-500 mr-1" />
+                      <UserPlus className="h-4 w-4 text-emerald-500 mr-1" aria-hidden="true" />
                     </div>
                     <p className="text-2xl font-bold text-emerald-700">{user.referralStats?.member.total ?? 0}</p>
                     <p className="text-xs text-emerald-600">UGS会員</p>
@@ -560,9 +560,9 @@ export default function UserDetailPage() {
                   <div className="pt-4 border-t border-slate-200">
                     <p className="text-sm font-semibold text-slate-600 mb-3">紹介者情報（このユーザーを紹介した人）</p>
                     <div className="bg-slate-50 rounded-lg p-4 space-y-2">
-                      <InfoRow icon={<User className="h-4 w-4" />} label="名前" value={user.referrer.name} />
-                      <InfoRow icon={<Mail className="h-4 w-4" />} label="メール" value={user.referrer.email} />
-                      <InfoRow icon={<UserCheck className="h-4 w-4" />} label="ロール" value={getRoleLabel(user.referrer.role)} />
+                      <InfoRow icon={<User className="h-4 w-4" aria-hidden="true" />} label="名前" value={user.referrer.name} />
+                      <InfoRow icon={<Mail className="h-4 w-4" aria-hidden="true" />} label="メール" value={user.referrer.email} />
+                      <InfoRow icon={<UserCheck className="h-4 w-4" aria-hidden="true" />} label="ロール" value={getRoleLabel(user.referrer.role)} />
                     </div>
                   </div>
                 </>
@@ -579,29 +579,29 @@ export default function UserDetailPage() {
             <Card className="shadow-xl border-slate-200 lg:col-span-2">
               <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200">
                 <CardTitle className="flex items-center text-slate-800">
-                  <CreditCard className="h-5 w-5 mr-2 text-blue-600" />
+                  <CreditCard className="h-5 w-5 mr-2 text-blue-600" aria-hidden="true" />
                   サブスクリプション情報
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <InfoRow
-                    icon={<FileText className="h-4 w-4" />}
+                    icon={<FileText className="h-4 w-4" aria-hidden="true" />}
                     label="Stripe カスタマーID"
                     value={user.subscription.stripeCustomerId || '未設定'}
                   />
                   <InfoRow
-                    icon={<FileText className="h-4 w-4" />}
+                    icon={<FileText className="h-4 w-4" aria-hidden="true" />}
                     label="Stripe サブスクリプションID"
                     value={user.subscription.stripeSubscriptionId || '未設定'}
                   />
                   <InfoRow
-                    icon={<AlertCircle className="h-4 w-4" />}
+                    icon={<AlertCircle className="h-4 w-4" aria-hidden="true" />}
                     label="ステータス"
                     value={user.subscription.status}
                   />
                   <InfoRow
-                    icon={<Calendar className="h-4 w-4" />}
+                    icon={<Calendar className="h-4 w-4" aria-hidden="true" />}
                     label="現在の期間終了日"
                     value={user.subscription.currentPeriodEnd ? formatDate(user.subscription.currentPeriodEnd) : '未設定'}
                   />
@@ -615,7 +615,7 @@ export default function UserDetailPage() {
             <Card className="shadow-xl border-slate-200 lg:col-span-2">
               <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-slate-200">
                 <CardTitle className="flex items-center text-slate-800">
-                  <Users className="h-5 w-5 mr-2 text-green-600" />
+                  <Users className="h-5 w-5 mr-2 text-green-600" aria-hidden="true" />
                   担当マネージャー設定
                 </CardTitle>
               </CardHeader>
@@ -655,7 +655,7 @@ export default function UserDetailPage() {
                   {!user.manager && (
                     <div className="bg-amber-50 rounded-lg p-4 mt-4">
                       <p className="text-sm text-amber-800">
-                        <AlertCircle className="h-4 w-4 inline mr-2" />
+                        <AlertCircle className="h-4 w-4 inline mr-2" aria-hidden="true" />
                         このFPエイドには担当マネージャーが割り当てられていません。プルダウンから選択してください。
                       </p>
                     </div>
@@ -670,31 +670,31 @@ export default function UserDetailPage() {
             <Card className="shadow-xl border-slate-200 lg:col-span-2">
               <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200">
                 <CardTitle className="flex items-center text-slate-800">
-                  <Building2 className="h-5 w-5 mr-2 text-blue-600" />
+                  <Building2 className="h-5 w-5 mr-2 text-blue-600" aria-hidden="true" />
                   報酬受け取り口座情報
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <InfoRow
-                    icon={<Building2 className="h-4 w-4" />}
+                    icon={<Building2 className="h-4 w-4" aria-hidden="true" />}
                     label="金融機関名"
                     value={user.compensationBankAccount.bankName}
                   />
                   {user.compensationBankAccount.isYuchoBank ? (
                     <>
                       <InfoRow
-                        icon={<FileText className="h-4 w-4" />}
+                        icon={<FileText className="h-4 w-4" aria-hidden="true" />}
                         label="銀行種別"
                         value="ゆうちょ銀行"
                       />
                       <InfoRow
-                        icon={<FileText className="h-4 w-4" />}
+                        icon={<FileText className="h-4 w-4" aria-hidden="true" />}
                         label="記号"
                         value={user.compensationBankAccount.yuchoSymbol || '未設定'}
                       />
                       <InfoRow
-                        icon={<FileText className="h-4 w-4" />}
+                        icon={<FileText className="h-4 w-4" aria-hidden="true" />}
                         label="番号"
                         value={user.compensationBankAccount.yuchoNumber || '未設定'}
                       />
@@ -702,19 +702,19 @@ export default function UserDetailPage() {
                   ) : (
                     <>
                       <InfoRow
-                        icon={<Building2 className="h-4 w-4" />}
+                        icon={<Building2 className="h-4 w-4" aria-hidden="true" />}
                         label="支店名"
                         value={user.compensationBankAccount.branchName || '未設定'}
                       />
                       <InfoRow
-                        icon={<FileText className="h-4 w-4" />}
+                        icon={<FileText className="h-4 w-4" aria-hidden="true" />}
                         label="支店番号"
                         value={user.compensationBankAccount.branchNumber || '未設定'}
                       />
                     </>
                   )}
                   <InfoRow
-                    icon={<CreditCard className="h-4 w-4" />}
+                    icon={<CreditCard className="h-4 w-4" aria-hidden="true" />}
                     label="口座種別"
                     value={
                       user.compensationBankAccount.accountType === 'NORMAL' ? '普通預金' :
@@ -724,29 +724,29 @@ export default function UserDetailPage() {
                     }
                   />
                   <InfoRow
-                    icon={<FileText className="h-4 w-4" />}
+                    icon={<FileText className="h-4 w-4" aria-hidden="true" />}
                     label="口座番号"
                     value={user.compensationBankAccount.accountNumber}
                   />
                   <InfoRow
-                    icon={<User className="h-4 w-4" />}
+                    icon={<User className="h-4 w-4" aria-hidden="true" />}
                     label="口座名義"
                     value={user.compensationBankAccount.accountHolderName}
                   />
                   <InfoRow
-                    icon={<Calendar className="h-4 w-4" />}
+                    icon={<Calendar className="h-4 w-4" aria-hidden="true" />}
                     label="登録日"
                     value={formatDate(user.compensationBankAccount.createdAt)}
                   />
                   <InfoRow
-                    icon={<Calendar className="h-4 w-4" />}
+                    icon={<Calendar className="h-4 w-4" aria-hidden="true" />}
                     label="最終更新日"
                     value={formatDate(user.compensationBankAccount.updatedAt)}
                   />
                 </div>
                 <div className="mt-4 pt-4 border-t border-slate-200 bg-yellow-50 p-4 rounded-lg">
                   <p className="text-sm text-yellow-800">
-                    <AlertCircle className="h-4 w-4 inline mr-2" />
+                    <AlertCircle className="h-4 w-4 inline mr-2" aria-hidden="true" />
                     <strong>セキュリティ情報:</strong> この口座情報は報酬支払いに使用されます。変更する場合は必ずユーザー本人に確認してください。
                   </p>
                 </div>

@@ -106,7 +106,7 @@ export function ManagerPromotion() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-slate-600" aria-hidden="true" />
       </div>
     )
   }
@@ -130,7 +130,7 @@ export function ManagerPromotion() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
-            <Award className="h-5 w-5 mr-2" />
+            <Award className="h-5 w-5 mr-2" aria-hidden="true" />
             マネージャー昇格条件
           </CardTitle>
           <CardDescription>
@@ -144,7 +144,7 @@ export function ManagerPromotion() {
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm font-medium flex items-center">
-                    <TrendingUp className="h-4 w-4 mr-2 text-slate-500" />
+                    <TrendingUp className="h-4 w-4 mr-2 text-slate-500" aria-hidden="true" />
                     売上合計（過去6ヶ月）
                   </span>
                   <span className="text-sm">
@@ -161,9 +161,9 @@ export function ManagerPromotion() {
                 />
                 <div className="flex items-center mt-2">
                   {conditions.salesTotal.met ? (
-                    <CheckCircle className="h-4 w-4 text-green-600 mr-1" />
+                    <CheckCircle className="h-4 w-4 text-green-600 mr-1" aria-hidden="true" />
                   ) : (
-                    <XCircle className="h-4 w-4 text-red-600 mr-1" />
+                    <XCircle className="h-4 w-4 text-red-600 mr-1" aria-hidden="true" />
                   )}
                   <Badge variant={conditions.salesTotal.met ? "default" : "secondary"}>
                     {conditions.salesTotal.met ? "達成" : "未達成"}
@@ -177,7 +177,7 @@ export function ManagerPromotion() {
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm font-medium flex items-center">
-                    <Users className="h-4 w-4 mr-2 text-slate-500" />
+                    <Users className="h-4 w-4 mr-2 text-slate-500" aria-hidden="true" />
                     被保険者数（累計）
                   </span>
                   <span className="text-sm">
@@ -194,9 +194,9 @@ export function ManagerPromotion() {
                 />
                 <div className="flex items-center mt-2">
                   {conditions.insuredCount.met ? (
-                    <CheckCircle className="h-4 w-4 text-green-600 mr-1" />
+                    <CheckCircle className="h-4 w-4 text-green-600 mr-1" aria-hidden="true" />
                   ) : (
-                    <XCircle className="h-4 w-4 text-red-600 mr-1" />
+                    <XCircle className="h-4 w-4 text-red-600 mr-1" aria-hidden="true" />
                   )}
                   <Badge variant={conditions.insuredCount.met ? "default" : "secondary"}>
                     {conditions.insuredCount.met ? "達成" : "未達成"}
@@ -210,7 +210,7 @@ export function ManagerPromotion() {
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm font-medium flex items-center">
-                    <UserPlus className="h-4 w-4 mr-2 text-slate-500" />
+                    <UserPlus className="h-4 w-4 mr-2 text-slate-500" aria-hidden="true" />
                     UGS会員紹介（6ヶ月以内、登録維持中）
                   </span>
                   <span className="text-sm">
@@ -227,9 +227,9 @@ export function ManagerPromotion() {
                 />
                 <div className="flex items-center mt-2">
                   {conditions.memberReferrals.met ? (
-                    <CheckCircle className="h-4 w-4 text-green-600 mr-1" />
+                    <CheckCircle className="h-4 w-4 text-green-600 mr-1" aria-hidden="true" />
                   ) : (
-                    <XCircle className="h-4 w-4 text-red-600 mr-1" />
+                    <XCircle className="h-4 w-4 text-red-600 mr-1" aria-hidden="true" />
                   )}
                   <Badge variant={conditions.memberReferrals.met ? "default" : "secondary"}>
                     {conditions.memberReferrals.met ? "達成" : "未達成"}
@@ -243,7 +243,7 @@ export function ManagerPromotion() {
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm font-medium flex items-center">
-                    <Award className="h-4 w-4 mr-2 text-slate-500" />
+                    <Award className="h-4 w-4 mr-2 text-slate-500" aria-hidden="true" />
                     FPエイド輩出（6ヶ月以内、職位維持中）
                   </span>
                   <span className="text-sm">
@@ -260,9 +260,9 @@ export function ManagerPromotion() {
                 />
                 <div className="flex items-center mt-2">
                   {conditions.fpReferrals.met ? (
-                    <CheckCircle className="h-4 w-4 text-green-600 mr-1" />
+                    <CheckCircle className="h-4 w-4 text-green-600 mr-1" aria-hidden="true" />
                   ) : (
-                    <XCircle className="h-4 w-4 text-red-600 mr-1" />
+                    <XCircle className="h-4 w-4 text-red-600 mr-1" aria-hidden="true" />
                   )}
                   <Badge variant={conditions.fpReferrals.met ? "default" : "secondary"}>
                     {conditions.fpReferrals.met ? "達成" : "未達成"}
@@ -280,12 +280,12 @@ export function ManagerPromotion() {
               >
                 {isApplying ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                     申請中...
                   </>
                 ) : (
                   <>
-                    <Award className="h-4 w-4 mr-2" />
+                    <Award className="h-4 w-4 mr-2" aria-hidden="true" />
                     マネージャー昇格を申請
                   </>
                 )}

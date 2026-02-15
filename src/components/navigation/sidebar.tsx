@@ -226,12 +226,12 @@ export function Sidebar() {
         className="md:hidden fixed top-3 left-3 z-50 h-8 w-8 bg-white/90 shadow-sm hover:bg-white"
         onClick={() => setIsOpen(!isOpen)}
       >
-        {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        {isOpen ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
       </Button>
 
       {/* サイドバー */}
       <div className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out overflow-hidden
+        fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out overflow-hidden motion-reduce:transition-none
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         md:translate-x-0
       `}>
@@ -251,7 +251,7 @@ export function Sidebar() {
                   height={28} 
                   className="object-contain"
                   priority
-                  onError={() => setLogoError(true)} 
+                  onError={() => setLogoError(true)} aria-hidden="true" 
                 />
               )}
               <span className="text-sm font-bold text-slate-900 tracking-tight">UGS</span>
@@ -268,7 +268,7 @@ export function Sidebar() {
                     alt={user?.name || 'User'}
                     width={40}
                     height={40}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover" aria-hidden="true"
                   />
                 ) : (
                   <span className="text-white text-sm font-semibold">
@@ -312,12 +312,12 @@ export function Sidebar() {
                         }
                       `}
                     >
-                      <item.icon className={`h-5 w-5 mr-3 flex-shrink-0 ${hasActiveSubItem ? 'text-white' : 'text-slate-500'}`} />
+                      <item.icon className={`h-5 w-5 mr-3 flex-shrink-0 ${hasActiveSubItem ? 'text-white' : 'text-slate-500'}`} aria-hidden="true" />
                       <span className="flex-1 text-left truncate">{item.name}</span>
                       {isExpandedItem ? (
-                        <ChevronDown className={`h-4 w-4 flex-shrink-0 ${hasActiveSubItem ? 'text-white' : 'text-slate-500'}`} />
+                        <ChevronDown className={`h-4 w-4 flex-shrink-0 ${hasActiveSubItem ? 'text-white' : 'text-slate-500'}`} aria-hidden="true" />
                       ) : (
-                        <ChevronRight className={`h-4 w-4 flex-shrink-0 ${hasActiveSubItem ? 'text-white' : 'text-slate-500'}`} />
+                        <ChevronRight className={`h-4 w-4 flex-shrink-0 ${hasActiveSubItem ? 'text-white' : 'text-slate-500'}`} aria-hidden="true" />
                       )}
                     </button>
                     
@@ -340,7 +340,7 @@ export function Sidebar() {
                               `}
                               onClick={() => setIsOpen(false)}
                             >
-                              <subItem.icon className={`h-4 w-4 mr-3 flex-shrink-0 ${isSubActive ? 'text-white' : 'text-slate-500'}`} />
+                              <subItem.icon className={`h-4 w-4 mr-3 flex-shrink-0 ${isSubActive ? 'text-white' : 'text-slate-500'}`} aria-hidden="true" />
                               <span className="flex-1 truncate">{subItem.name}</span>
                               {getBadgeCount(subItem.href) > 0 && (
                                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
@@ -370,7 +370,7 @@ export function Sidebar() {
                     className="flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-colors duration-200 text-slate-600 hover:bg-primary-50 hover:text-primary-900"
                     onClick={() => setIsOpen(false)}
                   >
-                    <item.icon className="h-5 w-5 mr-3 flex-shrink-0 text-slate-500" />
+                    <item.icon className="h-5 w-5 mr-3 flex-shrink-0 text-slate-500" aria-hidden="true" />
                     <span className="flex-1 truncate">{item.name}</span>
                   </a>
                 )
@@ -390,7 +390,7 @@ export function Sidebar() {
                   `}
                   onClick={() => setIsOpen(false)}
                 >
-                  <item.icon className={`h-5 w-5 mr-3 flex-shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} />
+                  <item.icon className={`h-5 w-5 mr-3 flex-shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} aria-hidden="true" />
                   <span className="flex-1 truncate">{item.name}</span>
                   {itemBadgeCount > 0 && (
                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
@@ -413,8 +413,9 @@ export function Sidebar() {
 
       {/* オーバーレイ（モバイル用） - 常にDOMに存在させてCSSで表示/非表示を切り替え */}
       <div
+        role="presentation"
         className={`
-          fixed inset-0 bg-black z-30 md:hidden transition-opacity duration-300
+          fixed inset-0 bg-black z-30 md:hidden transition-opacity duration-300 motion-reduce:transition-none
           ${isOpen ? 'opacity-50 pointer-events-auto' : 'opacity-0 pointer-events-none'}
         `}
         onClick={closeSidebar}

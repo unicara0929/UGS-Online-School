@@ -132,21 +132,21 @@ export function MtgExemptionForm({
       case 'PENDING':
         return (
           <Badge variant="outline" className="bg-yellow-50 border-yellow-300 text-yellow-700">
-            <Clock className="h-3 w-3 mr-1" />
+            <Clock className="h-3 w-3 mr-1" aria-hidden="true" />
             審査中
           </Badge>
         )
       case 'APPROVED':
         return (
           <Badge variant="outline" className="bg-green-50 border-green-300 text-green-700">
-            <CheckCircle2 className="h-3 w-3 mr-1" />
+            <CheckCircle2 className="h-3 w-3 mr-1" aria-hidden="true" />
             承認
           </Badge>
         )
       case 'REJECTED':
         return (
           <Badge variant="outline" className="bg-red-50 border-red-300 text-red-700">
-            <XCircle className="h-3 w-3 mr-1" />
+            <XCircle className="h-3 w-3 mr-1" aria-hidden="true" />
             却下
           </Badge>
         )
@@ -162,9 +162,9 @@ export function MtgExemptionForm({
         <CardContent className="pt-6">
           <div className="flex items-center gap-3">
             {existingExemption.status === 'APPROVED' ? (
-              <CheckCircle2 className="h-6 w-6 text-green-600" />
+              <CheckCircle2 className="h-6 w-6 text-green-600" aria-hidden="true" />
             ) : (
-              <XCircle className="h-6 w-6 text-red-600" />
+              <XCircle className="h-6 w-6 text-red-600" aria-hidden="true" />
             )}
             <div>
               <p className={`font-semibold ${existingExemption.status === 'APPROVED' ? 'text-green-800' : 'text-red-800'}`}>
@@ -184,7 +184,7 @@ export function MtgExemptionForm({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="w-full">
-          <FileX className="h-4 w-4 mr-2" />
+          <FileX className="h-4 w-4 mr-2" aria-hidden="true" />
           {existingExemption ? '欠席申請を編集' : '全体MTG欠席申請'}
         </Button>
       </DialogTrigger>
@@ -199,7 +199,7 @@ export function MtgExemptionForm({
 
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+            <Loader2 className="h-6 w-6 animate-spin text-slate-400" aria-hidden="true" />
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -253,7 +253,7 @@ export function MtgExemptionForm({
 
             {/* 注意事項 */}
             <Alert>
-              <AlertCircle className="h-4 w-4" />
+              <AlertCircle className="h-4 w-4" aria-hidden="true" />
               <AlertDescription className="text-xs">
                 欠席申請は管理者による審査があります。承認された場合のみ、不参加でも降格の対象になりません。
                 虚偽の申請は厳正に対処されます。
@@ -281,7 +281,7 @@ export function MtgExemptionForm({
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                   送信中...
                 </>
               ) : existingExemption ? (

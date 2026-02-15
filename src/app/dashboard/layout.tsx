@@ -14,7 +14,7 @@ export default function DashboardLayout({
   return (
     <SubscriptionGuard allowAccess={false} allowedPaths={SUBSCRIPTION_ALLOWED_PATHS}>
       <FPOnboardingGuard>
-        <div className="w-full max-w-full overflow-x-hidden">
+        <div id="main-content" className="w-full max-w-full overflow-x-hidden">
           {children}
         </div>
       </FPOnboardingGuard>

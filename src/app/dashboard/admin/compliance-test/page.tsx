@@ -261,7 +261,7 @@ export default function AdminComplianceTestPage() {
         <div className="space-y-6">
           <PageHeader title="コンプライアンステスト管理" />
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-slate-600" />
+            <Loader2 className="h-8 w-8 animate-spin text-slate-600" aria-hidden="true" />
           </div>
         </div>
       </ProtectedRoute>
@@ -278,7 +278,7 @@ export default function AdminComplianceTestPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">問題数</CardTitle>
-              <FileText className="h-4 w-4 text-slate-500" />
+              <FileText className="h-4 w-4 text-slate-500" aria-hidden="true" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{questions.filter(q => q.isActive).length}</div>
@@ -288,7 +288,7 @@ export default function AdminComplianceTestPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">受験回数</CardTitle>
-              <History className="h-4 w-4 text-slate-500" />
+              <History className="h-4 w-4 text-slate-500" aria-hidden="true" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats?.totalAttempts || 0}</div>
@@ -298,7 +298,7 @@ export default function AdminComplianceTestPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">合格者数</CardTitle>
-              <Users className="h-4 w-4 text-slate-500" />
+              <Users className="h-4 w-4 text-slate-500" aria-hidden="true" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600">{stats?.passedUsersCount || 0}</div>
@@ -308,7 +308,7 @@ export default function AdminComplianceTestPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">合格率</CardTitle>
-              <CheckCircle className="h-4 w-4 text-slate-500" />
+              <CheckCircle className="h-4 w-4 text-slate-500" aria-hidden="true" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
@@ -335,7 +335,7 @@ export default function AdminComplianceTestPage() {
                 問題を追加・編集・削除できます。並び順はドラッグまたは上下ボタンで変更できます。
               </p>
               <Button onClick={() => handleOpenDialog()}>
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
                 問題を追加
               </Button>
             </div>
@@ -343,7 +343,7 @@ export default function AdminComplianceTestPage() {
             {questions.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <AlertCircle className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                  <AlertCircle className="h-12 w-12 text-slate-400 mx-auto mb-4" aria-hidden="true" />
                   <p className="text-slate-600">問題がありません</p>
                   <p className="text-sm text-slate-500 mt-2">
                     「問題を追加」ボタンから問題を作成してください
@@ -369,9 +369,9 @@ export default function AdminComplianceTestPage() {
                             onClick={() => handleMoveQuestion(index, 'up')}
                             disabled={index === 0}
                           >
-                            <ChevronUp className="h-4 w-4" />
+                            <ChevronUp className="h-4 w-4" aria-hidden="true" />
                           </Button>
-                          <GripVertical className="h-4 w-4 text-slate-400 mx-auto" />
+                          <GripVertical className="h-4 w-4 text-slate-400 mx-auto" aria-hidden="true" />
                           <Button
                             variant="ghost"
                             size="icon"
@@ -379,7 +379,7 @@ export default function AdminComplianceTestPage() {
                             onClick={() => handleMoveQuestion(index, 'down')}
                             disabled={index === questions.length - 1}
                           >
-                            <ChevronDown className="h-4 w-4" />
+                            <ChevronDown className="h-4 w-4" aria-hidden="true" />
                           </Button>
                         </div>
 
@@ -409,7 +409,7 @@ export default function AdminComplianceTestPage() {
                                 }`}
                               >
                                 {optIndex === question.correctAnswer && (
-                                  <CheckCircle className="h-3 w-3 inline mr-1" />
+                                  <CheckCircle className="h-3 w-3 inline mr-1" aria-hidden="true" />
                                 )}
                                 {option}
                               </div>
@@ -423,7 +423,7 @@ export default function AdminComplianceTestPage() {
                             size="icon"
                             onClick={() => handleOpenDialog(question)}
                           >
-                            <Edit className="h-4 w-4" />
+                            <Edit className="h-4 w-4" aria-hidden="true" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -431,7 +431,7 @@ export default function AdminComplianceTestPage() {
                             className="text-red-500 hover:text-red-700 hover:bg-red-50"
                             onClick={() => setDeleteConfirmId(question.id)}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4" aria-hidden="true" />
                           </Button>
                         </div>
                       </div>
@@ -446,7 +446,7 @@ export default function AdminComplianceTestPage() {
             {attempts.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <History className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                  <History className="h-12 w-12 text-slate-400 mx-auto mb-4" aria-hidden="true" />
                   <p className="text-slate-600">受験履歴がありません</p>
                 </CardContent>
               </Card>
@@ -599,7 +599,7 @@ export default function AdminComplianceTestPage() {
               <Button onClick={handleSaveQuestion} disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                     保存中...
                   </>
                 ) : (
@@ -634,7 +634,7 @@ export default function AdminComplianceTestPage() {
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                     削除中...
                   </>
                 ) : (

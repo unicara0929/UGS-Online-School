@@ -164,21 +164,21 @@ function MtgExemptionsPageContent() {
       case 'PENDING':
         return (
           <Badge variant="outline" className="bg-yellow-50 border-yellow-300 text-yellow-700">
-            <Clock className="h-3 w-3 mr-1" />
+            <Clock className="h-3 w-3 mr-1" aria-hidden="true" />
             審査中
           </Badge>
         )
       case 'APPROVED':
         return (
           <Badge variant="outline" className="bg-green-50 border-green-300 text-green-700">
-            <CheckCircle2 className="h-3 w-3 mr-1" />
+            <CheckCircle2 className="h-3 w-3 mr-1" aria-hidden="true" />
             承認
           </Badge>
         )
       case 'REJECTED':
         return (
           <Badge variant="outline" className="bg-red-50 border-red-300 text-red-700">
-            <XCircle className="h-3 w-3 mr-1" />
+            <XCircle className="h-3 w-3 mr-1" aria-hidden="true" />
             却下
           </Badge>
         )
@@ -224,7 +224,7 @@ function MtgExemptionsPageContent() {
                       <p className="text-sm text-slate-500">審査待ち</p>
                       <p className="text-2xl font-bold text-yellow-600">{counts.PENDING}</p>
                     </div>
-                    <Clock className="h-8 w-8 text-yellow-400" />
+                    <Clock className="h-8 w-8 text-yellow-400" aria-hidden="true" />
                   </div>
                 </CardContent>
               </Card>
@@ -239,7 +239,7 @@ function MtgExemptionsPageContent() {
                       <p className="text-sm text-slate-500">承認済み</p>
                       <p className="text-2xl font-bold text-green-600">{counts.APPROVED}</p>
                     </div>
-                    <CheckCircle2 className="h-8 w-8 text-green-400" />
+                    <CheckCircle2 className="h-8 w-8 text-green-400" aria-hidden="true" />
                   </div>
                 </CardContent>
               </Card>
@@ -254,7 +254,7 @@ function MtgExemptionsPageContent() {
                       <p className="text-sm text-slate-500">却下</p>
                       <p className="text-2xl font-bold text-red-600">{counts.REJECTED}</p>
                     </div>
-                    <XCircle className="h-8 w-8 text-red-400" />
+                    <XCircle className="h-8 w-8 text-red-400" aria-hidden="true" />
                   </div>
                 </CardContent>
               </Card>
@@ -279,7 +279,7 @@ function MtgExemptionsPageContent() {
                     </Select>
                   </div>
                   <Button variant="outline" size="sm" onClick={fetchExemptions}>
-                    <RefreshCw className="h-4 w-4 mr-2" />
+                    <RefreshCw className="h-4 w-4 mr-2" aria-hidden="true" />
                     更新
                   </Button>
                 </div>
@@ -294,7 +294,7 @@ function MtgExemptionsPageContent() {
               <CardContent>
                 {isLoading ? (
                   <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" aria-hidden="true" />
                   </div>
                 ) : error ? (
                   <div className="text-center py-12 text-red-600">{error}</div>
@@ -321,7 +321,7 @@ function MtgExemptionsPageContent() {
                             <TableCell>{getStatusBadge(exemption.status)}</TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
-                                <User className="h-4 w-4 text-slate-400" />
+                                <User className="h-4 w-4 text-slate-400" aria-hidden="true" />
                                 <div>
                                   <p className="font-medium">{exemption.user.name}</p>
                                   <p className="text-xs text-slate-500">{exemption.user.memberId}</p>
@@ -330,7 +330,7 @@ function MtgExemptionsPageContent() {
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
-                                <Calendar className="h-4 w-4 text-slate-400" />
+                                <Calendar className="h-4 w-4 text-slate-400" aria-hidden="true" />
                                 <div>
                                   <p className="font-medium text-sm">{exemption.event.title}</p>
                                   <p className="text-xs text-slate-500">
@@ -356,7 +356,7 @@ function MtgExemptionsPageContent() {
                                     className="text-green-600 hover:text-green-700 hover:bg-green-50"
                                     onClick={() => handleOpenReviewDialog(exemption, 'APPROVED')}
                                   >
-                                    <CheckCircle2 className="h-4 w-4 mr-1" />
+                                    <CheckCircle2 className="h-4 w-4 mr-1" aria-hidden="true" />
                                     承認
                                   </Button>
                                   <Button
@@ -365,7 +365,7 @@ function MtgExemptionsPageContent() {
                                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                     onClick={() => handleOpenReviewDialog(exemption, 'REJECTED')}
                                   >
-                                    <XCircle className="h-4 w-4 mr-1" />
+                                    <XCircle className="h-4 w-4 mr-1" aria-hidden="true" />
                                     却下
                                   </Button>
                                 </div>
@@ -451,17 +451,17 @@ function MtgExemptionsPageContent() {
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                   処理中...
                 </>
               ) : reviewAction === 'APPROVED' ? (
                 <>
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  <CheckCircle2 className="h-4 w-4 mr-2" aria-hidden="true" />
                   承認する
                 </>
               ) : (
                 <>
-                  <XCircle className="h-4 w-4 mr-2" />
+                  <XCircle className="h-4 w-4 mr-2" aria-hidden="true" />
                   却下する
                 </>
               )}

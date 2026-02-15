@@ -327,7 +327,7 @@ function AdminMtgPageContent() {
                   onClick={() => setShowMtgCreateForm(true)}
                   className="bg-blue-600 hover:bg-blue-700"
                 >
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
                   全体MTGを作成
                 </Button>
               )}
@@ -340,7 +340,7 @@ function AdminMtgPageContent() {
                 onClick={() => setActiveTab('upcoming')}
                 className="flex items-center gap-2"
               >
-                <Calendar className="h-4 w-4" />
+                <Calendar className="h-4 w-4" aria-hidden="true" />
                 開催予定 ({upcomingEvents.length})
               </Button>
               <Button
@@ -348,7 +348,7 @@ function AdminMtgPageContent() {
                 onClick={() => setActiveTab('past')}
                 className="flex items-center gap-2"
               >
-                <Archive className="h-4 w-4" />
+                <Archive className="h-4 w-4" aria-hidden="true" />
                 過去MTG ({pastEvents.length})
               </Button>
             </div>
@@ -421,7 +421,7 @@ function AdminMtgPageContent() {
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="flex items-center text-slate-500">
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" aria-hidden="true" />
                   読み込み中です
                 </div>
               </div>
@@ -469,7 +469,7 @@ function AdminMtgPageContent() {
                           </Badge>
                           {event.vimeoUrl && (
                             <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-purple-50 border-purple-200 text-purple-700">
-                              <Video className="h-2.5 w-2.5 mr-0.5" />
+                              <Video className="h-2.5 w-2.5 mr-0.5" aria-hidden="true" />
                               録画あり
                             </Badge>
                           )}
@@ -482,7 +482,7 @@ function AdminMtgPageContent() {
                       {/* 参加者数 */}
                       <div className="flex-shrink-0 mx-4 text-center">
                         <div className="flex items-center text-xs text-slate-600">
-                          <Users className="h-3.5 w-3.5 mr-1" />
+                          <Users className="h-3.5 w-3.5 mr-1" aria-hidden="true" />
                           <span>{event.currentParticipants}名</span>
                         </div>
                       </div>
@@ -503,7 +503,7 @@ function AdminMtgPageContent() {
                                 }}
                                 disabled={isSubmitting}
                               >
-                                <CheckCircle2 className="h-4 w-4 mr-1" />
+                                <CheckCircle2 className="h-4 w-4 mr-1" aria-hidden="true" />
                                 <span className="text-xs">完了</span>
                               </Button>
                             )}
@@ -517,7 +517,7 @@ function AdminMtgPageContent() {
                               }}
                               disabled={isSubmitting}
                             >
-                              <Edit className="h-4 w-4" />
+                              <Edit className="h-4 w-4" aria-hidden="true" />
                             </Button>
                             <Button
                               size="sm"
@@ -529,13 +529,13 @@ function AdminMtgPageContent() {
                               }}
                               disabled={isSubmitting}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-4 w-4" aria-hidden="true" />
                             </Button>
                           </>
                         )}
                         <ChevronRight
                           className="h-4 w-4 text-slate-400 group-hover:text-slate-600 cursor-pointer"
-                          onClick={() => router.push(`/dashboard/admin/events/${event.id}/mtg`)}
+                          onClick={() => router.push(`/dashboard/admin/events/${event.id}/mtg`)} aria-hidden="true"
                         />
                       </div>
                     </div>

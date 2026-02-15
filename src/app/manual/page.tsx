@@ -61,7 +61,7 @@ export default function ManualPage() {
     {
       id: 'getting-started',
       title: 'はじめに（全ユーザー向け）',
-      icon: <BookOpen className="h-5 w-5" />,
+      icon: <BookOpen className="h-5 w-5" aria-hidden="true" />,
       forRoles: ['member', 'fp', 'manager', 'admin'],
       content: (
         <div className="space-y-6">
@@ -78,7 +78,7 @@ export default function ManualPage() {
             <div className="grid gap-3">
               <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
                 <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Users className="h-4 w-4 text-slate-600" />
+                  <Users className="h-4 w-4 text-slate-600" aria-hidden="true" />
                 </div>
                 <div>
                   <p className="font-medium">UGS会員（MEMBER）</p>
@@ -87,7 +87,7 @@ export default function ManualPage() {
               </div>
               <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
                 <div className="w-8 h-8 bg-blue-200 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Briefcase className="h-4 w-4 text-blue-600" />
+                  <Briefcase className="h-4 w-4 text-blue-600" aria-hidden="true" />
                 </div>
                 <div>
                   <p className="font-medium">FPエイド（FP）</p>
@@ -96,7 +96,7 @@ export default function ManualPage() {
               </div>
               <div className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg">
                 <div className="w-8 h-8 bg-purple-200 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Award className="h-4 w-4 text-purple-600" />
+                  <Award className="h-4 w-4 text-purple-600" aria-hidden="true" />
                 </div>
                 <div>
                   <p className="font-medium">マネージャー（MANAGER）</p>
@@ -105,7 +105,7 @@ export default function ManualPage() {
               </div>
               <div className="flex items-start gap-3 p-3 bg-red-50 rounded-lg">
                 <div className="w-8 h-8 bg-red-200 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Shield className="h-4 w-4 text-red-600" />
+                  <Shield className="h-4 w-4 text-red-600" aria-hidden="true" />
                 </div>
                 <div>
                   <p className="font-medium">管理者（ADMIN）</p>
@@ -132,13 +132,13 @@ export default function ManualPage() {
     {
       id: 'registration',
       title: '会員登録の流れ',
-      icon: <UserPlus className="h-5 w-5" />,
+      icon: <UserPlus className="h-5 w-5" aria-hidden="true" />,
       forRoles: ['member', 'fp', 'manager', 'admin'],
       content: (
         <div className="space-y-6">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="flex items-start gap-2">
-              <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
               <p className="text-blue-800">
                 新規会員は以下の流れで登録が完了します。動作確認時は各ステップが正常に動作するか確認してください。
               </p>
@@ -195,7 +195,7 @@ export default function ManualPage() {
 
             <div className="flex items-start gap-4">
               <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center flex-shrink-0">
-                <CheckCircle className="h-4 w-4" />
+                <CheckCircle className="h-4 w-4" aria-hidden="true" />
               </div>
               <div>
                 <p className="font-medium">登録完了</p>
@@ -211,7 +211,7 @@ export default function ManualPage() {
     {
       id: 'dashboard',
       title: 'ダッシュボードの使い方',
-      icon: <LayoutDashboard className="h-5 w-5" />,
+      icon: <LayoutDashboard className="h-5 w-5" aria-hidden="true" />,
       forRoles: ['member', 'fp', 'manager', 'admin'],
       content: (
         <div className="space-y-6">
@@ -225,19 +225,19 @@ export default function ManualPage() {
 
             <div className="grid gap-2">
               <div className="flex items-center gap-2 p-2 bg-slate-50 rounded">
-                <GraduationCap className="h-4 w-4 text-slate-500" />
+                <GraduationCap className="h-4 w-4 text-slate-500" aria-hidden="true" />
                 <span className="text-sm">教育コンテンツ - コース・レッスンの視聴</span>
               </div>
               <div className="flex items-center gap-2 p-2 bg-slate-50 rounded">
-                <FileText className="h-4 w-4 text-slate-500" />
+                <FileText className="h-4 w-4 text-slate-500" aria-hidden="true" />
                 <span className="text-sm">資料 - PDFなどの資料ダウンロード</span>
               </div>
               <div className="flex items-center gap-2 p-2 bg-slate-50 rounded">
-                <Calendar className="h-4 w-4 text-slate-500" />
+                <Calendar className="h-4 w-4 text-slate-500" aria-hidden="true" />
                 <span className="text-sm">イベント - イベントへの参加登録</span>
               </div>
               <div className="flex items-center gap-2 p-2 bg-slate-50 rounded">
-                <Bell className="h-4 w-4 text-slate-500" />
+                <Bell className="h-4 w-4 text-slate-500" aria-hidden="true" />
                 <span className="text-sm">通知 - お知らせの確認</span>
               </div>
             </div>
@@ -260,7 +260,7 @@ export default function ManualPage() {
     {
       id: 'courses',
       title: '教育コンテンツ（コース・レッスン）',
-      icon: <GraduationCap className="h-5 w-5" />,
+      icon: <GraduationCap className="h-5 w-5" aria-hidden="true" />,
       forRoles: ['member', 'fp', 'manager', 'admin'],
       content: (
         <div className="space-y-6">
@@ -312,7 +312,7 @@ export default function ManualPage() {
     {
       id: 'events',
       title: 'イベント参加',
-      icon: <Calendar className="h-5 w-5" />,
+      icon: <Calendar className="h-5 w-5" aria-hidden="true" />,
       forRoles: ['member', 'fp', 'manager', 'admin'],
       content: (
         <div className="space-y-6">
@@ -373,7 +373,7 @@ export default function ManualPage() {
     {
       id: 'fp-promotion',
       title: 'FPエイドへの昇格',
-      icon: <Award className="h-5 w-5" />,
+      icon: <Award className="h-5 w-5" aria-hidden="true" />,
       forRoles: ['member', 'fp', 'manager', 'admin'],
       content: (
         <div className="space-y-6">
@@ -460,7 +460,7 @@ export default function ManualPage() {
     {
       id: 'referrals',
       title: '紹介機能',
-      icon: <UserCheck className="h-5 w-5" />,
+      icon: <UserCheck className="h-5 w-5" aria-hidden="true" />,
       forRoles: ['member', 'fp', 'manager', 'admin'],
       content: (
         <div className="space-y-6">
@@ -490,7 +490,7 @@ export default function ManualPage() {
     {
       id: 'compensation',
       title: '報酬管理',
-      icon: <DollarSign className="h-5 w-5" />,
+      icon: <DollarSign className="h-5 w-5" aria-hidden="true" />,
       forRoles: ['fp', 'manager', 'admin'],
       content: (
         <div className="space-y-6">
@@ -533,7 +533,7 @@ export default function ManualPage() {
     {
       id: 'consultation',
       title: '個別相談',
-      icon: <MessageSquare className="h-5 w-5" />,
+      icon: <MessageSquare className="h-5 w-5" aria-hidden="true" />,
       forRoles: ['member', 'fp', 'manager', 'admin'],
       content: (
         <div className="space-y-6">
@@ -574,7 +574,7 @@ export default function ManualPage() {
     {
       id: 'settings',
       title: 'プロフィール・設定',
-      icon: <Settings className="h-5 w-5" />,
+      icon: <Settings className="h-5 w-5" aria-hidden="true" />,
       forRoles: ['member', 'fp', 'manager', 'admin'],
       content: (
         <div className="space-y-6">
@@ -618,7 +618,7 @@ export default function ManualPage() {
     {
       id: 'admin-dashboard',
       title: '【管理者】ダッシュボード・分析',
-      icon: <Shield className="h-5 w-5" />,
+      icon: <Shield className="h-5 w-5" aria-hidden="true" />,
       forRoles: ['admin'],
       content: (
         <div className="space-y-6">
@@ -649,7 +649,7 @@ export default function ManualPage() {
     {
       id: 'admin-users',
       title: '【管理者】ユーザー管理',
-      icon: <Users className="h-5 w-5" />,
+      icon: <Users className="h-5 w-5" aria-hidden="true" />,
       forRoles: ['admin'],
       content: (
         <div className="space-y-6">
@@ -694,7 +694,7 @@ export default function ManualPage() {
     {
       id: 'admin-events',
       title: '【管理者】イベント管理',
-      icon: <Calendar className="h-5 w-5" />,
+      icon: <Calendar className="h-5 w-5" aria-hidden="true" />,
       forRoles: ['admin'],
       content: (
         <div className="space-y-6">
@@ -736,7 +736,7 @@ export default function ManualPage() {
     {
       id: 'admin-compliance',
       title: '【管理者】コンプライアンステスト管理',
-      icon: <ClipboardList className="h-5 w-5" />,
+      icon: <ClipboardList className="h-5 w-5" aria-hidden="true" />,
       forRoles: ['admin'],
       content: (
         <div className="space-y-6">
@@ -771,7 +771,7 @@ export default function ManualPage() {
     {
       id: 'admin-compensation',
       title: '【管理者】報酬・契約管理',
-      icon: <DollarSign className="h-5 w-5" />,
+      icon: <DollarSign className="h-5 w-5" aria-hidden="true" />,
       forRoles: ['admin'],
       content: (
         <div className="space-y-6">
@@ -812,7 +812,7 @@ export default function ManualPage() {
     {
       id: 'admin-promotions',
       title: '【管理者】昇格申請管理',
-      icon: <Award className="h-5 w-5" />,
+      icon: <Award className="h-5 w-5" aria-hidden="true" />,
       forRoles: ['admin'],
       content: (
         <div className="space-y-6">
@@ -841,7 +841,7 @@ export default function ManualPage() {
     {
       id: 'faq',
       title: 'FAQ・よくある質問',
-      icon: <HelpCircle className="h-5 w-5" />,
+      icon: <HelpCircle className="h-5 w-5" aria-hidden="true" />,
       forRoles: ['member', 'fp', 'manager', 'admin'],
       content: (
         <div className="space-y-6">
@@ -901,7 +901,7 @@ export default function ManualPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Link href="/dashboard" className="text-slate-500 hover:text-slate-700">
-                <ArrowLeft className="h-5 w-5" />
+                <ArrowLeft className="h-5 w-5" aria-hidden="true" />
               </Link>
               <div>
                 <h1 className="text-xl font-bold text-slate-900">UGSユーザーマニュアル</h1>
@@ -958,9 +958,9 @@ export default function ManualPage() {
                     <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded">管理者専用</span>
                   )}
                   {expandedSections.has(section.id) ? (
-                    <ChevronDown className="h-5 w-5 text-slate-400" />
+                    <ChevronDown className="h-5 w-5 text-slate-400" aria-hidden="true" />
                   ) : (
-                    <ChevronRight className="h-5 w-5 text-slate-400" />
+                    <ChevronRight className="h-5 w-5 text-slate-400" aria-hidden="true" />
                   )}
                 </div>
               </button>

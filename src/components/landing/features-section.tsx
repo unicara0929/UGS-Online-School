@@ -66,7 +66,7 @@ export function FeaturesSection() {
             <Card key={index} className="text-center hover:shadow-xl transition-shadow duration-300">
               <CardContent className="pt-6">
                 <div className="w-12 h-12 bg-slate-700 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <feature.icon className="h-6 w-6 text-white" />
+                  <feature.icon className="h-6 w-6 text-white" aria-hidden="true" />
                 </div>
                 <h3 className="text-xl font-semibold text-slate-900 mb-2">
                   {feature.title}

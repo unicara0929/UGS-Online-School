@@ -132,9 +132,9 @@ function AlreadyRegisteredContent() {
                   : 'bg-gradient-to-br from-yellow-500 to-orange-600'
               }`}>
                 {isFullyRegistered ? (
-                  <LogIn className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+                  <LogIn className="h-6 w-6 sm:h-8 sm:w-8 text-white" aria-hidden="true" />
                 ) : (
-                  <Mail className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+                  <Mail className="h-6 w-6 sm:h-8 sm:w-8 text-white" aria-hidden="true" />
                 )}
               </div>
             </div>
@@ -154,7 +154,7 @@ function AlreadyRegisteredContent() {
             {isPending ? (
               <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 sm:p-6">
                 <div className="flex items-start">
-                  <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600 mr-2 sm:mr-3 mt-0.5 flex-shrink-0" />
+                  <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600 mr-2 sm:mr-3 mt-0.5 flex-shrink-0" aria-hidden="true" />
                   <div>
                     <h3 className="font-semibold text-yellow-900 mb-1 sm:mb-2 text-sm sm:text-base">
                       {isEmailVerified ? '決済が未完了です' : 'メール認証が必要です'}
@@ -173,7 +173,7 @@ function AlreadyRegisteredContent() {
             ) : (
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-6">
                 <div className="flex items-start">
-                  <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 mr-2 sm:mr-3 mt-0.5 flex-shrink-0" />
+                  <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 mr-2 sm:mr-3 mt-0.5 flex-shrink-0" aria-hidden="true" />
                   <div>
                     <h3 className="font-semibold text-blue-900 mb-1 sm:mb-2 text-sm sm:text-base">
                       既に本登録が完了しています
@@ -197,7 +197,7 @@ function AlreadyRegisteredContent() {
                       disabled={isLoading}
                       className="w-full h-12 sm:h-14 text-sm sm:text-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-shadow"
                     >
-                      <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                      <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 mr-2" aria-hidden="true" />
                       {isLoading ? '処理中...' : '決済を完了して本登録する'}
                     </Button>
                   ) : (
@@ -206,7 +206,7 @@ function AlreadyRegisteredContent() {
                       disabled={isLoading}
                       className="w-full h-12 sm:h-14 text-sm sm:text-lg bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 shadow-lg hover:shadow-xl transition-shadow"
                     >
-                      <Mail className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                      <Mail className="h-4 w-4 sm:h-5 sm:w-5 mr-2" aria-hidden="true" />
                       {isLoading ? '送信中...' : '認証メールを再送信'}
                     </Button>
                   )}
@@ -215,7 +215,7 @@ function AlreadyRegisteredContent() {
                     variant="outline"
                     className="w-full h-10 sm:h-12 text-sm"
                   >
-                    <LogIn className="h-4 w-4 mr-2" />
+                    <LogIn className="h-4 w-4 mr-2" aria-hidden="true" />
                     ログインする
                   </Button>
                 </>
@@ -225,7 +225,7 @@ function AlreadyRegisteredContent() {
                     onClick={() => router.push('/login')}
                     className="w-full h-12 sm:h-14 text-sm sm:text-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-shadow"
                   >
-                    <LogIn className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                    <LogIn className="h-4 w-4 sm:h-5 sm:w-5 mr-2" aria-hidden="true" />
                     ログインする
                   </Button>
                   <Link href="/forgot-password">

@@ -188,7 +188,7 @@ function AccountSettingsPage() {
             <div className="flex items-center space-x-4">
               <Link href="/dashboard/settings">
                 <Button variant="outline" size="icon">
-                  <ArrowLeft className="h-5 w-5" />
+                  <ArrowLeft className="h-5 w-5" aria-hidden="true" />
                 </Button>
               </Link>
               <div>
@@ -201,7 +201,7 @@ function AccountSettingsPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Globe className="h-5 w-5 mr-2" />
+                  <Globe className="h-5 w-5 mr-2" aria-hidden="true" />
                   アカウント情報
                 </CardTitle>
                 <CardDescription>
@@ -274,7 +274,7 @@ function AccountSettingsPage() {
                     onClick={() => setShowCancelDialog(true)}
                     disabled={!!cancelResult}
                   >
-                    <UserX className="h-4 w-4 mr-2" />
+                    <UserX className="h-4 w-4 mr-2" aria-hidden="true" />
                     {cancelResult ? '退会申請済み' : '退会申請'}
                   </Button>
 
@@ -349,6 +349,7 @@ function AccountSettingsPage() {
                     value={user?.email || ''}
                     disabled
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-600"
+                    spellCheck={false}
                   />
                 </div>
               </div>

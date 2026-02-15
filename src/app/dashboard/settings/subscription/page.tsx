@@ -198,7 +198,7 @@ function SubscriptionManagementPage() {
           <DashboardHeader />
           <main className="px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-slate-600" />
+              <Loader2 className="h-8 w-8 animate-spin text-slate-600" aria-hidden="true" />
             </div>
           </main>
         </div>
@@ -222,7 +222,7 @@ function SubscriptionManagementPage() {
               <Card>
                 <CardContent className="pt-6">
                   <div className="text-center py-8">
-                    <CreditCard className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                    <CreditCard className="h-12 w-12 text-slate-400 mx-auto mb-4" aria-hidden="true" />
                     <p className="text-slate-600">サブスクリプションが見つかりません</p>
                     <p className="text-sm text-slate-500 mt-2">新規登録から決済を完了してください</p>
                   </div>
@@ -234,7 +234,7 @@ function SubscriptionManagementPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center">
-                      <CreditCard className="h-5 w-5 mr-2" />
+                      <CreditCard className="h-5 w-5 mr-2" aria-hidden="true" />
                       サブスクリプション情報
                     </CardTitle>
                     <CardDescription>現在のサブスクリプションの状態</CardDescription>
@@ -254,7 +254,7 @@ function SubscriptionManagementPage() {
                     {subscription.stripeDetails?.status === 'past_due' && (
                       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                         <div className="flex items-start">
-                          <AlertCircle className="h-5 w-5 text-yellow-600 mr-2 mt-0.5" />
+                          <AlertCircle className="h-5 w-5 text-yellow-600 mr-2 mt-0.5" aria-hidden="true" />
                           <div>
                             <p className="text-sm font-medium text-yellow-800">決済が失敗しました</p>
                             <p className="text-sm text-yellow-700 mt-1">
@@ -268,7 +268,7 @@ function SubscriptionManagementPage() {
                     {subscription.stripeDetails?.cancelAtPeriodEnd && (
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                         <div className="flex items-start">
-                          <AlertCircle className="h-5 w-5 text-blue-600 mr-2 mt-0.5" />
+                          <AlertCircle className="h-5 w-5 text-blue-600 mr-2 mt-0.5" aria-hidden="true" />
                           <div>
                             <p className="text-sm font-medium text-blue-800">キャンセル予定</p>
                             <p className="text-sm text-blue-700 mt-1">
@@ -287,15 +287,15 @@ function SubscriptionManagementPage() {
                           <div className="text-right">
                             {subscription.stripeDetails.discount && subscription.stripeDetails.originalAmount ? (
                               <>
-                                <span className="text-sm text-slate-400 line-through mr-2">
+                                <span className="text-sm text-slate-400 line-through mr-2 tabular-nums">
                                   {formatCurrency(subscription.stripeDetails.originalAmount)}
                                 </span>
-                                <span className="text-lg font-bold text-green-600">
+                                <span className="text-lg font-bold text-green-600 tabular-nums">
                                   {formatCurrency(subscription.stripeDetails.amount)}
                                 </span>
                               </>
                             ) : (
-                              <span className="text-lg font-bold text-slate-900">
+                              <span className="text-lg font-bold text-slate-900 tabular-nums">
                                 {formatCurrency(subscription.stripeDetails.amount)}
                               </span>
                             )}
@@ -304,7 +304,7 @@ function SubscriptionManagementPage() {
                         {subscription.stripeDetails.discount && (
                           <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                             <div className="flex items-center">
-                              <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
+                              <CheckCircle className="h-4 w-4 text-green-600 mr-2" aria-hidden="true" />
                               <span className="text-sm font-medium text-green-800">
                                 {subscription.stripeDetails.discount.name || '割引適用中'}
                               </span>
@@ -350,12 +350,12 @@ function SubscriptionManagementPage() {
                           >
                             {isUpdatingPayment ? (
                               <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                                 処理中...
                               </>
                             ) : (
                               <>
-                                <CreditCard className="h-4 w-4 mr-2" />
+                                <CreditCard className="h-4 w-4 mr-2" aria-hidden="true" />
                                 カード情報を変更
                               </>
                             )}
@@ -363,13 +363,13 @@ function SubscriptionManagementPage() {
                         </div>
                         <div className="bg-slate-50 rounded-lg p-4">
                           <div className="flex items-center">
-                            <CreditCard className="h-8 w-8 text-slate-600 mr-3" />
+                            <CreditCard className="h-8 w-8 text-slate-600 mr-3" aria-hidden="true" />
                             <div>
                               <p className="text-sm font-medium text-slate-900">
                                 {getCardBrandName(subscription.paymentMethod.brand)} •••• {subscription.paymentMethod.last4}
                               </p>
                               {subscription.paymentMethod.expMonth && subscription.paymentMethod.expYear && (
-                                <p className="text-xs text-slate-600">
+                                <p className="text-xs text-slate-600 tabular-nums">
                                   有効期限: {subscription.paymentMethod.expMonth}/{subscription.paymentMethod.expYear}
                                 </p>
                               )}
@@ -389,12 +389,12 @@ function SubscriptionManagementPage() {
                           >
                             {isUpdatingPayment ? (
                               <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                                 処理中...
                               </>
                             ) : (
                               <>
-                                <CreditCard className="h-4 w-4 mr-2" />
+                                <CreditCard className="h-4 w-4 mr-2" aria-hidden="true" />
                                 カード情報を登録
                               </>
                             )}
@@ -410,7 +410,7 @@ function SubscriptionManagementPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center">
-                      <FileText className="h-5 w-5 mr-2" />
+                      <FileText className="h-5 w-5 mr-2" aria-hidden="true" />
                       請求履歴
                     </CardTitle>
                     <CardDescription>過去の請求書一覧</CardDescription>
@@ -418,7 +418,7 @@ function SubscriptionManagementPage() {
                   <CardContent>
                     {invoices.length === 0 ? (
                       <div className="text-center py-8">
-                        <FileText className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                        <FileText className="h-12 w-12 text-slate-400 mx-auto mb-4" aria-hidden="true" />
                         <p className="text-slate-600">請求履歴がありません</p>
                       </div>
                     ) : (
@@ -430,7 +430,7 @@ function SubscriptionManagementPage() {
                           >
                             <div className="flex-1">
                               <div className="flex items-center space-x-3 mb-2">
-                                <FileText className="h-5 w-5 text-slate-600" />
+                                <FileText className="h-5 w-5 text-slate-600" aria-hidden="true" />
                                 <div>
                                   <p className="font-medium text-slate-900">
                                     {invoice.periodStart && invoice.periodEnd
@@ -439,7 +439,7 @@ function SubscriptionManagementPage() {
                                       ? formatDate(invoice.paidAt)
                                       : '請求書'}
                                   </p>
-                                  <p className="text-sm text-slate-600">
+                                  <p className="text-sm text-slate-600 tabular-nums">
                                     {formatCurrency(invoice.amount)} {invoice.currency.toUpperCase()}
                                   </p>
                                 </div>
@@ -453,7 +453,7 @@ function SubscriptionManagementPage() {
                                   size="sm"
                                   onClick={() => window.open(invoice.hostedInvoiceUrl!, '_blank')}
                                 >
-                                  <ExternalLink className="h-4 w-4 mr-2" />
+                                  <ExternalLink className="h-4 w-4 mr-2" aria-hidden="true" />
                                   請求書を見る
                                 </Button>
                               )}

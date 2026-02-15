@@ -342,7 +342,7 @@ export function EventForm({
         <Button onClick={onSubmit} disabled={isSubmitting || isUploading}>
           {isSubmitting || isUploading ? (
             <span className="flex items-center">
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
               {isUploading ? 'アップロード中...' : '処理中...'}
             </span>
           ) : (

@@ -54,21 +54,21 @@ export function PromotionHistory() {
       case 'PENDING':
         return (
           <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-            <Clock className="h-3 w-3 mr-1" />
+            <Clock className="h-3 w-3 mr-1" aria-hidden="true" />
             審査中
           </Badge>
         )
       case 'APPROVED':
         return (
           <Badge className="bg-green-100 text-green-800">
-            <CheckCircle className="h-3 w-3 mr-1" />
+            <CheckCircle className="h-3 w-3 mr-1" aria-hidden="true" />
             承認済み
           </Badge>
         )
       case 'REJECTED':
         return (
           <Badge variant="destructive">
-            <XCircle className="h-3 w-3 mr-1" />
+            <XCircle className="h-3 w-3 mr-1" aria-hidden="true" />
             却下
           </Badge>
         )
@@ -93,7 +93,7 @@ export function PromotionHistory() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <History className="h-5 w-5" />
+            <History className="h-5 w-5" aria-hidden="true" />
             申請履歴
           </CardTitle>
           <CardDescription>
@@ -102,7 +102,7 @@ export function PromotionHistory() {
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-slate-600" />
+            <Loader2 className="h-8 w-8 animate-spin text-slate-600" aria-hidden="true" />
           </div>
         </CardContent>
       </Card>
@@ -113,7 +113,7 @@ export function PromotionHistory() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <History className="h-5 w-5" />
+          <History className="h-5 w-5" aria-hidden="true" />
           申請履歴
         </CardTitle>
         <CardDescription>
@@ -142,18 +142,18 @@ export function PromotionHistory() {
                     </div>
                     <div className="space-y-1 text-sm text-slate-600">
                       <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
+                        <Calendar className="h-4 w-4" aria-hidden="true" />
                         <span>申請日: {new Date(application.appliedAt).toLocaleDateString('ja-JP')}</span>
                       </div>
                       {application.approvedAt && (
                         <div className="flex items-center gap-2 text-green-600">
-                          <CheckCircle className="h-4 w-4" />
+                          <CheckCircle className="h-4 w-4" aria-hidden="true" />
                           <span>承認日: {new Date(application.approvedAt).toLocaleDateString('ja-JP')}</span>
                         </div>
                       )}
                       {application.rejectedAt && (
                         <div className="flex items-center gap-2 text-red-600">
-                          <XCircle className="h-4 w-4" />
+                          <XCircle className="h-4 w-4" aria-hidden="true" />
                           <span>却下日: {new Date(application.rejectedAt).toLocaleDateString('ja-JP')}</span>
                         </div>
                       )}

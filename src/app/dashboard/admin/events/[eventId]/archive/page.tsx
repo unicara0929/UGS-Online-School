@@ -268,7 +268,7 @@ function EventArchivePageContent() {
           <main className="px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex items-center justify-center py-12">
               <div className="flex items-center text-slate-500">
-                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" aria-hidden="true" />
                 読み込み中です
               </div>
             </div>
@@ -292,7 +292,7 @@ function EventArchivePageContent() {
             </Card>
             <div className="mt-4">
               <Button variant="outline" onClick={() => router.back()}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
+                <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
                 戻る
               </Button>
             </div>
@@ -312,7 +312,7 @@ function EventArchivePageContent() {
           <div className="space-y-6">
             {/* 戻るボタン */}
             <Button variant="outline" onClick={() => router.push('/dashboard/admin/events')}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
               イベント一覧に戻る
             </Button>
 
@@ -350,19 +350,19 @@ function EventArchivePageContent() {
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div className="flex items-center text-slate-600">
-                    <Calendar className="h-4 w-4 mr-2" />
+                    <Calendar className="h-4 w-4 mr-2" aria-hidden="true" />
                     {event && formatDate(event.date)}
                   </div>
                   <div className="flex items-center text-slate-600">
-                    <Clock className="h-4 w-4 mr-2" />
+                    <Clock className="h-4 w-4 mr-2" aria-hidden="true" />
                     {event?.time || '時間未定'}
                   </div>
                   <div className="flex items-center text-slate-600">
-                    <MapPin className="h-4 w-4 mr-2" />
+                    <MapPin className="h-4 w-4 mr-2" aria-hidden="true" />
                     {event?.location || '未設定'}
                   </div>
                   <div className="flex items-center text-slate-600">
-                    <Users className="h-4 w-4 mr-2" />
+                    <Users className="h-4 w-4 mr-2" aria-hidden="true" />
                     申込: {event?.currentParticipants}名
                   </div>
                 </div>
@@ -373,7 +373,7 @@ function EventArchivePageContent() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
+                  <FileText className="h-5 w-5" aria-hidden="true" />
                   実施結果
                 </CardTitle>
                 <CardDescription>
@@ -400,7 +400,7 @@ function EventArchivePageContent() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className={FORM_LABEL_CLASS}>
-                        <Users className="h-4 w-4 inline mr-1" />
+                        <Users className="h-4 w-4 inline mr-1" aria-hidden="true" />
                         実参加人数
                       </label>
                       <input
@@ -416,7 +416,7 @@ function EventArchivePageContent() {
                     {/* 最終的な会場情報 */}
                     <div>
                       <label className={FORM_LABEL_CLASS}>
-                        <MapPin className="h-4 w-4 inline mr-1" />
+                        <MapPin className="h-4 w-4 inline mr-1" aria-hidden="true" />
                         最終的な開催場所
                       </label>
                       <input
@@ -453,7 +453,7 @@ function EventArchivePageContent() {
                     {/* Vimeo URL */}
                     <div>
                       <label className={FORM_LABEL_CLASS}>
-                        <Video className="h-4 w-4 inline mr-1" />
+                        <Video className="h-4 w-4 inline mr-1" aria-hidden="true" />
                         録画動画URL（Vimeo等）
                       </label>
                       <input
@@ -479,7 +479,7 @@ function EventArchivePageContent() {
                         </div>
                         <Link href={`/dashboard/admin/events/${eventId}/survey`}>
                           <Button variant="outline" size="sm" className="border-purple-300 text-purple-700 hover:bg-purple-100">
-                            <Settings className="h-4 w-4 mr-2" />
+                            <Settings className="h-4 w-4 mr-2" aria-hidden="true" />
                             アンケート設定
                           </Button>
                         </Link>
@@ -496,7 +496,7 @@ function EventArchivePageContent() {
                       <div className="p-3 bg-slate-50 rounded-lg">
                         <p className="text-xs text-slate-500 mb-1">現在設定中の資料URL</p>
                         <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-slate-400" />
+                          <FileText className="h-4 w-4 text-slate-400" aria-hidden="true" />
                           <a
                             href={formData.materialsUrl}
                             target="_blank"
@@ -511,7 +511,7 @@ function EventArchivePageContent() {
                             className="text-red-500 hover:text-red-700 ml-2"
                             title="資料URLをクリア"
                           >
-                            <X className="h-4 w-4" />
+                            <X className="h-4 w-4" aria-hidden="true" />
                           </button>
                         </div>
                       </div>
@@ -534,12 +534,12 @@ function EventArchivePageContent() {
                           <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-slate-300 rounded-lg hover:border-slate-500 transition-colors">
                             {isUploadingPdf ? (
                               <>
-                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                                 アップロード中...
                               </>
                             ) : (
                               <>
-                                <Upload className="h-4 w-4" />
+                                <Upload className="h-4 w-4" aria-hidden="true" />
                                 PDFを選択
                               </>
                             )}
@@ -554,7 +554,7 @@ function EventArchivePageContent() {
                     {/* または外部URL入力 */}
                     <div>
                       <label className={FORM_LABEL_CLASS}>
-                        <Link2 className="h-4 w-4 inline mr-1" />
+                        <Link2 className="h-4 w-4 inline mr-1" aria-hidden="true" />
                         または外部URLを指定
                       </label>
                       <input
@@ -573,7 +573,7 @@ function EventArchivePageContent() {
                   {/* 当日の写真 */}
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">
-                      <ImageIcon className="h-4 w-4 inline mr-1" />
+                      <ImageIcon className="h-4 w-4 inline mr-1" aria-hidden="true" />
                       当日の写真
                     </label>
 
@@ -592,7 +592,7 @@ function EventArchivePageContent() {
                               onClick={() => handlePhotoRemove(index)}
                               className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                             >
-                              <X className="h-4 w-4" />
+                              <X className="h-4 w-4" aria-hidden="true" />
                             </button>
                           </div>
                         ))}
@@ -612,12 +612,12 @@ function EventArchivePageContent() {
                         <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-slate-300 rounded-lg hover:border-slate-500 transition-colors">
                           {isUploading ? (
                             <>
-                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                               アップロード中...
                             </>
                           ) : (
                             <>
-                              <Upload className="h-4 w-4" />
+                              <Upload className="h-4 w-4" aria-hidden="true" />
                               写真を追加
                             </>
                           )}
@@ -632,7 +632,7 @@ function EventArchivePageContent() {
                   {/* 管理者メモ */}
                   <div>
                     <label className={FORM_LABEL_CLASS}>
-                      <MessageSquare className="h-4 w-4 inline mr-1" />
+                      <MessageSquare className="h-4 w-4 inline mr-1" aria-hidden="true" />
                       管理者用メモ
                     </label>
                     <textarea
@@ -650,12 +650,12 @@ function EventArchivePageContent() {
                   <Button onClick={handleSave} disabled={isSaving}>
                     {isSaving ? (
                       <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                         保存中...
                       </>
                     ) : (
                       <>
-                        <Save className="h-4 w-4 mr-2" />
+                        <Save className="h-4 w-4 mr-2" aria-hidden="true" />
                         記録を保存
                       </>
                     )}

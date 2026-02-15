@@ -95,7 +95,7 @@ UGS00003,RENTAL-2024-001,賃貸,アパート仲介,鈴木次郎,80000,8000,2024-
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-blue-600" />
+                <FileText className="h-5 w-5 text-blue-600" aria-hidden="true" />
                 契約CSVアップロード
               </CardTitle>
               <CardDescription>
@@ -173,7 +173,7 @@ UGS00003,RENTAL-2024-001,賃貸,アパート仲介,鈴木次郎,80000,8000,2024-
                   variant="outline"
                   className="flex items-center gap-2"
                 >
-                  <Download className="h-4 w-4" />
+                  <Download className="h-4 w-4" aria-hidden="true" />
                   サンプルCSVをダウンロード
                 </Button>
 
@@ -192,12 +192,12 @@ UGS00003,RENTAL-2024-001,賃貸,アパート仲介,鈴木次郎,80000,8000,2024-
                   >
                     {isUploading ? (
                       <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                         アップロード中...
                       </>
                     ) : (
                       <>
-                        <Upload className="h-4 w-4" />
+                        <Upload className="h-4 w-4" aria-hidden="true" />
                         CSVファイルをアップロード
                       </>
                     )}
@@ -213,9 +213,9 @@ UGS00003,RENTAL-2024-001,賃貸,アパート仲介,鈴木次郎,80000,8000,2024-
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   {uploadResult.errors.length === 0 ? (
-                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <CheckCircle className="h-5 w-5 text-green-600" aria-hidden="true" />
                   ) : (
-                    <AlertCircle className="h-5 w-5 text-yellow-600" />
+                    <AlertCircle className="h-5 w-5 text-yellow-600" aria-hidden="true" />
                   )}
                   アップロード結果
                 </CardTitle>
@@ -243,7 +243,7 @@ UGS00003,RENTAL-2024-001,賃貸,アパート仲介,鈴木次郎,80000,8000,2024-
                 {uploadResult.errors.length > 0 && (
                   <div className="mt-4">
                     <h4 className="font-semibold text-red-800 mb-2 flex items-center gap-2">
-                      <XCircle className="h-4 w-4" />
+                      <XCircle className="h-4 w-4" aria-hidden="true" />
                       エラー詳細
                     </h4>
                     <div className="bg-red-50 rounded-lg p-4 max-h-60 overflow-y-auto">

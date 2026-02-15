@@ -124,7 +124,7 @@ function SurveyPageContent() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-slate-600" aria-hidden="true" />
       </div>
     )
   }
@@ -152,7 +152,7 @@ function SurveyPageContent() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <FileText className="h-5 w-5 mr-2" />
+                <FileText className="h-5 w-5 mr-2" aria-hidden="true" />
                 {survey.title}
               </CardTitle>
               <CardDescription>
@@ -164,7 +164,7 @@ function SurveyPageContent() {
                 <div className="space-y-6">
                   <div className="p-6 rounded-xl bg-green-50 border border-green-200">
                     <div className="text-center">
-                      <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
+                      <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" aria-hidden="true" />
                       <h3 className="text-2xl font-bold text-green-800 mb-2">
                         アンケート提出完了
                       </h3>
@@ -183,7 +183,7 @@ function SurveyPageContent() {
                       size="lg"
                       className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
                     >
-                      <Award className="h-5 w-5 mr-2" />
+                      <Award className="h-5 w-5 mr-2" aria-hidden="true" />
                       FPエイド昇格申請へ進む
                     </Button>
                   </div>
@@ -265,7 +265,7 @@ function SurveyPageContent() {
                     >
                       {isSubmitting ? (
                         <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                           提出中...
                         </>
                       ) : (

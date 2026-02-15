@@ -89,7 +89,7 @@ function BusinessCardHistoryContent() {
           <PageHeader title="名刺注文履歴" />
           <main className="px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+              <Loader2 className="h-8 w-8 animate-spin text-slate-400" aria-hidden="true" />
             </div>
           </main>
         </div>
@@ -126,7 +126,7 @@ function BusinessCardHistoryContent() {
               <h2 className="text-lg font-semibold text-slate-900">注文一覧</h2>
               <Link href="/dashboard/business-card/order">
                 <Button className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-4 w-4" aria-hidden="true" />
                   新規注文
                 </Button>
               </Link>
@@ -135,7 +135,7 @@ function BusinessCardHistoryContent() {
             {orders.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <CreditCard className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                  <CreditCard className="h-12 w-12 text-slate-300 mx-auto mb-4" aria-hidden="true" />
                   <p className="text-slate-500 mb-4">まだ名刺の注文履歴がありません</p>
                   <Link href="/dashboard/business-card/order">
                     <Button>名刺を注文する</Button>
@@ -155,7 +155,7 @@ function BusinessCardHistoryContent() {
                             <div className="flex items-center gap-3 mb-2">
                               <h3 className="font-semibold text-slate-900">{order.displayName}</h3>
                               <Badge className={statusConfig.color}>
-                                <StatusIcon className="h-3 w-3 mr-1" />
+                                <StatusIcon className="h-3 w-3 mr-1" aria-hidden="true" />
                                 {statusConfig.label}
                               </Badge>
                             </div>
@@ -204,12 +204,12 @@ function BusinessCardHistoryContent() {
                                 <p className="text-slate-600 mb-2">
                                   {order.deliveryMethod === 'PICKUP' ? (
                                     <span className="flex items-center gap-1">
-                                      <MapPin className="h-4 w-4" />
+                                      <MapPin className="h-4 w-4" aria-hidden="true" />
                                       UGS本社（愛知県名古屋市）で手渡し
                                     </span>
                                   ) : (
                                     <span className="flex items-center gap-1">
-                                      <Truck className="h-4 w-4" />
+                                      <Truck className="h-4 w-4" aria-hidden="true" />
                                       レターパック郵送
                                     </span>
                                   )}

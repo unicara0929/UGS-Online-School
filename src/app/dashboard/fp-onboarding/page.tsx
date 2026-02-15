@@ -243,7 +243,7 @@ export default function FPOnboardingPage() {
       <DashboardLayout>
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin text-slate-600 mx-auto mb-4" />
+            <Loader2 className="h-8 w-8 animate-spin text-slate-600 mx-auto mb-4" aria-hidden="true" />
             <p className="text-slate-600">読み込み中...</p>
           </div>
         </div>
@@ -259,7 +259,7 @@ export default function FPOnboardingPage() {
         <Card className="shadow-xl">
           <CardHeader>
             <CardTitle className="text-2xl flex items-center gap-2">
-              <Play className="h-6 w-6" />
+              <Play className="h-6 w-6" aria-hidden="true" />
               FPエイド向け動画ガイダンス
             </CardTitle>
             <CardDescription>
@@ -270,7 +270,7 @@ export default function FPOnboardingPage() {
           <CardContent className="space-y-6">
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                 <div>
                   <p className="text-sm font-medium text-red-800">エラーが発生しました</p>
                   <p className="text-sm text-red-600 mt-1">{error}</p>
@@ -327,7 +327,7 @@ export default function FPOnboardingPage() {
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0">
                     <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-                      <CheckCircle className="h-7 w-7 text-white" />
+                      <CheckCircle className="h-7 w-7 text-white" aria-hidden="true" />
                     </div>
                   </div>
                   <div className="flex-1">
@@ -356,7 +356,7 @@ export default function FPOnboardingPage() {
 
             {isCompleting && (
               <div className="flex items-center justify-center gap-2 text-slate-600">
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                 <span>完了処理を実行中...</span>
               </div>
             )}

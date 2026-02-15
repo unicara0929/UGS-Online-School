@@ -80,7 +80,7 @@ export default function CompletedLessonsPage({ params }: { params: Promise<{ use
         <DashboardLayout>
           <div className="p-6 flex items-center justify-center min-h-screen">
             <div className="text-center">
-              <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+              <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" aria-hidden="true" />
               <p className="text-slate-600">視聴済みレッスンを読み込み中...</p>
             </div>
           </div>
@@ -99,7 +99,7 @@ export default function CompletedLessonsPage({ params }: { params: Promise<{ use
               onClick={() => router.push('/dashboard/team')}
               className="mb-4"
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
               チーム一覧に戻る
             </Button>
             <Card className="border-red-200 bg-red-50">
@@ -124,19 +124,19 @@ export default function CompletedLessonsPage({ params }: { params: Promise<{ use
               onClick={() => router.push('/dashboard/team')}
               className="mb-4"
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
               チーム一覧に戻る
             </Button>
 
             <div className="flex items-center gap-4 mb-2">
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <BookOpen className="h-6 w-6 text-blue-600" />
+                <BookOpen className="h-6 w-6 text-blue-600" aria-hidden="true" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-slate-900">視聴済みレッスン一覧</h1>
                 {user && (
                   <div className="flex items-center gap-2 text-slate-600">
-                    <User className="h-4 w-4" />
+                    <User className="h-4 w-4" aria-hidden="true" />
                     <span>{user.name}さん</span>
                   </div>
                 )}
@@ -144,7 +144,7 @@ export default function CompletedLessonsPage({ params }: { params: Promise<{ use
             </div>
 
             <div className="mt-4 inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-lg">
-              <BookOpen className="h-5 w-5" />
+              <BookOpen className="h-5 w-5" aria-hidden="true" />
               <span className="font-semibold">合計 {totalCount} レッスン完了</span>
             </div>
           </div>
@@ -153,14 +153,14 @@ export default function CompletedLessonsPage({ params }: { params: Promise<{ use
           <Card className="shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5 text-blue-600" />
+                <BookOpen className="h-5 w-5 text-blue-600" aria-hidden="true" />
                 視聴済みレッスン
               </CardTitle>
             </CardHeader>
             <CardContent>
               {lessons.length === 0 ? (
                 <div className="text-center py-12 text-slate-500">
-                  <BookOpen className="h-12 w-12 mx-auto mb-4 text-slate-300" />
+                  <BookOpen className="h-12 w-12 mx-auto mb-4 text-slate-300" aria-hidden="true" />
                   <p>視聴済みのレッスンはありません</p>
                 </div>
               ) : (

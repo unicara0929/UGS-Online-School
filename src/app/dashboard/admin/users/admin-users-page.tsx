@@ -926,7 +926,7 @@ export default function AdminUsersPage() {
         <div className="text-center">
           <div className="relative">
             <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
-              <Users className="h-10 w-10 text-white animate-pulse" />
+              <Users className="h-10 w-10 text-white animate-pulse" aria-hidden="true" />
             </div>
             <div className="absolute inset-0 w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mx-auto animate-ping opacity-20"></div>
           </div>
@@ -967,7 +967,7 @@ export default function AdminUsersPage() {
                 <p className="text-blue-100 text-sm sm:text-lg">登録済みユーザーの一覧と管理</p>
               </div>
               <div className="flex items-center space-x-3 sm:space-x-4 bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 self-start sm:self-auto">
-                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-blue-200" />
+                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-blue-200" aria-hidden="true" />
                 <div className="text-right">
                   <div className="text-xl sm:text-2xl font-bold text-white">
                     {filteredUsers.length}
@@ -996,14 +996,14 @@ export default function AdminUsersPage() {
                   variant="outline"
                   className="bg-white/10 hover:bg-white/20 text-white border-white/30"
                 >
-                  <Upload className="h-4 w-4 mr-2" />
+                  <Upload className="h-4 w-4 mr-2" aria-hidden="true" />
                   一括作成
                 </Button>
                 <Button
                   onClick={() => setShowCreateUserModal(true)}
                   className="bg-white/20 hover:bg-white/30 text-white border-white/30 shadow-lg"
                 >
-                  <UserPlus className="h-4 w-4 mr-2" />
+                  <UserPlus className="h-4 w-4 mr-2" aria-hidden="true" />
                   ユーザー作成
                 </Button>
               </div>
@@ -1019,7 +1019,7 @@ export default function AdminUsersPage() {
               <CardHeader className="bg-gradient-to-br from-blue-50 to-indigo-50 p-3 sm:p-6">
                 <CardTitle className="flex items-center justify-between text-sm sm:text-base">
                   <span className="text-blue-900">FPエイド</span>
-                  <UserCheck className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+                  <UserCheck className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" aria-hidden="true" />
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-3 sm:p-6 pt-4 sm:pt-6">
@@ -1036,7 +1036,7 @@ export default function AdminUsersPage() {
               <CardHeader className="bg-gradient-to-br from-green-50 to-emerald-50 p-3 sm:p-6">
                 <CardTitle className="flex items-center justify-between text-sm sm:text-base">
                   <span className="text-green-900">UGS会員</span>
-                  <Users className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
+                  <Users className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" aria-hidden="true" />
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-3 sm:p-6 pt-4 sm:pt-6">
@@ -1051,7 +1051,7 @@ export default function AdminUsersPage() {
                     size="sm"
                     className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
                   >
-                    <UserCheck className="h-4 w-4 mr-2" />
+                    <UserCheck className="h-4 w-4 mr-2" aria-hidden="true" />
                     全員FPに昇格
                   </Button>
                 )}
@@ -1063,7 +1063,7 @@ export default function AdminUsersPage() {
               <CardHeader className="bg-gradient-to-br from-purple-50 to-pink-50 p-3 sm:p-6">
                 <CardTitle className="flex items-center justify-between text-sm sm:text-base">
                   <span className="text-purple-900">昇格実績</span>
-                  <UserCheck className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
+                  <UserCheck className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" aria-hidden="true" />
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-3 sm:p-6 pt-4 sm:pt-6">
@@ -1084,7 +1084,7 @@ export default function AdminUsersPage() {
               <div className="flex items-start space-x-3">
                 <div className="flex-shrink-0">
                   <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                    <AlertCircle className="h-5 w-5 text-red-600" />
+                    <AlertCircle className="h-5 w-5 text-red-600" aria-hidden="true" />
                   </div>
                 </div>
                 <div className="flex-1">
@@ -1113,17 +1113,17 @@ export default function AdminUsersPage() {
         <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
           <div className="bg-gradient-to-r from-slate-50 to-blue-50 px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200">
             <h2 className="text-base sm:text-lg font-semibold text-slate-800 flex items-center">
-              <Filter className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600" />
+              <Filter className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600" aria-hidden="true" />
               フィルター・検索
             </h2>
           </div>
           <div className="p-4 sm:p-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
               <div className="relative group">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" aria-hidden="true" />
                 <input
                   type="text"
-                  placeholder="名前またはメールで検索..."
+                  placeholder="名前またはメールで検索…"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 sm:py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-[box-shadow,border-color] duration-200"
@@ -1188,7 +1188,7 @@ export default function AdminUsersPage() {
                 }}
                 className="flex items-center justify-center space-x-2 bg-gradient-to-r from-slate-50 to-blue-50 hover:from-slate-100 hover:to-blue-100 border-slate-300 text-slate-700 hover:text-slate-800 shadow-sm hover:shadow-md transition-shadow duration-200 rounded-xl py-2.5 sm:py-3 text-sm"
               >
-                <Filter className="h-4 w-4" />
+                <Filter className="h-4 w-4" aria-hidden="true" />
                 <span>リセット</span>
               </Button>
 
@@ -1197,7 +1197,7 @@ export default function AdminUsersPage() {
                 onClick={handleExportCSV}
                 className="flex items-center justify-center space-x-2 bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 border-green-300 text-green-700 hover:text-green-800 shadow-sm hover:shadow-md transition-shadow duration-200 rounded-xl py-2.5 sm:py-3 text-sm"
               >
-                <Download className="h-4 w-4" />
+                <Download className="h-4 w-4" aria-hidden="true" />
                 <span>CSV出力</span>
               </Button>
             </div>
@@ -1209,7 +1209,7 @@ export default function AdminUsersPage() {
           <div className="bg-gradient-to-r from-slate-50 to-blue-50 px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <h2 className="text-base sm:text-lg font-semibold text-slate-800 flex items-center">
-                <Users className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600" />
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600" aria-hidden="true" />
                 ユーザー一覧
               </h2>
               {(selectedUserIds.size > 0 || selectedPendingUserIds.size > 0) && (
@@ -1221,7 +1221,7 @@ export default function AdminUsersPage() {
                         size="sm"
                         className="flex items-center space-x-1 sm:space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-md hover:shadow-lg transition-shadow duration-200 text-xs sm:text-sm"
                       >
-                        <UserCheck className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <UserCheck className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
                         <span className="hidden sm:inline">ステータス変更</span>
                         <span className="sm:hidden">変更</span>
                         <span>({selectedUserIds.size})</span>
@@ -1231,7 +1231,7 @@ export default function AdminUsersPage() {
                         size="sm"
                         className="flex items-center space-x-1 sm:space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-shadow duration-200 text-xs sm:text-sm"
                       >
-                        <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <Mail className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
                         <span className="hidden sm:inline">一括メール送信</span>
                         <span className="sm:hidden">メール</span>
                         <span>({selectedUserIds.size})</span>
@@ -1252,7 +1252,7 @@ export default function AdminUsersPage() {
                         </>
                       ) : (
                         <>
-                          <UserX className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <UserX className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
                           <span className="hidden sm:inline">仮登録を一括削除</span>
                           <span className="sm:hidden">削除</span>
                           <span>({selectedPendingUserIds.size})</span>
@@ -1295,7 +1295,7 @@ export default function AdminUsersPage() {
                   >
                     <div className="flex items-center space-x-1 sm:space-x-2">
                       <span>名前</span>
-                      <ArrowUpDown className="h-3 w-3 sm:h-4 sm:w-4 text-slate-500" />
+                      <ArrowUpDown className="h-3 w-3 sm:h-4 sm:w-4 text-slate-500" aria-hidden="true" />
                     </div>
                   </TableHead>
                   <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm">ステータス</TableHead>
@@ -1305,7 +1305,7 @@ export default function AdminUsersPage() {
                   >
                     <div className="flex items-center space-x-1 sm:space-x-2">
                       <span>メール</span>
-                      <ArrowUpDown className="h-3 w-3 sm:h-4 sm:w-4 text-slate-500" />
+                      <ArrowUpDown className="h-3 w-3 sm:h-4 sm:w-4 text-slate-500" aria-hidden="true" />
                     </div>
                   </TableHead>
                   <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm">決済</TableHead>
@@ -1317,7 +1317,7 @@ export default function AdminUsersPage() {
                   >
                     <div className="flex items-center space-x-1 sm:space-x-2">
                       <span>登録日</span>
-                      <ArrowUpDown className="h-3 w-3 sm:h-4 sm:w-4 text-slate-500" />
+                      <ArrowUpDown className="h-3 w-3 sm:h-4 sm:w-4 text-slate-500" aria-hidden="true" />
                     </div>
                   </TableHead>
                   <TableHead
@@ -1326,7 +1326,7 @@ export default function AdminUsersPage() {
                   >
                     <div className="flex items-center space-x-1 sm:space-x-2">
                       <span>最終ログイン</span>
-                      <ArrowUpDown className="h-3 w-3 sm:h-4 sm:w-4 text-slate-500" />
+                      <ArrowUpDown className="h-3 w-3 sm:h-4 sm:w-4 text-slate-500" aria-hidden="true" />
                     </div>
                   </TableHead>
                   <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm">
@@ -1404,13 +1404,13 @@ export default function AdminUsersPage() {
                                 ? 'text-green-600 border-green-300 bg-green-50'
                                 : 'text-orange-600 border-orange-300 bg-orange-50'
                             }`}>
-                              <UserX className="h-3 w-3 mr-1" />
+                              <UserX className="h-3 w-3 mr-1" aria-hidden="true" />
                               {user.emailVerified ? '認証済み' : '仮登録'}
                             </Badge>
                           )}
                           {user.type === 'registered' && user.hasSupabaseAuth === false && (
                             <Badge variant="outline" className="text-red-600 border-red-300 bg-red-50 mt-1 text-xs">
-                              <AlertCircle className="h-3 w-3 mr-1" />
+                              <AlertCircle className="h-3 w-3 mr-1" aria-hidden="true" />
                               認証なし
                             </Badge>
                           )}
@@ -1451,7 +1451,7 @@ export default function AdminUsersPage() {
                     <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
                       {user.type === 'pending' ? (
                         <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200 shadow-sm text-xs">
-                          <CreditCard className="h-3 w-3 mr-1" />
+                          <CreditCard className="h-3 w-3 mr-1" aria-hidden="true" />
                           待ち
                         </Badge>
                       ) : (
@@ -1467,10 +1467,10 @@ export default function AdminUsersPage() {
                                 'bg-gray-100 text-gray-800 border-gray-200'
                               }`}
                             >
-                              <CreditCard className="h-3 w-3 mr-1" />
+                              <CreditCard className="h-3 w-3 mr-1" aria-hidden="true" />
                               {subStatus.label}
                               {subStatus.cancelAtPeriodEnd && (
-                                <AlertCircle className="h-3 w-3 ml-1" />
+                                <AlertCircle className="h-3 w-3 ml-1" aria-hidden="true" />
                               )}
                             </Badge>
                           )
@@ -1481,7 +1481,7 @@ export default function AdminUsersPage() {
                     <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
                       {user.type === 'pending' ? (
                         <Badge variant="secondary" className="bg-gray-100 text-gray-500 border-gray-200 shadow-sm text-xs">
-                          <FileX className="h-3 w-3 mr-1" />
+                          <FileX className="h-3 w-3 mr-1" aria-hidden="true" />
                           -
                         </Badge>
                       ) : user.contractCompleted ? (
@@ -1490,7 +1490,7 @@ export default function AdminUsersPage() {
                           className="inline-flex items-center px-2 py-1 rounded-md bg-green-100 text-green-800 border border-green-200 shadow-sm text-xs hover:bg-green-200 transition-colors cursor-pointer"
                           title="クリックで未完了に変更"
                         >
-                          <FileCheck className="h-3 w-3 mr-1" />
+                          <FileCheck className="h-3 w-3 mr-1" aria-hidden="true" />
                           完了
                         </button>
                       ) : (
@@ -1499,7 +1499,7 @@ export default function AdminUsersPage() {
                           className="inline-flex items-center px-2 py-1 rounded-md bg-orange-100 text-orange-800 border border-orange-200 shadow-sm text-xs hover:bg-orange-200 transition-colors cursor-pointer"
                           title="クリックで完了に変更"
                         >
-                          <FileX className="h-3 w-3 mr-1" />
+                          <FileX className="h-3 w-3 mr-1" aria-hidden="true" />
                           未完了
                         </button>
                       )}
@@ -1544,7 +1544,7 @@ export default function AdminUsersPage() {
                           className="inline-flex items-center px-2 py-1 rounded-md bg-red-50 text-red-600 border border-red-200 text-xs hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           title="ユーザーを削除"
                         >
-                          <Trash2 className="h-3 w-3 mr-1" />
+                          <Trash2 className="h-3 w-3 mr-1" aria-hidden="true" />
                           {isDeletingUser === user.id ? '削除中...' : '削除'}
                         </button>
                       ) : user.type === 'pending' ? (
@@ -1569,7 +1569,7 @@ export default function AdminUsersPage() {
           <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
             <div className="p-12 text-center">
               <div className="w-20 h-20 bg-gradient-to-br from-slate-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Users className="h-10 w-10 text-slate-400" />
+                <Users className="h-10 w-10 text-slate-400" aria-hidden="true" />
               </div>
               <h3 className="text-2xl font-bold text-slate-900 mb-3">
                 ユーザーが見つかりません
@@ -1611,7 +1611,7 @@ export default function AdminUsersPage() {
               <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4 rounded-t-2xl">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold text-white flex items-center">
-                    <UserCheck className="h-5 w-5 mr-2" />
+                    <UserCheck className="h-5 w-5 mr-2" aria-hidden="true" />
                     一括ステータス変更 ({selectedUserIds.size}名)
                   </h2>
                   <button
@@ -1640,7 +1640,7 @@ export default function AdminUsersPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                       ) : (
-                        <AlertCircle className="w-8 h-8 text-yellow-600" />
+                        <AlertCircle className="w-8 h-8 text-yellow-600" aria-hidden="true" />
                       )}
                     </div>
                     <h3 className="text-xl font-semibold text-slate-900 mb-2">
@@ -1727,7 +1727,7 @@ export default function AdminUsersPage() {
                           </>
                         ) : (
                           <>
-                            <UserCheck className="h-4 w-4 mr-2" />
+                            <UserCheck className="h-4 w-4 mr-2" aria-hidden="true" />
                             変更する
                           </>
                         )}
@@ -1747,7 +1747,7 @@ export default function AdminUsersPage() {
               <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4 rounded-t-2xl">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold text-white flex items-center">
-                    <UserCheck className="h-5 w-5 mr-2" />
+                    <UserCheck className="h-5 w-5 mr-2" aria-hidden="true" />
                     一括ロール変更
                   </h2>
                   <button
@@ -1770,9 +1770,9 @@ export default function AdminUsersPage() {
                       bulkRoleChangeResult.success ? 'bg-green-100' : 'bg-red-100'
                     }`}>
                       {bulkRoleChangeResult.success ? (
-                        <CheckCircle className="w-8 h-8 text-green-600" />
+                        <CheckCircle className="w-8 h-8 text-green-600" aria-hidden="true" />
                       ) : (
-                        <XCircle className="w-8 h-8 text-red-600" />
+                        <XCircle className="w-8 h-8 text-red-600" aria-hidden="true" />
                       )}
                     </div>
                     <h3 className="text-xl font-semibold text-slate-900 mb-2">
@@ -1796,7 +1796,7 @@ export default function AdminUsersPage() {
                   <>
                     <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
                       <div className="flex items-start">
-                        <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 mr-3 flex-shrink-0" />
+                        <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 mr-3 flex-shrink-0" aria-hidden="true" />
                         <div>
                           <h4 className="font-semibold text-amber-800 mb-1">確認</h4>
                           <p className="text-sm text-amber-700">
@@ -1835,7 +1835,7 @@ export default function AdminUsersPage() {
                           </>
                         ) : (
                           <>
-                            <UserCheck className="h-4 w-4 mr-2" />
+                            <UserCheck className="h-4 w-4 mr-2" aria-hidden="true" />
                             実行する
                           </>
                         )}
@@ -1855,7 +1855,7 @@ export default function AdminUsersPage() {
               <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 rounded-t-2xl">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold text-white flex items-center">
-                    <Mail className="h-5 w-5 mr-2" />
+                    <Mail className="h-5 w-5 mr-2" aria-hidden="true" />
                     一括メール送信 ({selectedUserIds.size}名)
                   </h2>
                   <button
@@ -1884,7 +1884,7 @@ export default function AdminUsersPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                       ) : (
-                        <AlertCircle className="w-8 h-8 text-yellow-600" />
+                        <AlertCircle className="w-8 h-8 text-yellow-600" aria-hidden="true" />
                       )}
                     </div>
                     <h3 className="text-xl font-semibold text-slate-900 mb-2">
@@ -1946,7 +1946,7 @@ export default function AdminUsersPage() {
                           disabled={isSending}
                           className="text-xs"
                         >
-                          <CreditCard className="h-3 w-3 mr-1" />
+                          <CreditCard className="h-3 w-3 mr-1" aria-hidden="true" />
                           決済リンク挿入
                         </Button>
                         <Button
@@ -1999,7 +1999,7 @@ export default function AdminUsersPage() {
                           </>
                         ) : (
                           <>
-                            <Mail className="h-4 w-4 mr-2" />
+                            <Mail className="h-4 w-4 mr-2" aria-hidden="true" />
                             送信する
                           </>
                         )}
@@ -2019,7 +2019,7 @@ export default function AdminUsersPage() {
               <div className="bg-gradient-to-r from-orange-500 to-amber-600 px-6 py-4 rounded-t-2xl">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold text-white flex items-center">
-                    <UserX className="h-5 w-5 mr-2" />
+                    <UserX className="h-5 w-5 mr-2" aria-hidden="true" />
                     仮登録ユーザー詳細
                   </h2>
                   <button
@@ -2054,12 +2054,12 @@ export default function AdminUsersPage() {
                     <p className="font-medium">
                       {selectedPendingUser.emailVerified ? (
                         <Badge className="bg-green-100 text-green-800 border-green-200">
-                          <UserCheck className="h-3 w-3 mr-1" />
+                          <UserCheck className="h-3 w-3 mr-1" aria-hidden="true" />
                           認証済み
                         </Badge>
                       ) : (
                         <Badge className="bg-orange-100 text-orange-800 border-orange-200">
-                          <Mail className="h-3 w-3 mr-1" />
+                          <Mail className="h-3 w-3 mr-1" aria-hidden="true" />
                           未認証
                         </Badge>
                       )}
@@ -2093,7 +2093,7 @@ export default function AdminUsersPage() {
                         </>
                       ) : (
                         <>
-                          <UserCheck className="h-4 w-4 mr-2" />
+                          <UserCheck className="h-4 w-4 mr-2" aria-hidden="true" />
                           手動でメール認証を完了する
                         </>
                       )}
@@ -2113,7 +2113,7 @@ export default function AdminUsersPage() {
                       </>
                     ) : (
                       <>
-                        <Mail className="h-4 w-4 mr-2" />
+                        <Mail className="h-4 w-4 mr-2" aria-hidden="true" />
                         認証メールを再送信
                       </>
                     )}
@@ -2136,7 +2136,7 @@ export default function AdminUsersPage() {
                       </>
                     ) : (
                       <>
-                        <UserX className="h-4 w-4 mr-2" />
+                        <UserX className="h-4 w-4 mr-2" aria-hidden="true" />
                         仮登録を削除
                       </>
                     )}
@@ -2167,7 +2167,7 @@ export default function AdminUsersPage() {
               <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4 rounded-t-2xl">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold text-white flex items-center">
-                    <UserPlus className="h-5 w-5 mr-2" />
+                    <UserPlus className="h-5 w-5 mr-2" aria-hidden="true" />
                     ユーザー作成
                   </h2>
                   <button
@@ -2217,6 +2217,7 @@ export default function AdminUsersPage() {
                     placeholder="例: example@email.com"
                     className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     disabled={isCreatingUser}
+                    spellCheck={false}
                   />
                 </div>
 
@@ -2239,7 +2240,7 @@ export default function AdminUsersPage() {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-500 hover:text-slate-700"
                     >
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      {showPassword ? <EyeOff className="h-5 w-5" aria-hidden="true" /> : <Eye className="h-5 w-5" aria-hidden="true" />}
                     </button>
                   </div>
                   <p className="text-xs text-slate-500 mt-1">本人に共有するため、覚えやすいパスワードを設定してください</p>
@@ -2289,7 +2290,7 @@ export default function AdminUsersPage() {
                       </>
                     ) : (
                       <>
-                        <UserPlus className="h-4 w-4 mr-2" />
+                        <UserPlus className="h-4 w-4 mr-2" aria-hidden="true" />
                         ユーザーを作成
                       </>
                     )}
@@ -2307,7 +2308,7 @@ export default function AdminUsersPage() {
               <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 rounded-t-2xl">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold text-white flex items-center">
-                    <Upload className="h-5 w-5 mr-2" />
+                    <Upload className="h-5 w-5 mr-2" aria-hidden="true" />
                     ユーザー一括作成
                   </h2>
                   <button
@@ -2319,7 +2320,7 @@ export default function AdminUsersPage() {
                     className="text-white/80 hover:text-white"
                     disabled={isBulkCreating}
                   >
-                    <XCircle className="h-6 w-6" />
+                    <XCircle className="h-6 w-6" aria-hidden="true" />
                   </button>
                 </div>
               </div>
@@ -2392,7 +2393,7 @@ user3@example.com,password789,佐藤一郎`}
                           </>
                         ) : (
                           <>
-                            <Upload className="h-4 w-4 mr-2" />
+                            <Upload className="h-4 w-4 mr-2" aria-hidden="true" />
                             一括作成を実行
                           </>
                         )}
@@ -2439,12 +2440,12 @@ user3@example.com,password789,佐藤一郎`}
                                 <td className="px-4 py-2">
                                   {result.success ? (
                                     <span className="inline-flex items-center text-green-600">
-                                      <CheckCircle className="h-4 w-4 mr-1" />
+                                      <CheckCircle className="h-4 w-4 mr-1" aria-hidden="true" />
                                       成功
                                     </span>
                                   ) : (
                                     <span className="inline-flex items-center text-red-600">
-                                      <XCircle className="h-4 w-4 mr-1" />
+                                      <XCircle className="h-4 w-4 mr-1" aria-hidden="true" />
                                       失敗
                                     </span>
                                   )}

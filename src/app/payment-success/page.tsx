@@ -89,7 +89,7 @@ function PaymentSuccessContent() {
       <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="h-8 w-8 text-green-600" />
+            <CheckCircle className="h-8 w-8 text-green-600" aria-hidden="true" />
           </div>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">決済完了！</h1>
           <p className="text-slate-600">UGSへのご登録が完了しました</p>
@@ -124,7 +124,7 @@ function PaymentSuccessContent() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Mail className="h-5 w-5 mr-2" />
+              <Mail className="h-5 w-5 mr-2" aria-hidden="true" />
               確認メールについて
             </CardTitle>
           </CardHeader>
@@ -143,7 +143,7 @@ function PaymentSuccessContent() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Clock className="h-5 w-5 mr-2" />
+              <Clock className="h-5 w-5 mr-2" aria-hidden="true" />
               次のステップ
             </CardTitle>
           </CardHeader>
@@ -184,7 +184,7 @@ function PaymentSuccessContent() {
           <Link href={`/login?email=${encodeURIComponent(sessionData?.metadata?.userEmail || '')}`}>
             <Button size="lg" className="mr-4">
               ログインページへ
-              <ArrowRight className="h-4 w-4 ml-2" />
+              <ArrowRight className="h-4 w-4 ml-2" aria-hidden="true" />
             </Button>
           </Link>
           <Link href="/lp">
@@ -208,7 +208,7 @@ export default function PaymentSuccessPage() {
         </div>
       </div>
     }>
-      <PaymentSuccessContent />
+      <PaymentSuccessContent aria-hidden="true" />
     </Suspense>
   )
 }

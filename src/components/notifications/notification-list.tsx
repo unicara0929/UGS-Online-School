@@ -146,11 +146,11 @@ export function NotificationList() {
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
       case 'CRITICAL':
-        return <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
+        return <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0" aria-hidden="true" />
       case 'SUCCESS':
-        return <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+        return <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" aria-hidden="true" />
       default:
-        return <Info className="h-4 w-4 text-blue-600 flex-shrink-0" />
+        return <Info className="h-4 w-4 text-blue-600 flex-shrink-0" aria-hidden="true" />
     }
   }
 
@@ -168,7 +168,7 @@ export function NotificationList() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-slate-600" aria-hidden="true" />
       </div>
     )
   }
@@ -195,12 +195,12 @@ export function NotificationList() {
           >
             {isMarkingAllRead ? (
               <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                 処理中...
               </>
             ) : (
               <>
-                <CheckCheck className="h-4 w-4 mr-2" />
+                <CheckCheck className="h-4 w-4 mr-2" aria-hidden="true" />
                 すべて既読にする
               </>
             )}
@@ -211,20 +211,21 @@ export function NotificationList() {
       {/* 検索バー */}
       {notifications.length > 0 && (
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" aria-hidden="true" />
           <Input
             type="text"
-            placeholder="通知を検索..."
+            placeholder="通知を検索…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10 pr-10"
           />
           {searchQuery && (
             <button
+              type="button"
               onClick={() => setSearchQuery('')}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4" aria-hidden="true" />
             </button>
           )}
         </div>
@@ -244,6 +245,17 @@ export function NotificationList() {
           {unreadNotifications.map((notification) => (
             <Card
               key={notification.id}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e: React.KeyboardEvent) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  markAsRead(notification.id)
+                  if (notification.actionUrl) {
+                    window.open(notification.actionUrl, '_blank', 'noopener,noreferrer')
+                  }
+                }
+              }}
               className={`border-l-4 cursor-pointer transition-shadow hover:shadow-md ${
                 notification.priority === 'CRITICAL'
                   ? 'border-l-red-500 bg-red-50/50 hover:bg-red-50'
@@ -280,7 +292,7 @@ export function NotificationList() {
                       className="h-7 w-7 p-0"
                       title="既読にする"
                     >
-                      <CheckCircle className="h-4 w-4" />
+                      <CheckCircle className="h-4 w-4" aria-hidden="true" />
                     </Button>
                   </div>
                 </div>
@@ -297,6 +309,14 @@ export function NotificationList() {
           {readNotifications.map((notification) => (
             <Card
               key={notification.id}
+              role={notification.actionUrl ? "button" : undefined}
+              tabIndex={notification.actionUrl ? 0 : undefined}
+              onKeyDown={(e: React.KeyboardEvent) => {
+                if ((e.key === 'Enter' || e.key === ' ') && notification.actionUrl) {
+                  e.preventDefault()
+                  window.open(notification.actionUrl, '_blank', 'noopener,noreferrer')
+                }
+              }}
               className={`opacity-60 hover:opacity-100 transition-[opacity,box-shadow] hover:shadow-md ${
                 notification.actionUrl ? 'cursor-pointer' : ''
               }`}
@@ -318,7 +338,7 @@ export function NotificationList() {
                     <p className="text-sm text-slate-600 line-clamp-2 mt-0.5">{notification.message}</p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <CheckCircle className="h-4 w-4 text-green-600" aria-hidden="true" />
                   </div>
                 </div>
               </CardContent>
@@ -332,7 +352,7 @@ export function NotificationList() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center py-8">
-              <Search className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+              <Search className="h-12 w-12 text-slate-400 mx-auto mb-4" aria-hidden="true" />
               <p className="text-slate-600">「{searchQuery}」に一致する通知はありません</p>
               <Button
                 variant="outline"
@@ -352,7 +372,7 @@ export function NotificationList() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center py-8">
-              <Bell className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+              <Bell className="h-12 w-12 text-slate-400 mx-auto mb-4" aria-hidden="true" />
               <p className="text-slate-600">通知はありません</p>
             </div>
           </CardContent>

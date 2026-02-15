@@ -305,9 +305,9 @@ UGS0000002,2025-01,1200000,12`
               <CardContent className="pt-6">
                 <div className="flex flex-wrap gap-4 items-center">
                   <div className="relative flex-1 min-w-[200px]">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                     <Input
-                      placeholder="名前・会員番号・メールで検索..."
+                      placeholder="名前・会員番号・メールで検索…"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-10"
@@ -327,15 +327,15 @@ UGS0000002,2025-01,1200000,12`
                   {selectedIds.size > 0 && (
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" onClick={() => handleLock(true)}>
-                        <Lock className="h-4 w-4 mr-1" />
+                        <Lock className="h-4 w-4 mr-1" aria-hidden="true" />
                         ロック
                       </Button>
                       <Button variant="outline" size="sm" onClick={() => handleLock(false)}>
-                        <Unlock className="h-4 w-4 mr-1" />
+                        <Unlock className="h-4 w-4 mr-1" aria-hidden="true" />
                         解除
                       </Button>
                       <Button variant="destructive" size="sm" onClick={handleDelete}>
-                        <Trash2 className="h-4 w-4 mr-1" />
+                        <Trash2 className="h-4 w-4 mr-1" aria-hidden="true" />
                         削除
                       </Button>
                     </div>
@@ -349,7 +349,7 @@ UGS0000002,2025-01,1200000,12`
               <CardContent className="pt-6">
                 {loading ? (
                   <div className="flex justify-center py-8">
-                    <Loader2 className="h-8 w-8 animate-spin" />
+                    <Loader2 className="h-8 w-8 animate-spin" aria-hidden="true" />
                   </div>
                 ) : (
                   <Table>
@@ -412,7 +412,7 @@ UGS0000002,2025-01,1200000,12`
                           <TableCell>
                             {record.isLocked ? (
                               <Badge variant="secondary">
-                                <Lock className="h-3 w-3 mr-1" />
+                                <Lock className="h-3 w-3 mr-1" aria-hidden="true" />
                                 ロック済
                               </Badge>
                             ) : (
@@ -457,7 +457,7 @@ UGS0000002,2025-01,1200000,12`
                   </ul>
                 </div>
                 <Button variant="outline" onClick={downloadSample}>
-                  <Download className="h-4 w-4 mr-2" />
+                  <Download className="h-4 w-4 mr-2" aria-hidden="true" />
                   サンプルCSVをダウンロード
                 </Button>
               </CardContent>
@@ -488,12 +488,12 @@ UGS0000002,2025-01,1200000,12`
                     <Button onClick={handleUpload} disabled={isUploading}>
                       {isUploading ? (
                         <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                           プレビュー生成中...
                         </>
                       ) : (
                         <>
-                          <Upload className="h-4 w-4 mr-2" />
+                          <Upload className="h-4 w-4 mr-2" aria-hidden="true" />
                           プレビュー
                         </>
                       )}
@@ -537,7 +537,7 @@ UGS0000002,2025-01,1200000,12`
                   {preview.locked.length > 0 && (
                     <div className="space-y-2">
                       <h4 className="font-semibold text-yellow-600 flex items-center gap-2">
-                        <Lock className="h-4 w-4" />
+                        <Lock className="h-4 w-4" aria-hidden="true" />
                         ロック済みデータ（スキップ）
                       </h4>
                       <div className="max-h-40 overflow-y-auto space-y-2">
@@ -554,7 +554,7 @@ UGS0000002,2025-01,1200000,12`
                   {preview.errors.length > 0 && (
                     <div className="space-y-2">
                       <h4 className="font-semibold text-red-600 flex items-center gap-2">
-                        <AlertCircle className="h-4 w-4" />
+                        <AlertCircle className="h-4 w-4" aria-hidden="true" />
                         エラー詳細
                       </h4>
                       <div className="max-h-60 overflow-y-auto space-y-2">
@@ -585,12 +585,12 @@ UGS0000002,2025-01,1200000,12`
                     >
                       {isConfirming ? (
                         <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                           確定中...
                         </>
                       ) : (
                         <>
-                          <CheckCircle className="h-4 w-4 mr-2" />
+                          <CheckCircle className="h-4 w-4 mr-2" aria-hidden="true" />
                           確定
                         </>
                       )}
@@ -605,7 +605,7 @@ UGS0000002,2025-01,1200000,12`
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2 text-green-600">
-                    <CheckCircle className="h-5 w-5" />
+                    <CheckCircle className="h-5 w-5" aria-hidden="true" />
                     更新完了
                   </CardTitle>
                 </CardHeader>

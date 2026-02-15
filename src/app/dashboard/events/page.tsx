@@ -191,7 +191,7 @@ function EventsPageContent() {
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="flex items-center text-slate-500">
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" aria-hidden="true" />
                   読み込み中です
                 </div>
               </div>
@@ -227,7 +227,7 @@ function EventsPageContent() {
                                 <div className="flex items-center gap-2 flex-wrap">
                                   {event.isNew && (
                                     <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 text-[10px] px-1.5 py-0">
-                                      <Sparkles className="h-2.5 w-2.5 mr-0.5" />
+                                      <Sparkles className="h-2.5 w-2.5 mr-0.5" aria-hidden="true" />
                                       NEW
                                     </Badge>
                                   )}
@@ -253,7 +253,7 @@ function EventsPageContent() {
                               </div>
 
                               {/* 矢印 */}
-                              <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-slate-600 flex-shrink-0" />
+                              <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-slate-600 flex-shrink-0" aria-hidden="true" />
                             </div>
 
                             {/* 複数日程がある場合、全日程を表示 */}
@@ -304,7 +304,7 @@ function EventsPageContent() {
                               <div className="flex items-center gap-2">
                                 {event.attendanceCompletedAt && (
                                   <Badge variant="outline" className="bg-green-50 border-green-300 text-green-700 text-[10px] px-1.5 py-0">
-                                    <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" />
+                                    <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" aria-hidden="true" />
                                     参加済
                                   </Badge>
                                 )}
@@ -315,7 +315,7 @@ function EventsPageContent() {
                             </div>
 
                             {/* 矢印 */}
-                            <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-slate-600 flex-shrink-0" />
+                            <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-slate-600 flex-shrink-0" aria-hidden="true" />
                           </div>
                         ))}
                       </div>
@@ -326,7 +326,7 @@ function EventsPageContent() {
                 {events.length === 0 && (
                   <Card>
                     <CardContent className="text-center py-8">
-                      <Calendar className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                      <Calendar className="h-12 w-12 text-slate-400 mx-auto mb-4" aria-hidden="true" />
                       <p className="text-slate-600">参加可能なイベントがありません</p>
                     </CardContent>
                   </Card>

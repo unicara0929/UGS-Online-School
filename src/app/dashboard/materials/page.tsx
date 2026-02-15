@@ -160,12 +160,12 @@ function MaterialsPageContent() {
                 onClick={() => navigateToFolder(null)}
                 className={`p-1 h-auto ${!currentFolderId ? 'text-blue-600 font-medium' : 'text-slate-600'}`}
               >
-                <Home className="h-4 w-4 mr-1" />
+                <Home className="h-4 w-4 mr-1" aria-hidden="true" />
                 すべて
               </Button>
               {breadcrumbs.map((crumb, index) => (
                 <div key={crumb.id} className="flex items-center">
-                  <ChevronRight className="h-4 w-4 text-slate-400" />
+                  <ChevronRight className="h-4 w-4 text-slate-400" aria-hidden="true" />
                   <Button
                     variant="ghost"
                     size="sm"
@@ -182,13 +182,13 @@ function MaterialsPageContent() {
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="flex items-center text-slate-500">
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" aria-hidden="true" />
                   読み込み中です
                 </div>
               </div>
             ) : folders.length === 0 && materials.length === 0 ? (
               <div className="text-center py-12">
-                <FolderOpen className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                <FolderOpen className="h-12 w-12 text-slate-400 mx-auto mb-4" aria-hidden="true" />
                 <p className="text-slate-600">資料がありません</p>
               </div>
             ) : (
@@ -203,7 +203,7 @@ function MaterialsPageContent() {
                         className="flex items-center w-full px-4 py-3 hover:bg-slate-50 transition-colors text-left"
                       >
                         <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center mr-3">
-                          <Folder className="h-5 w-5 text-amber-600" />
+                          <Folder className="h-5 w-5 text-amber-600" aria-hidden="true" />
                         </div>
                         <div className="flex-1">
                           <h3 className="font-medium text-slate-900">{folder.name}</h3>
@@ -214,7 +214,7 @@ function MaterialsPageContent() {
                             {folder.childCount === 0 && folder.materialCount === 0 && '空のフォルダ'}
                           </p>
                         </div>
-                        <ChevronRight className="h-5 w-5 text-slate-400" />
+                        <ChevronRight className="h-5 w-5 text-slate-400" aria-hidden="true" />
                       </button>
                     ))}
 
@@ -225,13 +225,13 @@ function MaterialsPageContent() {
                         className="flex items-start sm:items-center px-4 py-3 hover:bg-slate-50 transition-colors gap-3"
                       >
                         <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
-                          <FileText className="h-5 w-5 text-blue-600" />
+                          <FileText className="h-5 w-5 text-blue-600" aria-hidden="true" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             {material.isNew && (
                               <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 text-xs">
-                                <Sparkles className="h-3 w-3 mr-1" />
+                                <Sparkles className="h-3 w-3 mr-1" aria-hidden="true" />
                                 NEW
                               </Badge>
                             )}
@@ -256,7 +256,7 @@ function MaterialsPageContent() {
                               onClick={() => window.open(material.fileUrl, '_blank')}
                               className="mt-2 sm:hidden"
                             >
-                              <Download className="h-4 w-4 mr-1" />
+                              <Download className="h-4 w-4 mr-1" aria-hidden="true" />
                               ダウンロード
                             </Button>
                           )}
@@ -269,7 +269,7 @@ function MaterialsPageContent() {
                             onClick={() => window.open(material.fileUrl, '_blank')}
                             className="hidden sm:flex shrink-0"
                           >
-                            <Download className="h-4 w-4 mr-1" />
+                            <Download className="h-4 w-4 mr-1" aria-hidden="true" />
                             ダウンロード
                           </Button>
                         )}

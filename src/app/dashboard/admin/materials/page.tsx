@@ -539,7 +539,7 @@ export default function AdminMaterialsPage() {
         <div className="text-center">
           <div className="relative">
             <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
-              <FileText className="h-10 w-10 text-white animate-pulse" />
+              <FileText className="h-10 w-10 text-white animate-pulse" aria-hidden="true" />
             </div>
             <div className="absolute inset-0 w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mx-auto animate-ping opacity-20"></div>
           </div>
@@ -556,7 +556,7 @@ export default function AdminMaterialsPage() {
         <Card className="max-w-2xl mx-auto border-red-200 bg-red-50">
           <CardContent className="p-6">
             <div className="flex items-center space-x-3">
-              <AlertCircle className="h-5 w-5 text-red-600" />
+              <AlertCircle className="h-5 w-5 text-red-600" aria-hidden="true" />
               <p className="text-red-800">{error}</p>
             </div>
           </CardContent>
@@ -579,14 +579,14 @@ export default function AdminMaterialsPage() {
               onClick={() => handleOpenFolderDialog()}
               variant="outline"
             >
-              <FolderPlus className="h-4 w-4 mr-2" />
+              <FolderPlus className="h-4 w-4 mr-2" aria-hidden="true" />
               フォルダ作成
             </Button>
             <Button
               onClick={() => handleOpenDialog()}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
             >
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
               資料追加
             </Button>
           </div>
@@ -600,12 +600,12 @@ export default function AdminMaterialsPage() {
             onClick={() => navigateToFolder(null)}
             className={`p-1 h-auto ${!currentFolderId ? 'text-blue-600 font-medium' : 'text-slate-600'}`}
           >
-            <Home className="h-4 w-4 mr-1" />
+            <Home className="h-4 w-4 mr-1" aria-hidden="true" />
             ルート
           </Button>
           {breadcrumbs.map((crumb, index) => (
             <div key={crumb.id} className="flex items-center">
-              <ChevronRight className="h-4 w-4 text-slate-400" />
+              <ChevronRight className="h-4 w-4 text-slate-400" aria-hidden="true" />
               <Button
                 variant="ghost"
                 size="sm"
@@ -623,15 +623,15 @@ export default function AdminMaterialsPage() {
           <CardContent className="p-0">
             {folders.length === 0 && materials.length === 0 ? (
               <div className="p-12 text-center">
-                <FolderOpen className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                <FolderOpen className="h-12 w-12 text-slate-400 mx-auto mb-4" aria-hidden="true" />
                 <p className="text-slate-600 mb-4">このフォルダは空です</p>
                 <div className="flex justify-center gap-2">
                   <Button onClick={() => handleOpenFolderDialog()} variant="outline">
-                    <FolderPlus className="h-4 w-4 mr-2" />
+                    <FolderPlus className="h-4 w-4 mr-2" aria-hidden="true" />
                     フォルダを作成
                   </Button>
                   <Button onClick={() => handleOpenDialog()}>
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
                     資料を追加
                   </Button>
                 </div>
@@ -649,7 +649,7 @@ export default function AdminMaterialsPage() {
                       className="flex items-center flex-1 text-left"
                     >
                       <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center mr-3">
-                        <Folder className="h-5 w-5 text-amber-600" />
+                        <Folder className="h-5 w-5 text-amber-600" aria-hidden="true" />
                       </div>
                       <div className="flex-1">
                         <h3 className="font-medium text-slate-900">{folder.name}</h3>
@@ -664,19 +664,19 @@ export default function AdminMaterialsPage() {
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100">
-                          <MoreVertical className="h-4 w-4" />
+                          <MoreVertical className="h-4 w-4" aria-hidden="true" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => handleOpenFolderDialog(folder)}>
-                          <Edit className="h-4 w-4 mr-2" />
+                          <Edit className="h-4 w-4 mr-2" aria-hidden="true" />
                           名前を変更
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDeleteFolder(folder.id, folder.name)}
                           className="text-red-600"
                         >
-                          <Trash2 className="h-4 w-4 mr-2" />
+                          <Trash2 className="h-4 w-4 mr-2" aria-hidden="true" />
                           削除
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -691,7 +691,7 @@ export default function AdminMaterialsPage() {
                     className="flex items-center px-4 py-3 hover:bg-slate-50 transition-colors group"
                   >
                     <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                      <FileText className="h-5 w-5 text-blue-600" />
+                      <FileText className="h-5 w-5 text-blue-600" aria-hidden="true" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
@@ -722,29 +722,29 @@ export default function AdminMaterialsPage() {
                           onClick={() => window.open(material.fileUrl, '_blank')}
                           className="opacity-0 group-hover:opacity-100"
                         >
-                          <Download className="h-4 w-4" />
+                          <Download className="h-4 w-4" aria-hidden="true" />
                         </Button>
                       )}
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100">
-                            <MoreVertical className="h-4 w-4" />
+                            <MoreVertical className="h-4 w-4" aria-hidden="true" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => handleOpenDialog(material)}>
-                            <Edit className="h-4 w-4 mr-2" />
+                            <Edit className="h-4 w-4 mr-2" aria-hidden="true" />
                             編集
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleOpenMoveDialog(material)}>
-                            <FolderInput className="h-4 w-4 mr-2" />
+                            <FolderInput className="h-4 w-4 mr-2" aria-hidden="true" />
                             フォルダに移動
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleDelete(material.id, material.title)}
                             className="text-red-600"
                           >
-                            <Trash2 className="h-4 w-4 mr-2" />
+                            <Trash2 className="h-4 w-4 mr-2" aria-hidden="true" />
                             削除
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -832,19 +832,19 @@ export default function AdminMaterialsPage() {
                 >
                   {uploading ? (
                     <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                       アップロード中...
                     </>
                   ) : (
                     <>
-                      <Upload className="h-4 w-4 mr-2" />
+                      <Upload className="h-4 w-4 mr-2" aria-hidden="true" />
                       ファイルを選択
                     </>
                   )}
                 </Button>
                 {formData.fileName && (
                   <div className="flex items-center gap-2 text-sm text-slate-600">
-                    <FileText className="h-4 w-4" />
+                    <FileText className="h-4 w-4" aria-hidden="true" />
                     <span>{formData.fileName}</span>
                     {formData.fileSize && (
                       <span className="text-slate-400">({formatFileSize(formData.fileSize)})</span>
@@ -861,7 +861,7 @@ export default function AdminMaterialsPage() {
                         fileType: '',
                       }))}
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-4 w-4" aria-hidden="true" />
                     </Button>
                   </div>
                 )}
@@ -898,12 +898,12 @@ export default function AdminMaterialsPage() {
             <Button onClick={handleSave} disabled={saving}>
               {saving ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                   保存中...
                 </>
               ) : (
                 <>
-                  <Save className="h-4 w-4 mr-2" />
+                  <Save className="h-4 w-4 mr-2" aria-hidden="true" />
                   {editingMaterial ? '更新' : '作成'}
                 </>
               )}
@@ -943,12 +943,12 @@ export default function AdminMaterialsPage() {
             <Button onClick={handleSaveFolder} disabled={saving}>
               {saving ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                   保存中...
                 </>
               ) : (
                 <>
-                  <Save className="h-4 w-4 mr-2" />
+                  <Save className="h-4 w-4 mr-2" aria-hidden="true" />
                   {editingFolder ? '更新' : '作成'}
                 </>
               )}
@@ -980,14 +980,14 @@ export default function AdminMaterialsPage() {
                 <SelectContent>
                   <SelectItem value="root">
                     <div className="flex items-center">
-                      <Home className="h-4 w-4 mr-2" />
+                      <Home className="h-4 w-4 mr-2" aria-hidden="true" />
                       ルート
                     </div>
                   </SelectItem>
                   {allFolders.map((folder) => (
                     <SelectItem key={folder.id} value={folder.id}>
                       <div className="flex items-center">
-                        <Folder className="h-4 w-4 mr-2 text-amber-600" />
+                        <Folder className="h-4 w-4 mr-2 text-amber-600" aria-hidden="true" />
                         {folder.name}
                       </div>
                     </SelectItem>
@@ -1004,12 +1004,12 @@ export default function AdminMaterialsPage() {
             <Button onClick={handleMove} disabled={saving}>
               {saving ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                   移動中...
                 </>
               ) : (
                 <>
-                  <FolderInput className="h-4 w-4 mr-2" />
+                  <FolderInput className="h-4 w-4 mr-2" aria-hidden="true" />
                   移動
                 </>
               )}

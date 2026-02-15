@@ -196,7 +196,7 @@ export default function ComplianceTestPage() {
       <DashboardLayout>
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin text-slate-600 mx-auto mb-4" />
+            <Loader2 className="h-8 w-8 animate-spin text-slate-600 mx-auto mb-4" aria-hidden="true" />
             <p className="text-slate-600">読み込み中...</p>
           </div>
         </div>
@@ -217,12 +217,12 @@ export default function ComplianceTestPage() {
             <Card className="shadow-xl">
               <CardHeader>
                 <CardTitle className="text-2xl flex items-center gap-2">
-                  <FileText className="h-6 w-6" />
+                  <FileText className="h-6 w-6" aria-hidden="true" />
                   コンプライアンステスト
                 </CardTitle>
               </CardHeader>
               <CardContent className="text-center py-12">
-                <AlertCircle className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                <AlertCircle className="h-12 w-12 text-slate-400 mx-auto mb-4" aria-hidden="true" />
                 <p className="text-slate-600">テスト問題が設定されていません</p>
                 <p className="text-sm text-slate-500 mt-2">
                   管理者にお問い合わせください
@@ -247,13 +247,13 @@ export default function ComplianceTestPage() {
               {results.isPassed ? (
                 <div className="mb-4">
                   <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto">
-                    <Award className="h-10 w-10 text-white" />
+                    <Award className="h-10 w-10 text-white" aria-hidden="true" />
                   </div>
                 </div>
               ) : (
                 <div className="mb-4">
                   <div className="w-20 h-20 bg-red-500 rounded-full flex items-center justify-center mx-auto">
-                    <XCircle className="h-10 w-10 text-white" />
+                    <XCircle className="h-10 w-10 text-white" aria-hidden="true" />
                   </div>
                 </div>
               )}
@@ -286,7 +286,7 @@ export default function ComplianceTestPage() {
                     className="bg-green-600 hover:bg-green-700"
                   >
                     ガイダンス動画へ進む
-                    <ChevronRight className="h-4 w-4 ml-2" />
+                    <ChevronRight className="h-4 w-4 ml-2" aria-hidden="true" />
                   </Button>
                 </div>
               ) : (
@@ -296,7 +296,7 @@ export default function ComplianceTestPage() {
                     下記の解説を確認し、再度チャレンジしてください。
                   </p>
                   <Button onClick={handleStartTest} variant="outline">
-                    <RefreshCw className="h-4 w-4 mr-2" />
+                    <RefreshCw className="h-4 w-4 mr-2" aria-hidden="true" />
                     もう一度受験する
                   </Button>
                 </div>
@@ -325,9 +325,9 @@ export default function ComplianceTestPage() {
                   <div className="flex items-start gap-3">
                     <div className="flex-shrink-0 mt-1">
                       {result.isCorrect ? (
-                        <CheckCircle className="h-5 w-5 text-green-600" />
+                        <CheckCircle className="h-5 w-5 text-green-600" aria-hidden="true" />
                       ) : (
-                        <XCircle className="h-5 w-5 text-red-600" />
+                        <XCircle className="h-5 w-5 text-red-600" aria-hidden="true" />
                       )}
                     </div>
                     <div className="flex-1">
@@ -443,7 +443,7 @@ export default function ComplianceTestPage() {
                       }`}
                     >
                       {answers[currentQuestion.id] === index && (
-                        <CheckCircle className="h-4 w-4 text-white" />
+                        <CheckCircle className="h-4 w-4 text-white" aria-hidden="true" />
                       )}
                     </div>
                     <span className={answers[currentQuestion.id] === index ? 'font-medium' : ''}>
@@ -491,7 +491,7 @@ export default function ComplianceTestPage() {
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                     提出中...
                   </>
                 ) : (
@@ -520,7 +520,7 @@ export default function ComplianceTestPage() {
           <Card className="shadow-xl">
           <CardHeader>
             <CardTitle className="text-2xl flex items-center gap-2">
-              <FileText className="h-6 w-6" />
+              <FileText className="h-6 w-6" aria-hidden="true" />
               コンプライアンステスト
             </CardTitle>
             <CardDescription>
@@ -531,7 +531,7 @@ export default function ComplianceTestPage() {
             {isPassed ? (
               <div className="bg-green-50 border-2 border-green-300 rounded-lg p-6 text-center">
                 <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Award className="h-8 w-8 text-white" />
+                  <Award className="h-8 w-8 text-white" aria-hidden="true" />
                 </div>
                 <h3 className="text-xl font-bold text-green-800 mb-2">
                   合格済みです
@@ -550,7 +550,7 @@ export default function ComplianceTestPage() {
                     className="bg-green-600 hover:bg-green-700"
                   >
                     ガイダンス動画へ進む
-                    <ChevronRight className="h-4 w-4 ml-2" />
+                    <ChevronRight className="h-4 w-4 ml-2" aria-hidden="true" />
                   </Button>
                 </div>
               </div>
@@ -560,19 +560,19 @@ export default function ComplianceTestPage() {
                   <h4 className="font-medium">テスト概要</h4>
                   <ul className="text-sm text-slate-600 space-y-2">
                     <li className="flex items-start gap-2">
-                      <CheckCircle className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                      <CheckCircle className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" aria-hidden="true" />
                       <span>問題数: {questions.length}問</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <CheckCircle className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                      <CheckCircle className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" aria-hidden="true" />
                       <span>合格ライン: {PASSING_SCORE}%以上</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <CheckCircle className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                      <CheckCircle className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" aria-hidden="true" />
                       <span>受験回数: 制限なし（何度でも再受験可能）</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <CheckCircle className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                      <CheckCircle className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" aria-hidden="true" />
                       <span>不合格の場合は間違えた問題の解説が表示されます</span>
                     </li>
                   </ul>
@@ -580,7 +580,7 @@ export default function ComplianceTestPage() {
 
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                   <div className="flex items-start gap-3">
-                    <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                    <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" aria-hidden="true" />
                     <div className="text-sm text-yellow-800">
                       <p className="font-medium mb-1">注意事項</p>
                       <p>
@@ -608,9 +608,9 @@ export default function ComplianceTestPage() {
                     >
                       <div className="flex items-center gap-3">
                         {attempt.isPassed ? (
-                          <CheckCircle className="h-4 w-4 text-green-600" />
+                          <CheckCircle className="h-4 w-4 text-green-600" aria-hidden="true" />
                         ) : (
-                          <XCircle className="h-4 w-4 text-red-600" />
+                          <XCircle className="h-4 w-4 text-red-600" aria-hidden="true" />
                         )}
                         <span className="text-sm">
                           {attempt.isPassed ? '合格' : '不合格'}

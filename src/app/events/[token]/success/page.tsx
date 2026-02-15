@@ -66,7 +66,7 @@ export default function ExternalEventSuccessPage() {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="flex items-center text-slate-500">
-          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+          <Loader2 className="h-5 w-5 mr-2 animate-spin" aria-hidden="true" />
           確認中...
         </div>
       </div>
@@ -79,7 +79,7 @@ export default function ExternalEventSuccessPage() {
         <Card className="max-w-md w-full border-red-200 bg-red-50">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 text-red-600">
-              <AlertCircle className="h-5 w-5" />
+              <AlertCircle className="h-5 w-5" aria-hidden="true" />
               <p>{error}</p>
             </div>
           </CardContent>
@@ -93,7 +93,7 @@ export default function ExternalEventSuccessPage() {
       <Card className="max-w-md w-full border-green-200 bg-green-50">
         <CardContent className="pt-6">
           <div className="text-center">
-            <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-4" />
+            <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-4" aria-hidden="true" />
             <h2 className="text-xl font-bold text-green-800 mb-2">
               お支払い完了
             </h2>

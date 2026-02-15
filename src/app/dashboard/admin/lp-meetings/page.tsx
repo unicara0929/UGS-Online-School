@@ -272,14 +272,14 @@ function AdminLPMeetingsPageContent() {
       case 'UGS_OFFICE':
         return (
           <Badge className="bg-blue-100 text-blue-800 flex items-center gap-1">
-            <Building2 className="h-3 w-3" />
+            <Building2 className="h-3 w-3" aria-hidden="true" />
             本社（オフライン）
           </Badge>
         )
       case 'OFFLINE':
         return (
           <Badge className="bg-green-100 text-green-800 flex items-center gap-1">
-            <Video className="h-3 w-3" />
+            <Video className="h-3 w-3" aria-hidden="true" />
             オンライン
           </Badge>
         )
@@ -301,7 +301,7 @@ function AdminLPMeetingsPageContent() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-slate-600" aria-hidden="true" />
       </div>
     )
   }
@@ -363,7 +363,7 @@ function AdminLPMeetingsPageContent() {
             <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'requested' | 'scheduled')}>
               <TabsList className="grid w-full md:w-[400px] grid-cols-2">
                 <TabsTrigger value="requested" className="flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4" />
+                  <AlertCircle className="h-4 w-4" aria-hidden="true" />
                   申請中
                   {requestedMeetings.length > 0 && (
                     <Badge variant="secondary" className="ml-1 bg-yellow-100 text-yellow-800">
@@ -372,7 +372,7 @@ function AdminLPMeetingsPageContent() {
                   )}
                 </TabsTrigger>
                 <TabsTrigger value="scheduled" className="flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
+                  <Clock className="h-4 w-4" aria-hidden="true" />
                   予約済み
                   {scheduledMeetings.length > 0 && (
                     <Badge variant="secondary" className="ml-1 bg-blue-100 text-blue-800">
@@ -388,7 +388,7 @@ function AdminLPMeetingsPageContent() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center">
-                      <AlertCircle className="h-5 w-5 mr-2 text-yellow-600" />
+                      <AlertCircle className="h-5 w-5 mr-2 text-yellow-600" aria-hidden="true" />
                       申請中の面談 ({requestedMeetings.length}件)
                     </CardTitle>
                     <CardDescription>希望日時と面談者を選択して面談を確定してください</CardDescription>
@@ -463,7 +463,7 @@ function AdminLPMeetingsPageContent() {
                             setSelectedMeeting(null)
                           }}
                         >
-                          <XCircle className="h-4 w-4" />
+                          <XCircle className="h-4 w-4" aria-hidden="true" />
                         </Button>
                       </div>
                     </CardHeader>
@@ -531,10 +531,10 @@ function AdminLPMeetingsPageContent() {
                         <div className="flex justify-end gap-2 pt-2">
                           <Button type="submit" size="sm" disabled={isSubmitting}>
                             {isSubmitting ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                             ) : (
                               <>
-                                <CheckCircle className="h-4 w-4 mr-1" />
+                                <CheckCircle className="h-4 w-4 mr-1" aria-hidden="true" />
                                 確定
                               </>
                             )}
@@ -552,7 +552,7 @@ function AdminLPMeetingsPageContent() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center">
-                      <Clock className="h-5 w-5 mr-2 text-blue-600" />
+                      <Clock className="h-5 w-5 mr-2 text-blue-600" aria-hidden="true" />
                       予約済み面談 ({scheduledMeetings.length}件)
                     </CardTitle>
                     <CardDescription>面談実施後に完了ボタンを押してください</CardDescription>
@@ -590,7 +590,7 @@ function AdminLPMeetingsPageContent() {
                                         rel="noopener noreferrer"
                                         className="text-blue-600 hover:underline flex items-center gap-0.5"
                                       >
-                                        <Video className="h-3 w-3" />
+                                        <Video className="h-3 w-3" aria-hidden="true" />
                                         URL
                                       </a>
                                     )}
@@ -640,7 +640,7 @@ function AdminLPMeetingsPageContent() {
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center text-base">
-                    <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                    <CheckCircle className="h-4 w-4 mr-2 text-green-600" aria-hidden="true" />
                     完了済み ({completedMeetings.length}件)
                   </CardTitle>
                 </CardHeader>
@@ -672,7 +672,7 @@ function AdminLPMeetingsPageContent() {
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center text-base">
-                    <XCircle className="h-4 w-4 mr-2 text-red-600" />
+                    <XCircle className="h-4 w-4 mr-2 text-red-600" aria-hidden="true" />
                     キャンセル・欠席 ({cancelledMeetings.length + noShowMeetings.length}件)
                   </CardTitle>
                 </CardHeader>

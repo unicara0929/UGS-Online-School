@@ -238,13 +238,13 @@ function AdminPromotionsPageContent() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'PENDING':
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800"><Clock className="h-3 w-3 mr-1" />審査中</Badge>
+        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800"><Clock className="h-3 w-3 mr-1" aria-hidden="true" />審査中</Badge>
       case 'APPROVED':
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />承認済み</Badge>
+        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" aria-hidden="true" />承認済み</Badge>
       case 'REJECTED':
-        return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />却下</Badge>
+        return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" aria-hidden="true" />却下</Badge>
       case 'COMPLETED':
-        return <Badge className="bg-blue-100 text-blue-800"><Award className="h-3 w-3 mr-1" />完了</Badge>
+        return <Badge className="bg-blue-100 text-blue-800"><Award className="h-3 w-3 mr-1" aria-hidden="true" />完了</Badge>
       default:
         return <Badge variant="secondary">{status}</Badge>
     }
@@ -301,7 +301,7 @@ function AdminPromotionsPageContent() {
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'fp' | 'manager')}>
             <TabsList className="grid w-full md:w-[400px] grid-cols-2">
               <TabsTrigger value="fp" className="flex items-center gap-2">
-                <UsersIcon className="h-4 w-4" />
+                <UsersIcon className="h-4 w-4" aria-hidden="true" />
                 FPエイド昇格
                 {fpPending.length > 0 && (
                   <Badge variant="secondary" className="ml-1 bg-yellow-100 text-yellow-800">
@@ -310,7 +310,7 @@ function AdminPromotionsPageContent() {
                 )}
               </TabsTrigger>
               <TabsTrigger value="manager" className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
+                <TrendingUp className="h-4 w-4" aria-hidden="true" />
                 マネージャー昇格
                 {managerPending.length > 0 && (
                   <Badge variant="secondary" className="ml-1 bg-yellow-100 text-yellow-800">
@@ -333,7 +333,7 @@ function AdminPromotionsPageContent() {
                 <CardContent>
                   {isLoading ? (
                     <div className="flex items-center justify-center py-8">
-                      <Loader2 className="h-8 w-8 animate-spin text-slate-600" />
+                      <Loader2 className="h-8 w-8 animate-spin text-slate-600" aria-hidden="true" />
                     </div>
                   ) : fpPending.length === 0 ? (
                     <div className="text-center py-8">
@@ -351,11 +351,11 @@ function AdminPromotionsPageContent() {
                               </div>
                               <div className="space-y-1 text-sm text-slate-600">
                                 <div className="flex items-center gap-2">
-                                  <Mail className="h-4 w-4" />
+                                  <Mail className="h-4 w-4" aria-hidden="true" />
                                   <span>{application.user.email}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <Calendar className="h-4 w-4" />
+                                  <Calendar className="h-4 w-4" aria-hidden="true" />
                                   <span>申請日: {new Date(application.appliedAt).toLocaleDateString('ja-JP')}</span>
                                 </div>
                               </div>
@@ -366,9 +366,9 @@ function AdminPromotionsPageContent() {
                             <div className={`p-3 rounded-lg ${application.lpMeetingCompleted ? 'bg-green-50' : 'bg-slate-50'}`}>
                               <div className="flex items-center gap-2">
                                 {application.lpMeetingCompleted ? (
-                                  <CheckCircle className="h-4 w-4 text-green-600" />
+                                  <CheckCircle className="h-4 w-4 text-green-600" aria-hidden="true" />
                                 ) : (
-                                  <XCircle className="h-4 w-4 text-slate-400" />
+                                  <XCircle className="h-4 w-4 text-slate-400" aria-hidden="true" />
                                 )}
                                 <span className="text-sm font-medium">LP面談</span>
                               </div>
@@ -376,9 +376,9 @@ function AdminPromotionsPageContent() {
                             <div className={`p-3 rounded-lg ${application.surveyCompleted ? 'bg-green-50' : 'bg-slate-50'}`}>
                               <div className="flex items-center gap-2">
                                 {application.surveyCompleted ? (
-                                  <CheckCircle className="h-4 w-4 text-green-600" />
+                                  <CheckCircle className="h-4 w-4 text-green-600" aria-hidden="true" />
                                 ) : (
-                                  <XCircle className="h-4 w-4 text-slate-400" />
+                                  <XCircle className="h-4 w-4 text-slate-400" aria-hidden="true" />
                                 )}
                                 <span className="text-sm font-medium">アンケート</span>
                               </div>
@@ -393,7 +393,7 @@ function AdminPromotionsPageContent() {
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center text-sm text-blue-600 hover:underline"
                               >
-                                <FileText className="h-4 w-4 mr-1" />
+                                <FileText className="h-4 w-4 mr-1" aria-hidden="true" />
                                 身分証を確認
                               </a>
                             </div>
@@ -431,9 +431,9 @@ function AdminPromotionsPageContent() {
                               className="flex-1 bg-green-600 hover:bg-green-700"
                             >
                               {processingId === application.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" aria-hidden="true" />
                               ) : (
-                                <CheckCircle className="h-4 w-4 mr-2" />
+                                <CheckCircle className="h-4 w-4 mr-2" aria-hidden="true" />
                               )}
                               承認
                             </Button>
@@ -444,9 +444,9 @@ function AdminPromotionsPageContent() {
                               className="flex-1"
                             >
                               {processingId === application.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" aria-hidden="true" />
                               ) : (
-                                <XCircle className="h-4 w-4 mr-2" />
+                                <XCircle className="h-4 w-4 mr-2" aria-hidden="true" />
                               )}
                               却下
                             </Button>
@@ -483,16 +483,16 @@ function AdminPromotionsPageContent() {
                               </div>
                               <div className="space-y-1 text-sm text-slate-600">
                                 <div className="flex items-center gap-2">
-                                  <Mail className="h-4 w-4" />
+                                  <Mail className="h-4 w-4" aria-hidden="true" />
                                   <span>{application.user.email}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <Calendar className="h-4 w-4" />
+                                  <Calendar className="h-4 w-4" aria-hidden="true" />
                                   <span>申請日: {new Date(application.appliedAt).toLocaleDateString('ja-JP')}</span>
                                 </div>
                                 {application.approvedAt && (
                                   <div className="flex items-center gap-2">
-                                    <Calendar className="h-4 w-4" />
+                                    <Calendar className="h-4 w-4" aria-hidden="true" />
                                     <span>承認日: {new Date(application.approvedAt).toLocaleDateString('ja-JP')}</span>
                                   </div>
                                 )}
@@ -520,7 +520,7 @@ function AdminPromotionsPageContent() {
                 <CardContent>
                   {isLoading ? (
                     <div className="flex items-center justify-center py-8">
-                      <Loader2 className="h-8 w-8 animate-spin text-slate-600" />
+                      <Loader2 className="h-8 w-8 animate-spin text-slate-600" aria-hidden="true" />
                     </div>
                   ) : managerPending.length === 0 ? (
                     <div className="text-center py-8">
@@ -538,15 +538,15 @@ function AdminPromotionsPageContent() {
                               </div>
                               <div className="space-y-1 text-sm text-slate-600">
                                 <div className="flex items-center gap-2">
-                                  <Mail className="h-4 w-4" />
+                                  <Mail className="h-4 w-4" aria-hidden="true" />
                                   <span>{application.user.email}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <User className="h-4 w-4" />
+                                  <User className="h-4 w-4" aria-hidden="true" />
                                   <span>現在のロール: {application.user.role}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <Calendar className="h-4 w-4" />
+                                  <Calendar className="h-4 w-4" aria-hidden="true" />
                                   <span>申請日: {new Date(application.appliedAt).toLocaleDateString('ja-JP')}</span>
                                 </div>
                               </div>
@@ -560,9 +560,9 @@ function AdminPromotionsPageContent() {
                               className="flex-1 bg-green-600 hover:bg-green-700"
                             >
                               {processingId === application.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" aria-hidden="true" />
                               ) : (
-                                <CheckCircle className="h-4 w-4 mr-2" />
+                                <CheckCircle className="h-4 w-4 mr-2" aria-hidden="true" />
                               )}
                               承認
                             </Button>
@@ -573,9 +573,9 @@ function AdminPromotionsPageContent() {
                               className="flex-1"
                             >
                               {processingId === application.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" aria-hidden="true" />
                               ) : (
-                                <XCircle className="h-4 w-4 mr-2" />
+                                <XCircle className="h-4 w-4 mr-2" aria-hidden="true" />
                               )}
                               却下
                             </Button>
@@ -612,22 +612,22 @@ function AdminPromotionsPageContent() {
                               </div>
                               <div className="space-y-1 text-sm text-slate-600">
                                 <div className="flex items-center gap-2">
-                                  <Mail className="h-4 w-4" />
+                                  <Mail className="h-4 w-4" aria-hidden="true" />
                                   <span>{application.user.email}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <Calendar className="h-4 w-4" />
+                                  <Calendar className="h-4 w-4" aria-hidden="true" />
                                   <span>申請日: {new Date(application.appliedAt).toLocaleDateString('ja-JP')}</span>
                                 </div>
                                 {application.approvedAt && (
                                   <div className="flex items-center gap-2">
-                                    <Calendar className="h-4 w-4" />
+                                    <Calendar className="h-4 w-4" aria-hidden="true" />
                                     <span>承認日: {new Date(application.approvedAt).toLocaleDateString('ja-JP')}</span>
                                   </div>
                                 )}
                                 {application.rejectedAt && (
                                   <div className="flex items-center gap-2">
-                                    <Calendar className="h-4 w-4" />
+                                    <Calendar className="h-4 w-4" aria-hidden="true" />
                                     <span>却下日: {new Date(application.rejectedAt).toLocaleDateString('ja-JP')}</span>
                                   </div>
                                 )}

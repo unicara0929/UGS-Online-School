@@ -90,7 +90,7 @@ export default function ConsultationFormPage({ params }: { params: Promise<{ typ
           </Alert>
           <Link href="/dashboard/consultation" className="mt-4 inline-block">
             <Button variant="outline">
-              <ArrowLeft className="w-4 h-4 mr-2" />
+              <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
               戻る
             </Button>
           </Link>
@@ -249,7 +249,7 @@ export default function ConsultationFormPage({ params }: { params: Promise<{ typ
           <Card>
           <CardContent className="pt-6">
             <div className="text-center">
-              <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
+              <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" aria-hidden="true" />
               <h2 className="text-2xl font-bold mb-2">申請が完了しました</h2>
               <p className="text-muted-foreground mb-6">
                 担当者から折り返しご連絡いたします。<br />
@@ -279,7 +279,7 @@ export default function ConsultationFormPage({ params }: { params: Promise<{ typ
     <DashboardLayout>
       <div className="container mx-auto px-4 py-8 max-w-2xl">
       <Link href="/dashboard/consultation" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6">
-        <ArrowLeft className="w-4 h-4 mr-2" />
+        <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
         ジャンル選択に戻る
       </Link>
 
@@ -475,7 +475,7 @@ export default function ConsultationFormPage({ params }: { params: Promise<{ typ
                     size="sm"
                     onClick={removeAttachment}
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-4 h-4" aria-hidden="true" />
                   </Button>
                 </div>
               ) : (
@@ -494,12 +494,12 @@ export default function ConsultationFormPage({ params }: { params: Promise<{ typ
                   >
                     {uploading ? (
                       <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" />
                         アップロード中...
                       </>
                     ) : (
                       <>
-                        <Upload className="w-5 h-5" />
+                        <Upload className="w-5 h-5" aria-hidden="true" />
                         ファイルを選択
                       </>
                     )}
@@ -523,7 +523,7 @@ export default function ConsultationFormPage({ params }: { params: Promise<{ typ
             >
               {submitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
                   送信中...
                 </>
               ) : (

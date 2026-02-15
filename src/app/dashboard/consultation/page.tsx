@@ -85,7 +85,7 @@ export default function ConsultationPage() {
         </div>
         <Link href="/dashboard/consultation/history">
           <Button variant="outline">
-            <History className="w-4 h-4 mr-2" />
+            <History className="w-4 h-4 mr-2" aria-hidden="true" />
             相談履歴
           </Button>
         </Link>
@@ -102,7 +102,7 @@ export default function ConsultationPage() {
             >
               <CardHeader className="pb-3">
                 <div className={`w-12 h-12 rounded-lg ${type.color} flex items-center justify-center mb-3`}>
-                  <Icon className="w-6 h-6 text-white" />
+                  <Icon className="w-6 h-6 text-white" aria-hidden="true" />
                 </div>
                 <CardTitle className="text-lg">{type.name}</CardTitle>
                 <CardDescription>{type.description}</CardDescription>
@@ -110,7 +110,7 @@ export default function ConsultationPage() {
               <CardContent>
                 <Button variant="ghost" className="w-full justify-between">
                   相談する
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-4 h-4" aria-hidden="true" />
                 </Button>
               </CardContent>
             </Card>

@@ -156,7 +156,7 @@ export function InternalSurvey({
       <Card className="border-purple-200 bg-purple-50">
         <CardContent className="pt-6">
           <div className="flex items-center justify-center py-4">
-            <Loader2 className="h-6 w-6 animate-spin text-purple-600" />
+            <Loader2 className="h-6 w-6 animate-spin text-purple-600" aria-hidden="true" />
             <span className="ml-2 text-purple-800">読み込み中...</span>
           </div>
         </CardContent>
@@ -174,7 +174,7 @@ export function InternalSurvey({
       <Card className="border-green-200 bg-green-50">
         <CardContent className="pt-6">
           <div className="flex items-center gap-2 text-green-800">
-            <CheckCircle2 className="h-5 w-5" />
+            <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
             <div>
               <p className="font-semibold">アンケート回答済み</p>
               <p className="text-sm">
@@ -193,7 +193,7 @@ export function InternalSurvey({
       <Card className="border-green-200 bg-green-50">
         <CardContent className="pt-6">
           <div className="flex items-center gap-2 text-green-800">
-            <CheckCircle2 className="h-5 w-5" />
+            <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
             <div>
               <p className="font-semibold">アンケートを送信しました</p>
               <p className="text-sm">ご回答ありがとうございました</p>
@@ -210,7 +210,7 @@ export function InternalSurvey({
       <Card className="border-slate-200 bg-slate-50">
         <CardContent className="pt-6">
           <div className="flex items-center gap-2 text-slate-600">
-            <FileText className="h-5 w-5" />
+            <FileText className="h-5 w-5" aria-hidden="true" />
             <p>アンケートは動画を視聴してから回答できます</p>
           </div>
         </CardContent>
@@ -222,7 +222,7 @@ export function InternalSurvey({
     <Card className="border-purple-200 bg-purple-50">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <FileText className="h-5 w-5 text-purple-600" />
+          <FileText className="h-5 w-5 text-purple-600" aria-hidden="true" />
           {survey.title}
         </CardTitle>
         {survey.description && (
@@ -339,7 +339,7 @@ export function InternalSurvey({
                         }`}
                     >
                       <Star
-                        className={`h-8 w-8 ${selected ? 'fill-yellow-400' : 'fill-none'}`}
+                        className={`h-8 w-8 ${selected ? 'fill-yellow-400' : 'fill-none'}`} aria-hidden="true"
                       />
                     </button>
                   )
@@ -360,12 +360,12 @@ export function InternalSurvey({
         >
           {isSubmitting ? (
             <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
               送信中...
             </>
           ) : (
             <>
-              <CheckCircle2 className="h-4 w-4 mr-2" />
+              <CheckCircle2 className="h-4 w-4 mr-2" aria-hidden="true" />
               アンケートを送信
             </>
           )}

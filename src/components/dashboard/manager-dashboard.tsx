@@ -110,7 +110,7 @@ export function ManagerDashboard() {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <Loader2 className="h-8 w-8 animate-spin" aria-hidden="true" />
       </div>
     )
   }
@@ -130,7 +130,7 @@ export function ManagerDashboard() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="h-16 w-16 rounded-full bg-white/20 flex items-center justify-center">
-                <Award className="h-8 w-8" />
+                <Award className="h-8 w-8" aria-hidden="true" />
               </div>
               <div>
                 <h2 className="text-2xl font-bold">FPエイドマネージャー</h2>
@@ -140,7 +140,7 @@ export function ManagerDashboard() {
                   </Badge>
                   {data.exemption.isExempt && (
                     <Badge variant="secondary" className="bg-yellow-500/30 text-yellow-100">
-                      <Shield className="h-3 w-3 mr-1" />
+                      <Shield className="h-3 w-3 mr-1" aria-hidden="true" />
                       査定免除中（残り{data.exemption.daysRemaining}日）
                     </Badge>
                   )}
@@ -162,7 +162,7 @@ export function ManagerDashboard() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
+              <TrendingUp className="h-5 w-5" aria-hidden="true" />
               今期売上進捗
             </CardTitle>
             <CardDescription>{data.currentPeriod.label}</CardDescription>
@@ -170,10 +170,10 @@ export function ManagerDashboard() {
           <CardContent className="space-y-4">
             <div>
               <div className="flex justify-between mb-2">
-                <span className="text-2xl font-bold">
+                <span className="text-2xl font-bold tabular-nums">
                   {formatCurrency(data.currentPeriod.totalSales)}
                 </span>
-                <span className="text-muted-foreground">
+                <span className="text-muted-foreground tabular-nums">
                   / {formatCurrency(data.currentPeriod.maintainThreshold)}
                 </span>
               </div>
@@ -188,22 +188,22 @@ export function ManagerDashboard() {
                 }`}
               />
               <div className="flex justify-between mt-2 text-sm">
-                <span className={
+                <span className={`tabular-nums ${
                   data.currentPeriod.progressPercent >= 100
                     ? 'text-green-600'
                     : isOnTrack
                     ? 'text-blue-600'
                     : 'text-yellow-600'
-                }>
+                }`}>
                   {data.currentPeriod.progressPercent}% 達成
                 </span>
                 {data.currentPeriod.progressPercent >= 100 ? (
                   <span className="text-green-600 flex items-center gap-1">
-                    <CheckCircle className="h-4 w-4" />
+                    <CheckCircle className="h-4 w-4" aria-hidden="true" />
                     維持基準達成
                   </span>
                 ) : (
-                  <span className="text-muted-foreground">
+                  <span className="text-muted-foreground tabular-nums">
                     残り {formatCurrency(data.currentPeriod.maintainThreshold - data.currentPeriod.totalSales)}
                   </span>
                 )}
@@ -212,7 +212,7 @@ export function ManagerDashboard() {
 
             <div className="pt-4 border-t">
               <p className="text-sm text-muted-foreground mb-2">被保険者数（累計）</p>
-              <p className="text-xl font-bold">{data.currentPeriod.totalInsuredCount}名</p>
+              <p className="text-xl font-bold tabular-nums">{data.currentPeriod.totalInsuredCount}名</p>
             </div>
           </CardContent>
         </Card>
@@ -221,7 +221,7 @@ export function ManagerDashboard() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
+              <Calendar className="h-5 w-5" aria-hidden="true" />
               査定情報
             </CardTitle>
           </CardHeader>
@@ -229,7 +229,7 @@ export function ManagerDashboard() {
             <div>
               <p className="text-sm text-muted-foreground mb-1">次回査定まで</p>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold">{data.nextAssessment.daysRemaining}</span>
+                <span className="text-3xl font-bold tabular-nums">{data.nextAssessment.daysRemaining}</span>
                 <span className="text-muted-foreground">日</span>
               </div>
               <p className="text-sm text-muted-foreground mt-1">
@@ -243,18 +243,18 @@ export function ManagerDashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">{data.latestAssessment.period}</p>
-                    <p className="text-lg font-bold">
+                    <p className="text-lg font-bold tabular-nums">
                       {formatCurrency(data.latestAssessment.totalSales)}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span>{data.latestAssessment.previousRange}</span>
                     {data.latestAssessment.previousRange === data.latestAssessment.newRange ? (
-                      <Minus className="h-4 w-4 text-muted-foreground" />
+                      <Minus className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                     ) : data.latestAssessment.newRange > data.latestAssessment.previousRange ? (
-                      <ArrowUp className="h-4 w-4 text-green-500" />
+                      <ArrowUp className="h-4 w-4 text-green-500" aria-hidden="true" />
                     ) : (
-                      <ArrowDown className="h-4 w-4 text-red-500" />
+                      <ArrowDown className="h-4 w-4 text-red-500" aria-hidden="true" />
                     )}
                     <span>{data.latestAssessment.newRange}</span>
                   </div>
@@ -276,8 +276,8 @@ export function ManagerDashboard() {
               {data.currentPeriod.monthlyData.map(m => (
                 <div key={m.month} className="text-center p-3 bg-muted/50 rounded-lg">
                   <p className="text-sm text-muted-foreground">{m.month.split('-')[1]}月</p>
-                  <p className="font-bold">{formatCurrency(m.salesAmount)}</p>
-                  <p className="text-xs text-muted-foreground">{m.insuredCount}名</p>
+                  <p className="font-bold tabular-nums">{formatCurrency(m.salesAmount)}</p>
+                  <p className="text-xs text-muted-foreground tabular-nums">{m.insuredCount}名</p>
                 </div>
               ))}
             </div>
@@ -289,7 +289,7 @@ export function ManagerDashboard() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
+            <Users className="h-5 w-5" aria-hidden="true" />
             配下FPエイド
             <Badge variant="secondary">{data.team.count}名</Badge>
           </CardTitle>
@@ -300,7 +300,7 @@ export function ManagerDashboard() {
         <CardContent>
           {data.team.count === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <Users className="h-12 w-12 mx-auto mb-4 opacity-50" aria-hidden="true" />
               <p>配下FPエイドはまだいません</p>
             </div>
           ) : (

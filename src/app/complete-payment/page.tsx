@@ -84,7 +84,7 @@ export default function CompletePaymentPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-slate-600" aria-hidden="true" />
       </div>
     )
   }
@@ -96,7 +96,7 @@ export default function CompletePaymentPage() {
           <CardHeader className="text-center pb-6">
             <div className="flex justify-center mb-4">
               <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
-                <CreditCard className="h-8 w-8 text-white" />
+                <CreditCard className="h-8 w-8 text-white" aria-hidden="true" />
               </div>
             </div>
             <CardTitle className="text-3xl font-bold text-slate-900">
@@ -111,16 +111,16 @@ export default function CompletePaymentPage() {
             {/* 現在の状態 */}
             <div className="bg-slate-50 rounded-xl p-6">
               <h3 className="font-semibold text-slate-900 mb-4 flex items-center">
-                <Clock className="h-5 w-5 mr-2 text-slate-600" />
+                <Clock className="h-5 w-5 mr-2 text-slate-600" aria-hidden="true" />
                 現在の状態
               </h3>
               <div className="space-y-3">
                 <div className="flex items-center">
-                  <CheckCircle className="h-5 w-5 text-green-600 mr-3" />
+                  <CheckCircle className="h-5 w-5 text-green-600 mr-3" aria-hidden="true" />
                   <span className="text-slate-700">メールアドレス認証：<strong className="text-green-600">完了</strong></span>
                 </div>
                 <div className="flex items-center">
-                  <AlertCircle className="h-5 w-5 text-yellow-600 mr-3" />
+                  <AlertCircle className="h-5 w-5 text-yellow-600 mr-3" aria-hidden="true" />
                   <span className="text-slate-700">お支払い：<strong className="text-yellow-600">未完了</strong></span>
                 </div>
               </div>
@@ -167,7 +167,7 @@ export default function CompletePaymentPage() {
               onClick={handleStartPayment}
               className="w-full h-14 text-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-shadow"
             >
-              <CreditCard className="h-5 w-5 mr-2" />
+              <CreditCard className="h-5 w-5 mr-2" aria-hidden="true" />
               {process.env.NEXT_PUBLIC_STRIPE_SETUP_FEE_ENABLED === 'true'
                 ? '¥38,500で決済して利用開始'
                 : '¥5,500で決済して利用開始'}
@@ -176,7 +176,7 @@ export default function CompletePaymentPage() {
             {/* 注意事項 */}
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <div className="flex items-start">
-                <AlertCircle className="h-5 w-5 text-yellow-600 mr-3 mt-0.5 flex-shrink-0" />
+                <AlertCircle className="h-5 w-5 text-yellow-600 mr-3 mt-0.5 flex-shrink-0" aria-hidden="true" />
                 <div className="text-sm text-yellow-800 space-y-1">
                   <p className="font-semibold">決済を完了してサービスをご利用ください</p>
                   {expirationDate && (

@@ -310,7 +310,7 @@ function CheckoutContent() {
             <div>
               <Link href="/register">
                 <Button variant="ghost" size="sm" className="mb-2 sm:mb-4 text-xs sm:text-sm">
-                  <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" aria-hidden="true" />
                   登録ページに戻る
                 </Button>
               </Link>
@@ -321,7 +321,7 @@ function CheckoutContent() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <CreditCard className="h-5 w-5 mr-2" />
+                  <CreditCard className="h-5 w-5 mr-2" aria-hidden="true" />
                   お支払い情報
                 </CardTitle>
               </CardHeader>
@@ -347,7 +347,7 @@ function CheckoutContent() {
                 {referralCode && referrerInfo && (
                   <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-4">
                     <div className="flex items-center mb-2">
-                      <Users className="h-5 w-5 text-blue-600 mr-2" />
+                      <Users className="h-5 w-5 text-blue-600 mr-2" aria-hidden="true" />
                       <span className="font-semibold text-blue-900">紹介情報</span>
                     </div>
                     <div className="text-sm text-blue-800 space-y-1">
@@ -364,14 +364,14 @@ function CheckoutContent() {
                 {/* プロモーションコード入力 */}
                 <div className="border-t pt-4">
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    <Tag className="h-4 w-4 inline mr-1" />
+                    <Tag className="h-4 w-4 inline mr-1" aria-hidden="true" />
                     プロモーションコード（お持ちの方）
                   </label>
                   {promoCodeInfo ? (
                     <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center">
-                          <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
+                          <CheckCircle className="h-5 w-5 text-green-600 mr-2" aria-hidden="true" />
                           <span className="font-semibold text-green-900">コード適用済み</span>
                         </div>
                         <Button
@@ -413,7 +413,7 @@ function CheckoutContent() {
                           disabled={isValidatingPromo || !promoCodeInput.trim()}
                         >
                           {isValidatingPromo ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                           ) : (
                             '適用'
                           )}
@@ -431,22 +431,22 @@ function CheckoutContent() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Shield className="h-5 w-5 mr-2" />
+                  <Shield className="h-5 w-5 mr-2" aria-hidden="true" />
                   セキュリティ
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2 text-sm text-slate-600">
                   <div className="flex items-center">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                    <CheckCircle className="h-4 w-4 text-green-500 mr-2" aria-hidden="true" />
                     SSL暗号化通信
                   </div>
                   <div className="flex items-center">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                    <CheckCircle className="h-4 w-4 text-green-500 mr-2" aria-hidden="true" />
                     Stripeによる安全な決済処理
                   </div>
                   <div className="flex items-center">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                    <CheckCircle className="h-4 w-4 text-green-500 mr-2" aria-hidden="true" />
                     クレジットカード情報は保存されません
                   </div>
                 </div>
@@ -464,7 +464,7 @@ function CheckoutContent() {
                   <div className="mt-4 space-y-2">
                     <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-2">
                       <div className="flex items-center justify-center mb-1">
-                        <Tag className="h-4 w-4 text-green-600 mr-1" />
+                        <Tag className="h-4 w-4 text-green-600 mr-1" aria-hidden="true" />
                         <span className="text-green-700 font-semibold text-sm">プロモーション適用中</span>
                       </div>
                       <p className="text-green-600 text-xs">{promoCodeInfo.code}: {promoCodeInfo.discountDescription}（{promoCodeInfo.durationDescription}）</p>
@@ -519,23 +519,23 @@ function CheckoutContent() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex items-center">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-2" aria-hidden="true" />
                     <span>全教育コンテンツへのアクセス</span>
                   </div>
                   <div className="flex items-center">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-2" aria-hidden="true" />
                     <span>昇格システム</span>
                   </div>
                   <div className="flex items-center">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-2" aria-hidden="true" />
                     <span>報酬管理機能</span>
                   </div>
                   <div className="flex items-center">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-2" aria-hidden="true" />
                     <span>イベント参加</span>
                   </div>
                   <div className="flex items-center">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-2" aria-hidden="true" />
                     <span>LP面談サポート</span>
                   </div>
                 </div>

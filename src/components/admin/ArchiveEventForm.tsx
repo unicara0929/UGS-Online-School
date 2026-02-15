@@ -59,7 +59,7 @@ export function ArchiveEventForm({ onSubmit, onCancel, isSubmitting }: ArchiveEv
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <FileText className="h-5 w-5" />
+          <FileText className="h-5 w-5" aria-hidden="true" />
           過去イベントを記録
         </CardTitle>
         <CardDescription>
@@ -87,7 +87,7 @@ export function ArchiveEventForm({ onSubmit, onCancel, isSubmitting }: ArchiveEv
             {/* 開催日 */}
             <div>
               <label className={FORM_LABEL_CLASS}>
-                <Calendar className="h-4 w-4 inline mr-1" />
+                <Calendar className="h-4 w-4 inline mr-1" aria-hidden="true" />
                 開催日 <span className="text-red-500">*</span>
               </label>
               <input
@@ -101,7 +101,7 @@ export function ArchiveEventForm({ onSubmit, onCancel, isSubmitting }: ArchiveEv
             {/* 開催時間 */}
             <div>
               <label className={FORM_LABEL_CLASS}>
-                <Clock className="h-4 w-4 inline mr-1" />
+                <Clock className="h-4 w-4 inline mr-1" aria-hidden="true" />
                 開催時間
               </label>
               <input
@@ -116,7 +116,7 @@ export function ArchiveEventForm({ onSubmit, onCancel, isSubmitting }: ArchiveEv
             {/* 開催場所 */}
             <div>
               <label className={FORM_LABEL_CLASS}>
-                <MapPin className="h-4 w-4 inline mr-1" />
+                <MapPin className="h-4 w-4 inline mr-1" aria-hidden="true" />
                 開催場所
               </label>
               <input
@@ -131,7 +131,7 @@ export function ArchiveEventForm({ onSubmit, onCancel, isSubmitting }: ArchiveEv
             {/* 参加人数 */}
             <div>
               <label className={FORM_LABEL_CLASS}>
-                <Users className="h-4 w-4 inline mr-1" />
+                <Users className="h-4 w-4 inline mr-1" aria-hidden="true" />
                 参加人数
               </label>
               <input
@@ -180,7 +180,7 @@ export function ArchiveEventForm({ onSubmit, onCancel, isSubmitting }: ArchiveEv
               {/* Vimeo URL */}
               <div>
                 <label className={FORM_LABEL_CLASS}>
-                  <Video className="h-4 w-4 inline mr-1" />
+                  <Video className="h-4 w-4 inline mr-1" aria-hidden="true" />
                   録画動画URL（Vimeo等）
                 </label>
                 <input
@@ -195,7 +195,7 @@ export function ArchiveEventForm({ onSubmit, onCancel, isSubmitting }: ArchiveEv
               {/* 資料リンク */}
               <div>
                 <label className={FORM_LABEL_CLASS}>
-                  <Link2 className="h-4 w-4 inline mr-1" />
+                  <Link2 className="h-4 w-4 inline mr-1" aria-hidden="true" />
                   セミナー資料リンク（PDF等）
                 </label>
                 <input
@@ -210,7 +210,7 @@ export function ArchiveEventForm({ onSubmit, onCancel, isSubmitting }: ArchiveEv
               {/* 管理者メモ */}
               <div>
                 <label className={FORM_LABEL_CLASS}>
-                  <MessageSquare className="h-4 w-4 inline mr-1" />
+                  <MessageSquare className="h-4 w-4 inline mr-1" aria-hidden="true" />
                   管理者用メモ
                 </label>
                 <textarea
@@ -234,7 +234,7 @@ export function ArchiveEventForm({ onSubmit, onCancel, isSubmitting }: ArchiveEv
           <Button onClick={handleSubmit} disabled={isSubmitting}>
             {isSubmitting ? (
               <span className="flex items-center">
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                 保存中...
               </span>
             ) : (

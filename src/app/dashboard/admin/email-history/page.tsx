@@ -155,7 +155,7 @@ export default function EmailHistoryPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-                  <Mail className="h-6 w-6 text-white" />
+                  <Mail className="h-6 w-6 text-white" aria-hidden="true" />
                 </div>
                 <div>
                   <CardTitle className="text-2xl">メール送信履歴</CardTitle>
@@ -172,9 +172,9 @@ export default function EmailHistoryPage() {
               <div className="md:col-span-2">
                 <div className="flex gap-2">
                   <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" aria-hidden="true" />
                     <Input
-                      placeholder="件名・本文で検索..."
+                      placeholder="件名・本文で検索…"
                       value={keyword}
                       onChange={(e) => setKeyword(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -213,7 +213,7 @@ export default function EmailHistoryPage() {
                     fetchCampaigns()
                   }}
                 >
-                  <Filter className="h-4 w-4 mr-2" />
+                  <Filter className="h-4 w-4 mr-2" aria-hidden="true" />
                   フィルターをクリア
                 </Button>
               </div>
@@ -228,7 +228,7 @@ export default function EmailHistoryPage() {
                       <p className="text-sm text-slate-600">総送信数</p>
                       <p className="text-2xl font-bold">{total}</p>
                     </div>
-                    <Mail className="h-8 w-8 text-blue-500" />
+                    <Mail className="h-8 w-8 text-blue-500" aria-hidden="true" />
                   </div>
                 </CardContent>
               </Card>
@@ -242,7 +242,7 @@ export default function EmailHistoryPage() {
                         {campaigns.reduce((sum, c) => sum + c.successCount, 0)}
                       </p>
                     </div>
-                    <CheckCircle className="h-8 w-8 text-green-500" />
+                    <CheckCircle className="h-8 w-8 text-green-500" aria-hidden="true" />
                   </div>
                 </CardContent>
               </Card>
@@ -256,7 +256,7 @@ export default function EmailHistoryPage() {
                         {campaigns.reduce((sum, c) => sum + c.failedCount, 0)}
                       </p>
                     </div>
-                    <XCircle className="h-8 w-8 text-red-500" />
+                    <XCircle className="h-8 w-8 text-red-500" aria-hidden="true" />
                   </div>
                 </CardContent>
               </Card>
@@ -274,7 +274,7 @@ export default function EmailHistoryPage() {
               </div>
             ) : campaigns.length === 0 ? (
               <div className="text-center py-12">
-                <Mail className="h-16 w-16 text-slate-300 mx-auto mb-4" />
+                <Mail className="h-16 w-16 text-slate-300 mx-auto mb-4" aria-hidden="true" />
                 <p className="text-slate-600">メール送信履歴がありません</p>
               </div>
             ) : (
@@ -303,7 +303,7 @@ export default function EmailHistoryPage() {
                         >
                           <TableCell className="font-medium">
                             <div className="flex items-center gap-2">
-                              <Calendar className="h-4 w-4 text-slate-400" />
+                              <Calendar className="h-4 w-4 text-slate-400" aria-hidden="true" />
                               {formatDate(campaign.sentAt)}
                             </div>
                           </TableCell>
@@ -327,7 +327,7 @@ export default function EmailHistoryPage() {
                           </TableCell>
                           <TableCell className="text-center">
                             <div className="flex items-center justify-center gap-1">
-                              <Users className="h-4 w-4 text-slate-400" />
+                              <Users className="h-4 w-4 text-slate-400" aria-hidden="true" />
                               {campaign.totalCount}
                             </div>
                           </TableCell>
@@ -376,7 +376,7 @@ export default function EmailHistoryPage() {
                         onClick={() => setPage(page - 1)}
                         disabled={page === 1}
                       >
-                        <ChevronLeft className="h-4 w-4" />
+                        <ChevronLeft className="h-4 w-4" aria-hidden="true" />
                         前へ
                       </Button>
                       <div className="flex items-center gap-2 px-4">
@@ -391,7 +391,7 @@ export default function EmailHistoryPage() {
                         disabled={page === totalPages}
                       >
                         次へ
-                        <ChevronRight className="h-4 w-4" />
+                        <ChevronRight className="h-4 w-4" aria-hidden="true" />
                       </Button>
                     </div>
                   </div>

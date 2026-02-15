@@ -143,7 +143,7 @@ function BasicTestPageContent() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-slate-600" aria-hidden="true" />
       </div>
     )
   }
@@ -171,7 +171,7 @@ function BasicTestPageContent() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <FileText className="h-5 w-5 mr-2" />
+                <FileText className="h-5 w-5 mr-2" aria-hidden="true" />
                 {test.title}
               </CardTitle>
               <CardDescription>
@@ -184,9 +184,9 @@ function BasicTestPageContent() {
                   <div className={`p-6 rounded-xl ${result.isPassed ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
                     <div className="text-center">
                       {result.isPassed ? (
-                        <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
+                        <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" aria-hidden="true" />
                       ) : (
-                        <XCircle className="h-16 w-16 text-red-600 mx-auto mb-4" />
+                        <XCircle className="h-16 w-16 text-red-600 mx-auto mb-4" aria-hidden="true" />
                       )}
                       <h3 className={`text-2xl font-bold mb-2 ${result.isPassed ? 'text-green-800' : 'text-red-800'}`}>
                         {result.isPassed ? '合格' : '不合格'}
@@ -266,7 +266,7 @@ function BasicTestPageContent() {
                     >
                       {isSubmitting ? (
                         <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                           提出中...
                         </>
                       ) : (

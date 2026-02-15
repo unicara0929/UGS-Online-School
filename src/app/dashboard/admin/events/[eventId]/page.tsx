@@ -70,8 +70,8 @@ function FilterDropdown({
         }`}
       >
         {label}
-        <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-        {isFiltered && <Filter className="h-3 w-3 text-blue-600" />}
+        <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+        {isFiltered && <Filter className="h-3 w-3 text-blue-600" aria-hidden="true" />}
       </button>
       {isOpen && (
         <>
@@ -386,7 +386,7 @@ function EventDetailPageContent() {
           <main className="px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex items-center justify-center py-12">
               <div className="flex items-center text-slate-500">
-                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" aria-hidden="true" />
                 読み込み中です
               </div>
             </div>
@@ -424,7 +424,7 @@ function EventDetailPageContent() {
               }}
               className="mb-4"
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
               イベント一覧に戻る
             </Button>
 
@@ -445,13 +445,13 @@ function EventDetailPageContent() {
                     <div className="flex flex-wrap items-center gap-2">
                       <Link href={`/dashboard/admin/events/${eventId}/schedules`}>
                         <Button variant="outline" size="sm">
-                          <Calendar className="h-4 w-4 mr-2" />
+                          <Calendar className="h-4 w-4 mr-2" aria-hidden="true" />
                           日程管理
                         </Button>
                       </Link>
                       <Link href={`/dashboard/admin/events/${eventId}/survey`}>
                         <Button variant="outline" size="sm">
-                          <FileText className="h-4 w-4 mr-2" />
+                          <FileText className="h-4 w-4 mr-2" aria-hidden="true" />
                           アンケート設定
                         </Button>
                       </Link>
@@ -466,12 +466,12 @@ function EventDetailPageContent() {
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="flex items-center text-sm text-slate-600">
-                      <Calendar className="h-4 w-4 mr-2" />
+                      <Calendar className="h-4 w-4 mr-2" aria-hidden="true" />
                       {formatDate(event.date)}
                     </div>
                     {event.time && (
                       <div className="flex items-center text-sm text-slate-600">
-                        <Clock className="h-4 w-4 mr-2" />
+                        <Clock className="h-4 w-4 mr-2" aria-hidden="true" />
                         {event.time}
                       </div>
                     )}
@@ -548,7 +548,7 @@ function EventDetailPageContent() {
                 <div className="flex flex-wrap items-center gap-4">
                   {/* 検索 */}
                   <div className="relative flex-1 min-w-0 w-full sm:min-w-[200px] sm:w-auto max-w-sm">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" aria-hidden="true" />
                     <input
                       type="text"
                       placeholder="名前・メールで検索"
@@ -571,7 +571,7 @@ function EventDetailPageContent() {
                       onClick={() => setFilters(initialFilters)}
                       className="text-slate-600"
                     >
-                      <X className="h-4 w-4 mr-1" />
+                      <X className="h-4 w-4 mr-1" aria-hidden="true" />
                       フィルター解除
                     </Button>
                   )}
@@ -588,7 +588,7 @@ function EventDetailPageContent() {
                       onClick={() => setShowEmailModal(true)}
                       disabled={selectedUserIds.length === 0}
                     >
-                      <Mail className="h-4 w-4 mr-2" />
+                      <Mail className="h-4 w-4 mr-2" aria-hidden="true" />
                       選択したユーザーにメール送信 ({selectedUserIds.length})
                     </Button>
                     <Button
@@ -596,7 +596,7 @@ function EventDetailPageContent() {
                       onClick={handleExportCSV}
                       disabled={participants.length === 0}
                     >
-                      <Download className="h-4 w-4 mr-2" />
+                      <Download className="h-4 w-4 mr-2" aria-hidden="true" />
                       CSVエクスポート
                     </Button>
                   </div>
@@ -665,7 +665,7 @@ function EventDetailPageContent() {
               <CardContent>
                 {filteredParticipants.length === 0 ? (
                   <div className="text-center py-8 text-slate-500">
-                    <Users className="h-12 w-12 mx-auto mb-4 text-slate-400" />
+                    <Users className="h-12 w-12 mx-auto mb-4 text-slate-400" aria-hidden="true" />
                     <p>参加者がいません</p>
                   </div>
                 ) : (
@@ -946,12 +946,12 @@ function EventDetailPageContent() {
                         >
                           {isSendingEmail ? (
                             <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                               送信中...
                             </>
                           ) : (
                             <>
-                              <Mail className="h-4 w-4 mr-2" />
+                              <Mail className="h-4 w-4 mr-2" aria-hidden="true" />
                               送信
                             </>
                           )}

@@ -23,11 +23,11 @@ export function CsvUploadManager() {
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'compensation' | 'contract')}>
             <TabsList className="grid w-full md:w-[400px] grid-cols-2">
               <TabsTrigger value="compensation" className="flex items-center gap-2">
-                <DollarSign className="h-4 w-4" />
+                <DollarSign className="h-4 w-4" aria-hidden="true" />
                 報酬サマリー
               </TabsTrigger>
               <TabsTrigger value="contract" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
+                <FileText className="h-4 w-4" aria-hidden="true" />
                 契約一覧
               </TabsTrigger>
             </TabsList>

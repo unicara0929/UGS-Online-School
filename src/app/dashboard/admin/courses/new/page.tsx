@@ -62,7 +62,7 @@ export default function NewCoursePage() {
           onClick={() => router.push('/dashboard/admin/courses')}
           className="bg-white hover:bg-slate-50"
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
+          <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
           コース一覧に戻る
         </Button>
 
@@ -203,7 +203,7 @@ export default function NewCoursePage() {
                   disabled={loading}
                   className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                 >
-                  <Save className="h-4 w-4 mr-2" />
+                  <Save className="h-4 w-4 mr-2" aria-hidden="true" />
                   {loading ? '作成中...' : 'コースを作成'}
                 </Button>
               </div>

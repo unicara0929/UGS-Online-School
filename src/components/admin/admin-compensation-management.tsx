@@ -83,7 +83,7 @@ export function AdminCompensationManagement() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-slate-600" aria-hidden="true" />
       </div>
     )
   }
@@ -100,7 +100,7 @@ export function AdminCompensationManagement() {
             </div>
             <Link href="/dashboard/admin/csv-upload">
               <Button variant="outline">
-                <Upload className="h-4 w-4 mr-2" />
+                <Upload className="h-4 w-4 mr-2" aria-hidden="true" />
                 CSV一括アップロード
               </Button>
             </Link>
@@ -109,7 +109,7 @@ export function AdminCompensationManagement() {
         <CardContent>
           {compensations.length === 0 ? (
             <div className="text-center py-8">
-              <DollarSign className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+              <DollarSign className="h-12 w-12 text-slate-400 mx-auto mb-4" aria-hidden="true" />
               <p className="text-slate-600">まだ報酬データがありません</p>
               <p className="text-sm text-slate-500 mt-2">CSV一括アップロードから報酬データを登録してください</p>
             </div>
@@ -122,7 +122,7 @@ export function AdminCompensationManagement() {
                 >
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
-                      <DollarSign className="h-5 w-5 text-slate-600" />
+                      <DollarSign className="h-5 w-5 text-slate-600" aria-hidden="true" />
                       <div>
                         <p className="font-medium text-slate-900">
                           {compensation.user?.name || 'ユーザー'}

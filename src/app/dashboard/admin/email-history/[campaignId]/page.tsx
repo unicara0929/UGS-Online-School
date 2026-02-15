@@ -239,7 +239,7 @@ export default function EmailHistoryDetailPage() {
           className="mb-4"
           onClick={() => router.push('/dashboard/admin/email-history')}
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
+          <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
           一覧に戻る
         </Button>
 
@@ -248,13 +248,13 @@ export default function EmailHistoryDetailPage() {
           <CardHeader>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-                <Mail className="h-6 w-6 text-white" />
+                <Mail className="h-6 w-6 text-white" aria-hidden="true" />
               </div>
               <div className="flex-1">
                 <CardTitle className="text-2xl">{campaign.subject}</CardTitle>
                 <div className="flex items-center gap-4 mt-2 text-sm text-slate-600">
                   <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
+                    <Calendar className="h-4 w-4" aria-hidden="true" />
                     {formatDate(campaign.sentAt)}
                   </div>
                   <Badge>{campaign.sourceType === 'USER_MANAGEMENT' ? 'ユーザー管理' : 'イベント管理'}</Badge>
@@ -276,7 +276,7 @@ export default function EmailHistoryDetailPage() {
                     <p className="text-sm text-slate-600">総送信数</p>
                     <p className="text-2xl font-bold">{campaign.totalCount}</p>
                   </div>
-                  <Users className="h-8 w-8 text-slate-400" />
+                  <Users className="h-8 w-8 text-slate-400" aria-hidden="true" />
                 </div>
               </div>
 
@@ -286,7 +286,7 @@ export default function EmailHistoryDetailPage() {
                     <p className="text-sm text-green-700">送信成功</p>
                     <p className="text-2xl font-bold text-green-700">{campaign.successCount}</p>
                   </div>
-                  <CheckCircle className="h-8 w-8 text-green-500" />
+                  <CheckCircle className="h-8 w-8 text-green-500" aria-hidden="true" />
                 </div>
               </div>
 
@@ -296,7 +296,7 @@ export default function EmailHistoryDetailPage() {
                     <p className="text-sm text-red-700">送信失敗</p>
                     <p className="text-2xl font-bold text-red-700">{campaign.failedCount}</p>
                   </div>
-                  <XCircle className="h-8 w-8 text-red-500" />
+                  <XCircle className="h-8 w-8 text-red-500" aria-hidden="true" />
                 </div>
               </div>
             </div>
@@ -330,7 +330,7 @@ export default function EmailHistoryDetailPage() {
 
                 {selectedUserIds.size > 0 && (
                   <Button onClick={handleResend} disabled={resending}>
-                    <RefreshCw className={`h-4 w-4 mr-2 ${resending ? 'animate-spin' : ''}`} />
+                    <RefreshCw className={`h-4 w-4 mr-2 ${resending ? 'animate-spin' : ''}`} aria-hidden="true" />
                     {resending ? '再送中...' : `選択中 (${selectedUserIds.size})`}
                   </Button>
                 )}
@@ -378,7 +378,7 @@ export default function EmailHistoryDetailPage() {
                       <TableCell>
                         {log.errorMessage ? (
                           <div className="flex items-center gap-2 text-red-600 text-sm">
-                            <AlertCircle className="h-4 w-4" />
+                            <AlertCircle className="h-4 w-4" aria-hidden="true" />
                             {log.errorMessage}
                           </div>
                         ) : (

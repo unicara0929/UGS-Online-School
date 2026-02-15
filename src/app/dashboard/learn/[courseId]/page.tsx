@@ -364,7 +364,7 @@ function LearningPage() {
                   onClick={() => router.push('/dashboard')}
                   className="flex-shrink-0 h-8 px-2 sm:px-3"
                 >
-                  <ArrowLeft className="h-4 w-4 sm:mr-2" />
+                  <ArrowLeft className="h-4 w-4 sm:mr-2" aria-hidden="true" />
                   <span className="hidden sm:inline">戻る</span>
                 </Button>
                 <div className="min-w-0 flex-1">
@@ -382,7 +382,7 @@ function LearningPage() {
                   </div>
                   <span className="text-sm font-medium text-slate-700 hidden sm:block">{user?.name}</span>
                   <Button variant="ghost" size="sm" onClick={logout} className="h-7 sm:h-8 px-1.5 sm:px-3">
-                    <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1" />
+                    <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1" aria-hidden="true" />
                     <span className="hidden sm:inline">ログアウト</span>
                   </Button>
                 </div>
@@ -408,7 +408,7 @@ function LearningPage() {
                           </CardDescription>
                         </div>
                         <div className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0">
-                          <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-slate-500" />
+                          <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-slate-500" aria-hidden="true" />
                           <span className="text-xs sm:text-base text-slate-600">
                             {Math.floor(currentLesson.duration / 60)}:{(currentLesson.duration % 60).toString().padStart(2, '0')}
                           </span>
@@ -435,7 +435,7 @@ function LearningPage() {
                       ) : (
                         <div className="aspect-video bg-slate-900 rounded-t-lg flex items-center justify-center">
                           <div className="text-center text-white">
-                            <Video className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                            <Video className="h-16 w-16 mx-auto mb-4 opacity-50" aria-hidden="true" />
                             <p className="text-lg font-medium">動画プレイヤー</p>
                             <p className="text-sm opacity-75">動画が設定されていません</p>
                           </div>
@@ -453,14 +453,14 @@ function LearningPage() {
                               className="h-8 text-xs sm:text-sm"
                             >
                               {isPlaying ? (
-                                <Pause className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                                <Pause className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" aria-hidden="true" />
                               ) : (
-                                <Play className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                                <Play className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" aria-hidden="true" />
                               )}
                               {isPlaying ? '停止' : '再生'}
                             </Button>
                             <Button variant="outline" size="sm" className="h-8 text-xs sm:text-sm hidden sm:flex">
-                              <RotateCcw className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                              <RotateCcw className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" aria-hidden="true" />
                               リセット
                             </Button>
                           </div>
@@ -473,7 +473,7 @@ function LearningPage() {
                               disabled={currentLessonIndex === 0}
                               className="h-8 text-xs sm:text-sm flex-1 sm:flex-none"
                             >
-                              <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
+                              <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" aria-hidden="true" />
                               <span className="hidden sm:inline">前へ</span>
                             </Button>
                             <Button
@@ -483,7 +483,7 @@ function LearningPage() {
                               className="h-8 text-xs sm:text-sm flex-1 sm:flex-none"
                             >
                               <span className="hidden sm:inline">次へ</span>
-                              <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:ml-2" />
+                              <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:ml-2" aria-hidden="true" />
                             </Button>
                           </div>
                         </div>
@@ -519,7 +519,7 @@ function LearningPage() {
                     <Card>
                       <CardHeader className="p-3 sm:p-6">
                         <CardTitle className="flex items-center text-sm sm:text-lg">
-                          <FileText className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
+                          <FileText className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" aria-hidden="true" />
                           教材・資料
                         </CardTitle>
                       </CardHeader>
@@ -528,7 +528,7 @@ function LearningPage() {
                           {currentLesson.materials.map((material, index) => (
                             <div key={index} className="flex items-center justify-between gap-2 p-2 sm:p-3 bg-slate-50 rounded-lg">
                               <div className="flex items-center min-w-0 flex-1">
-                                <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 text-slate-500 flex-shrink-0" />
+                                <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 text-slate-500 flex-shrink-0" aria-hidden="true" />
                                 <span className="text-xs sm:text-sm font-medium truncate">{material}</span>
                               </div>
                               <Button variant="outline" size="sm" className="h-7 sm:h-8 text-xs sm:text-sm px-2 sm:px-3 flex-shrink-0">
@@ -557,12 +557,12 @@ function LearningPage() {
                         >
                           {currentLesson.isCompleted ? (
                             <>
-                              <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-green-600" />
+                              <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-green-600" aria-hidden="true" />
                               視聴済みを解除する
                             </>
                           ) : (
                             <>
-                              <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
+                              <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" aria-hidden="true" />
                               視聴済みにする
                             </>
                           )}
@@ -578,7 +578,7 @@ function LearningPage() {
             <div className="w-full overflow-hidden">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                 <h2 className="text-base sm:text-xl font-bold text-slate-900 flex items-center">
-                  <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 mr-2 flex-shrink-0" />
+                  <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 mr-2 flex-shrink-0" aria-hidden="true" />
                   レッスン一覧
                 </h2>
                 <div className="flex items-center gap-1 sm:space-x-2 flex-wrap">
@@ -627,7 +627,7 @@ function LearningPage() {
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-700 to-slate-800">
-                            <Video className="h-8 w-8 text-slate-400" />
+                            <Video className="h-8 w-8 text-slate-400" aria-hidden="true" />
                           </div>
                         )}
 
@@ -640,14 +640,14 @@ function LearningPage() {
                           }`}>
                             <Play className={`h-4 w-4 sm:h-6 sm:w-6 ${
                               index === currentLessonIndex ? 'text-white' : 'text-slate-700'
-                            } ml-0.5`} />
+                            } ml-0.5`} aria-hidden="true" />
                           </div>
                         </div>
 
                         {/* 完了バッジ */}
                         {lesson.isCompleted && (
                           <div className="absolute top-1 right-1 sm:top-2 sm:right-2 bg-green-500 text-white rounded-full p-0.5 sm:p-1">
-                            <CheckCircle className="h-2.5 w-2.5 sm:h-4 sm:w-4" />
+                            <CheckCircle className="h-2.5 w-2.5 sm:h-4 sm:w-4" aria-hidden="true" />
                           </div>
                         )}
 

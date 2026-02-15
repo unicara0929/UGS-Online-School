@@ -127,7 +127,7 @@ function ContactDetailContent({ params }: { params: Promise<{ contactId: string 
           <PageHeader title="お問い合わせ詳細" />
           <main className="px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+              <Loader2 className="h-8 w-8 animate-spin text-slate-400" aria-hidden="true" />
             </div>
           </main>
         </div>
@@ -162,7 +162,7 @@ function ContactDetailContent({ params }: { params: Promise<{ contactId: string 
           <div className="max-w-4xl mx-auto space-y-6">
             {/* 戻るボタン */}
             <Button variant="ghost" onClick={() => router.push('/dashboard/admin/contacts')}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
               一覧に戻る
             </Button>
 
@@ -181,7 +181,7 @@ function ContactDetailContent({ params }: { params: Promise<{ contactId: string 
                   <div>
                     <p className="text-sm text-slate-500 mb-1">受付日時</p>
                     <p className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-slate-400" />
+                      <Clock className="h-4 w-4 text-slate-400" aria-hidden="true" />
                       {new Date(submission.createdAt).toLocaleString('ja-JP')}
                     </p>
                   </div>
@@ -201,14 +201,14 @@ function ContactDetailContent({ params }: { params: Promise<{ contactId: string 
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-slate-400" />
+                    <User className="h-4 w-4 text-slate-400" aria-hidden="true" />
                     <div>
                       <p className="text-sm text-slate-500">お名前</p>
                       <p className="font-medium">{submission.user.name}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-slate-400" />
+                    <Mail className="h-4 w-4 text-slate-400" aria-hidden="true" />
                     <div>
                       <p className="text-sm text-slate-500">メールアドレス</p>
                       <p className="font-medium">{submission.user.email}</p>
@@ -282,9 +282,9 @@ function ContactDetailContent({ params }: { params: Promise<{ contactId: string 
                 )}
                 <Button onClick={handleSave} disabled={isSaving}>
                   {isSaving ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" aria-hidden="true" />
                   ) : (
-                    <Save className="h-4 w-4 mr-2" />
+                    <Save className="h-4 w-4 mr-2" aria-hidden="true" />
                   )}
                   保存
                 </Button>

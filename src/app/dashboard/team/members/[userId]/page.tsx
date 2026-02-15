@@ -125,7 +125,7 @@ export default function MemberDetailPage({ params }: { params: Promise<{ userId:
         <DashboardLayout>
           <div className="p-6 flex items-center justify-center min-h-screen">
             <div className="text-center">
-              <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+              <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" aria-hidden="true" />
               <p className="text-slate-600">メンバー情報を読み込み中...</p>
             </div>
           </div>
@@ -144,7 +144,7 @@ export default function MemberDetailPage({ params }: { params: Promise<{ userId:
               onClick={() => router.push('/dashboard/team')}
               className="mb-4"
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
               チーム一覧に戻る
             </Button>
             <Card className="border-red-200 bg-red-50">
@@ -171,19 +171,19 @@ export default function MemberDetailPage({ params }: { params: Promise<{ userId:
               onClick={() => router.push('/dashboard/team')}
               className="mb-4"
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
               チーム一覧に戻る
             </Button>
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center">
-                  <User className="h-8 w-8 text-slate-500" />
+                  <User className="h-8 w-8 text-slate-500" aria-hidden="true" />
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold text-slate-900">{member.name}</h1>
                   <div className="flex items-center gap-2 text-slate-600">
-                    <Mail className="h-4 w-4" />
+                    <Mail className="h-4 w-4" aria-hidden="true" />
                     <span>{member.email}</span>
                   </div>
                 </div>
@@ -200,12 +200,12 @@ export default function MemberDetailPage({ params }: { params: Promise<{ userId:
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
-                    <Target className="h-5 w-5 text-blue-600" />
+                    <Target className="h-5 w-5 text-blue-600" aria-hidden="true" />
                     MGR昇格条件
                   </CardTitle>
                   {member.promotionEligibility?.isEligible ? (
                     <Badge className="bg-green-100 text-green-800 px-3 py-1">
-                      <CheckCircle className="h-4 w-4 mr-1" />
+                      <CheckCircle className="h-4 w-4 mr-1" aria-hidden="true" />
                       昇格可能
                     </Badge>
                   ) : (
@@ -221,9 +221,9 @@ export default function MemberDetailPage({ params }: { params: Promise<{ userId:
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       {conditions.salesTotal.met ? (
-                        <CheckCircle className="h-5 w-5 text-green-600" />
+                        <CheckCircle className="h-5 w-5 text-green-600" aria-hidden="true" />
                       ) : (
-                        <XCircle className="h-5 w-5 text-slate-300" />
+                        <XCircle className="h-5 w-5 text-slate-300" aria-hidden="true" />
                       )}
                       <span className="font-medium">① 売上合計（過去6ヶ月）</span>
                     </div>
@@ -239,9 +239,9 @@ export default function MemberDetailPage({ params }: { params: Promise<{ userId:
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       {conditions.insuredCount.met ? (
-                        <CheckCircle className="h-5 w-5 text-green-600" />
+                        <CheckCircle className="h-5 w-5 text-green-600" aria-hidden="true" />
                       ) : (
-                        <XCircle className="h-5 w-5 text-slate-300" />
+                        <XCircle className="h-5 w-5 text-slate-300" aria-hidden="true" />
                       )}
                       <span className="font-medium">② 被保険者数（累計）</span>
                     </div>
@@ -257,9 +257,9 @@ export default function MemberDetailPage({ params }: { params: Promise<{ userId:
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       {conditions.memberReferrals.met ? (
-                        <CheckCircle className="h-5 w-5 text-green-600" />
+                        <CheckCircle className="h-5 w-5 text-green-600" aria-hidden="true" />
                       ) : (
-                        <XCircle className="h-5 w-5 text-slate-300" />
+                        <XCircle className="h-5 w-5 text-slate-300" aria-hidden="true" />
                       )}
                       <span className="font-medium">③ UGS会員紹介（6ヶ月以内・維持中）</span>
                     </div>
@@ -275,9 +275,9 @@ export default function MemberDetailPage({ params }: { params: Promise<{ userId:
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       {conditions.fpReferrals.met ? (
-                        <CheckCircle className="h-5 w-5 text-green-600" />
+                        <CheckCircle className="h-5 w-5 text-green-600" aria-hidden="true" />
                       ) : (
-                        <XCircle className="h-5 w-5 text-slate-300" />
+                        <XCircle className="h-5 w-5 text-slate-300" aria-hidden="true" />
                       )}
                       <span className="font-medium">④ FPエイド輩出（6ヶ月以内・維持中）</span>
                     </div>
@@ -297,7 +297,7 @@ export default function MemberDetailPage({ params }: { params: Promise<{ userId:
               <CardContent className="pt-6">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <BookOpen className="h-5 w-5 text-blue-600" />
+                    <BookOpen className="h-5 w-5 text-blue-600" aria-hidden="true" />
                   </div>
                   <div>
                     <p className="text-sm text-slate-500">学習進捗</p>
@@ -311,7 +311,7 @@ export default function MemberDetailPage({ params }: { params: Promise<{ userId:
               <CardContent className="pt-6">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                    <FileCheck className="h-5 w-5 text-green-600" />
+                    <FileCheck className="h-5 w-5 text-green-600" aria-hidden="true" />
                   </div>
                   <div>
                     <p className="text-sm text-slate-500">契約実績</p>
@@ -325,7 +325,7 @@ export default function MemberDetailPage({ params }: { params: Promise<{ userId:
               <CardContent className="pt-6">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Calendar className="h-5 w-5 text-purple-600" />
+                    <Calendar className="h-5 w-5 text-purple-600" aria-hidden="true" />
                   </div>
                   <div>
                     <p className="text-sm text-slate-500">FP承認日</p>
@@ -343,7 +343,7 @@ export default function MemberDetailPage({ params }: { params: Promise<{ userId:
               <CardContent className="pt-6">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <TrendingUp className="h-5 w-5 text-orange-600" />
+                    <TrendingUp className="h-5 w-5 text-orange-600" aria-hidden="true" />
                   </div>
                   <div>
                     <p className="text-sm text-slate-500">サブスク状態</p>

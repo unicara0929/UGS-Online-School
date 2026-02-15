@@ -236,7 +236,7 @@ function ScheduleManagementContent() {
           <PageHeader title="日程管理" />
           <main className="px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+              <Loader2 className="h-8 w-8 animate-spin text-slate-400" aria-hidden="true" />
             </div>
           </main>
         </div>
@@ -257,7 +257,7 @@ function ScheduleManagementContent() {
               <div className="flex items-center gap-4">
                 <Link href={`/dashboard/admin/events/${eventId}`}>
                   <Button variant="ghost" size="sm">
-                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
                     戻る
                   </Button>
                 </Link>
@@ -267,7 +267,7 @@ function ScheduleManagementContent() {
                 </div>
               </div>
               <Button onClick={openAddModal}>
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
                 日程を追加
               </Button>
             </div>
@@ -285,10 +285,10 @@ function ScheduleManagementContent() {
               {schedules.length === 0 ? (
                 <Card>
                   <CardContent className="text-center py-8">
-                    <Calendar className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                    <Calendar className="h-12 w-12 text-slate-400 mx-auto mb-4" aria-hidden="true" />
                     <p className="text-slate-600">日程が登録されていません</p>
                     <Button onClick={openAddModal} className="mt-4">
-                      <Plus className="h-4 w-4 mr-2" />
+                      <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
                       日程を追加
                     </Button>
                   </CardContent>
@@ -315,7 +315,7 @@ function ScheduleManagementContent() {
                               </span>
                               {schedule.time && (
                                 <span className="text-slate-600 flex items-center">
-                                  <Clock className="h-4 w-4 mr-1" />
+                                  <Clock className="h-4 w-4 mr-1" aria-hidden="true" />
                                   {schedule.time}
                                 </span>
                               )}
@@ -324,13 +324,13 @@ function ScheduleManagementContent() {
                             <div className="flex items-center gap-4 text-sm text-slate-600">
                               {schedule.location && (
                                 <span className="flex items-center">
-                                  <MapPin className="h-4 w-4 mr-1" />
+                                  <MapPin className="h-4 w-4 mr-1" aria-hidden="true" />
                                   {schedule.location}
                                 </span>
                               )}
                               {schedule.onlineMeetingUrl && (
                                 <span className="flex items-center">
-                                  <LinkIcon className="h-4 w-4 mr-1" />
+                                  <LinkIcon className="h-4 w-4 mr-1" aria-hidden="true" />
                                   オンラインURL設定済み
                                 </span>
                               )}
@@ -342,7 +342,7 @@ function ScheduleManagementContent() {
                             </div>
 
                             <div className="flex items-center text-sm text-slate-500">
-                              <Users className="h-4 w-4 mr-1" />
+                              <Users className="h-4 w-4 mr-1" aria-hidden="true" />
                               {schedule._count.registrations + schedule._count.externalRegistrations}名登録
                               {schedule._count.externalRegistrations > 0 && (
                                 <span className="ml-1 text-slate-400">
@@ -356,7 +356,7 @@ function ScheduleManagementContent() {
                         {/* アクションボタン */}
                         <div className="flex items-center gap-2">
                           <Button variant="ghost" size="sm" onClick={() => openEditModal(schedule)}>
-                            <Edit className="h-4 w-4" />
+                            <Edit className="h-4 w-4" aria-hidden="true" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -364,7 +364,7 @@ function ScheduleManagementContent() {
                             onClick={() => handleDelete(schedule.id)}
                             className="text-red-600 hover:text-red-700 hover:bg-red-50"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4" aria-hidden="true" />
                           </Button>
                         </div>
                       </div>
@@ -478,14 +478,14 @@ function ScheduleManagementContent() {
               {/* ボタン */}
               <div className="flex justify-end gap-3 pt-4">
                 <Button variant="outline" onClick={() => setIsModalOpen(false)} disabled={isSaving}>
-                  <X className="h-4 w-4 mr-2" />
+                  <X className="h-4 w-4 mr-2" aria-hidden="true" />
                   キャンセル
                 </Button>
                 <Button onClick={handleSave} disabled={isSaving}>
                   {isSaving ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                   ) : (
-                    <Save className="h-4 w-4 mr-2" />
+                    <Save className="h-4 w-4 mr-2" aria-hidden="true" />
                   )}
                   {isSaving ? '保存中...' : '保存'}
                 </Button>

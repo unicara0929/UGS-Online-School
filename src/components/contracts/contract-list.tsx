@@ -152,7 +152,7 @@ export function ContractList() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-slate-600" aria-hidden="true" />
       </div>
     )
   }
@@ -164,10 +164,10 @@ export function ContractList() {
         <Card className="shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">有効契約数</CardTitle>
-            <FileText className="h-4 w-4 text-blue-600" />
+            <FileText className="h-4 w-4 text-blue-600" aria-hidden="true" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-blue-800">{totalStats.count}</div>
+            <div className="text-3xl font-bold text-blue-800 tabular-nums">{totalStats.count}</div>
             <p className="text-xs text-slate-600">件</p>
           </CardContent>
         </Card>
@@ -175,10 +175,10 @@ export function ContractList() {
         <Card className="shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">総契約金額</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-600" />
+            <DollarSign className="h-4 w-4 text-green-600" aria-hidden="true" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-800">{formatCurrency(totalStats.totalAmount)}</div>
+            <div className="text-3xl font-bold text-green-800 tabular-nums">{formatCurrency(totalStats.totalAmount)}</div>
             <p className="text-xs text-slate-600">有効契約のみ</p>
           </CardContent>
         </Card>
@@ -186,10 +186,10 @@ export function ContractList() {
         <Card className="shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">報酬合計</CardTitle>
-            <DollarSign className="h-4 w-4 text-orange-600" />
+            <DollarSign className="h-4 w-4 text-orange-600" aria-hidden="true" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-orange-800">{formatCurrency(totalStats.totalReward)}</div>
+            <div className="text-3xl font-bold text-orange-800 tabular-nums">{formatCurrency(totalStats.totalReward)}</div>
             <p className="text-xs text-slate-600">有効契約のみ</p>
           </CardContent>
         </Card>
@@ -205,7 +205,7 @@ export function ContractList() {
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="flex flex-wrap h-auto gap-1 mb-6">
               <TabsTrigger value="ALL" className="flex items-center gap-1">
-                <FileCheck className="h-4 w-4" />
+                <FileCheck className="h-4 w-4" aria-hidden="true" />
                 全て
                 <Badge variant="secondary" className="ml-1">{getContractsByType('ALL').length}</Badge>
               </TabsTrigger>
@@ -214,7 +214,7 @@ export function ContractList() {
                 const count = getContractsByType(key as ContractType).length
                 return (
                   <TabsTrigger key={key} value={key} className="flex items-center gap-1">
-                    <Icon className="h-4 w-4" />
+                    <Icon className="h-4 w-4" aria-hidden="true" />
                     {config.label}
                     {count > 0 && <Badge variant="secondary" className="ml-1">{count}</Badge>}
                   </TabsTrigger>
@@ -242,22 +242,22 @@ export function ContractList() {
                   {/* 種別ごとの統計 */}
                   <div className={`${config.color} rounded-xl p-4 mb-6`}>
                     <div className="flex items-center gap-2 mb-3">
-                      <Icon className="h-6 w-6" />
+                      <Icon className="h-6 w-6" aria-hidden="true" />
                       <h3 className="text-lg font-bold">{config.label}</h3>
                     </div>
                     <p className="text-sm mb-4">{config.description}</p>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="bg-white/50 rounded-lg p-3 text-center">
                         <p className="text-xs font-medium">契約数</p>
-                        <p className="text-xl font-bold">{stats.count}件</p>
+                        <p className="text-xl font-bold tabular-nums">{stats.count}件</p>
                       </div>
                       <div className="bg-white/50 rounded-lg p-3 text-center">
                         <p className="text-xs font-medium">契約金額</p>
-                        <p className="text-xl font-bold">{formatCurrency(stats.totalAmount)}</p>
+                        <p className="text-xl font-bold tabular-nums">{formatCurrency(stats.totalAmount)}</p>
                       </div>
                       <div className="bg-white/50 rounded-lg p-3 text-center">
                         <p className="text-xs font-medium">報酬額</p>
-                        <p className="text-xl font-bold">{formatCurrency(stats.totalReward)}</p>
+                        <p className="text-xl font-bold tabular-nums">{formatCurrency(stats.totalReward)}</p>
                       </div>
                     </div>
                   </div>
@@ -290,7 +290,7 @@ function ContractTable({
   if (contracts.length === 0) {
     return (
       <div className="text-center py-12">
-        <FileText className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+        <FileText className="h-12 w-12 text-slate-400 mx-auto mb-4" aria-hidden="true" />
         <p className="text-slate-600">契約データがありません</p>
         <p className="text-sm text-slate-500 mt-2">管理者がCSVでアップロードすると、ここに表示されます</p>
       </div>
@@ -304,45 +304,45 @@ function ContractTable({
           <TableRow className="bg-slate-50">
             <TableHead className="w-[140px]">
               <div className="flex items-center gap-1">
-                <Hash className="h-4 w-4" />
+                <Hash className="h-4 w-4" aria-hidden="true" />
                 契約番号
               </div>
             </TableHead>
             {showType && (
               <TableHead>
                 <div className="flex items-center gap-1">
-                  <FileText className="h-4 w-4" />
+                  <FileText className="h-4 w-4" aria-hidden="true" />
                   種別
                 </div>
               </TableHead>
             )}
             <TableHead>
               <div className="flex items-center gap-1">
-                <Package className="h-4 w-4" />
+                <Package className="h-4 w-4" aria-hidden="true" />
                 商品名
               </div>
             </TableHead>
             <TableHead>
               <div className="flex items-center gap-1">
-                <User className="h-4 w-4" />
+                <User className="h-4 w-4" aria-hidden="true" />
                 契約者名
               </div>
             </TableHead>
             <TableHead className="text-right">
               <div className="flex items-center gap-1 justify-end">
-                <DollarSign className="h-4 w-4" />
+                <DollarSign className="h-4 w-4" aria-hidden="true" />
                 契約金額
               </div>
             </TableHead>
             <TableHead className="text-right">
               <div className="flex items-center gap-1 justify-end">
-                <DollarSign className="h-4 w-4" />
+                <DollarSign className="h-4 w-4" aria-hidden="true" />
                 報酬額
               </div>
             </TableHead>
             <TableHead>
               <div className="flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
+                <Calendar className="h-4 w-4" aria-hidden="true" />
                 契約日
               </div>
             </TableHead>
@@ -363,17 +363,17 @@ function ContractTable({
                 {showType && (
                   <TableCell>
                     <Badge className={typeConfig.color}>
-                      <Icon className="h-3 w-3 mr-1" />
+                      <Icon className="h-3 w-3 mr-1" aria-hidden="true" />
                       {typeConfig.label}
                     </Badge>
                   </TableCell>
                 )}
                 <TableCell>{contract.productName || '-'}</TableCell>
                 <TableCell>{contract.customerName || '-'}</TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right tabular-nums">
                   {contract.amount ? formatCurrency(contract.amount) : '-'}
                 </TableCell>
-                <TableCell className="text-right font-medium text-orange-600">
+                <TableCell className="text-right font-medium text-orange-600 tabular-nums">
                   {contract.rewardAmount ? formatCurrency(contract.rewardAmount) : '-'}
                 </TableCell>
                 <TableCell className="text-slate-600">

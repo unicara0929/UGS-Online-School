@@ -125,7 +125,7 @@ function ContactPageContent() {
             <Card className="bg-slate-100 border-slate-200">
               <CardContent className="py-4">
                 <div className="flex items-center gap-3">
-                  <HelpCircle className="h-5 w-5 text-slate-600" />
+                  <HelpCircle className="h-5 w-5 text-slate-600" aria-hidden="true" />
                   <div className="flex-1">
                     <p className="text-sm text-slate-700">
                       お問い合わせの前に、よくある質問をご確認ください
@@ -145,7 +145,7 @@ function ContactPageContent() {
               <Card className="border-green-200 bg-green-50">
                 <CardContent className="py-4">
                   <div className="flex items-center gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    <CheckCircle2 className="h-5 w-5 text-green-600" aria-hidden="true" />
                     <div>
                       <p className="font-medium text-green-800">お問い合わせを受け付けました</p>
                       <p className="text-sm text-green-700 mt-1">
@@ -162,7 +162,7 @@ function ContactPageContent() {
               <Card className="border-red-200 bg-red-50">
                 <CardContent className="py-4">
                   <div className="flex items-center gap-3">
-                    <AlertCircle className="h-5 w-5 text-red-600" />
+                    <AlertCircle className="h-5 w-5 text-red-600" aria-hidden="true" />
                     <p className="text-sm text-red-700">{error}</p>
                   </div>
                 </CardContent>
@@ -212,6 +212,7 @@ function ContactPageContent() {
                         value={user?.email || ''}
                         disabled
                         className={`${inputClassName} bg-slate-100 text-slate-600`}
+                        spellCheck={false}
                       />
                     </div>
                   </div>
@@ -279,12 +280,12 @@ function ContactPageContent() {
                     >
                       {isSubmitting ? (
                         <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                           送信中...
                         </>
                       ) : (
                         <>
-                          <Send className="h-4 w-4 mr-2" />
+                          <Send className="h-4 w-4 mr-2" aria-hidden="true" />
                           送信する
                         </>
                       )}
@@ -302,7 +303,7 @@ function ContactPageContent() {
               <CardContent>
                 {isLoadingHistory ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+                    <Loader2 className="h-5 w-5 animate-spin text-slate-400" aria-hidden="true" />
                   </div>
                 ) : submissions.length === 0 ? (
                   <p className="text-sm text-slate-500 text-center py-8">
@@ -325,7 +326,7 @@ function ContactPageContent() {
                             </span>
                           </div>
                           <div className="flex items-center text-xs text-slate-500">
-                            <Clock className="h-3 w-3 mr-1" />
+                            <Clock className="h-3 w-3 mr-1" aria-hidden="true" />
                             {new Date(submission.createdAt).toLocaleDateString('ja-JP')}
                           </div>
                         </div>
