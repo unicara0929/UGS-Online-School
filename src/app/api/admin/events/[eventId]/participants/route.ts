@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getAuthenticatedUser, checkRole, RoleGroups } from '@/lib/auth/api-helpers'
+import { getAuthenticatedUser, checkRole, RoleGroups, Roles } from '@/lib/auth/api-helpers'
 
 /**
  * イベント参加者一覧取得API
@@ -264,6 +264,77 @@ export async function GET(
     console.error('Get event participants error:', error)
     return NextResponse.json(
       { error: '参加者一覧の取得に失敗しました' },
+      { status: 500 }
+    )
+  }
+}
+
+/**
+ * イベント参加登録の一括削除API
+ * 管理者が選択した参加登録を削除
+ */
+export async function DELETE(
+  request: NextRequest,
+  context: { params: Promise<{ eventId: string }> }
+) {
+  try {
+    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
+    if (authError) return authError
+
+    const { error: roleError } = checkRole(authUser!.role, RoleGroups.ADMIN_ONLY)
+    if (roleError) return roleError
+
+    const { eventId } = await context.params
+    const body = await request.json()
+    const { registrationIds } = body as { registrationIds: string[] }
+
+    if (!registrationIds || registrationIds.length === 0) {
+      return NextResponse.json(
+        { error: '削除する参加登録を選択してください' },
+        { status: 400 }
+      )
+    }
+
+    // イベントの存在確認
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: { id: true },
+    })
+
+    if (!event) {
+      return NextResponse.json(
+        { error: 'イベントが見つかりません' },
+        { status: 404 }
+      )
+    }
+
+    // 内部参加登録を削除
+    const internalDeleted = await prisma.eventRegistration.deleteMany({
+      where: {
+        id: { in: registrationIds },
+        eventId: eventId,
+      },
+    })
+
+    // 外部参加登録を削除
+    const externalDeleted = await prisma.externalEventRegistration.deleteMany({
+      where: {
+        id: { in: registrationIds },
+        eventId: eventId,
+      },
+    })
+
+    const deletedCount = internalDeleted.count + externalDeleted.count
+
+    return NextResponse.json({
+      success: true,
+      deletedCount,
+      message: `${deletedCount}件の参加登録を削除しました`,
+    })
+  } catch (error) {
+    console.error('Delete event registrations error:', error)
+    return NextResponse.json(
+      { error: '参加登録の削除に失敗しました' },
       { status: 500 }
     )
   }

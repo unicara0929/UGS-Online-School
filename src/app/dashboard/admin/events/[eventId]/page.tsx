@@ -16,6 +16,7 @@ import {
   Loader2,
   Mail,
   Search,
+  Trash2,
   Users,
   Calendar,
   Clock,
@@ -166,7 +167,7 @@ function EventDetailPageContent() {
   const [searchQuery, setSearchQuery] = useState<string>('')
 
   // メール送信関連
-  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([])
+  const [selectedRegIds, setSelectedRegIds] = useState<string[]>([])
   const [showEmailModal, setShowEmailModal] = useState(false)
   const [emailTemplate, setEmailTemplate] = useState<'payment_reminder' | 'event_reminder' | 'custom'>('payment_reminder')
   const [customSubject, setCustomSubject] = useState('')
@@ -316,32 +317,72 @@ function EventDetailPageContent() {
     window.location.href = `/api/admin/events/${eventId}/participants/export`
   }
 
-  // 全選択/全解除（内部参加者のみ - 外部参加者はuserIdがないためメール送信対象外）
+  // 全選択/全解除（全参加者を選択可能）
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedUserIds(filteredParticipants.filter(p => p.userId).map(p => p.userId!))
+      setSelectedRegIds(filteredParticipants.map(p => p.id))
     } else {
-      setSelectedUserIds([])
+      setSelectedRegIds([])
     }
   }
 
-  // 個別選択（内部参加者のみ）
-  const handleSelectUser = (userId: string | null, checked: boolean) => {
-    if (!userId) return // 外部参加者は選択不可
+  // 個別選択（registration IDベース）
+  const handleSelectRegistration = (registrationId: string, checked: boolean) => {
     if (checked) {
-      setSelectedUserIds(prev => [...prev, userId])
+      setSelectedRegIds(prev => [...prev, registrationId])
     } else {
-      setSelectedUserIds(prev => prev.filter(id => id !== userId))
+      setSelectedRegIds(prev => prev.filter(id => id !== registrationId))
     }
   }
 
-  // 選択可能な参加者数（内部参加者のみ）
-  const selectableParticipants = filteredParticipants.filter(p => p.userId)
+  // 選択中の参加者からメール送信可能なuserIdを取得
+  const getSelectedUserIdsForEmail = () => {
+    return participants
+      .filter(p => selectedRegIds.includes(p.id) && p.userId)
+      .map(p => p.userId!)
+  }
+
+  // 削除処理
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const handleDeleteRegistrations = async () => {
+    if (selectedRegIds.length === 0) return
+
+    if (!confirm(`${selectedRegIds.length}件の参加登録を削除しますか？この操作は取り消せません。`)) {
+      return
+    }
+
+    setIsDeleting(true)
+    try {
+      const response = await fetch(`/api/admin/events/${eventId}/participants`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ registrationIds: selectedRegIds }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || '削除に失敗しました')
+      }
+
+      alert(data.message)
+      setSelectedRegIds([])
+      fetchParticipants()
+    } catch (err) {
+      console.error('Failed to delete registrations:', err)
+      alert(err instanceof Error ? err.message : '削除に失敗しました')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   // メール送信処理
   const handleSendEmail = async () => {
-    if (selectedUserIds.length === 0) {
-      alert('送信先を選択してください')
+    const userIdsForEmail = getSelectedUserIdsForEmail()
+    if (userIdsForEmail.length === 0) {
+      alert('メール送信可能なユーザーが選択されていません（外部参加者にはメール送信できません）')
       return
     }
 
@@ -350,7 +391,7 @@ function EventDetailPageContent() {
       return
     }
 
-    if (!confirm(`${selectedUserIds.length}名にメールを送信しますか？`)) {
+    if (!confirm(`${userIdsForEmail.length}名にメールを送信しますか？`)) {
       return
     }
 
@@ -362,7 +403,7 @@ function EventDetailPageContent() {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          userIds: selectedUserIds,
+          userIds: userIdsForEmail,
           templateType: emailTemplate,
           subject: customSubject,
           customBody: customBody,
@@ -377,7 +418,7 @@ function EventDetailPageContent() {
 
       alert(data.message)
       setShowEmailModal(false)
-      setSelectedUserIds([])
+      setSelectedRegIds([])
       setCustomSubject('')
       setCustomBody('')
     } catch (err) {
@@ -596,12 +637,24 @@ function EventDetailPageContent() {
                   {/* アクションボタン */}
                   <div className="flex flex-wrap gap-2 ml-auto w-full sm:w-auto">
                     <Button
+                      variant="destructive"
+                      onClick={handleDeleteRegistrations}
+                      disabled={selectedRegIds.length === 0 || isDeleting}
+                    >
+                      {isDeleting ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
+                      ) : (
+                        <Trash2 className="h-4 w-4 mr-2" aria-hidden="true" />
+                      )}
+                      選択した参加者を削除 ({selectedRegIds.length})
+                    </Button>
+                    <Button
                       variant="default"
                       onClick={() => setShowEmailModal(true)}
-                      disabled={selectedUserIds.length === 0}
+                      disabled={selectedRegIds.length === 0}
                     >
                       <Mail className="h-4 w-4 mr-2" aria-hidden="true" />
-                      選択したユーザーにメール送信 ({selectedUserIds.length})
+                      選択したユーザーにメール送信 ({selectedRegIds.length})
                     </Button>
                     <Button
                       variant="outline"
@@ -688,10 +741,10 @@ function EventDetailPageContent() {
                           <th className="px-4 py-3 w-12">
                             <input
                               type="checkbox"
-                              checked={selectedUserIds.length === selectableParticipants.length && selectableParticipants.length > 0}
+                              checked={selectedRegIds.length === filteredParticipants.length && filteredParticipants.length > 0}
                               onChange={(e) => handleSelectAll(e.target.checked)}
                               className="w-4 h-4 text-slate-600 bg-slate-100 border-slate-300 rounded focus:ring-slate-500"
-                              title="内部参加者のみ選択可能"
+                              title="全参加者を選択"
                             />
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">名前</th>
@@ -793,16 +846,12 @@ function EventDetailPageContent() {
                         {filteredParticipants.map((participant) => (
                           <tr key={participant.id} className={`hover:bg-slate-50 ${participant.isExternal ? 'bg-purple-50/30' : ''}`}>
                             <td className="px-4 py-3">
-                              {participant.userId ? (
-                                <input
-                                  type="checkbox"
-                                  checked={selectedUserIds.includes(participant.userId)}
-                                  onChange={(e) => handleSelectUser(participant.userId, e.target.checked)}
-                                  className="w-4 h-4 text-slate-600 bg-slate-100 border-slate-300 rounded focus:ring-slate-500"
-                                />
-                              ) : (
-                                <span className="text-slate-400" title="外部参加者は選択不可">-</span>
-                              )}
+                              <input
+                                type="checkbox"
+                                checked={selectedRegIds.includes(participant.id)}
+                                onChange={(e) => handleSelectRegistration(participant.id, e.target.checked)}
+                                className="w-4 h-4 text-slate-600 bg-slate-100 border-slate-300 rounded focus:ring-slate-500"
+                              />
                             </td>
                             <td className="px-4 py-3 text-sm text-slate-900">{participant.userName}</td>
                             <td className="px-4 py-3 text-sm text-slate-600">{participant.userEmail}</td>
@@ -893,7 +942,7 @@ function EventDetailPageContent() {
                       {/* 送信先表示 */}
                       <div>
                         <p className="text-sm text-slate-600">
-                          送信先: {selectedUserIds.length}名
+                          送信先: {getSelectedUserIdsForEmail().length}名（内部参加者のみ）
                         </p>
                       </div>
 
