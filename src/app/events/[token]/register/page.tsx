@@ -9,6 +9,16 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Calendar, Clock, MapPin, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
 
+type RegistrationFormField = {
+  id: string
+  label: string
+  type: 'TEXT' | 'TEXTAREA' | 'SELECT' | 'MULTI_SELECT' | 'RADIO' | 'DATE' | 'RATING'
+  required: boolean
+  description?: string
+  options?: string[]
+  placeholder?: string
+}
+
 type Schedule = {
   id: string
   date: string
@@ -33,6 +43,7 @@ interface EventInfo {
   applicationDeadlineDays: number | null
   status: string
   schedules: Schedule[]
+  externalFormFields: RegistrationFormField[] | null
 }
 
 export default function ExternalEventRegisterPage() {
@@ -53,6 +64,7 @@ export default function ExternalEventRegisterPage() {
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [referrer, setReferrer] = useState('')
+  const [customAnswers, setCustomAnswers] = useState<Record<string, any>>({})
   const [formError, setFormError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -129,9 +141,24 @@ export default function ExternalEventRegisterPage() {
       return
     }
 
+    // カスタムフィールドの必須チェック
+    if (event?.externalFormFields) {
+      for (const field of event.externalFormFields) {
+        if (field.required) {
+          const value = customAnswers[field.id]
+          if (value === undefined || value === null || value === '' || (Array.isArray(value) && value.length === 0)) {
+            setFormError(`${field.label}は必須です`)
+            return
+          }
+        }
+      }
+    }
+
     setIsSubmitting(true)
 
     try {
+      // Build customFieldAnswers from custom fields, or fall back to referrer for legacy
+      const hasCustomFields = event?.externalFormFields !== null
       const response = await fetch(`/api/public/events/${token}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -139,8 +166,9 @@ export default function ExternalEventRegisterPage() {
           name,
           email,
           phone,
-          referrer: referrer.trim() || null,
+          referrer: hasCustomFields ? undefined : (referrer.trim() || null),
           scheduleId: selectedScheduleId,
+          customFieldAnswers: hasCustomFields ? customAnswers : undefined,
         }),
       })
 
@@ -201,7 +229,7 @@ export default function ExternalEventRegisterPage() {
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
         <Card className="max-w-md w-full border-red-200 bg-red-50">
           <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-red-600">
+            <div role="alert" className="flex items-center gap-2 text-red-600">
               <AlertCircle className="h-5 w-5" aria-hidden="true" />
               <p>{error}</p>
             </div>
@@ -407,7 +435,7 @@ export default function ExternalEventRegisterPage() {
           <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
             <form onSubmit={handleSubmit} className="space-y-4">
               {formError && (
-                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+                <div role="alert" className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
                   {formError}
                 </div>
               )}
@@ -455,19 +483,140 @@ export default function ExternalEventRegisterPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  紹介者
-                </label>
-                <input
-                  type="text"
-                  value={referrer}
-                  onChange={(e) => setReferrer(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
-                  placeholder="紹介者のお名前（任意）"
-                  disabled={isSubmitting}
-                />
-              </div>
+              {/* カスタムフィールド: externalFormFieldsがある場合は動的レンダリング、nullの場合は従来の紹介者フィールド */}
+              {event.externalFormFields ? (
+                event.externalFormFields.map((field) => (
+                  <div key={field.id}>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      {field.label} {field.required && <span className="text-red-500">*</span>}
+                    </label>
+                    {field.description && (
+                      <p className="text-xs text-slate-500 mb-1">{field.description}</p>
+                    )}
+
+                    {field.type === 'TEXT' && (
+                      <input
+                        type="text"
+                        value={customAnswers[field.id] || ''}
+                        onChange={(e) => setCustomAnswers(prev => ({ ...prev, [field.id]: e.target.value }))}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                        placeholder={field.placeholder || ''}
+                        disabled={isSubmitting}
+                      />
+                    )}
+
+                    {field.type === 'TEXTAREA' && (
+                      <textarea
+                        value={customAnswers[field.id] || ''}
+                        onChange={(e) => setCustomAnswers(prev => ({ ...prev, [field.id]: e.target.value }))}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                        rows={3}
+                        placeholder={field.placeholder || ''}
+                        disabled={isSubmitting}
+                      />
+                    )}
+
+                    {field.type === 'SELECT' && (
+                      <select
+                        value={customAnswers[field.id] || ''}
+                        onChange={(e) => setCustomAnswers(prev => ({ ...prev, [field.id]: e.target.value }))}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                        disabled={isSubmitting}
+                      >
+                        <option value="">選択してください</option>
+                        {(field.options || []).map((opt, i) => (
+                          <option key={i} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    )}
+
+                    {field.type === 'MULTI_SELECT' && (
+                      <div className="space-y-2">
+                        {(field.options || []).map((opt, i) => (
+                          <label key={i} className="flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={(customAnswers[field.id] || []).includes(opt)}
+                              onChange={(e) => {
+                                const current = customAnswers[field.id] || []
+                                const updated = e.target.checked
+                                  ? [...current, opt]
+                                  : current.filter((v: string) => v !== opt)
+                                setCustomAnswers(prev => ({ ...prev, [field.id]: updated }))
+                              }}
+                              className="w-4 h-4 text-slate-600 bg-slate-100 border-slate-300 rounded focus:ring-slate-500 focus:ring-2"
+                              disabled={isSubmitting}
+                            />
+                            <span className="ml-2 text-sm text-slate-700">{opt}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+
+                    {field.type === 'RADIO' && (
+                      <div className="space-y-2">
+                        {(field.options || []).map((opt, i) => (
+                          <label key={i} className="flex items-center cursor-pointer">
+                            <input
+                              type="radio"
+                              name={`custom-field-${field.id}`}
+                              checked={customAnswers[field.id] === opt}
+                              onChange={() => setCustomAnswers(prev => ({ ...prev, [field.id]: opt }))}
+                              className="w-4 h-4 text-slate-600 bg-slate-100 border-slate-300 focus:ring-slate-500 focus:ring-2"
+                              disabled={isSubmitting}
+                            />
+                            <span className="ml-2 text-sm text-slate-700">{opt}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+
+                    {field.type === 'DATE' && (
+                      <input
+                        type="date"
+                        value={customAnswers[field.id] || ''}
+                        onChange={(e) => setCustomAnswers(prev => ({ ...prev, [field.id]: e.target.value }))}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                        disabled={isSubmitting}
+                      />
+                    )}
+
+                    {field.type === 'RATING' && (
+                      <div className="flex gap-2">
+                        {[1, 2, 3, 4, 5].map((rating) => (
+                          <button
+                            key={rating}
+                            type="button"
+                            onClick={() => setCustomAnswers(prev => ({ ...prev, [field.id]: rating }))}
+                            className={`w-10 h-10 rounded-lg border text-sm font-medium transition-colors ${
+                              customAnswers[field.id] === rating
+                                ? 'bg-slate-900 text-white border-slate-900'
+                                : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
+                            }`}
+                            disabled={isSubmitting}
+                          >
+                            {rating}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    紹介者
+                  </label>
+                  <input
+                    type="text"
+                    value={referrer}
+                    onChange={(e) => setReferrer(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                    placeholder="紹介者のお名前（任意）"
+                    disabled={isSubmitting}
+                  />
+                </div>
+              )}
 
               <Button
                 type="submit"

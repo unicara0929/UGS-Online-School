@@ -470,7 +470,7 @@ export default function ComplianceTestPage() {
                 <button
                   key={index}
                   onClick={() => setCurrentQuestionIndex(index)}
-                  className={`w-8 h-8 rounded-full text-xs font-medium transition-colors ${
+                  className={`w-9 h-9 rounded-full text-xs font-medium transition-colors ${
                     currentQuestionIndex === index
                       ? 'bg-blue-600 text-white'
                       : answers[questions[index].id] !== undefined

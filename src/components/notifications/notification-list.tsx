@@ -215,6 +215,7 @@ export function NotificationList() {
           <Input
             type="text"
             placeholder="通知を検索…"
+            aria-label="通知を検索"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10 pr-10"
@@ -223,7 +224,7 @@ export function NotificationList() {
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 p-2 rounded-full hover:bg-slate-100 cursor-pointer"
             >
               <X className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -289,7 +290,7 @@ export function NotificationList() {
                         e.stopPropagation()
                         markAsRead(notification.id)
                       }}
-                      className="h-7 w-7 p-0"
+                      className="h-9 w-9 p-0"
                       title="既読にする"
                     >
                       <CheckCircle className="h-4 w-4" aria-hidden="true" />

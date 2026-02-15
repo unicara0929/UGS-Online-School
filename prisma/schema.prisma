@@ -234,6 +234,7 @@ model Event {
   // 外部参加者設定
   allowExternalParticipation Boolean                     @default(false) // 外部参加者を許可するかどうか
   externalRegistrationToken  String?                     @unique // 公開登録URL用トークン
+  externalFormFields         Json? // 外部参加者登録フォームのカスタムフィールド定義
   createdAt                  DateTime                    @default(now())
   updatedAt                  DateTime                    @updatedAt
   // リレーション
@@ -329,6 +330,7 @@ model ExternalEventRegistration {
   email                 String
   phone                 String
   referrer              String? // 紹介者
+  customFieldAnswers    Json? // カスタムフィールドの回答
   // 登録確認用トークン
   registrationToken     String             @unique @default(cuid())
   // 支払い関連（EventRegistrationと同じ構造）

@@ -175,6 +175,7 @@ export default function EmailHistoryPage() {
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" aria-hidden="true" />
                     <Input
                       placeholder="件名・本文で検索…"
+                      aria-label="件名・本文で検索"
                       value={keyword}
                       onChange={(e) => setKeyword(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -270,7 +271,7 @@ export default function EmailHistoryPage() {
               </div>
             ) : error ? (
               <div className="text-center py-12">
-                <p className="text-red-600">{error}</p>
+                <p role="alert" className="text-red-600">{error}</p>
               </div>
             ) : campaigns.length === 0 ? (
               <div className="text-center py-12">

@@ -602,7 +602,7 @@ function AdminLPMeetingsPageContent() {
                                   size="sm"
                                   onClick={() => handleComplete(meeting)}
                                   disabled={isSubmitting}
-                                  className="bg-green-600 hover:bg-green-700 h-7 px-2 text-xs"
+                                  className="bg-green-600 hover:bg-green-700 h-9 px-2 text-xs"
                                 >
                                   完了
                                 </Button>
@@ -611,7 +611,7 @@ function AdminLPMeetingsPageContent() {
                                   variant="outline"
                                   onClick={() => handleCancel(meeting)}
                                   disabled={isSubmitting}
-                                  className="text-red-600 border-red-300 hover:bg-red-50 h-7 px-2 text-xs"
+                                  className="text-red-600 border-red-300 hover:bg-red-50 h-9 px-2 text-xs"
                                 >
                                   取消
                                 </Button>
@@ -620,7 +620,7 @@ function AdminLPMeetingsPageContent() {
                                   variant="outline"
                                   onClick={() => handleNoShow(meeting)}
                                   disabled={isSubmitting}
-                                  className="text-orange-600 border-orange-300 hover:bg-orange-50 h-7 px-2 text-xs"
+                                  className="text-orange-600 border-orange-300 hover:bg-orange-50 h-9 px-2 text-xs"
                                 >
                                   欠席
                                 </Button>

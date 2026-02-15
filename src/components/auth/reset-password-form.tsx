@@ -297,7 +297,7 @@ export function ResetPasswordForm() {
             </div>
           ) : sessionError ? (
             <div className="space-y-4">
-              <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-3">
+              <div role="alert" className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-3">
                 <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-red-800">セッションエラー</p>
@@ -338,7 +338,7 @@ export function ResetPasswordForm() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
               {formError && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-3">
+                <div role="alert" className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-3">
                   <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-red-800">入力エラー</p>

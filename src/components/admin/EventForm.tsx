@@ -1,10 +1,10 @@
 'use client'
 
-import { Loader2 } from 'lucide-react'
+import { Loader2, Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ThumbnailUploader } from './ThumbnailUploader'
-import type { EventFormData, TargetRole, AttendanceType, VenueType, EventStatus } from '@/types/event'
+import type { EventFormData, TargetRole, AttendanceType, VenueType, EventStatus, RegistrationFormField, RegistrationFieldType } from '@/types/event'
 import { TARGET_ROLE_OPTIONS, VENUE_TYPE_OPTIONS, ATTENDANCE_TYPE_OPTIONS, EVENT_STATUS_OPTIONS } from '@/constants/event'
 
 interface EventFormProps {
@@ -40,6 +40,91 @@ export function EventForm({
   noCard = false,
 }: EventFormProps) {
   const inputClassName = 'w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500'
+
+  const FIELD_TYPE_OPTIONS: { value: RegistrationFieldType; label: string }[] = [
+    { value: 'TEXT', label: 'テキスト' },
+    { value: 'TEXTAREA', label: 'テキストエリア' },
+    { value: 'SELECT', label: 'セレクト' },
+    { value: 'MULTI_SELECT', label: '複数選択' },
+    { value: 'RADIO', label: 'ラジオボタン' },
+    { value: 'DATE', label: '日付' },
+    { value: 'RATING', label: '5段階評価' },
+  ]
+
+  const handleExternalToggle = (checked: boolean) => {
+    const update: Partial<EventFormData> = {
+      ...formData,
+      allowExternalParticipation: checked,
+    }
+    // 初めてONにした時、externalFormFieldsがnullなら紹介者フィールドをデフォルトセット
+    if (checked && !formData.externalFormFields) {
+      update.externalFormFields = [{
+        id: crypto.randomUUID(),
+        label: '紹介者',
+        type: 'TEXT',
+        required: false,
+        placeholder: '紹介者のお名前（任意）',
+      }]
+    }
+    onFormChange(update as EventFormData)
+  }
+
+  const addCustomField = () => {
+    const fields = formData.externalFormFields || []
+    onFormChange({
+      ...formData,
+      externalFormFields: [
+        ...fields,
+        {
+          id: crypto.randomUUID(),
+          label: '',
+          type: 'TEXT',
+          required: false,
+        },
+      ],
+    })
+  }
+
+  const updateCustomField = (index: number, updates: Partial<RegistrationFormField>) => {
+    const fields = [...(formData.externalFormFields || [])]
+    fields[index] = { ...fields[index], ...updates }
+    onFormChange({ ...formData, externalFormFields: fields })
+  }
+
+  const removeCustomField = (index: number) => {
+    const fields = (formData.externalFormFields || []).filter((_, i) => i !== index)
+    onFormChange({ ...formData, externalFormFields: fields.length > 0 ? fields : null })
+  }
+
+  const moveCustomField = (index: number, direction: 'up' | 'down') => {
+    const fields = [...(formData.externalFormFields || [])]
+    const newIndex = direction === 'up' ? index - 1 : index + 1
+    if (newIndex < 0 || newIndex >= fields.length) return
+    ;[fields[index], fields[newIndex]] = [fields[newIndex], fields[index]]
+    onFormChange({ ...formData, externalFormFields: fields })
+  }
+
+  const updateFieldOption = (fieldIndex: number, optIndex: number, value: string) => {
+    const fields = [...(formData.externalFormFields || [])]
+    const options = [...(fields[fieldIndex].options || [])]
+    options[optIndex] = value
+    fields[fieldIndex] = { ...fields[fieldIndex], options }
+    onFormChange({ ...formData, externalFormFields: fields })
+  }
+
+  const addFieldOption = (fieldIndex: number) => {
+    const fields = [...(formData.externalFormFields || [])]
+    const options = [...(fields[fieldIndex].options || []), '']
+    fields[fieldIndex] = { ...fields[fieldIndex], options }
+    onFormChange({ ...formData, externalFormFields: fields })
+  }
+
+  const removeFieldOption = (fieldIndex: number, optIndex: number) => {
+    const fields = [...(formData.externalFormFields || [])]
+    const options = (fields[fieldIndex].options || []).filter((_, i) => i !== optIndex)
+    fields[fieldIndex] = { ...fields[fieldIndex], options }
+    onFormChange({ ...formData, externalFormFields: fields })
+  }
 
   const handleTargetRoleChange = (role: TargetRole, checked: boolean) => {
     const roles = checked
@@ -295,10 +380,7 @@ export function EventForm({
               <input
                 type="checkbox"
                 checked={formData.allowExternalParticipation}
-                onChange={(e) => onFormChange({
-                  ...formData,
-                  allowExternalParticipation: e.target.checked
-                })}
+                onChange={(e) => handleExternalToggle(e.target.checked)}
                 className="w-4 h-4 text-slate-600 bg-slate-100 border-slate-300 rounded focus:ring-slate-500 focus:ring-2"
               />
               <span className="ml-2 text-sm font-medium text-slate-700">
@@ -332,6 +414,142 @@ export function EventForm({
                     コピー
                   </Button>
                 </div>
+              </div>
+            )}
+
+            {/* カスタムフィールドビルダー */}
+            {formData.allowExternalParticipation && (
+              <div className="mt-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium text-slate-700">登録フォームのカスタム項目</h4>
+                  <Button type="button" size="sm" variant="outline" onClick={addCustomField}>
+                    <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
+                    項目追加
+                  </Button>
+                </div>
+                <p className="text-xs text-slate-500">
+                  名前・メール・電話番号は固定表示です。追加項目を自由に設定できます。
+                </p>
+
+                {(formData.externalFormFields || []).map((field, index) => (
+                  <div key={field.id} className="border border-slate-200 rounded-lg p-3 space-y-3 bg-slate-50">
+                    <div className="flex items-center gap-2">
+                      <div className="flex flex-col">
+                        <button
+                          type="button"
+                          onClick={() => moveCustomField(index, 'up')}
+                          disabled={index === 0}
+                          className="text-slate-400 hover:text-slate-600 disabled:opacity-30 p-0.5"
+                          aria-label="上に移動"
+                        >
+                          <ChevronUp className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveCustomField(index, 'down')}
+                          disabled={index === (formData.externalFormFields || []).length - 1}
+                          className="text-slate-400 hover:text-slate-600 disabled:opacity-30 p-0.5"
+                          aria-label="下に移動"
+                        >
+                          <ChevronDown className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        value={field.label}
+                        onChange={(e) => updateCustomField(index, { label: e.target.value })}
+                        className="flex-1 px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                        placeholder="項目名"
+                      />
+                      <select
+                        value={field.type}
+                        onChange={(e) => {
+                          const newType = e.target.value as RegistrationFieldType
+                          const needsOptions = ['SELECT', 'MULTI_SELECT', 'RADIO'].includes(newType)
+                          updateCustomField(index, {
+                            type: newType,
+                            options: needsOptions && !field.options?.length ? [''] : field.options,
+                          })
+                        }}
+                        className="px-2 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                      >
+                        {FIELD_TYPE_OPTIONS.map(opt => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                      <label className="flex items-center gap-1 text-xs text-slate-600 whitespace-nowrap">
+                        <input
+                          type="checkbox"
+                          checked={field.required}
+                          onChange={(e) => updateCustomField(index, { required: e.target.checked })}
+                          className="w-3.5 h-3.5 text-slate-600 bg-slate-100 border-slate-300 rounded focus:ring-slate-500"
+                        />
+                        必須
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => removeCustomField(index)}
+                        className="text-red-400 hover:text-red-600 p-1"
+                        aria-label="項目を削除"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+
+                    {/* 説明文（オプション） */}
+                    <input
+                      type="text"
+                      value={field.description || ''}
+                      onChange={(e) => updateCustomField(index, { description: e.target.value || undefined })}
+                      className="w-full px-3 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                      placeholder="説明文（任意）"
+                    />
+
+                    {/* プレースホルダー（TEXT/TEXTAREA） */}
+                    {(field.type === 'TEXT' || field.type === 'TEXTAREA') && (
+                      <input
+                        type="text"
+                        value={field.placeholder || ''}
+                        onChange={(e) => updateCustomField(index, { placeholder: e.target.value || undefined })}
+                        className="w-full px-3 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                        placeholder="プレースホルダー（任意）"
+                      />
+                    )}
+
+                    {/* 選択肢（SELECT/MULTI_SELECT/RADIO） */}
+                    {['SELECT', 'MULTI_SELECT', 'RADIO'].includes(field.type) && (
+                      <div className="space-y-2 pl-6">
+                        <p className="text-xs text-slate-500">選択肢:</p>
+                        {(field.options || []).map((opt, optIdx) => (
+                          <div key={optIdx} className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={opt}
+                              onChange={(e) => updateFieldOption(index, optIdx, e.target.value)}
+                              className="flex-1 px-2 py-1 text-sm border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                              placeholder={`選択肢${optIdx + 1}`}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeFieldOption(index, optIdx)}
+                              className="text-red-400 hover:text-red-600 p-0.5"
+                              aria-label="選択肢を削除"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => addFieldOption(index)}
+                          className="text-sm text-blue-600 hover:text-blue-800"
+                        >
+                          + 選択肢を追加
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
           </div>

@@ -98,6 +98,16 @@ function FilterDropdown({
   )
 }
 
+type RegistrationFormField = {
+  id: string
+  label: string
+  type: string
+  required: boolean
+  description?: string
+  options?: string[]
+  placeholder?: string
+}
+
 type Participant = {
   id: string
   isExternal: boolean
@@ -109,6 +119,7 @@ type Participant = {
   managerId: string | null
   managerName: string | null
   referrer: string | null
+  customFieldAnswers: Record<string, any> | null
   paymentStatus: string
   paidAmount: number | null
   registeredAt: string
@@ -431,7 +442,7 @@ function EventDetailPageContent() {
             {error && (
               <Card className="border-red-200 bg-red-50">
                 <CardContent className="py-4">
-                  <p className="text-sm text-red-600">{error}</p>
+                  <p role="alert" className="text-sm text-red-600">{error}</p>
                 </CardContent>
               </Card>
             )}
@@ -552,6 +563,7 @@ function EventDetailPageContent() {
                     <input
                       type="text"
                       placeholder="名前・メールで検索"
+                      aria-label="名前・メールで検索"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-10 w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
@@ -790,10 +802,26 @@ function EventDetailPageContent() {
                             <td className="px-4 py-3 text-sm text-slate-900">{participant.userName}</td>
                             <td className="px-4 py-3 text-sm text-slate-600">{participant.userEmail}</td>
                             <td className="px-4 py-3 text-sm text-slate-600">
-                              {participant.isExternal
-                                ? (participant.referrer || '-')
-                                : (participant.userPhone || '-')
-                              }
+                              {participant.isExternal ? (
+                                participant.customFieldAnswers && event?.externalFormFields ? (
+                                  <div className="space-y-0.5">
+                                    {(event.externalFormFields as RegistrationFormField[]).map((field: RegistrationFormField) => {
+                                      const value = participant.customFieldAnswers?.[field.id]
+                                      if (value === undefined || value === null || value === '') return null
+                                      const displayValue = Array.isArray(value) ? value.join(', ') : String(value)
+                                      return (
+                                        <div key={field.id} className="text-xs" title={`${field.label}: ${displayValue}`}>
+                                          <span className="text-slate-400">{field.label}:</span> {displayValue}
+                                        </div>
+                                      )
+                                    })}
+                                  </div>
+                                ) : (
+                                  participant.referrer || '-'
+                                )
+                              ) : (
+                                participant.userPhone || '-'
+                              )}
                             </td>
                             {event?.schedules && event.schedules.length > 1 && (
                               <td className="px-4 py-3 text-sm text-slate-600">

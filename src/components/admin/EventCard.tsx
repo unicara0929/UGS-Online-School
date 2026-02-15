@@ -170,7 +170,7 @@ export function EventCard({ event, onEdit, onDelete, onMtgComplete, isSubmitting
               </div>
               {/* 記録がない場合 */}
               {!event.summary && (!event.photos || event.photos.length === 0) && !event.materialsUrl && !event.vimeoUrl && (
-                <p className="text-xs text-slate-400">記録が登録されていません</p>
+                <p className="text-xs text-slate-500">記録が登録されていません</p>
               )}
             </div>
           </div>

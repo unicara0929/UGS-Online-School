@@ -128,6 +128,7 @@ export function useEventForm(): UseEventFormReturn {
       // 外部参加者設定
       allowExternalParticipation: event.allowExternalParticipation ?? false,
       externalRegistrationToken: event.externalRegistrationToken ?? null,
+      externalFormFields: event.externalFormFields ?? null,
     })
     setThumbnailPreview(event.thumbnailUrl)
     setThumbnailFile(null)

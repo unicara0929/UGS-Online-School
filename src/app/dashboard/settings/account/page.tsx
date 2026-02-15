@@ -378,7 +378,7 @@ function AccountSettingsPage() {
                 ))}
               </select>
               {errors.reason && (
-                <p className="text-sm text-red-500 mt-1">{errors.reason}</p>
+                <p role="alert" className="text-sm text-red-500 mt-1">{errors.reason}</p>
               )}
             </div>
 
@@ -403,7 +403,7 @@ function AccountSettingsPage() {
                 />
                 <div className="flex justify-between items-center mt-1">
                   {errors.otherReason && (
-                    <p className="text-sm text-red-500">{errors.otherReason}</p>
+                    <p role="alert" className="text-sm text-red-500">{errors.otherReason}</p>
                   )}
                   <p className={`text-xs ml-auto ${
                     cancelForm.otherReason.length < 200 || cancelForm.otherReason.length > 500
@@ -449,7 +449,7 @@ function AccountSettingsPage() {
                 ))}
               </div>
               {errors.continuationOption && (
-                <p className="text-sm text-red-500 mt-1">{errors.continuationOption}</p>
+                <p role="alert" className="text-sm text-red-500 mt-1">{errors.continuationOption}</p>
               )}
             </div>
 
@@ -478,7 +478,7 @@ function AccountSettingsPage() {
                   </span>
                 </label>
                 {errors.agreeContentAccess && (
-                  <p className="text-sm text-red-500">{errors.agreeContentAccess}</p>
+                  <p role="alert" className="text-sm text-red-500">{errors.agreeContentAccess}</p>
                 )}
 
                 <label className={`flex items-start p-3 border rounded-lg cursor-pointer transition-colors ${
@@ -502,7 +502,7 @@ function AccountSettingsPage() {
                   </span>
                 </label>
                 {errors.agreeBillingStop && (
-                  <p className="text-sm text-red-500">{errors.agreeBillingStop}</p>
+                  <p role="alert" className="text-sm text-red-500">{errors.agreeBillingStop}</p>
                 )}
               </div>
             </div>

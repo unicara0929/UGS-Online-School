@@ -136,6 +136,7 @@ export async function GET(request: NextRequest) {
         // 外部参加者設定
         allowExternalParticipation: event.allowExternalParticipation ?? false,
         externalRegistrationToken: event.externalRegistrationToken ?? null,
+        externalFormFields: event.externalFormFields ?? null,
         // 日程一覧
         schedules: event.schedules.map(schedule => ({
           id: schedule.id,
@@ -253,6 +254,7 @@ export async function POST(request: NextRequest) {
       eventCategory,
       // 外部参加者設定
       allowExternalParticipation = false,
+      externalFormFields,
       // 過去イベント記録用
       summary,
       photos = [],
@@ -324,6 +326,7 @@ export async function POST(request: NextRequest) {
         // 外部参加者設定
         allowExternalParticipation,
         externalRegistrationToken: allowExternalParticipation ? crypto.randomUUID() : null,
+        externalFormFields: allowExternalParticipation && externalFormFields ? externalFormFields : undefined,
       },
     })
 

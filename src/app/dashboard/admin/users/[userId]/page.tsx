@@ -290,7 +290,7 @@ export default function UserDetailPage() {
             <CardContent className="p-6">
               <div className="flex items-center space-x-3">
                 <AlertCircle className="h-5 w-5 text-red-600" aria-hidden="true" />
-                <p className="text-red-800">{error || 'ユーザーが見つかりません'}</p>
+                <p role="alert" className="text-red-800">{error || 'ユーザーが見つかりません'}</p>
               </div>
             </CardContent>
           </Card>

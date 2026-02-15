@@ -381,7 +381,7 @@ function LearningPage() {
                     </span>
                   </div>
                   <span className="text-sm font-medium text-slate-700 hidden sm:block">{user?.name}</span>
-                  <Button variant="ghost" size="sm" onClick={logout} className="h-7 sm:h-8 px-1.5 sm:px-3">
+                  <Button variant="ghost" size="sm" onClick={logout} className="h-9 sm:h-9 px-1.5 sm:px-3">
                     <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1" aria-hidden="true" />
                     <span className="hidden sm:inline">ログアウト</span>
                   </Button>
@@ -531,7 +531,7 @@ function LearningPage() {
                                 <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 text-slate-500 flex-shrink-0" aria-hidden="true" />
                                 <span className="text-xs sm:text-sm font-medium truncate">{material}</span>
                               </div>
-                              <Button variant="outline" size="sm" className="h-7 sm:h-8 text-xs sm:text-sm px-2 sm:px-3 flex-shrink-0">
+                              <Button variant="outline" size="sm" className="h-9 sm:h-9 text-xs sm:text-sm px-2 sm:px-3 flex-shrink-0">
                                 DL
                               </Button>
                             </div>

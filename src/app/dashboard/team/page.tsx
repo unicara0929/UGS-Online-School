@@ -115,7 +115,7 @@ export default function TeamPage() {
 
   // 昇格進捗のプログレスバーを描画
   const renderPromotionProgress = (progress: TeamMember['promotionProgress']) => {
-    if (!progress) return <span className="text-slate-400">-</span>
+    if (!progress) return <span className="text-slate-500">-</span>
 
     if (progress.isEligible) {
       return (
@@ -199,7 +199,7 @@ export default function TeamPage() {
           <div className="p-6">
             <Card className="border-red-200 bg-red-50">
               <CardContent className="pt-6">
-                <p className="text-red-600">{error}</p>
+                <p role="alert" className="text-red-600">{error}</p>
               </CardContent>
             </Card>
           </div>

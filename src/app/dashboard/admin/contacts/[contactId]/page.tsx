@@ -144,7 +144,7 @@ function ContactDetailContent({ params }: { params: Promise<{ contactId: string 
           <main className="px-4 sm:px-6 lg:px-8 py-8">
             <Card className="border-red-200 bg-red-50">
               <CardContent className="py-4">
-                <p className="text-sm text-red-600">{error || 'お問い合わせが見つかりません'}</p>
+                <p role="alert" className="text-sm text-red-600">{error || 'お問い合わせが見つかりません'}</p>
               </CardContent>
             </Card>
           </main>

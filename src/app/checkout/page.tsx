@@ -401,6 +401,7 @@ function CheckoutContent() {
                         <Input
                           type="text"
                           placeholder="コードを入力"
+                          aria-label="プロモーションコード"
                           value={promoCodeInput}
                           onChange={(e) => setPromoCodeInput(e.target.value.toUpperCase())}
                           className="uppercase"
@@ -420,7 +421,7 @@ function CheckoutContent() {
                         </Button>
                       </div>
                       {promoCodeError && (
-                        <p className="text-sm text-red-600">{promoCodeError}</p>
+                        <p role="alert" className="text-sm text-red-600">{promoCodeError}</p>
                       )}
                     </div>
                   )}
@@ -541,7 +542,7 @@ function CheckoutContent() {
                 </div>
 
                 {error && (
-                  <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
+                  <div role="alert" className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
                     {error}
                   </div>
                 )}

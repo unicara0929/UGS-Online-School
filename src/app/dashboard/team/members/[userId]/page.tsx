@@ -149,7 +149,7 @@ export default function MemberDetailPage({ params }: { params: Promise<{ userId:
             </Button>
             <Card className="border-red-200 bg-red-50">
               <CardContent className="pt-6">
-                <p className="text-red-600">{error || 'メンバーが見つかりません'}</p>
+                <p role="alert" className="text-red-600">{error || 'メンバーが見つかりません'}</p>
               </CardContent>
             </Card>
           </div>

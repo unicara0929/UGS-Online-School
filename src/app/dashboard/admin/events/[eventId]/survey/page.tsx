@@ -435,7 +435,7 @@ function AdminSurveyPageContent({ params }: { params: Promise<{ eventId: string 
           {error && (
             <Card className="border-red-200 bg-red-50">
               <CardContent className="pt-4">
-                <p className="text-red-600">{error}</p>
+                <p role="alert" className="text-red-600">{error}</p>
               </CardContent>
             </Card>
           )}

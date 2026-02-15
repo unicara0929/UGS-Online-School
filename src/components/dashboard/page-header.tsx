@@ -90,7 +90,7 @@ export function PageHeader({ title }: PageHeaderProps) {
                 )}
               </div>
               <span className="text-sm font-medium text-slate-700 hidden sm:block">{user?.name}</span>
-              <Button variant="ghost" size="sm" onClick={logout} className="h-8 px-2 sm:px-3">
+              <Button variant="ghost" size="sm" onClick={logout} className="h-9 px-2 sm:px-3">
                 <LogOut className="h-4 w-4 sm:mr-1" aria-hidden="true" />
                 <span className="hidden sm:inline">ログアウト</span>
               </Button>

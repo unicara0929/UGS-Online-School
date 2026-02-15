@@ -329,7 +329,7 @@ function EventArchivePageContent() {
             {error && (
               <Card className="border-red-200 bg-red-50">
                 <CardContent className="py-4">
-                  <p className="text-sm text-red-600">{error}</p>
+                  <p role="alert" className="text-sm text-red-600">{error}</p>
                 </CardContent>
               </Card>
             )}
@@ -508,7 +508,7 @@ function EventArchivePageContent() {
                           <button
                             type="button"
                             onClick={() => setFormData(prev => ({ ...prev, materialsUrl: '' }))}
-                            className="text-red-500 hover:text-red-700 ml-2"
+                            className="text-red-500 hover:text-red-700 ml-2 p-2 rounded-full hover:bg-red-100 cursor-pointer"
                             title="資料URLをクリア"
                           >
                             <X className="h-4 w-4" aria-hidden="true" />
@@ -590,7 +590,7 @@ function EventArchivePageContent() {
                             <button
                               type="button"
                               onClick={() => handlePhotoRemove(index)}
-                              className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity"
                             >
                               <X className="h-4 w-4" aria-hidden="true" />
                             </button>

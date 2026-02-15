@@ -1078,7 +1078,7 @@ export default function AdminUsersPage() {
         )}
 
         {error && (
-          <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 shadow-lg">
+          <div role="alert" className="relative overflow-hidden rounded-xl bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 shadow-lg">
             <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 to-pink-500/5"></div>
             <div className="relative p-6">
               <div className="flex items-start space-x-3">
@@ -1124,6 +1124,7 @@ export default function AdminUsersPage() {
                 <input
                   type="text"
                   placeholder="名前またはメールで検索…"
+                  aria-label="名前またはメールで検索"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 sm:py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-[box-shadow,border-color] duration-200"
@@ -1133,6 +1134,7 @@ export default function AdminUsersPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as any)}
+                aria-label="決済ステータスで絞り込み"
                 className="px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-[box-shadow,border-color] duration-200"
               >
                 <option value="all">決済ステータス: すべて</option>
@@ -1146,6 +1148,7 @@ export default function AdminUsersPage() {
               <select
                 value={membershipStatusFilter}
                 onChange={(e) => setMembershipStatusFilter(e.target.value as any)}
+                aria-label="会員ステータスで絞り込み"
                 className="px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-[box-shadow,border-color] duration-200"
               >
                 <option value="all">会員ステータス: すべて</option>
@@ -1157,6 +1160,7 @@ export default function AdminUsersPage() {
               <select
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value as any)}
+                aria-label="ロールで絞り込み"
                 className="px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-[box-shadow,border-color] duration-200"
               >
                 <option value="all">ロール: すべて</option>
@@ -1170,6 +1174,7 @@ export default function AdminUsersPage() {
               <select
                 value={contractFilter}
                 onChange={(e) => setContractFilter(e.target.value as any)}
+                aria-label="契約書で絞り込み"
                 className="px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-[box-shadow,border-color] duration-200"
               >
                 <option value="all">契約書: すべて</option>
@@ -1366,7 +1371,7 @@ export default function AdminUsersPage() {
                           {user.memberId}
                         </div>
                       ) : (
-                        <span className="text-slate-400 text-xs">未付与</span>
+                        <span className="text-slate-500 text-xs">未付与</span>
                       )}
                     </TableCell>
                     {/* 3. 名前 */}
@@ -1507,7 +1512,7 @@ export default function AdminUsersPage() {
                     {/* 8. 担当MGR */}
                     <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
                       {user.type === 'pending' ? (
-                        <span className="text-slate-400 text-xs">-</span>
+                        <span className="text-slate-500 text-xs">-</span>
                       ) : user.role === 'FP' ? (
                         <select
                           value={user.managerId || ''}
@@ -1522,7 +1527,7 @@ export default function AdminUsersPage() {
                           ))}
                         </select>
                       ) : (
-                        <span className="text-slate-400 text-xs">-</span>
+                        <span className="text-slate-500 text-xs">-</span>
                       )}
                     </TableCell>
                     {/* 9. 登録日 */}
@@ -1555,7 +1560,7 @@ export default function AdminUsersPage() {
                           操作
                         </button>
                       ) : (
-                        <span className="text-slate-400 text-xs">-</span>
+                        <span className="text-slate-500 text-xs">-</span>
                       )}
                     </TableCell>
                   </TableRow>

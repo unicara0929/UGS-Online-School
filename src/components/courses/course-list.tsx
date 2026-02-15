@@ -184,7 +184,7 @@ export function CourseList() {
   if (error) {
     return (
       <div className="text-center py-12">
-        <p className="text-red-600">{error}</p>
+        <p role="alert" className="text-red-600">{error}</p>
         <Button onClick={fetchCourses} className="mt-4">
           再読み込み
         </Button>

@@ -120,7 +120,7 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
     return (
       <Card className="border-red-200 bg-red-50">
         <CardContent className="pt-6">
-          <p className="text-red-600">{error}</p>
+          <p role="alert" className="text-red-600">{error}</p>
         </CardContent>
       </Card>
     )

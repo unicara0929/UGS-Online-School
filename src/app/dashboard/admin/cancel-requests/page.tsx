@@ -255,7 +255,7 @@ function AdminCancelRequestsPageContent() {
                   <Loader2 className="h-8 w-8 animate-spin text-slate-600" aria-hidden="true" />
                 </div>
               ) : error ? (
-                <div className="text-center py-12 text-red-600">{error}</div>
+                <div role="alert" className="text-center py-12 text-red-600">{error}</div>
               ) : cancelRequests.length === 0 ? (
                 <div className="text-center py-12 text-slate-500">
                   <UserX className="h-12 w-12 mx-auto mb-4 text-slate-300" aria-hidden="true" />

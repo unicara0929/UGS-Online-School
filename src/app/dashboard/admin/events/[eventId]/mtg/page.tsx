@@ -538,7 +538,7 @@ function MtgParticipantsPageContent({ params }: { params: Promise<{ eventId: str
           <main className="px-4 sm:px-6 lg:px-8 py-8">
             <Card className="border-red-200 bg-red-50">
               <CardContent className="pt-6">
-                <p className="text-red-600">{error}</p>
+                <p role="alert" className="text-red-600">{error}</p>
                 <Button
                   onClick={() => router.push('/dashboard/admin/events')}
                   variant="outline"

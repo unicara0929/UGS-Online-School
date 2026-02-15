@@ -222,7 +222,7 @@ export default function EmailHistoryDetailPage() {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-600">{error || 'メール送信履歴が見つかりません'}</p>
+          <p role="alert" className="text-red-600">{error || 'メール送信履歴が見つかりません'}</p>
           <Button className="mt-4" onClick={() => router.back()}>
             戻る
           </Button>

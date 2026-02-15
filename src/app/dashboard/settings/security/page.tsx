@@ -151,7 +151,7 @@ function SecuritySettingsPage() {
                     <form onSubmit={handlePasswordChange} className="mt-4 p-4 bg-slate-50 rounded-lg space-y-4">
                       {/* エラーメッセージ */}
                       {error && (
-                        <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start space-x-2">
+                        <div role="alert" className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start space-x-2">
                           <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
                           <p className="text-sm text-red-800">{error}</p>
                         </div>
@@ -183,7 +183,7 @@ function SecuritySettingsPage() {
                           <button
                             type="button"
                             onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 p-2 rounded-full hover:bg-slate-100 cursor-pointer"
                           >
                             {showCurrentPassword ? (
                               <EyeOff className="h-5 w-5" aria-hidden="true" />
@@ -213,7 +213,7 @@ function SecuritySettingsPage() {
                           <button
                             type="button"
                             onClick={() => setShowNewPassword(!showNewPassword)}
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 p-2 rounded-full hover:bg-slate-100 cursor-pointer"
                           >
                             {showNewPassword ? (
                               <EyeOff className="h-5 w-5" aria-hidden="true" />
@@ -246,7 +246,7 @@ function SecuritySettingsPage() {
                           <button
                             type="button"
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 p-2 rounded-full hover:bg-slate-100 cursor-pointer"
                           >
                             {showConfirmPassword ? (
                               <EyeOff className="h-5 w-5" aria-hidden="true" />

@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import { AlertCircle } from 'lucide-react'
 
 export function RegisterForm() {
   const [formData, setFormData] = useState({
@@ -251,8 +252,12 @@ export function RegisterForm() {
             </div>
 
             {error && (
-              <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
-                {error}
+              <div role="alert" className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-3">
+                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-red-800">エラー</p>
+                  <p className="text-sm text-red-700 mt-1">{error}</p>
+                </div>
               </div>
             )}
 

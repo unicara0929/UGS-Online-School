@@ -110,6 +110,7 @@ function FAQPageContent() {
                   <input
                     type="text"
                     placeholder="キーワードで検索…"
+                    aria-label="キーワードで検索"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 text-lg"
@@ -127,7 +128,7 @@ function FAQPageContent() {
             {error && (
               <Card className="border-red-200 bg-red-50">
                 <CardContent className="py-4">
-                  <p className="text-sm text-red-600">{error}</p>
+                  <p role="alert" className="text-sm text-red-600">{error}</p>
                 </CardContent>
               </Card>
             )}
@@ -185,7 +186,7 @@ function FAQPageContent() {
                                 <p className="text-slate-600 whitespace-pre-wrap">
                                   {faq.answer}
                                 </p>
-                                <p className="text-xs text-slate-400 mt-2">
+                                <p className="text-xs text-slate-500 mt-2">
                                   最終更新: {new Date(faq.updatedAt).toLocaleDateString('ja-JP')}
                                 </p>
                               </div>
@@ -205,7 +206,7 @@ function FAQPageContent() {
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                   <div>
                     <h3 className="text-lg font-semibold">お探しの回答が見つかりませんか？</h3>
-                    <p className="text-slate-300 text-sm mt-1">
+                    <p className="text-slate-500 text-sm mt-1">
                       お気軽にお問い合わせください。担当者が対応いたします。
                     </p>
                   </div>

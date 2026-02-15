@@ -161,7 +161,7 @@ function ContactPageContent() {
             {error && (
               <Card className="border-red-200 bg-red-50">
                 <CardContent className="py-4">
-                  <div className="flex items-center gap-3">
+                  <div role="alert" className="flex items-center gap-3">
                     <AlertCircle className="h-5 w-5 text-red-600" aria-hidden="true" />
                     <p className="text-sm text-red-700">{error}</p>
                   </div>

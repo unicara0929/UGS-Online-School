@@ -323,7 +323,7 @@ function TrainingEventDetailPageContent() {
           <main className="px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
             <Card className="border-red-200 bg-red-50">
               <CardContent className="py-4">
-                <p className="text-sm text-red-600">{error || 'イベントが見つかりません'}</p>
+                <p role="alert" className="text-sm text-red-600">{error || 'イベントが見つかりません'}</p>
               </CardContent>
             </Card>
             <Button variant="outline" onClick={() => router.push('/dashboard/training')} className="mt-4">

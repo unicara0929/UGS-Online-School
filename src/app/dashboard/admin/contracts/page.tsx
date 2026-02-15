@@ -241,7 +241,7 @@ UGS00003,RENTAL-2024-001,賃貸,アパート仲介,鈴木次郎,80000,8000,2024-
                 </div>
 
                 {uploadResult.errors.length > 0 && (
-                  <div className="mt-4">
+                  <div role="alert" className="mt-4">
                     <h4 className="font-semibold text-red-800 mb-2 flex items-center gap-2">
                       <XCircle className="h-4 w-4" aria-hidden="true" />
                       エラー詳細

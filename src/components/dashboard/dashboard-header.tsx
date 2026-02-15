@@ -88,7 +88,7 @@ export function DashboardHeader() {
 
           {/* 右側: ユーザー情報 */}
           <div className="flex items-center space-x-1 sm:space-x-4 flex-shrink-0">
-            <Button variant="ghost" size="icon" className="hover:bg-slate-100 h-7 w-7 sm:h-10 sm:w-10">
+            <Button variant="ghost" size="icon" className="hover:bg-slate-100 h-10 w-10 sm:h-10 sm:w-10">
               <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" aria-hidden="true" />
             </Button>
             <div className="flex items-center space-x-1 sm:space-x-3">
@@ -108,7 +108,7 @@ export function DashboardHeader() {
                 )}
               </div>
               <span className="text-sm font-medium text-slate-700 hidden sm:block">{user?.name}</span>
-              <Button variant="ghost" size="sm" onClick={logout} className="hover:bg-slate-100 h-7 sm:h-8 px-1.5 sm:px-3">
+              <Button variant="ghost" size="sm" onClick={logout} className="hover:bg-slate-100 h-9 sm:h-9 px-1.5 sm:px-3">
                 <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1" aria-hidden="true" />
                 <span className="hidden sm:inline">ログアウト</span>
               </Button>

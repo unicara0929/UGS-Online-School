@@ -365,7 +365,7 @@ export default function AdminComplianceTestPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-6 w-6"
+                            className="h-9 w-9"
                             onClick={() => handleMoveQuestion(index, 'up')}
                             disabled={index === 0}
                           >
@@ -375,7 +375,7 @@ export default function AdminComplianceTestPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-6 w-6"
+                            className="h-9 w-9"
                             onClick={() => handleMoveQuestion(index, 'down')}
                             disabled={index === questions.length - 1}
                           >

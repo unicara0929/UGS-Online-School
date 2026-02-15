@@ -266,6 +266,7 @@ function VerifyEmailErrorContent() {
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
                   placeholder="example@email.com"
+                  aria-label="メールアドレス"
                   className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   spellCheck={false}
                 />

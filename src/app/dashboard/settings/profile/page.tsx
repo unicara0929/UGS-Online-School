@@ -498,7 +498,7 @@ function ProfileSettingsPage() {
                     maxLength={11}
                   />
                   {phoneError && (
-                    <p className="text-sm text-red-500 mt-1">{phoneError}</p>
+                    <p role="alert" className="text-sm text-red-500 mt-1">{phoneError}</p>
                   )}
                   <p className="text-xs text-slate-500 mt-1">携帯番号のみ（070/080/090）ハイフンなし11桁</p>
                 </div>
@@ -701,7 +701,7 @@ function ProfileSettingsPage() {
                       maxLength={14}
                     />
                     {invoiceNumberError && (
-                      <p className="text-sm text-red-500 mt-1">{invoiceNumberError}</p>
+                      <p role="alert" className="text-sm text-red-500 mt-1">{invoiceNumberError}</p>
                     )}
                     <p className="text-xs text-slate-500 mt-1">T+13桁の数字（例：T1234567890123）</p>
                   </div>

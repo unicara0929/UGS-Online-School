@@ -335,7 +335,7 @@ export default function ConsultationFormPage({ params }: { params: Promise<{ typ
                 required
               />
               {phoneError && (
-                <p className="text-sm text-red-500">{phoneError}</p>
+                <p role="alert" className="text-sm text-red-500">{phoneError}</p>
               )}
               <p className="text-xs text-slate-500">携帯番号のみ（070/080/090）ハイフンなし11桁</p>
             </div>

@@ -297,7 +297,7 @@ function MtgExemptionsPageContent() {
                     <Loader2 className="h-6 w-6 animate-spin text-slate-400" aria-hidden="true" />
                   </div>
                 ) : error ? (
-                  <div className="text-center py-12 text-red-600">{error}</div>
+                  <div role="alert" className="text-center py-12 text-red-600">{error}</div>
                 ) : exemptions.length === 0 ? (
                   <div className="text-center py-12 text-slate-500">
                     欠席申請がありません

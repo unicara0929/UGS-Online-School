@@ -281,7 +281,7 @@ function AdminFAQPageContent() {
             <div className="flex gap-2 border-b border-slate-200">
               <button
                 onClick={() => setActiveTab('faqs')}
-                className={`px-4 py-2 font-medium text-sm border-b-2 -mb-px ${
+                className={`px-4 py-2 font-medium text-sm border-b-2 -mb-px cursor-pointer ${
                   activeTab === 'faqs'
                     ? 'border-slate-800 text-slate-800'
                     : 'border-transparent text-slate-500 hover:text-slate-700'
@@ -291,7 +291,7 @@ function AdminFAQPageContent() {
               </button>
               <button
                 onClick={() => setActiveTab('categories')}
-                className={`px-4 py-2 font-medium text-sm border-b-2 -mb-px ${
+                className={`px-4 py-2 font-medium text-sm border-b-2 -mb-px cursor-pointer ${
                   activeTab === 'categories'
                     ? 'border-slate-800 text-slate-800'
                     : 'border-transparent text-slate-500 hover:text-slate-700'
@@ -304,7 +304,7 @@ function AdminFAQPageContent() {
             {error && (
               <Card className="border-red-200 bg-red-50">
                 <CardContent className="py-4">
-                  <p className="text-sm text-red-600">{error}</p>
+                  <p role="alert" className="text-sm text-red-600">{error}</p>
                 </CardContent>
               </Card>
             )}

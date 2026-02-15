@@ -147,7 +147,7 @@ function MaterialsPageContent() {
             {error && (
               <Card className="border-red-200 bg-red-50 mb-6">
                 <CardContent className="py-4">
-                  <p className="text-sm text-red-600">{error}</p>
+                  <p role="alert" className="text-sm text-red-600">{error}</p>
                 </CardContent>
               </Card>
             )}

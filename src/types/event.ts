@@ -1,5 +1,18 @@
 // イベント関連の型定義
 
+// カスタムフィールド関連
+export type RegistrationFieldType = 'TEXT' | 'TEXTAREA' | 'SELECT' | 'MULTI_SELECT' | 'RADIO' | 'DATE' | 'RATING'
+
+export interface RegistrationFormField {
+  id: string
+  label: string
+  type: RegistrationFieldType
+  required: boolean
+  description?: string
+  options?: string[]
+  placeholder?: string
+}
+
 export type TargetRole = 'member' | 'fp' | 'manager' | 'all'
 export type AttendanceType = 'required' | 'optional'
 export type VenueType = 'online' | 'offline' | 'hybrid'
@@ -72,6 +85,7 @@ export interface AdminEventItem {
   // 外部参加者設定
   allowExternalParticipation: boolean
   externalRegistrationToken: string | null
+  externalFormFields: RegistrationFormField[] | null
   // 過去イベント記録用
   summary: string | null
   photos: string[]
@@ -109,6 +123,7 @@ export interface EventFormData {
   // 外部参加者設定
   allowExternalParticipation: boolean
   externalRegistrationToken: string | null
+  externalFormFields: RegistrationFormField[] | null
   // 過去イベント記録用
   summary: string | null
   photos: string[]
@@ -147,6 +162,7 @@ export const DEFAULT_EVENT_FORM: EventFormData = {
   // 外部参加者設定
   allowExternalParticipation: false,
   externalRegistrationToken: null,
+  externalFormFields: null,
   // 過去イベント記録用
   summary: null,
   photos: [],

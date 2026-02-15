@@ -106,6 +106,7 @@ export async function GET(
         currentParticipants,
         applicationDeadlineDays: event.applicationDeadlineDays,
         status: event.status,
+        externalFormFields: event.externalFormFields ?? null,
         // スケジュール一覧
         schedules: event.schedules.map(schedule => ({
           id: schedule.id,

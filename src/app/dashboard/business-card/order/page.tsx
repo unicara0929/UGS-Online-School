@@ -352,7 +352,7 @@ function BusinessCardOrderContent() {
           <main className="px-4 sm:px-6 lg:px-8 py-8">
             <Card className="border-red-200 bg-red-50">
               <CardContent className="py-4">
-                <p className="text-sm text-red-600">{error}</p>
+                <p role="alert" className="text-sm text-red-600">{error}</p>
                 <Button
                   variant="outline"
                   className="mt-4"
@@ -646,7 +646,7 @@ function BusinessCardOrderContent() {
                         placeholder="名刺に印字する氏名"
                       />
                       {validationErrors.displayName && (
-                        <p className="text-sm text-red-600 mt-1">{validationErrors.displayName}</p>
+                        <p role="alert" className="text-sm text-red-600 mt-1">{validationErrors.displayName}</p>
                       )}
                     </div>
 
@@ -664,7 +664,7 @@ function BusinessCardOrderContent() {
                         placeholder="カタカナで入力"
                       />
                       {validationErrors.displayNameKana && (
-                        <p className="text-sm text-red-600 mt-1">{validationErrors.displayNameKana}</p>
+                        <p role="alert" className="text-sm text-red-600 mt-1">{validationErrors.displayNameKana}</p>
                       )}
                     </div>
 
@@ -684,7 +684,7 @@ function BusinessCardOrderContent() {
                         <option value="FPエイドマネージャー">FPエイドマネージャー</option>
                       </select>
                       {validationErrors.position && (
-                        <p className="text-sm text-red-600 mt-1">{validationErrors.position}</p>
+                        <p role="alert" className="text-sm text-red-600 mt-1">{validationErrors.position}</p>
                       )}
                     </div>
 
@@ -778,6 +778,7 @@ function BusinessCardOrderContent() {
                                   : selectedQualifications
                                 handleInputChange('qualifications', allQuals.join('、'))
                               }}
+                              aria-label="その他の資格"
                               className="w-full ml-6 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm"
                               placeholder="その他の資格を入力"
                             />
@@ -804,7 +805,7 @@ function BusinessCardOrderContent() {
                         maxLength={11}
                       />
                       {validationErrors.phoneNumber && (
-                        <p className="text-sm text-red-600 mt-1">{validationErrors.phoneNumber}</p>
+                        <p role="alert" className="text-sm text-red-600 mt-1">{validationErrors.phoneNumber}</p>
                       )}
                       <p className="text-xs text-slate-500 mt-1">携帯番号のみ（070/080/090）ハイフンなし11桁</p>
                     </div>
@@ -824,7 +825,7 @@ function BusinessCardOrderContent() {
                         spellCheck={false}
                       />
                       {validationErrors.email && (
-                        <p className="text-sm text-red-600 mt-1">{validationErrors.email}</p>
+                        <p role="alert" className="text-sm text-red-600 mt-1">{validationErrors.email}</p>
                       )}
                     </div>
 
@@ -854,7 +855,7 @@ function BusinessCardOrderContent() {
                         placeholder="123-4567"
                       />
                       {validationErrors.cardPostalCode && (
-                        <p className="text-sm text-red-600 mt-1">{validationErrors.cardPostalCode}</p>
+                        <p role="alert" className="text-sm text-red-600 mt-1">{validationErrors.cardPostalCode}</p>
                       )}
                     </div>
 
@@ -875,7 +876,7 @@ function BusinessCardOrderContent() {
                         ))}
                       </select>
                       {validationErrors.cardPrefecture && (
-                        <p className="text-sm text-red-600 mt-1">{validationErrors.cardPrefecture}</p>
+                        <p role="alert" className="text-sm text-red-600 mt-1">{validationErrors.cardPrefecture}</p>
                       )}
                     </div>
 
@@ -893,7 +894,7 @@ function BusinessCardOrderContent() {
                         placeholder="名古屋市中区"
                       />
                       {validationErrors.cardCity && (
-                        <p className="text-sm text-red-600 mt-1">{validationErrors.cardCity}</p>
+                        <p role="alert" className="text-sm text-red-600 mt-1">{validationErrors.cardCity}</p>
                       )}
                     </div>
 
@@ -911,7 +912,7 @@ function BusinessCardOrderContent() {
                         placeholder="栄1-2-3"
                       />
                       {validationErrors.cardAddressLine1 && (
-                        <p className="text-sm text-red-600 mt-1">{validationErrors.cardAddressLine1}</p>
+                        <p role="alert" className="text-sm text-red-600 mt-1">{validationErrors.cardAddressLine1}</p>
                       )}
                     </div>
 
@@ -989,7 +990,7 @@ function BusinessCardOrderContent() {
                             placeholder="123-4567"
                           />
                           {validationErrors.postalCode && (
-                            <p className="text-sm text-red-600 mt-1">{validationErrors.postalCode}</p>
+                            <p role="alert" className="text-sm text-red-600 mt-1">{validationErrors.postalCode}</p>
                           )}
                         </div>
 
@@ -1010,7 +1011,7 @@ function BusinessCardOrderContent() {
                             ))}
                           </select>
                           {validationErrors.prefecture && (
-                            <p className="text-sm text-red-600 mt-1">{validationErrors.prefecture}</p>
+                            <p role="alert" className="text-sm text-red-600 mt-1">{validationErrors.prefecture}</p>
                           )}
                         </div>
 
@@ -1028,7 +1029,7 @@ function BusinessCardOrderContent() {
                             placeholder="名古屋市中区"
                           />
                           {validationErrors.city && (
-                            <p className="text-sm text-red-600 mt-1">{validationErrors.city}</p>
+                            <p role="alert" className="text-sm text-red-600 mt-1">{validationErrors.city}</p>
                           )}
                         </div>
 
@@ -1046,7 +1047,7 @@ function BusinessCardOrderContent() {
                             placeholder="栄1-2-3"
                           />
                           {validationErrors.addressLine1 && (
-                            <p className="text-sm text-red-600 mt-1">{validationErrors.addressLine1}</p>
+                            <p role="alert" className="text-sm text-red-600 mt-1">{validationErrors.addressLine1}</p>
                           )}
                         </div>
 

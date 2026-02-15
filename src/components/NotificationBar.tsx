@@ -143,7 +143,7 @@ export function NotificationBar() {
         <button
           type="button"
           onClick={handleDismiss}
-          className="p-1 hover:bg-white/20 rounded-full transition-colors"
+          className="p-2 hover:bg-white/20 rounded-full transition-colors"
           aria-label="通知を閉じる"
         >
           <X className="h-4 w-4 md:h-5 md:w-5" aria-hidden="true" />

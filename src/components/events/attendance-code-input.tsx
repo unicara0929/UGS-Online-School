@@ -86,6 +86,7 @@ export function AttendanceCodeInput({ eventId, eventTitle, onSuccess }: Attendan
             <Input
               type="text"
               placeholder="参加コード（アルファベット）"
+              aria-label="参加コード"
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
               disabled={isSubmitting}

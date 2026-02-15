@@ -14,7 +14,7 @@ export async function POST(
   try {
     const { token } = await params
     const body = await request.json()
-    const { name, email, phone, referrer, scheduleId } = body
+    const { name, email, phone, referrer, scheduleId, customFieldAnswers } = body
 
     // バリデーション
     if (!name || !email || !phone) {
@@ -80,6 +80,32 @@ export async function POST(
         { success: false, error: 'このイベントはキャンセルされました' },
         { status: 410 }
       )
+    }
+
+    // カスタムフィールドの必須バリデーション
+    if (customFieldAnswers && event.externalFormFields) {
+      const formFields = event.externalFormFields as any[]
+      for (const field of formFields) {
+        if (field.required) {
+          const value = customFieldAnswers[field.id]
+          if (value === undefined || value === null || value === '' || (Array.isArray(value) && value.length === 0)) {
+            return NextResponse.json(
+              { success: false, error: `${field.label}は必須です` },
+              { status: 400 }
+            )
+          }
+        }
+      }
+    }
+
+    // 後方互換: customFieldAnswersから紹介者を抽出
+    let effectiveReferrer = referrer || null
+    if (customFieldAnswers && event.externalFormFields) {
+      const formFields = event.externalFormFields as any[]
+      const referrerField = formFields.find((f: any) => f.label === '紹介者')
+      if (referrerField && customFieldAnswers[referrerField.id]) {
+        effectiveReferrer = String(customFieldAnswers[referrerField.id])
+      }
     }
 
     // 対象スケジュールを決定
@@ -153,7 +179,8 @@ export async function POST(
           name,
           email,
           phone,
-          referrer: referrer || null,
+          referrer: effectiveReferrer,
+          customFieldAnswers: customFieldAnswers || undefined,
           paymentStatus: 'FREE',
         }
       })
@@ -191,7 +218,8 @@ export async function POST(
         name,
         email,
         phone,
-        referrer: referrer || null,
+        referrer: effectiveReferrer,
+        customFieldAnswers: customFieldAnswers || undefined,
         paymentStatus: 'PENDING',
       }
     })

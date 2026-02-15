@@ -55,6 +55,10 @@ export async function GET(
       )
     }
 
+    // カスタムフィールド定義を取得
+    const formFields = (event.externalFormFields as any[] | null) || []
+    const customFieldLabels = formFields.map((f: any) => f.label)
+
     // CSVヘッダー
     const headers = [
       'ID',
@@ -69,6 +73,7 @@ export async function GET(
       '支払い日時',
       'キャンセル日時',
       'キャンセル理由',
+      ...customFieldLabels,
     ]
 
     // 内部参加者のデータを生成
@@ -85,23 +90,33 @@ export async function GET(
       reg.paidAt ? new Date(reg.paidAt).toISOString() : '',
       reg.canceledAt ? new Date(reg.canceledAt).toISOString() : '',
       reg.cancelReason || '',
+      ...customFieldLabels.map(() => ''), // 内部参加者はカスタムフィールド空
     ])
 
     // 外部参加者のデータを生成
-    const externalRows = event.externalRegistrations.map((reg) => [
-      reg.id,
-      '外部',
-      reg.name,
-      reg.email,
-      reg.phone,
-      'EXTERNAL',
-      reg.paymentStatus,
-      reg.paidAmount || '',
-      new Date(reg.createdAt).toISOString(),
-      reg.paidAt ? new Date(reg.paidAt).toISOString() : '',
-      '', // 外部参加者はキャンセル日時なし
-      '', // 外部参加者はキャンセル理由なし
-    ])
+    const externalRows = event.externalRegistrations.map((reg) => {
+      const answers = (reg.customFieldAnswers as Record<string, any> | null) || {}
+      return [
+        reg.id,
+        '外部',
+        reg.name,
+        reg.email,
+        reg.phone,
+        'EXTERNAL',
+        reg.paymentStatus,
+        reg.paidAmount || '',
+        new Date(reg.createdAt).toISOString(),
+        reg.paidAt ? new Date(reg.paidAt).toISOString() : '',
+        '', // 外部参加者はキャンセル日時なし
+        '', // 外部参加者はキャンセル理由なし
+        ...formFields.map((f: any) => {
+          const value = answers[f.id]
+          if (value === undefined || value === null) return ''
+          if (Array.isArray(value)) return value.join('; ')
+          return String(value)
+        }),
+      ]
+    })
 
     // 全てのデータを結合して日時順でソート
     const allRows = [...internalRows, ...externalRows].sort((a, b) => {

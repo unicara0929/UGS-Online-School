@@ -308,6 +308,7 @@ UGS0000002,2025-01,1200000,12`
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                     <Input
                       placeholder="名前・会員番号・メールで検索…"
+                      aria-label="名前・会員番号・メールで検索"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-10"

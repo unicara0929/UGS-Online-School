@@ -106,7 +106,7 @@ function BusinessCardHistoryContent() {
           <main className="px-4 sm:px-6 lg:px-8 py-8">
             <Card className="border-red-200 bg-red-50">
               <CardContent className="py-4">
-                <p className="text-sm text-red-600">{error}</p>
+                <p role="alert" className="text-sm text-red-600">{error}</p>
               </CardContent>
             </Card>
           </main>
@@ -161,19 +161,19 @@ function BusinessCardHistoryContent() {
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-slate-600">
                               <div>
-                                <span className="text-slate-400">デザイン: </span>
+                                <span className="text-slate-500">デザイン: </span>
                                 {order.design.name}
                               </div>
                               <div>
-                                <span className="text-slate-400">受取: </span>
+                                <span className="text-slate-500">受取: </span>
                                 {DELIVERY_LABELS[order.deliveryMethod]}
                               </div>
                               <div>
-                                <span className="text-slate-400">金額: </span>
+                                <span className="text-slate-500">金額: </span>
                                 ¥{order.paidAmount?.toLocaleString() || '-'}
                               </div>
                               <div>
-                                <span className="text-slate-400">注文日: </span>
+                                <span className="text-slate-500">注文日: </span>
                                 {format(new Date(order.createdAt), 'yyyy/MM/dd', { locale: ja })}
                               </div>
                             </div>
@@ -193,10 +193,10 @@ function BusinessCardHistoryContent() {
                               <div>
                                 <h4 className="font-medium text-slate-700 mb-2">名刺に印字する情報</h4>
                                 <dl className="space-y-1 text-slate-600">
-                                  <div><dt className="inline text-slate-400">表示名: </dt><dd className="inline">{order.displayName}</dd></div>
-                                  <div><dt className="inline text-slate-400">フリガナ: </dt><dd className="inline">{order.displayNameKana}</dd></div>
-                                  <div><dt className="inline text-slate-400">電話番号: </dt><dd className="inline">{order.phoneNumber}</dd></div>
-                                  <div><dt className="inline text-slate-400">メール: </dt><dd className="inline">{order.email}</dd></div>
+                                  <div><dt className="inline text-slate-500">表示名: </dt><dd className="inline">{order.displayName}</dd></div>
+                                  <div><dt className="inline text-slate-500">フリガナ: </dt><dd className="inline">{order.displayNameKana}</dd></div>
+                                  <div><dt className="inline text-slate-500">電話番号: </dt><dd className="inline">{order.phoneNumber}</dd></div>
+                                  <div><dt className="inline text-slate-500">メール: </dt><dd className="inline">{order.email}</dd></div>
                                 </dl>
                               </div>
                               <div>

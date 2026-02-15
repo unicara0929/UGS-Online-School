@@ -369,7 +369,7 @@ function DesignManagement() {
     return (
       <Card className="border-red-200 bg-red-50">
         <CardContent className="py-4">
-          <p className="text-sm text-red-600">{error}</p>
+          <p role="alert" className="text-sm text-red-600">{error}</p>
         </CardContent>
       </Card>
     )
@@ -790,7 +790,7 @@ function OrderManagement() {
     return (
       <Card className="border-red-200 bg-red-50">
         <CardContent className="py-4">
-          <p className="text-sm text-red-600">{error}</p>
+          <p role="alert" className="text-sm text-red-600">{error}</p>
         </CardContent>
       </Card>
     )
@@ -941,10 +941,10 @@ function OrderManagement() {
                         <div>
                           <h4 className="font-medium text-slate-700 mb-2">名刺に印字する情報</h4>
                           <dl className="space-y-1 text-slate-600">
-                            <div><dt className="inline text-slate-400">表示名: </dt><dd className="inline">{order.displayName}</dd></div>
-                            <div><dt className="inline text-slate-400">フリガナ: </dt><dd className="inline">{order.displayNameKana}</dd></div>
-                            <div><dt className="inline text-slate-400">電話番号: </dt><dd className="inline">{order.phoneNumber}</dd></div>
-                            <div><dt className="inline text-slate-400">メール: </dt><dd className="inline">{order.email}</dd></div>
+                            <div><dt className="inline text-slate-500">表示名: </dt><dd className="inline">{order.displayName}</dd></div>
+                            <div><dt className="inline text-slate-500">フリガナ: </dt><dd className="inline">{order.displayNameKana}</dd></div>
+                            <div><dt className="inline text-slate-500">電話番号: </dt><dd className="inline">{order.phoneNumber}</dd></div>
+                            <div><dt className="inline text-slate-500">メール: </dt><dd className="inline">{order.email}</dd></div>
                           </dl>
                         </div>
 
@@ -997,7 +997,7 @@ function OrderManagement() {
                             </div>
                           )}
                           <p className="mt-2 text-sm">
-                            <span className="text-slate-400">決済金額: </span>
+                            <span className="text-slate-500">決済金額: </span>
                             <span className="font-medium">¥{order.paidAmount?.toLocaleString() || '-'}</span>
                           </p>
                         </div>
@@ -1006,9 +1006,9 @@ function OrderManagement() {
                         <div>
                           <h4 className="font-medium text-slate-700 mb-2">申請者情報</h4>
                           <dl className="space-y-1 text-slate-600">
-                            <div><dt className="inline text-slate-400">氏名: </dt><dd className="inline">{order.user.name}</dd></div>
-                            <div><dt className="inline text-slate-400">メール: </dt><dd className="inline">{order.user.email}</dd></div>
-                            <div><dt className="inline text-slate-400">ロール: </dt><dd className="inline">{ROLE_LABELS[order.user.role] || order.user.role}</dd></div>
+                            <div><dt className="inline text-slate-500">氏名: </dt><dd className="inline">{order.user.name}</dd></div>
+                            <div><dt className="inline text-slate-500">メール: </dt><dd className="inline">{order.user.email}</dd></div>
+                            <div><dt className="inline text-slate-500">ロール: </dt><dd className="inline">{ROLE_LABELS[order.user.role] || order.user.role}</dd></div>
                           </dl>
                         </div>
                       </div>

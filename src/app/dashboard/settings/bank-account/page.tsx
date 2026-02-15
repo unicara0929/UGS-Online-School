@@ -277,7 +277,7 @@ function BankAccountSettingsPage() {
 
             {/* エラーメッセージ */}
             {errorMessage && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start space-x-3">
+              <div role="alert" className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start space-x-3">
                 <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-red-800">{errorMessage}</p>
@@ -388,6 +388,7 @@ function BankAccountSettingsPage() {
                             setOtherBankName(e.target.value)
                             setFormData({...formData, bankName: e.target.value})
                           }}
+                          aria-label="銀行名"
                           className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-[box-shadow,border-color] shadow-sm hover:shadow-md"
                           placeholder="銀行名を入力してください"
                           required

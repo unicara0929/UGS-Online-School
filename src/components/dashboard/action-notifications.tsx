@@ -31,7 +31,7 @@ export function ActionNotifications({ notifications }: ActionNotificationsProps)
             {actionNotifications.map(notification => (
               <div key={notification.id} className="flex items-center justify-between gap-2 p-2 sm:p-3 bg-white rounded-lg border border-red-200">
                 <span className="text-red-800 font-medium text-sm sm:text-base flex-1 min-w-0 truncate">{notification.title}</span>
-                <Button size="sm" className="flex-shrink-0 text-xs sm:text-sm h-7 sm:h-9 px-2 sm:px-3">対応する</Button>
+                <Button size="sm" className="flex-shrink-0 text-xs sm:text-sm h-9 sm:h-9 px-2 sm:px-3">対応する</Button>
               </div>
             ))}
           </div>

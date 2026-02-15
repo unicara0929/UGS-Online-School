@@ -81,6 +81,7 @@ export async function PUT(
       eventCategory,
       // 外部参加者設定
       allowExternalParticipation,
+      externalFormFields,
       // 過去イベント記録用
       summary,
       photos,
@@ -150,6 +151,9 @@ export async function PUT(
       if (allowExternalParticipation && !existingEvent.externalRegistrationToken) {
         updateData.externalRegistrationToken = crypto.randomUUID()
       }
+    }
+    if (externalFormFields !== undefined) {
+      updateData.externalFormFields = externalFormFields
     }
 
     // 有料イベントの検証
@@ -301,6 +305,7 @@ export async function PUT(
         // 外部参加者設定
         allowExternalParticipation: refreshedEvent!.allowExternalParticipation ?? false,
         externalRegistrationToken: refreshedEvent!.externalRegistrationToken ?? null,
+        externalFormFields: refreshedEvent!.externalFormFields ?? null,
         // 日程一覧
         schedules: refreshedEvent!.schedules.map(schedule => ({
           id: schedule.id,

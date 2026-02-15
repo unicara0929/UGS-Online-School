@@ -112,7 +112,7 @@ export default function AnalyticsPage() {
         {error && (
           <Card className="border-red-200 bg-red-50">
             <CardContent className="pt-6">
-              <div className="flex items-center space-x-2 text-red-600">
+              <div role="alert" className="flex items-center space-x-2 text-red-600">
                 <AlertCircle className="h-5 w-5" aria-hidden="true" />
                 <p>{error}</p>
               </div>

@@ -198,6 +198,7 @@ export async function GET(
         managerId: null,
         managerName: null,
         referrer: reg.referrer || null,
+        customFieldAnswers: reg.customFieldAnswers || null,
         paymentStatus: reg.paymentStatus,
         paidAmount: reg.paidAmount,
         registeredAt: reg.createdAt.toISOString(),
@@ -248,6 +249,7 @@ export async function GET(
         price: event.price,
         isRecurring: event.isRecurring || false,
         allowExternalParticipation: event.allowExternalParticipation || false,
+        externalFormFields: event.externalFormFields || null,
         eventCategory: event.eventCategory || 'REGULAR',
         schedules: event.schedules.map((s) => ({
           id: s.id,
