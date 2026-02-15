@@ -197,6 +197,7 @@ export async function GET(
         userPhone: reg.phone,
         managerId: null,
         managerName: null,
+        referrer: reg.referrer || null,
         paymentStatus: reg.paymentStatus,
         paidAmount: reg.paidAmount,
         registeredAt: reg.createdAt.toISOString(),

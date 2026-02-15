@@ -108,6 +108,7 @@ type Participant = {
   userPhone: string | null
   managerId: string | null
   managerName: string | null
+  referrer: string | null
   paymentStatus: string
   paidAmount: number | null
   registeredAt: string
@@ -786,7 +787,14 @@ function EventDetailPageContent() {
                                 <span className="text-slate-400" title="外部参加者は選択不可">-</span>
                               )}
                             </td>
-                            <td className="px-4 py-3 text-sm text-slate-900">{participant.userName}</td>
+                            <td className="px-4 py-3 text-sm text-slate-900">
+                              <div>{participant.userName}</div>
+                              {participant.isExternal && participant.referrer && (
+                                <div className="text-xs text-slate-500 mt-0.5">
+                                  紹介: {participant.referrer}
+                                </div>
+                              )}
+                            </td>
                             <td className="px-4 py-3 text-sm text-slate-600">{participant.userEmail}</td>
                             <td className="px-4 py-3 text-sm text-slate-600">
                               {participant.userPhone || '-'}
