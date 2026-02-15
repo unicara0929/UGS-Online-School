@@ -684,7 +684,7 @@ function EventDetailPageContent() {
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">名前</th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">メール</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">電話番号</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">電話番号 / 紹介者</th>
                           {event?.schedules && event.schedules.length > 1 && (
                             <th className="px-2 py-3">
                               <FilterDropdown
@@ -787,17 +787,13 @@ function EventDetailPageContent() {
                                 <span className="text-slate-400" title="外部参加者は選択不可">-</span>
                               )}
                             </td>
-                            <td className="px-4 py-3 text-sm text-slate-900">
-                              <div>{participant.userName}</div>
-                              {participant.isExternal && participant.referrer && (
-                                <div className="text-xs text-slate-500 mt-0.5">
-                                  紹介: {participant.referrer}
-                                </div>
-                              )}
-                            </td>
+                            <td className="px-4 py-3 text-sm text-slate-900">{participant.userName}</td>
                             <td className="px-4 py-3 text-sm text-slate-600">{participant.userEmail}</td>
                             <td className="px-4 py-3 text-sm text-slate-600">
-                              {participant.userPhone || '-'}
+                              {participant.isExternal
+                                ? (participant.referrer || '-')
+                                : (participant.userPhone || '-')
+                              }
                             </td>
                             {event?.schedules && event.schedules.length > 1 && (
                               <td className="px-4 py-3 text-sm text-slate-600">
