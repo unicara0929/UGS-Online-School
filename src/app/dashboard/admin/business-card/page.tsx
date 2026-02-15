@@ -608,7 +608,7 @@ function DesignManagement() {
           {designs.map((design) => (
             <Card
               key={design.id}
-              className={`transition-all ${!design.isActive ? 'opacity-60' : ''} ${editingDesign?.id === design.id ? 'ring-2 ring-slate-900' : ''}`}
+              className={`transition-[opacity,box-shadow] ${!design.isActive ? 'opacity-60' : ''} ${editingDesign?.id === design.id ? 'ring-2 ring-slate-900' : ''}`}
             >
               <CardContent className="p-4">
                 <div className="flex flex-wrap items-center gap-2 sm:gap-4">
@@ -801,7 +801,7 @@ function OrderManagement() {
       {/* ステータス別カウント */}
       <div className="grid grid-cols-2 md:grid-cols-7 gap-4">
         <Card
-          className={`cursor-pointer transition-all ${filterStatus === null ? 'ring-2 ring-slate-900' : ''}`}
+          className={`cursor-pointer transition-[box-shadow] ${filterStatus === null ? 'ring-2 ring-slate-900' : ''}`}
           onClick={() => setFilterStatus(null)}
         >
           <CardContent className="p-4 text-center">
@@ -810,7 +810,7 @@ function OrderManagement() {
           </CardContent>
         </Card>
         <Card
-          className={`cursor-pointer transition-all ${filterStatus === 'PENDING' ? 'ring-2 ring-amber-500' : ''}`}
+          className={`cursor-pointer transition-[box-shadow] ${filterStatus === 'PENDING' ? 'ring-2 ring-amber-500' : ''}`}
           onClick={() => setFilterStatus('PENDING')}
         >
           <CardContent className="p-4 text-center">
@@ -819,7 +819,7 @@ function OrderManagement() {
           </CardContent>
         </Card>
         <Card
-          className={`cursor-pointer transition-all ${filterStatus === 'PAID' ? 'ring-2 ring-green-500' : ''}`}
+          className={`cursor-pointer transition-[box-shadow] ${filterStatus === 'PAID' ? 'ring-2 ring-green-500' : ''}`}
           onClick={() => setFilterStatus('PAID')}
         >
           <CardContent className="p-4 text-center">
@@ -828,7 +828,7 @@ function OrderManagement() {
           </CardContent>
         </Card>
         <Card
-          className={`cursor-pointer transition-all ${filterStatus === 'ORDERED' ? 'ring-2 ring-blue-500' : ''}`}
+          className={`cursor-pointer transition-[box-shadow] ${filterStatus === 'ORDERED' ? 'ring-2 ring-blue-500' : ''}`}
           onClick={() => setFilterStatus('ORDERED')}
         >
           <CardContent className="p-4 text-center">
@@ -837,7 +837,7 @@ function OrderManagement() {
           </CardContent>
         </Card>
         <Card
-          className={`cursor-pointer transition-all ${filterStatus === 'SHIPPED' ? 'ring-2 ring-purple-500' : ''}`}
+          className={`cursor-pointer transition-[box-shadow] ${filterStatus === 'SHIPPED' ? 'ring-2 ring-purple-500' : ''}`}
           onClick={() => setFilterStatus('SHIPPED')}
         >
           <CardContent className="p-4 text-center">
@@ -846,7 +846,7 @@ function OrderManagement() {
           </CardContent>
         </Card>
         <Card
-          className={`cursor-pointer transition-all ${filterStatus === 'COMPLETED' ? 'ring-2 ring-emerald-500' : ''}`}
+          className={`cursor-pointer transition-[box-shadow] ${filterStatus === 'COMPLETED' ? 'ring-2 ring-emerald-500' : ''}`}
           onClick={() => setFilterStatus('COMPLETED')}
         >
           <CardContent className="p-4 text-center">
@@ -855,7 +855,7 @@ function OrderManagement() {
           </CardContent>
         </Card>
         <Card
-          className={`cursor-pointer transition-all ${filterStatus === 'CANCELLED' ? 'ring-2 ring-slate-500' : ''}`}
+          className={`cursor-pointer transition-[box-shadow] ${filterStatus === 'CANCELLED' ? 'ring-2 ring-slate-500' : ''}`}
           onClick={() => setFilterStatus('CANCELLED')}
         >
           <CardContent className="p-4 text-center">

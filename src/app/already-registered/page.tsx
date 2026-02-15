@@ -195,7 +195,7 @@ function AlreadyRegisteredContent() {
                     <Button
                       onClick={handleGoToCheckout}
                       disabled={isLoading}
-                      className="w-full h-12 sm:h-14 text-sm sm:text-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all"
+                      className="w-full h-12 sm:h-14 text-sm sm:text-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-shadow"
                     >
                       <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                       {isLoading ? '処理中...' : '決済を完了して本登録する'}
@@ -204,7 +204,7 @@ function AlreadyRegisteredContent() {
                     <Button
                       onClick={handleResendVerification}
                       disabled={isLoading}
-                      className="w-full h-12 sm:h-14 text-sm sm:text-lg bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 shadow-lg hover:shadow-xl transition-all"
+                      className="w-full h-12 sm:h-14 text-sm sm:text-lg bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 shadow-lg hover:shadow-xl transition-shadow"
                     >
                       <Mail className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                       {isLoading ? '送信中...' : '認証メールを再送信'}
@@ -223,7 +223,7 @@ function AlreadyRegisteredContent() {
                 <>
                   <Button
                     onClick={() => router.push('/login')}
-                    className="w-full h-12 sm:h-14 text-sm sm:text-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all"
+                    className="w-full h-12 sm:h-14 text-sm sm:text-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-shadow"
                   >
                     <LogIn className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     ログインする

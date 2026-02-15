@@ -436,7 +436,7 @@ function BusinessCardOrderContent() {
                           <div
                             key={design.id}
                             onClick={() => handleInputChange('designId', design.id)}
-                            className={`cursor-pointer border-2 rounded-lg p-4 transition-all ${
+                            className={`cursor-pointer border-2 rounded-lg p-4 transition-[border-color,box-shadow] ${
                               formData.designId === design.id
                                 ? 'border-slate-900 bg-slate-50'
                                 : 'border-slate-200 hover:border-slate-300'
@@ -514,7 +514,7 @@ function BusinessCardOrderContent() {
                   <CardContent>
                     <div className="space-y-3">
                       <label
-                        className={`flex items-start gap-3 sm:gap-4 p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                        className={`flex items-start gap-3 sm:gap-4 p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-[border-color,box-shadow] ${
                           formData.deliveryMethod === 'PICKUP'
                             ? 'border-slate-900 bg-slate-50'
                             : 'border-slate-200 hover:border-slate-300'
@@ -546,7 +546,7 @@ function BusinessCardOrderContent() {
                       </label>
 
                       <label
-                        className={`flex items-start gap-3 sm:gap-4 p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                        className={`flex items-start gap-3 sm:gap-4 p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-[border-color,box-shadow] ${
                           formData.deliveryMethod === 'SHIPPING'
                             ? 'border-slate-900 bg-slate-50'
                             : 'border-slate-200 hover:border-slate-300'
@@ -939,7 +939,7 @@ function BusinessCardOrderContent() {
                     {/* 名刺記載住所と同じかどうかの選択 */}
                     <div className="space-y-3">
                       <label
-                        className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                        className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition-[border-color,box-shadow] ${
                           formData.shippingAddressSameAsCard
                             ? 'border-slate-900 bg-slate-50'
                             : 'border-slate-200 hover:border-slate-300'
@@ -955,7 +955,7 @@ function BusinessCardOrderContent() {
                       </label>
 
                       <label
-                        className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                        className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition-[border-color,box-shadow] ${
                           !formData.shippingAddressSameAsCard
                             ? 'border-slate-900 bg-slate-50'
                             : 'border-slate-200 hover:border-slate-300'

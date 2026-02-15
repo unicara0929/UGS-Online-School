@@ -448,7 +448,7 @@ function ProfileSettingsPage() {
                     type="text"
                     value={profile.name}
                     onChange={(e) => setProfile({...profile, name: e.target.value})}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-[box-shadow,border-color] shadow-sm hover:shadow-md"
                     placeholder="お名前を入力"
                   />
                 </div>
@@ -492,7 +492,7 @@ function ProfileSettingsPage() {
                         setPhoneError('')
                       }
                     }}
-                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md ${phoneError ? 'border-red-300' : 'border-slate-300'}`}
+                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-[box-shadow,border-color] shadow-sm hover:shadow-md ${phoneError ? 'border-red-300' : 'border-slate-300'}`}
                     placeholder="09012345678"
                     maxLength={11}
                   />
@@ -508,7 +508,7 @@ function ProfileSettingsPage() {
                   <textarea
                     value={profile.address}
                     onChange={(e) => setProfile({...profile, address: e.target.value})}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-[box-shadow,border-color] shadow-sm hover:shadow-md"
                     rows={3}
                     placeholder="住所を入力してください"
                   />
@@ -535,7 +535,7 @@ function ProfileSettingsPage() {
                   <textarea
                     value={profile.bio}
                     onChange={(e) => setProfile({...profile, bio: e.target.value})}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-[box-shadow,border-color] shadow-sm hover:shadow-md"
                     rows={5}
                     placeholder="自己紹介を入力してください（任意）"
                   />
@@ -550,7 +550,7 @@ function ProfileSettingsPage() {
                   <select
                     value={profile.attribute}
                     onChange={(e) => setProfile({...profile, attribute: e.target.value})}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md bg-white"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-[box-shadow,border-color] shadow-sm hover:shadow-md bg-white"
                   >
                     <option value="">業種を選択してください</option>
                     {INDUSTRIES.map((industry) => (
@@ -567,7 +567,7 @@ function ProfileSettingsPage() {
                   <select
                     value={profile.gender}
                     onChange={(e) => setProfile({...profile, gender: e.target.value})}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md bg-white"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-[box-shadow,border-color] shadow-sm hover:shadow-md bg-white"
                   >
                     <option value="">選択してください</option>
                     {GENDERS.map((gender) => (
@@ -586,7 +586,7 @@ function ProfileSettingsPage() {
                     type="date"
                     value={profile.birthDate}
                     onChange={(e) => setProfile({...profile, birthDate: e.target.value})}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-[box-shadow,border-color] shadow-sm hover:shadow-md"
                   />
                 </div>
                 <div>
@@ -597,7 +597,7 @@ function ProfileSettingsPage() {
                   <select
                     value={profile.prefecture}
                     onChange={(e) => setProfile({...profile, prefecture: e.target.value})}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md bg-white appearance-none"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-[box-shadow,border-color] shadow-sm hover:shadow-md bg-white appearance-none"
                   >
                     <option value="">都道府県を選択してください</option>
                     {JAPANESE_PREFECTURES.map((pref) => (
@@ -614,7 +614,7 @@ function ProfileSettingsPage() {
                   <select
                     value={profile.mbtiType}
                     onChange={(e) => setProfile({...profile, mbtiType: e.target.value})}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md bg-white"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-[box-shadow,border-color] shadow-sm hover:shadow-md bg-white"
                   >
                     <option value="">MBTIタイプを選択してください</option>
                     {MBTI_TYPES.map((type) => (
@@ -632,7 +632,7 @@ function ProfileSettingsPage() {
                   <select
                     value={profile.discType}
                     onChange={(e) => setProfile({...profile, discType: e.target.value})}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md bg-white"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-[box-shadow,border-color] shadow-sm hover:shadow-md bg-white"
                   >
                     <option value="">DISCタイプを選択してください</option>
                     {DISC_TYPES.map((type) => (
@@ -695,7 +695,7 @@ function ProfileSettingsPage() {
                           setInvoiceNumberError('')
                         }
                       }}
-                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md font-mono text-lg tracking-wider ${invoiceNumberError ? 'border-red-300' : 'border-slate-300'}`}
+                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-[box-shadow,border-color] shadow-sm hover:shadow-md font-mono text-lg tracking-wider ${invoiceNumberError ? 'border-red-300' : 'border-slate-300'}`}
                       placeholder="T1234567890123"
                       maxLength={14}
                     />
@@ -717,7 +717,7 @@ function ProfileSettingsPage() {
               </Link>
               <Button
                 onClick={handleProfileUpdate}
-                className="min-w-[120px] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all"
+                className="min-w-[120px] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-shadow"
               >
                 プロフィールを更新
               </Button>

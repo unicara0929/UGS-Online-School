@@ -428,7 +428,7 @@ export default function ComplianceTestPage() {
                 <button
                   key={index}
                   onClick={() => handleSelectAnswer(currentQuestion.id, index)}
-                  className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                  className={`w-full text-left p-4 rounded-lg border-2 transition-[border-color,box-shadow,background-color] ${
                     answers[currentQuestion.id] === index
                       ? 'border-blue-500 bg-blue-50'
                       : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
@@ -470,7 +470,7 @@ export default function ComplianceTestPage() {
                 <button
                   key={index}
                   onClick={() => setCurrentQuestionIndex(index)}
-                  className={`w-8 h-8 rounded-full text-xs font-medium transition-all ${
+                  className={`w-8 h-8 rounded-full text-xs font-medium transition-colors ${
                     currentQuestionIndex === index
                       ? 'bg-blue-600 text-white'
                       : answers[questions[index].id] !== undefined

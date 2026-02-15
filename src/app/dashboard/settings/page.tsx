@@ -86,13 +86,13 @@ function SettingsListPage() {
                 const Icon = item.icon
                 return (
                   <Link key={item.id} href={item.href}>
-                    <Card className="hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer group">
+                    <Card className="hover:shadow-xl transition-[box-shadow,transform] duration-300 hover:-translate-y-1 cursor-pointer group">
                       <CardHeader>
                         <div className="flex items-center justify-between">
                           <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
                             <Icon className="h-6 w-6 text-white" />
                           </div>
-                          <ArrowRight className="h-5 w-5 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-1 transition-all" />
+                          <ArrowRight className="h-5 w-5 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-1 transition-transform" />
                         </div>
                         <CardTitle className="mt-4">{item.title}</CardTitle>
                         <CardDescription>{item.description}</CardDescription>

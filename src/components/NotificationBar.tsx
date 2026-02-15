@@ -92,7 +92,7 @@ export function NotificationBar() {
         flex items-center justify-between
         cursor-pointer
         hover:from-blue-600 hover:to-blue-700
-        transition-all duration-300
+        transition-[opacity,transform] duration-300
         shadow-lg
         ${isDismissed ? 'opacity-0 transform -translate-y-2' : 'opacity-100'}
       `}

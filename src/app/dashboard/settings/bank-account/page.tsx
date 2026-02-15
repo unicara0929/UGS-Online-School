@@ -317,7 +317,7 @@ function BankAccountSettingsPage() {
                       {COMMON_BANKS.map((bank) => (
                         <label
                           key={bank.value}
-                          className={`flex items-center p-3 border-2 rounded-xl cursor-pointer transition-all ${
+                          className={`flex items-center p-3 border-2 rounded-xl cursor-pointer transition-[border-color,box-shadow] ${
                             !isOtherBank && formData.bankName === bank.value
                               ? 'border-blue-500 bg-blue-50'
                               : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
@@ -351,7 +351,7 @@ function BankAccountSettingsPage() {
                       ))}
                       {/* その他の銀行 */}
                       <label
-                        className={`flex items-center p-3 border-2 rounded-xl cursor-pointer transition-all ${
+                        className={`flex items-center p-3 border-2 rounded-xl cursor-pointer transition-[border-color,box-shadow] ${
                           isOtherBank
                             ? 'border-blue-500 bg-blue-50'
                             : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
@@ -388,7 +388,7 @@ function BankAccountSettingsPage() {
                             setOtherBankName(e.target.value)
                             setFormData({...formData, bankName: e.target.value})
                           }}
-                          className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md"
+                          className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-[box-shadow,border-color] shadow-sm hover:shadow-md"
                           placeholder="銀行名を入力してください"
                           required
                         />
@@ -429,7 +429,7 @@ function BankAccountSettingsPage() {
                                 setFormData({...formData, yuchoSymbol: value})
                               }
                             }}
-                            className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md font-mono"
+                            className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-[box-shadow,border-color] shadow-sm hover:shadow-md font-mono"
                             placeholder="12345"
                             maxLength={5}
                             required
@@ -455,7 +455,7 @@ function BankAccountSettingsPage() {
                                 setFormData({...formData, yuchoNumber: value})
                               }
                             }}
-                            className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md font-mono"
+                            className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-[box-shadow,border-color] shadow-sm hover:shadow-md font-mono"
                             placeholder="12345678"
                             maxLength={8}
                             required
@@ -499,7 +499,7 @@ function BankAccountSettingsPage() {
                             type="text"
                             value={formData.branchName}
                             onChange={(e) => setFormData({...formData, branchName: e.target.value})}
-                            className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md"
+                            className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-[box-shadow,border-color] shadow-sm hover:shadow-md"
                             placeholder="例: 新宿支店"
                             required
                           />
@@ -524,7 +524,7 @@ function BankAccountSettingsPage() {
                                 setFormData({...formData, branchNumber: value})
                               }
                             }}
-                            className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md font-mono"
+                            className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-[box-shadow,border-color] shadow-sm hover:shadow-md font-mono"
                             placeholder="001"
                             maxLength={3}
                             required
@@ -552,7 +552,7 @@ function BankAccountSettingsPage() {
                                 setFormData({...formData, accountNumber: value})
                               }
                             }}
-                            className="w-full px-4 py-3 pr-12 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md font-mono"
+                            className="w-full px-4 py-3 pr-12 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-[box-shadow,border-color] shadow-sm hover:shadow-md font-mono"
                             placeholder="1234567"
                             maxLength={7}
                             required
@@ -581,7 +581,7 @@ function BankAccountSettingsPage() {
                     <select
                       value={formData.accountType}
                       onChange={(e) => setFormData({...formData, accountType: e.target.value as 'NORMAL' | 'CHECKING' | 'SAVINGS'})}
-                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md bg-white"
+                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-[box-shadow,border-color] shadow-sm hover:shadow-md bg-white"
                       required
                     >
                       {ACCOUNT_TYPES.map((type) => (
@@ -605,7 +605,7 @@ function BankAccountSettingsPage() {
                         const value = e.target.value.replace(/[^ァ-ヶー\s]/g, '')
                         setFormData({...formData, accountHolderName: value})
                       }}
-                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md"
+                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-[box-shadow,border-color] shadow-sm hover:shadow-md"
                       placeholder="例: ヤマダ タロウ"
                       required
                     />
@@ -626,7 +626,7 @@ function BankAccountSettingsPage() {
                 <Button
                   type="submit"
                   disabled={isSaving}
-                  className="min-w-[120px] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all"
+                  className="min-w-[120px] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-shadow"
                 >
                   {isSaving ? '保存中...' : formData.id ? '更新する' : '登録する'}
                 </Button>

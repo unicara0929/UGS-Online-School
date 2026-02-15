@@ -165,7 +165,7 @@ export default function CompletePaymentPage() {
             {/* 決済ボタン */}
             <Button
               onClick={handleStartPayment}
-              className="w-full h-14 text-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all"
+              className="w-full h-14 text-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-shadow"
             >
               <CreditCard className="h-5 w-5 mr-2" />
               {process.env.NEXT_PUBLIC_STRIPE_SETUP_FEE_ENABLED === 'true'

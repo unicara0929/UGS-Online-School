@@ -56,7 +56,7 @@ export function EventCard({ event, onEdit, onDelete, onMtgComplete, isSubmitting
   }
 
   return (
-    <Card className="hover:shadow-xl transition-all duration-300">
+    <Card className="hover:shadow-xl transition-shadow duration-300">
       {/* サムネイル画像 */}
       {event.thumbnailUrl && (
         <div className="w-full h-48 overflow-hidden rounded-t-lg">

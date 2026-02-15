@@ -324,7 +324,7 @@ export function VideoSurveyAttendance({
                     </div>
                     <div className="w-full bg-slate-200 rounded-full h-2">
                       <div
-                        className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                        className="bg-purple-600 h-2 rounded-full transition-[width] duration-300"
                         style={{ width: `${videoProgress}%` }}
                       />
                     </div>

@@ -325,7 +325,7 @@ export default function AnalyticsPage() {
                 return (
                   <div key={item.month} className="flex flex-col items-center flex-1">
                     <div
-                      className={`w-full max-w-12 rounded-t-lg transition-all duration-300 ${
+                      className={`w-full max-w-12 rounded-t-lg transition-[height] duration-300 ${
                         isCurrentMonth
                           ? 'bg-gradient-to-t from-amber-500 to-amber-400'
                           : item.promotions > 0

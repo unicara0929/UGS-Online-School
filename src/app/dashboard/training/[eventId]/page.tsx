@@ -489,7 +489,7 @@ function TrainingEventDetailPageContent() {
                         return (
                           <label
                             key={schedule.id}
-                            className={`flex items-center p-3 rounded-lg border cursor-pointer transition-all ${
+                            className={`flex items-center p-3 rounded-lg border cursor-pointer transition-[border-color,box-shadow] ${
                               isSelected
                                 ? 'border-emerald-500 bg-emerald-50'
                                 : isOpen

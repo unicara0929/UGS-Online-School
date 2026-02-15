@@ -132,7 +132,7 @@ export default function TeamPage() {
       <div className="flex items-center gap-2">
         <div className="w-20 h-2 bg-slate-200 rounded-full overflow-hidden">
           <div
-            className="h-full bg-blue-500 rounded-full transition-all"
+            className="h-full bg-blue-500 rounded-full transition-[width]"
             style={{ width: `${percentage}%` }}
           />
         </div>

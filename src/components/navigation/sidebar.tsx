@@ -305,7 +305,7 @@ export function Sidebar() {
                     <button
                       onClick={() => toggleExpanded(item.name)}
                       className={`
-                        w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200
+                        w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-colors duration-200
                         ${hasActiveSubItem
                           ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md'
                           : 'text-slate-600 hover:bg-primary-50 hover:text-primary-900'
@@ -332,7 +332,7 @@ export function Sidebar() {
                               key={subItem.name}
                               href={subItem.href || '#'}
                               className={`
-                                flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200
+                                flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200
                                 ${isSubActive
                                   ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md'
                                   : 'text-slate-600 hover:bg-primary-50 hover:text-primary-900'
@@ -367,7 +367,7 @@ export function Sidebar() {
                     href={item.externalUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 text-slate-600 hover:bg-primary-50 hover:text-primary-900"
+                    className="flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-colors duration-200 text-slate-600 hover:bg-primary-50 hover:text-primary-900"
                     onClick={() => setIsOpen(false)}
                   >
                     <item.icon className="h-5 w-5 mr-3 flex-shrink-0 text-slate-500" />
@@ -382,7 +382,7 @@ export function Sidebar() {
                   key={item.name}
                   href={item.href || '#'}
                   className={`
-                    flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200
+                    flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-colors duration-200
                     ${isActive
                       ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md'
                       : 'text-slate-600 hover:bg-primary-50 hover:text-primary-900'

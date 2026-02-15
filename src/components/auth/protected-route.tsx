@@ -71,7 +71,7 @@ export function ProtectedRoute({
           </p>
           <button
             onClick={() => router.push('/dashboard')}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-lg font-medium shadow-lg transition-all duration-200"
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-lg font-medium shadow-lg transition-shadow duration-200"
           >
             ダッシュボードに戻る
           </button>

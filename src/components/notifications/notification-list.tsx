@@ -244,7 +244,7 @@ export function NotificationList() {
           {unreadNotifications.map((notification) => (
             <Card
               key={notification.id}
-              className={`border-l-4 cursor-pointer transition-all hover:shadow-md ${
+              className={`border-l-4 cursor-pointer transition-shadow hover:shadow-md ${
                 notification.priority === 'CRITICAL'
                   ? 'border-l-red-500 bg-red-50/50 hover:bg-red-50'
                   : notification.priority === 'SUCCESS'
@@ -297,7 +297,7 @@ export function NotificationList() {
           {readNotifications.map((notification) => (
             <Card
               key={notification.id}
-              className={`opacity-60 hover:opacity-100 transition-all hover:shadow-md ${
+              className={`opacity-60 hover:opacity-100 transition-[opacity,box-shadow] hover:shadow-md ${
                 notification.actionUrl ? 'cursor-pointer' : ''
               }`}
               onClick={() => {

@@ -176,7 +176,7 @@ function SecuritySettingsPage() {
                             type={showCurrentPassword ? "text" : "password"}
                             value={formData.currentPassword}
                             onChange={(e) => setFormData({...formData, currentPassword: e.target.value})}
-                            className="w-full pl-10 pr-12 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md"
+                            className="w-full pl-10 pr-12 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-[box-shadow,border-color] shadow-sm hover:shadow-md"
                             placeholder="現在のパスワードを入力"
                             required
                           />
@@ -205,7 +205,7 @@ function SecuritySettingsPage() {
                             type={showNewPassword ? "text" : "password"}
                             value={formData.newPassword}
                             onChange={(e) => setFormData({...formData, newPassword: e.target.value})}
-                            className="w-full pl-10 pr-12 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md"
+                            className="w-full pl-10 pr-12 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-[box-shadow,border-color] shadow-sm hover:shadow-md"
                             placeholder="新しいパスワードを入力（8文字以上）"
                             minLength={8}
                             required
@@ -238,7 +238,7 @@ function SecuritySettingsPage() {
                             type={showConfirmPassword ? "text" : "password"}
                             value={formData.confirmPassword}
                             onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-                            className="w-full pl-10 pr-12 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md"
+                            className="w-full pl-10 pr-12 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-[box-shadow,border-color] shadow-sm hover:shadow-md"
                             placeholder="新しいパスワードを再入力"
                             minLength={8}
                             required

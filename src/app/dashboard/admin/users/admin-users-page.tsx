@@ -1126,14 +1126,14 @@ export default function AdminUsersPage() {
                   placeholder="名前またはメールで検索..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-all duration-200"
+                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-[box-shadow,border-color] duration-200"
                 />
               </div>
 
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-all duration-200"
+                className="px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-[box-shadow,border-color] duration-200"
               >
                 <option value="all">決済ステータス: すべて</option>
                 <option value="pending">仮登録</option>
@@ -1146,7 +1146,7 @@ export default function AdminUsersPage() {
               <select
                 value={membershipStatusFilter}
                 onChange={(e) => setMembershipStatusFilter(e.target.value as any)}
-                className="px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-all duration-200"
+                className="px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-[box-shadow,border-color] duration-200"
               >
                 <option value="all">会員ステータス: すべて</option>
                 {MEMBERSHIP_STATUS_OPTIONS.map(({ value, label }) => (
@@ -1157,7 +1157,7 @@ export default function AdminUsersPage() {
               <select
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value as any)}
-                className="px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-all duration-200"
+                className="px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-[box-shadow,border-color] duration-200"
               >
                 <option value="all">ロール: すべて</option>
                 <option value="PENDING">仮登録</option>
@@ -1170,7 +1170,7 @@ export default function AdminUsersPage() {
               <select
                 value={contractFilter}
                 onChange={(e) => setContractFilter(e.target.value as any)}
-                className="px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-all duration-200"
+                className="px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-[box-shadow,border-color] duration-200"
               >
                 <option value="all">契約書: すべて</option>
                 <option value="completed">完了</option>
@@ -1186,7 +1186,7 @@ export default function AdminUsersPage() {
                   setRoleFilter('all')
                   setContractFilter('all')
                 }}
-                className="flex items-center justify-center space-x-2 bg-gradient-to-r from-slate-50 to-blue-50 hover:from-slate-100 hover:to-blue-100 border-slate-300 text-slate-700 hover:text-slate-800 shadow-sm hover:shadow-md transition-all duration-200 rounded-xl py-2.5 sm:py-3 text-sm"
+                className="flex items-center justify-center space-x-2 bg-gradient-to-r from-slate-50 to-blue-50 hover:from-slate-100 hover:to-blue-100 border-slate-300 text-slate-700 hover:text-slate-800 shadow-sm hover:shadow-md transition-shadow duration-200 rounded-xl py-2.5 sm:py-3 text-sm"
               >
                 <Filter className="h-4 w-4" />
                 <span>リセット</span>
@@ -1195,7 +1195,7 @@ export default function AdminUsersPage() {
               <Button
                 variant="outline"
                 onClick={handleExportCSV}
-                className="flex items-center justify-center space-x-2 bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 border-green-300 text-green-700 hover:text-green-800 shadow-sm hover:shadow-md transition-all duration-200 rounded-xl py-2.5 sm:py-3 text-sm"
+                className="flex items-center justify-center space-x-2 bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 border-green-300 text-green-700 hover:text-green-800 shadow-sm hover:shadow-md transition-shadow duration-200 rounded-xl py-2.5 sm:py-3 text-sm"
               >
                 <Download className="h-4 w-4" />
                 <span>CSV出力</span>
@@ -1219,7 +1219,7 @@ export default function AdminUsersPage() {
                       <Button
                         onClick={() => setShowStatusModal(true)}
                         size="sm"
-                        className="flex items-center space-x-1 sm:space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm"
+                        className="flex items-center space-x-1 sm:space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-md hover:shadow-lg transition-shadow duration-200 text-xs sm:text-sm"
                       >
                         <UserCheck className="h-3 w-3 sm:h-4 sm:w-4" />
                         <span className="hidden sm:inline">ステータス変更</span>
@@ -1229,7 +1229,7 @@ export default function AdminUsersPage() {
                       <Button
                         onClick={() => setShowEmailModal(true)}
                         size="sm"
-                        className="flex items-center space-x-1 sm:space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm"
+                        className="flex items-center space-x-1 sm:space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-shadow duration-200 text-xs sm:text-sm"
                       >
                         <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
                         <span className="hidden sm:inline">一括メール送信</span>
@@ -1243,7 +1243,7 @@ export default function AdminUsersPage() {
                       onClick={handleBulkDeletePendingUsers}
                       disabled={isDeletingPendingUsers}
                       size="sm"
-                      className="flex items-center space-x-1 sm:space-x-2 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm"
+                      className="flex items-center space-x-1 sm:space-x-2 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white shadow-md hover:shadow-lg transition-shadow duration-200 text-xs sm:text-sm"
                     >
                       {isDeletingPendingUsers ? (
                         <>
@@ -1338,7 +1338,7 @@ export default function AdminUsersPage() {
                 {filteredUsers.map((user, index) => (
                   <TableRow
                     key={user.id}
-                    className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/50 transition-all duration-200 border-b border-slate-100"
+                    className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/50 transition-colors duration-200 border-b border-slate-100"
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
                     {/* 1. チェックボックス */}
@@ -1423,7 +1423,7 @@ export default function AdminUsersPage() {
                         <select
                           value={user.role}
                           onChange={(e) => updateUserRole(user.id, e.target.value)}
-                          className={`text-xs sm:text-sm px-2 py-1 border-2 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all cursor-pointer ${
+                          className={`text-xs sm:text-sm px-2 py-1 border-2 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-offset-1 transition-[border-color,box-shadow] cursor-pointer ${
                             user.role === 'MEMBER' ? 'bg-slate-100 border-slate-300 text-slate-700 focus:ring-slate-400' :
                             user.role === 'FP' ? 'bg-blue-100 border-blue-300 text-blue-700 focus:ring-blue-400' :
                             user.role === 'MANAGER' ? 'bg-purple-100 border-purple-300 text-purple-700 focus:ring-purple-400' :
@@ -1512,7 +1512,7 @@ export default function AdminUsersPage() {
                         <select
                           value={user.managerId || ''}
                           onChange={(e) => updateUserManager(user.id, e.target.value || null)}
-                          className="text-xs px-2 py-1 border border-slate-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1 transition-all cursor-pointer min-w-[100px]"
+                          className="text-xs px-2 py-1 border border-slate-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1 transition-[box-shadow,border-color] cursor-pointer min-w-[100px]"
                         >
                           <option value="">未設定</option>
                           {managers.map((manager) => (
@@ -1619,7 +1619,7 @@ export default function AdminUsersPage() {
                       setShowStatusModal(false)
                       setStatusUpdateResult(null)
                     }}
-                    className="text-white hover:bg-white/20 rounded-lg p-2 transition-all"
+                    className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
                   >
                     <span className="text-2xl">&times;</span>
                   </button>
@@ -1755,7 +1755,7 @@ export default function AdminUsersPage() {
                       setShowBulkRoleChangeModal(false)
                       setBulkRoleChangeResult(null)
                     }}
-                    className="text-white hover:bg-white/20 rounded-lg p-2 transition-all"
+                    className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
                   >
                     <span className="text-2xl">&times;</span>
                   </button>
@@ -1863,7 +1863,7 @@ export default function AdminUsersPage() {
                       setShowEmailModal(false)
                       setSendResult(null)
                     }}
-                    className="text-white hover:bg-white/20 rounded-lg p-2 transition-all"
+                    className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
                   >
                     <span className="text-2xl">&times;</span>
                   </button>
@@ -2027,7 +2027,7 @@ export default function AdminUsersPage() {
                       setShowPendingUserModal(false)
                       setSelectedPendingUser(null)
                     }}
-                    className="text-white hover:bg-white/20 rounded-lg p-2 transition-all"
+                    className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
                   >
                     <span className="text-2xl">&times;</span>
                   </button>
@@ -2176,7 +2176,7 @@ export default function AdminUsersPage() {
                       setCreateUserForm({ email: '', password: '', name: '', role: 'MEMBER' })
                       setShowPassword(false)
                     }}
-                    className="text-white hover:bg-white/20 rounded-lg p-2 transition-all"
+                    className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
                   >
                     <span className="text-2xl">&times;</span>
                   </button>

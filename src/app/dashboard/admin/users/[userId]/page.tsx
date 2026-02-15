@@ -629,7 +629,7 @@ export default function UserDetailPage() {
                       value={selectedManagerId}
                       onChange={(e) => handleManagerChange(e.target.value)}
                       disabled={savingManager}
-                      className="w-full max-w-md px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all shadow-sm hover:shadow-md bg-white disabled:bg-slate-100 disabled:cursor-not-allowed"
+                      className="w-full max-w-md px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-[box-shadow,border-color] shadow-sm hover:shadow-md bg-white disabled:bg-slate-100 disabled:cursor-not-allowed"
                     >
                       <option value="">未割り当て</option>
                       {managers.map((manager) => (

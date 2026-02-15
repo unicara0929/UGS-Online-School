@@ -114,13 +114,13 @@ export function SubscriptionGuard({ children, allowAccess = false, allowedPaths 
             <div className="space-y-3">
               <button
                 onClick={() => window.location.reload()}
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-lg font-medium shadow-lg transition-all duration-200"
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-lg font-medium shadow-lg transition-shadow duration-200"
               >
                 ページを再読み込み
               </button>
               <button
                 onClick={handleLogout}
-                className="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 px-6 py-3 rounded-lg font-medium transition-all duration-200"
+                className="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 px-6 py-3 rounded-lg font-medium transition-colors duration-200"
               >
                 ログアウト
               </button>
@@ -190,7 +190,7 @@ export function SubscriptionGuard({ children, allowAccess = false, allowedPaths 
                 <button
                   onClick={handleUpdatePaymentMethod}
                   disabled={isUpdatingPayment}
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-blue-400 disabled:to-indigo-400 text-white px-6 py-3 rounded-lg font-medium shadow-lg transition-all duration-200 flex items-center justify-center"
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-blue-400 disabled:to-indigo-400 text-white px-6 py-3 rounded-lg font-medium shadow-lg transition-shadow duration-200 flex items-center justify-center"
                 >
                   {isUpdatingPayment ? (
                     <>
@@ -214,7 +214,7 @@ export function SubscriptionGuard({ children, allowAccess = false, allowedPaths 
                     // 正しく動作しないため、window.location.hrefでフルリロードを行う
                     window.location.href = '/dashboard/settings/subscription'
                   }}
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-lg font-medium shadow-lg transition-all duration-200"
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-lg font-medium shadow-lg transition-shadow duration-200"
                 >
                   サブスクリプション管理へ
                 </button>
@@ -223,7 +223,7 @@ export function SubscriptionGuard({ children, allowAccess = false, allowedPaths 
               {/* ログアウト */}
               <button
                 onClick={handleLogout}
-                className="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 px-6 py-3 rounded-lg font-medium transition-all duration-200"
+                className="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 px-6 py-3 rounded-lg font-medium transition-colors duration-200"
               >
                 ログアウト
               </button>

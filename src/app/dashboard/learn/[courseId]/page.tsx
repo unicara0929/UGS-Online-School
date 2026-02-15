@@ -610,7 +610,7 @@ function LearningPage() {
                         // 動画エリアにスクロール
                         window.scrollTo({ top: 0, behavior: 'smooth' })
                       }}
-                      className={`cursor-pointer group transition-all duration-200 rounded-lg ${
+                      className={`cursor-pointer group transition-[background-color,box-shadow] duration-200 rounded-lg ${
                         index === currentLessonIndex
                           ? 'ring-2 ring-blue-500 bg-blue-50'
                           : ''
@@ -633,7 +633,7 @@ function LearningPage() {
 
                         {/* 再生アイコンオーバーレイ */}
                         <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-colors">
-                          <div className={`w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${
+                          <div className={`w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-colors ${
                             index === currentLessonIndex
                               ? 'bg-blue-500 scale-100'
                               : 'bg-white/90 scale-0 group-hover:scale-100'

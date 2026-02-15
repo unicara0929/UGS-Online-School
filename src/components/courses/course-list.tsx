@@ -233,7 +233,7 @@ export function CourseList() {
     return (
       <Card
         key={categoryInfo.key}
-        className={`hover:shadow-xl transition-all duration-300 cursor-pointer bg-gradient-to-r ${categoryInfo.bgColor} ${categoryInfo.borderColor} border-2`}
+        className={`hover:shadow-xl transition-shadow duration-300 cursor-pointer bg-gradient-to-r ${categoryInfo.bgColor} ${categoryInfo.borderColor} border-2`}
         onClick={() => !stats.isLocked && setSelectedCategory(categoryInfo.key)}
       >
         <CardHeader className="p-4 sm:p-6">
@@ -297,7 +297,7 @@ export function CourseList() {
 
   // コースカードをレンダリング（基礎編/応用編）
   const renderCourseCard = (course: Course) => (
-    <Card key={course.id} className="hover:shadow-xl transition-all duration-300 overflow-hidden">
+    <Card key={course.id} className="hover:shadow-xl transition-shadow duration-300 overflow-hidden">
       <CardHeader className="p-3 sm:p-6">
         <div className="flex flex-wrap items-center gap-2 mb-2">
           {course.isNew && (
