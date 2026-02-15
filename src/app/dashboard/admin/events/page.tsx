@@ -100,6 +100,7 @@ function AdminEventsPageContent() {
         // 外部参加者設定
         allowExternalParticipation: event.allowExternalParticipation || false,
         externalRegistrationToken: event.externalRegistrationToken || null,
+        externalFormFields: event.externalFormFields || null,
       }))
 
       setEvents(formattedEvents)

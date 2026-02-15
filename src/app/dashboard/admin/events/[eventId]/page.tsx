@@ -696,7 +696,7 @@ function EventDetailPageContent() {
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">名前</th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">メール</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">電話番号 / 紹介者</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase whitespace-nowrap">電話番号 / 紹介者</th>
                           {event?.schedules && event.schedules.length > 1 && (
                             <th className="px-2 py-3">
                               <FilterDropdown
@@ -782,6 +782,11 @@ function EventDetailPageContent() {
                               onChange={(v) => setFilters({ ...filters, canceled: v })}
                             />
                           </th>
+                          {event?.externalFormFields && (event.externalFormFields as RegistrationFormField[]).map((field: RegistrationFormField) => (
+                            <th key={field.id} className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase whitespace-nowrap">
+                              {field.label}
+                            </th>
+                          ))}
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-200">
@@ -803,22 +808,7 @@ function EventDetailPageContent() {
                             <td className="px-4 py-3 text-sm text-slate-600">{participant.userEmail}</td>
                             <td className="px-4 py-3 text-sm text-slate-600">
                               {participant.isExternal ? (
-                                participant.customFieldAnswers && event?.externalFormFields ? (
-                                  <div className="space-y-0.5">
-                                    {(event.externalFormFields as RegistrationFormField[]).map((field: RegistrationFormField) => {
-                                      const value = participant.customFieldAnswers?.[field.id]
-                                      if (value === undefined || value === null || value === '') return null
-                                      const displayValue = Array.isArray(value) ? value.join(', ') : String(value)
-                                      return (
-                                        <div key={field.id} className="text-xs" title={`${field.label}: ${displayValue}`}>
-                                          <span className="text-slate-400">{field.label}:</span> {displayValue}
-                                        </div>
-                                      )
-                                    })}
-                                  </div>
-                                ) : (
-                                  participant.referrer || '-'
-                                )
+                                participant.referrer || '-'
                               ) : (
                                 participant.userPhone || '-'
                               )}
@@ -872,6 +862,17 @@ function EventDetailPageContent() {
                                 <span className="text-slate-400">-</span>
                               )}
                             </td>
+                            {event?.externalFormFields && (event.externalFormFields as RegistrationFormField[]).map((field: RegistrationFormField) => {
+                              const value = participant.isExternal ? participant.customFieldAnswers?.[field.id] : undefined
+                              const displayValue = value === undefined || value === null || value === ''
+                                ? '-'
+                                : Array.isArray(value) ? value.join(', ') : String(value)
+                              return (
+                                <td key={field.id} className="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">
+                                  {displayValue}
+                                </td>
+                              )
+                            })}
                           </tr>
                         ))}
                       </tbody>
