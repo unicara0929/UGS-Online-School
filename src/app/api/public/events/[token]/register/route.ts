@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import Stripe from 'stripe'
+import { parseExternalFormFields, validateCustomFieldAnswers } from '@/lib/validations/event'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-10-29.clover',
@@ -14,7 +15,19 @@ export async function POST(
   try {
     const { token } = await params
     const body = await request.json()
-    const { name, email, phone, referrer, scheduleId, customFieldAnswers } = body
+    const { name: rawName, email: rawEmail, phone: rawPhone, referrer, scheduleId, customFieldAnswers } = body
+
+    // 入力値のサニタイズ（文字列型チェック + トリム + 長さ制限）
+    if (typeof rawName !== 'string' || typeof rawEmail !== 'string' || typeof rawPhone !== 'string') {
+      return NextResponse.json(
+        { success: false, error: '名前、メールアドレス、電話番号は文字列で入力してください' },
+        { status: 400 }
+      )
+    }
+
+    const name = rawName.trim().slice(0, 200)
+    const email = rawEmail.trim().toLowerCase().slice(0, 254)
+    const phone = rawPhone.trim().slice(0, 20)
 
     // バリデーション
     if (!name || !email || !phone) {
@@ -29,6 +42,15 @@ export async function POST(
     if (!emailRegex.test(email)) {
       return NextResponse.json(
         { success: false, error: '有効なメールアドレスを入力してください' },
+        { status: 400 }
+      )
+    }
+
+    // 電話番号形式チェック（数字、ハイフン、プラス記号のみ）
+    const phoneRegex = /^[0-9+\-() ]{6,20}$/
+    if (!phoneRegex.test(phone)) {
+      return NextResponse.json(
+        { success: false, error: '有効な電話番号を入力してください' },
         { status: 400 }
       )
     }
@@ -82,36 +104,58 @@ export async function POST(
       )
     }
 
-    // カスタムフィールドの必須バリデーション
-    if (customFieldAnswers && event.externalFormFields) {
-      const formFields = event.externalFormFields as any[]
-      for (const field of formFields) {
-        if (field.required) {
-          const value = customFieldAnswers[field.id]
-          if (value === undefined || value === null || value === '' || (Array.isArray(value) && value.length === 0)) {
-            return NextResponse.json(
-              { success: false, error: `${field.label}は必須です` },
-              { status: 400 }
-            )
-          }
-        }
+    // カスタムフィールドのバリデーション（型安全）
+    const { fields: formFields } = parseExternalFormFields(event.externalFormFields)
+    let sanitizedAnswers: Record<string, string | string[] | number> | undefined
+    if (formFields.length > 0) {
+      const { valid, error: answerError, sanitized } = validateCustomFieldAnswers(customFieldAnswers, formFields)
+      if (!valid) {
+        return NextResponse.json(
+          { success: false, error: answerError },
+          { status: 400 }
+        )
+      }
+      sanitizedAnswers = Object.keys(sanitized).length > 0 ? sanitized : undefined
+    }
+
+    // referrer のサニタイズ
+    let effectiveReferrer: string | null = null
+    if (referrer !== undefined && referrer !== null) {
+      if (typeof referrer !== 'string') {
+        return NextResponse.json(
+          { success: false, error: '紹介者は文字列で入力してください' },
+          { status: 400 }
+        )
+      }
+      effectiveReferrer = referrer.trim().slice(0, 200) || null
+    }
+    if (sanitizedAnswers && formFields.length > 0) {
+      const referrerField = formFields.find(f => f.label === '紹介者')
+      if (referrerField && sanitizedAnswers[referrerField.id]) {
+        effectiveReferrer = String(sanitizedAnswers[referrerField.id])
       }
     }
 
-    // 後方互換: customFieldAnswersから紹介者を抽出
-    let effectiveReferrer = referrer || null
-    if (customFieldAnswers && event.externalFormFields) {
-      const formFields = event.externalFormFields as any[]
-      const referrerField = formFields.find((f: any) => f.label === '紹介者')
-      if (referrerField && customFieldAnswers[referrerField.id]) {
-        effectiveReferrer = String(customFieldAnswers[referrerField.id])
-      }
+    // scheduleId のバリデーション
+    if (scheduleId !== undefined && scheduleId !== null && typeof scheduleId !== 'string') {
+      return NextResponse.json(
+        { success: false, error: '日程IDが不正です' },
+        { status: 400 }
+      )
     }
 
     // 対象スケジュールを決定
-    const targetSchedule = scheduleId
-      ? event.schedules.find(s => s.id === scheduleId)
-      : event.schedules[0]
+    let targetSchedule = event.schedules[0]
+    if (scheduleId) {
+      const found = event.schedules.find(s => s.id === scheduleId)
+      if (!found) {
+        return NextResponse.json(
+          { success: false, error: '指定された日程が見つかりません' },
+          { status: 400 }
+        )
+      }
+      targetSchedule = found
+    }
 
     // 申込期限チェック（日数ベース）
     if (event.applicationDeadlineDays !== null && targetSchedule) {
@@ -180,7 +224,7 @@ export async function POST(
           email,
           phone,
           referrer: effectiveReferrer,
-          customFieldAnswers: customFieldAnswers || undefined,
+          customFieldAnswers: sanitizedAnswers,
           paymentStatus: 'FREE',
         }
       })
@@ -219,7 +263,7 @@ export async function POST(
         email,
         phone,
         referrer: effectiveReferrer,
-        customFieldAnswers: customFieldAnswers || undefined,
+        customFieldAnswers: sanitizedAnswers,
         paymentStatus: 'PENDING',
       }
     })
@@ -242,8 +286,19 @@ export async function POST(
       registrationId: registration.id,
     })
 
-  } catch (error) {
-    console.error('Error registering external participant:', error)
+  } catch (error: unknown) {
+    // Prisma unique constraint violation（重複登録の競合）
+    if (
+      error instanceof Error &&
+      'code' in error &&
+      (error as { code: string }).code === 'P2002'
+    ) {
+      return NextResponse.json(
+        { success: false, error: 'このメールアドレスは既に登録されています' },
+        { status: 400 }
+      )
+    }
+    console.error('Error registering external participant:', error instanceof Error ? error.message : error)
     return NextResponse.json(
       { success: false, error: '登録に失敗しました' },
       { status: 500 }
@@ -269,7 +324,7 @@ async function createCheckoutSession(
             name: event.title,
             description: `イベント参加費: ${event.title}`,
           },
-          unit_amount: event.price || 0,
+          unit_amount: event.price && event.price > 0 ? event.price : (() => { throw new Error('有料イベントの価格が設定されていません') })(),
         },
         quantity: 1,
       }]
@@ -301,12 +356,22 @@ async function sendExternalEventConfirmationEmail(params: {
   eventLocation?: string
   onlineMeetingUrl?: string
 }): Promise<void> {
-  const { sendEmail } = await import('@/lib/email')
+  const { sendEmail, escapeHtml } = await import('@/lib/email')
   const { format } = await import('date-fns')
   const { ja } = await import('date-fns/locale')
 
   const formattedDate = format(params.eventDate, 'yyyy年M月d日(E)', { locale: ja })
   const subject = `【UGS】イベント参加確定：${params.eventTitle}`
+
+  // HTMLインジェクション防止: ユーザー入力値をエスケープ
+  const safeName = escapeHtml(params.name)
+  const safeTitle = escapeHtml(params.eventTitle)
+  const safeTime = params.eventTime ? escapeHtml(params.eventTime) : ''
+  const safeLocation = params.eventLocation ? escapeHtml(params.eventLocation) : ''
+  // URLはhttps://で始まるかチェック
+  const safeOnlineUrl = params.onlineMeetingUrl && /^https?:\/\//i.test(params.onlineMeetingUrl)
+    ? params.onlineMeetingUrl
+    : undefined
 
   const html = `
     <!DOCTYPE html>
@@ -332,19 +397,19 @@ async function sendExternalEventConfirmationEmail(params: {
           <h1 style="margin: 0; font-size: 24px;">イベント参加確定</h1>
         </div>
         <div class="content">
-          <p>${params.name} 様</p>
+          <p>${safeName} 様</p>
           <p>以下のイベントへの参加が確定しました。</p>
 
           <div class="event-info">
-            <div class="event-title">${params.eventTitle}</div>
-            <div class="event-detail">日時: ${formattedDate}${params.eventTime ? ` ${params.eventTime}` : ''}</div>
-            ${params.eventLocation ? `<div class="event-detail">場所: ${params.eventLocation}</div>` : ''}
+            <div class="event-title">${safeTitle}</div>
+            <div class="event-detail">日時: ${escapeHtml(formattedDate)}${safeTime ? ` ${safeTime}` : ''}</div>
+            ${safeLocation ? `<div class="event-detail">場所: ${safeLocation}</div>` : ''}
           </div>
 
-          ${params.onlineMeetingUrl ? `
+          ${safeOnlineUrl ? `
           <div class="online-link">
             <strong>オンライン参加URL:</strong><br>
-            <a href="${params.onlineMeetingUrl}">${params.onlineMeetingUrl}</a>
+            <a href="${safeOnlineUrl}">${escapeHtml(safeOnlineUrl)}</a>
           </div>
           ` : ''}
 

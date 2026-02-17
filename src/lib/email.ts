@@ -9,9 +9,21 @@ const transporter = nodemailer.createTransport({
     pass: process.env.SMTP_PASS,
   },
   tls: {
-    rejectUnauthorized: false
+    rejectUnauthorized: process.env.NODE_ENV !== 'development',
   },
 })
+
+/**
+ * HTMLエスケープユーティリティ（メールテンプレートでのXSS防止）
+ */
+export function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
 
 /**
  * 汎用メール送信関数

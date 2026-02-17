@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { Prisma } from '@prisma/client'
 import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
+import { parseExternalFormFields } from '@/lib/validations/event'
 import {
   EVENT_TYPE_INPUT_MAP,
   EVENT_VENUE_TYPE_INPUT_MAP,
@@ -153,7 +154,18 @@ export async function PUT(
       }
     }
     if (externalFormFields !== undefined) {
-      updateData.externalFormFields = externalFormFields
+      if (externalFormFields !== null) {
+        const { error: fieldError } = parseExternalFormFields(externalFormFields)
+        if (fieldError) {
+          return NextResponse.json(
+            { success: false, error: fieldError },
+            { status: 400 }
+          )
+        }
+      }
+      updateData.externalFormFields = externalFormFields !== null
+        ? (parseExternalFormFields(externalFormFields).fields as unknown as Prisma.InputJsonValue)
+        : externalFormFields
     }
 
     // 有料イベントの検証

@@ -8,16 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Calendar, Clock, MapPin, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
-
-type RegistrationFormField = {
-  id: string
-  label: string
-  type: 'TEXT' | 'TEXTAREA' | 'SELECT' | 'MULTI_SELECT' | 'RADIO' | 'DATE' | 'RATING'
-  required: boolean
-  description?: string
-  options?: string[]
-  placeholder?: string
-}
+import type { RegistrationFormField } from '@/types/event'
 
 type Schedule = {
   id: string
@@ -450,6 +441,7 @@ export default function ExternalEventRegisterPage() {
                   onChange={(e) => setName(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
                   placeholder="山田 太郎"
+                  maxLength={200}
                   disabled={isSubmitting}
                 />
               </div>
@@ -464,6 +456,7 @@ export default function ExternalEventRegisterPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
                   placeholder="example@email.com"
+                  maxLength={254}
                   disabled={isSubmitting}
                   spellCheck={false}
                 />
@@ -479,6 +472,7 @@ export default function ExternalEventRegisterPage() {
                   onChange={(e) => setPhone(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
                   placeholder="090-1234-5678"
+                  maxLength={20}
                   disabled={isSubmitting}
                 />
               </div>
@@ -501,6 +495,7 @@ export default function ExternalEventRegisterPage() {
                         onChange={(e) => setCustomAnswers(prev => ({ ...prev, [field.id]: e.target.value }))}
                         className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
                         placeholder={field.placeholder || ''}
+                        maxLength={5000}
                         disabled={isSubmitting}
                       />
                     )}
@@ -512,6 +507,7 @@ export default function ExternalEventRegisterPage() {
                         className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
                         rows={3}
                         placeholder={field.placeholder || ''}
+                        maxLength={5000}
                         disabled={isSubmitting}
                       />
                     )}

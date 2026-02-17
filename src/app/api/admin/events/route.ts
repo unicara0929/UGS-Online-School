@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { getAuthenticatedUser, checkAdmin, checkRole, RoleGroups } from '@/lib/auth/api-helpers'
 import { createEventPrice } from '@/lib/services/event-price-service'
+import { parseExternalFormFields } from '@/lib/validations/event'
 import {
   EVENT_TYPE_MAP,
   EVENT_TARGET_ROLE_MAP,
@@ -286,6 +288,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // externalFormFields のバリデーション
+    if (allowExternalParticipation && externalFormFields) {
+      const { error: fieldError } = parseExternalFormFields(externalFormFields)
+      if (fieldError) {
+        return NextResponse.json(
+          { success: false, error: fieldError },
+          { status: 400 }
+        )
+      }
+    }
+
     const eventType = EVENT_TYPE_INPUT_MAP[type] ?? 'OPTIONAL'
     const eventTargetRoles = targetRoles.map((role: string) => EVENT_TARGET_ROLE_INPUT_MAP[role] ?? 'ALL')
     const eventAttendanceType = EVENT_ATTENDANCE_TYPE_INPUT_MAP[attendanceType] ?? 'OPTIONAL'
@@ -326,7 +339,9 @@ export async function POST(request: NextRequest) {
         // 外部参加者設定
         allowExternalParticipation,
         externalRegistrationToken: allowExternalParticipation ? crypto.randomUUID() : null,
-        externalFormFields: allowExternalParticipation && externalFormFields ? externalFormFields : undefined,
+        externalFormFields: allowExternalParticipation && externalFormFields
+          ? (parseExternalFormFields(externalFormFields).fields as unknown as Prisma.InputJsonValue)
+          : undefined,
       },
     })
 

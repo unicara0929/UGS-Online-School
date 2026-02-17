@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser, checkRole, RoleGroups } from '@/lib/auth/api-helpers'
+import { parseExternalFormFields } from '@/lib/validations/event'
 
 /**
  * イベント参加者CSVエクスポートAPI
@@ -55,9 +56,9 @@ export async function GET(
       )
     }
 
-    // カスタムフィールド定義を取得
-    const formFields = (event.externalFormFields as any[] | null) || []
-    const customFieldLabels = formFields.map((f: any) => f.label)
+    // カスタムフィールド定義を取得（型安全）
+    const { fields: formFields } = parseExternalFormFields(event.externalFormFields)
+    const customFieldLabels = formFields.map(f => f.label)
 
     // CSVヘッダー
     const headers = [
@@ -109,7 +110,7 @@ export async function GET(
         reg.paidAt ? new Date(reg.paidAt).toISOString() : '',
         '', // 外部参加者はキャンセル日時なし
         '', // 外部参加者はキャンセル理由なし
-        ...formFields.map((f: any) => {
+        ...formFields.map(f => {
           const value = answers[f.id]
           if (value === undefined || value === null) return ''
           if (Array.isArray(value)) return value.join('; ')
@@ -125,11 +126,20 @@ export async function GET(
       return dateB - dateA
     })
 
+    // CSVインジェクション対策: セル値の先頭が危険な文字の場合にプレフィックスを付与
+    const sanitizeCsvCell = (value: string): string => {
+      const escaped = String(value).replace(/"/g, '""')
+      if (/^[=+\-@\t\r]/.test(escaped)) {
+        return "'" + escaped
+      }
+      return escaped
+    }
+
     // CSV文字列を生成
     const csvContent = [
-      headers.map((h) => `"${h}"`).join(','),
+      headers.map((h) => `"${sanitizeCsvCell(h)}"`).join(','),
       ...allRows.map((row) =>
-        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+        row.map((cell) => `"${sanitizeCsvCell(String(cell))}"`).join(',')
       ),
     ].join('\n')
 
@@ -140,12 +150,13 @@ export async function GET(
     // ファイル名用の日付
     const dateStr = new Date().toISOString().slice(0, 10)
     const eventTitle = event.title.replace(/[^a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/g, '_')
+    const filename = `event_participants_${eventTitle}_${dateStr}.csv`
 
-    // CSVレスポンスを返す
+    // CSVレスポンスを返す（RFC 5987形式でファイル名をエンコード）
     return new NextResponse(csvWithBom, {
       headers: {
         'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': `attachment; filename="event_participants_${eventTitle}_${dateStr}.csv"`,
+        'Content-Disposition': `attachment; filename="${filename}"; filename*=UTF-8''${encodeURIComponent(filename)}`,
       },
     })
   } catch (error) {
