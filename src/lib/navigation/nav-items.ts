@@ -124,6 +124,7 @@ export const navigation: NavItem[] = [
       { name: 'キャンペーン案内', href: '/dashboard/admin/events', icon: Calendar, roles: ['admin'] },
       { name: 'イベント・研修管理', href: '/dashboard/admin/training', icon: GraduationCap, roles: ['admin'] },
       { name: 'LP面談管理', href: '/dashboard/admin/lp-meetings', icon: MessageSquare, roles: ['admin'] },
+      { name: 'アンケート管理', href: '/dashboard/admin/survey', icon: FileText, roles: ['admin'] },
     ]
   },
   {
