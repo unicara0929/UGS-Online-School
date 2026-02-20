@@ -16,6 +16,8 @@ import {
   Eye,
   CheckCircle2,
   Trophy,
+  BarChart3,
+  RefreshCw,
 } from 'lucide-react'
 import {
   BarChart,
@@ -193,12 +195,12 @@ export default function AnalyticsPage() {
     return (
       <ProtectedRoute requiredRoles={['manager', 'admin']}>
         <DashboardLayout>
-          <div className="p-6 flex items-center justify-center min-h-screen">
+          <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 p-6 flex items-center justify-center">
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl">
-                <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/20">
+                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
               </div>
-              <p className="text-slate-600">データを読み込み中...</p>
+              <p className="text-sm text-slate-500">データを読み込み中...</p>
             </div>
           </div>
         </DashboardLayout>
@@ -209,44 +211,54 @@ export default function AnalyticsPage() {
   return (
     <ProtectedRoute requiredRoles={['manager', 'admin']}>
       <DashboardLayout>
-        <div className="p-6 space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">分析</h1>
-          <p className="text-slate-600 mt-1">学習・決済・集客の主要KPI</p>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
+        <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
+
+        {/* ヘッダー */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg shadow-blue-500/20">
+              <BarChart3 className="h-6 w-6 text-white" aria-hidden="true" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900">分析ダッシュボード</h1>
+              <p className="text-sm text-slate-500">学習・決済・集客の主要KPI</p>
+            </div>
+          </div>
         </div>
 
         {/* タブ切り替え */}
-        <div className="flex gap-2 border-b border-slate-200 pb-0">
+        <div className="inline-flex items-center gap-1 p-1 bg-slate-100 rounded-xl">
           <button
             onClick={() => setActiveTab('payment')}
-            className={`px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors ${
+            className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
               activeTab === 'payment'
-                ? 'bg-white text-blue-600 border border-b-white border-slate-200 -mb-px'
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700'
             }`}
           >
-            <DollarSign className="h-4 w-4 inline-block mr-1.5 -mt-0.5" aria-hidden="true" />
+            <DollarSign className="h-4 w-4" aria-hidden="true" />
             決済・売上
           </button>
           <button
             onClick={() => setActiveTab('content')}
-            className={`px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors ${
+            className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
               activeTab === 'content'
-                ? 'bg-white text-blue-600 border border-b-white border-slate-200 -mb-px'
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700'
             }`}
           >
-            <BookOpen className="h-4 w-4 inline-block mr-1.5 -mt-0.5" aria-hidden="true" />
+            <BookOpen className="h-4 w-4" aria-hidden="true" />
             コンテンツ分析
           </button>
         </div>
 
         {error && (
-          <Card className="border-red-200 bg-red-50">
+          <Card className="border-red-200 bg-red-50/80">
             <CardContent className="pt-6">
               <div role="alert" className="flex items-center space-x-2 text-red-600">
-                <AlertCircle className="h-5 w-5" aria-hidden="true" />
-                <p>{error}</p>
+                <AlertCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
+                <p className="text-sm">{error}</p>
               </div>
             </CardContent>
           </Card>
@@ -255,37 +267,46 @@ export default function AnalyticsPage() {
         {/* ===== 決済・売上タブ ===== */}
         {activeTab === 'payment' && (
         <>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {/* 有料会員数 */}
-          <Card className="shadow-lg hover:shadow-xl transition-shadow">
-            <CardHeader>
+          <Card className="relative overflow-hidden border-0 shadow-md hover:shadow-lg transition-all duration-300 bg-white">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-blue-400"></div>
+            <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-semibold text-slate-700">有料会員数</CardTitle>
-                <Users className="h-5 w-5 text-blue-600" aria-hidden="true" />
+                <CardTitle className="text-sm font-medium text-slate-500">有料会員数</CardTitle>
+                <div className="p-2 bg-blue-50 rounded-lg">
+                  <Users className="h-4 w-4 text-blue-600" aria-hidden="true" />
+                </div>
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-4xl font-bold text-slate-900 mb-2">{activeMembers}</p>
-              <p className="text-sm text-slate-500">アクティブなサブスクリプション</p>
-              <div className="mt-4 pt-4 border-t border-slate-200">
-                <p className="text-xs text-slate-600">Stripe連携で自動反映</p>
+              <p className="text-4xl font-bold text-slate-900 tracking-tight">{activeMembers}</p>
+              <p className="text-xs text-slate-400 mt-1">アクティブなサブスクリプション</p>
+              <div className="mt-4 pt-3 border-t border-slate-100">
+                <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                  <RefreshCw className="h-3 w-3" aria-hidden="true" />
+                  <span>Stripe連携で自動反映</span>
+                </div>
               </div>
             </CardContent>
           </Card>
 
           {/* 月額売上 */}
-          <Card className="shadow-lg hover:shadow-xl transition-shadow">
-            <CardHeader>
+          <Card className="relative overflow-hidden border-0 shadow-md hover:shadow-lg transition-all duration-300 bg-white">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-emerald-400"></div>
+            <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-semibold text-slate-700">月額売上</CardTitle>
-                <DollarSign className="h-5 w-5 text-green-600" aria-hidden="true" />
+                <CardTitle className="text-sm font-medium text-slate-500">月額売上</CardTitle>
+                <div className="p-2 bg-emerald-50 rounded-lg">
+                  <DollarSign className="h-4 w-4 text-emerald-600" aria-hidden="true" />
+                </div>
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-4xl font-bold text-slate-900 mb-2">{formatCurrency(monthlyRevenue)}</p>
-              <p className="text-sm text-slate-500">有料会員数 × 月額¥5,500</p>
-              <div className="mt-4 pt-4 border-t border-slate-200">
-                <div className="flex items-center space-x-1 text-xs text-green-600">
+              <p className="text-4xl font-bold text-slate-900 tracking-tight">{formatCurrency(monthlyRevenue)}</p>
+              <p className="text-xs text-slate-400 mt-1">有料会員数 × 月額¥5,500</p>
+              <div className="mt-4 pt-3 border-t border-slate-100">
+                <div className="flex items-center gap-1.5 text-xs text-emerald-600">
                   <TrendingUp className="h-3 w-3" aria-hidden="true" />
                   <span>リアルタイム更新</span>
                 </div>
@@ -294,37 +315,40 @@ export default function AnalyticsPage() {
           </Card>
 
           {/* 退会（解約）数 */}
-          <Card className="shadow-lg hover:shadow-xl transition-shadow">
-            <CardHeader>
+          <Card className="relative overflow-hidden border-0 shadow-md hover:shadow-lg transition-all duration-300 bg-white">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-red-400"></div>
+            <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-semibold text-slate-700">退会（解約）数</CardTitle>
-                <UserX className="h-5 w-5 text-red-600" aria-hidden="true" />
+                <CardTitle className="text-sm font-medium text-slate-500">退会（解約）数</CardTitle>
+                <div className="p-2 bg-red-50 rounded-lg">
+                  <UserX className="h-4 w-4 text-red-500" aria-hidden="true" />
+                </div>
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-4xl font-bold text-slate-900 mb-2">{canceledMembers}</p>
-              <p className="text-sm text-slate-500">キャンセル済みサブスクリプション</p>
-              <div className="mt-4 pt-4 border-t border-slate-200">
-                <p className="text-xs text-slate-600">解約・再開で変動</p>
+              <p className="text-4xl font-bold text-slate-900 tracking-tight">{canceledMembers}</p>
+              <p className="text-xs text-slate-400 mt-1">キャンセル済みサブスクリプション</p>
+              <div className="mt-4 pt-3 border-t border-slate-100">
+                <p className="text-xs text-slate-500">解約・再開で変動</p>
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* 追加統計情報 */}
-        <Card className="shadow-lg">
+        <Card className="border-0 shadow-md bg-white">
           <CardHeader>
-            <CardTitle>詳細統計</CardTitle>
+            <CardTitle className="text-base font-semibold text-slate-900">詳細統計</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-slate-50 rounded-lg">
-                <p className="text-sm text-slate-600 mb-1">総サブスクリプション数</p>
-                <p className="text-2xl font-bold text-slate-900">{subscriptions.length}</p>
+              <div className="p-5 bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-xl border border-slate-100">
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">総サブスクリプション数</p>
+                <p className="text-3xl font-bold text-slate-900">{subscriptions.length}</p>
               </div>
-              <div className="p-4 bg-slate-50 rounded-lg">
-                <p className="text-sm text-slate-600 mb-1">継続率</p>
-                <p className="text-2xl font-bold text-slate-900">
+              <div className="p-5 bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-xl border border-slate-100">
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">継続率</p>
+                <p className="text-3xl font-bold text-slate-900">
                   {subscriptions.length > 0 && (activeMembers + canceledMembers) > 0
                     ? `${Math.round((activeMembers / (activeMembers + canceledMembers)) * 100)}%`
                     : '--%'
@@ -341,71 +365,85 @@ export default function AnalyticsPage() {
         {activeTab === 'content' && (
           <>
             {contentLoading ? (
-              <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-4 text-slate-600">コンテンツデータを読み込み中...</p>
+              <div className="text-center py-16">
+                <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-violet-500/20">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                </div>
+                <p className="text-sm text-slate-500">コンテンツデータを読み込み中...</p>
               </div>
             ) : contentAnalytics ? (
               <>
                 {/* KPIカード */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <Card className="shadow-lg border-2 border-violet-100 bg-gradient-to-br from-violet-50 to-white">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                  <Card className="relative overflow-hidden border-0 shadow-md hover:shadow-lg transition-all duration-300 bg-white">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-violet-500 to-violet-400"></div>
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-violet-700 flex items-center">
-                        <Eye className="h-4 w-4 mr-2" aria-hidden="true" />
-                        コース閲覧数
-                      </CardTitle>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-sm font-medium text-slate-500">コース閲覧数</CardTitle>
+                        <div className="p-2 bg-violet-50 rounded-lg">
+                          <Eye className="h-4 w-4 text-violet-600" aria-hidden="true" />
+                        </div>
+                      </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-bold text-violet-600">{contentAnalytics.kpi.totalCourseViews}</div>
-                      <p className="text-xs text-violet-500 mt-1">{contentAnalytics.kpi.totalCourses}コース</p>
+                      <div className="text-3xl font-bold text-slate-900 tracking-tight">{contentAnalytics.kpi.totalCourseViews}</div>
+                      <p className="text-xs text-slate-400 mt-1">{contentAnalytics.kpi.totalCourses}コース</p>
                     </CardContent>
                   </Card>
 
-                  <Card className="shadow-lg border-2 border-emerald-100 bg-gradient-to-br from-emerald-50 to-white">
+                  <Card className="relative overflow-hidden border-0 shadow-md hover:shadow-lg transition-all duration-300 bg-white">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-emerald-400"></div>
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-emerald-700 flex items-center">
-                        <CheckCircle2 className="h-4 w-4 mr-2" aria-hidden="true" />
-                        コース修了数
-                      </CardTitle>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-sm font-medium text-slate-500">コース修了数</CardTitle>
+                        <div className="p-2 bg-emerald-50 rounded-lg">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-600" aria-hidden="true" />
+                        </div>
+                      </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-bold text-emerald-600">{contentAnalytics.kpi.totalCompletions}</div>
-                      <p className="text-xs text-emerald-500 mt-1">平均修了率: {contentAnalytics.kpi.avgCompletionRate}%</p>
+                      <div className="text-3xl font-bold text-slate-900 tracking-tight">{contentAnalytics.kpi.totalCompletions}</div>
+                      <p className="text-xs text-slate-400 mt-1">平均修了率: {contentAnalytics.kpi.avgCompletionRate}%</p>
                     </CardContent>
                   </Card>
 
-                  <Card className="shadow-lg border-2 border-amber-100 bg-gradient-to-br from-amber-50 to-white">
+                  <Card className="relative overflow-hidden border-0 shadow-md hover:shadow-lg transition-all duration-300 bg-white">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500 to-amber-400"></div>
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-amber-700 flex items-center">
-                        <Calendar className="h-4 w-4 mr-2" aria-hidden="true" />
-                        イベント参加登録
-                      </CardTitle>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-sm font-medium text-slate-500">イベント参加登録</CardTitle>
+                        <div className="p-2 bg-amber-50 rounded-lg">
+                          <Calendar className="h-4 w-4 text-amber-600" aria-hidden="true" />
+                        </div>
+                      </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-bold text-amber-600">{contentAnalytics.kpi.totalEventRegistrations}</div>
-                      <p className="text-xs text-amber-500 mt-1">{contentAnalytics.kpi.totalEvents}イベント</p>
+                      <div className="text-3xl font-bold text-slate-900 tracking-tight">{contentAnalytics.kpi.totalEventRegistrations}</div>
+                      <p className="text-xs text-slate-400 mt-1">{contentAnalytics.kpi.totalEvents}イベント</p>
                     </CardContent>
                   </Card>
 
-                  <Card className="shadow-lg border-2 border-blue-100 bg-gradient-to-br from-blue-50 to-white">
+                  <Card className="relative overflow-hidden border-0 shadow-md hover:shadow-lg transition-all duration-300 bg-white">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-blue-400"></div>
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-blue-700 flex items-center">
-                        <Users className="h-4 w-4 mr-2" aria-hidden="true" />
-                        ユニーク利用者
-                      </CardTitle>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-sm font-medium text-slate-500">ユニーク利用者</CardTitle>
+                        <div className="p-2 bg-blue-50 rounded-lg">
+                          <Users className="h-4 w-4 text-blue-600" aria-hidden="true" />
+                        </div>
+                      </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-bold text-blue-600">{contentAnalytics.kpi.uniqueViewers}</div>
-                      <p className="text-xs text-blue-500 mt-1">コンテンツ閲覧ユーザー</p>
+                      <div className="text-3xl font-bold text-slate-900 tracking-tight">{contentAnalytics.kpi.uniqueViewers}</div>
+                      <p className="text-xs text-slate-400 mt-1">コンテンツ閲覧ユーザー</p>
                     </CardContent>
                   </Card>
                 </div>
 
                 {/* 月別コンテンツ閲覧トレンド */}
-                <Card className="shadow-lg">
+                <Card className="border-0 shadow-md bg-white">
                   <CardHeader>
-                    <CardTitle className="flex items-center">
+                    <CardTitle className="flex items-center text-base font-semibold text-slate-900">
                       <TrendingUp className="h-5 w-5 mr-2 text-blue-600" aria-hidden="true" />
                       コンテンツ閲覧トレンド（過去6ヶ月）
                     </CardTitle>
@@ -444,10 +482,10 @@ export default function AnalyticsPage() {
                 </Card>
 
                 {/* コース人気ランキング & 修了率 */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card className="shadow-lg">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                  <Card className="border-0 shadow-md bg-white">
                     <CardHeader>
-                      <CardTitle className="flex items-center">
+                      <CardTitle className="flex items-center text-base font-semibold text-slate-900">
                         <Trophy className="h-5 w-5 mr-2 text-violet-600" aria-hidden="true" />
                         コース人気ランキング
                       </CardTitle>
@@ -486,9 +524,9 @@ export default function AnalyticsPage() {
                     </CardContent>
                   </Card>
 
-                  <Card className="shadow-lg">
+                  <Card className="border-0 shadow-md bg-white">
                     <CardHeader>
-                      <CardTitle className="flex items-center">
+                      <CardTitle className="flex items-center text-base font-semibold text-slate-900">
                         <CheckCircle2 className="h-5 w-5 mr-2 text-emerald-600" aria-hidden="true" />
                         コース修了率
                       </CardTitle>
@@ -529,9 +567,9 @@ export default function AnalyticsPage() {
                 </div>
 
                 {/* コース詳細テーブル */}
-                <Card className="shadow-lg">
+                <Card className="border-0 shadow-md bg-white">
                   <CardHeader>
-                    <CardTitle className="flex items-center">
+                    <CardTitle className="flex items-center text-base font-semibold text-slate-900">
                       <BookOpen className="h-5 w-5 mr-2 text-blue-600" aria-hidden="true" />
                       コース別詳細
                     </CardTitle>
@@ -597,9 +635,9 @@ export default function AnalyticsPage() {
                 </Card>
 
                 {/* イベント参加ランキング */}
-                <Card className="shadow-lg">
+                <Card className="border-0 shadow-md bg-white">
                   <CardHeader>
-                    <CardTitle className="flex items-center">
+                    <CardTitle className="flex items-center text-base font-semibold text-slate-900">
                       <Calendar className="h-5 w-5 mr-2 text-amber-600" aria-hidden="true" />
                       イベント参加ランキング
                     </CardTitle>
@@ -647,8 +685,8 @@ export default function AnalyticsPage() {
                 </Card>
               </>
             ) : (
-              <div className="text-center py-12">
-                <p className="text-slate-500">コンテンツ分析データの読み込みに失敗しました</p>
+              <div className="text-center py-16">
+                <p className="text-sm text-slate-500">コンテンツ分析データの読み込みに失敗しました</p>
                 <Button variant="outline" className="mt-4" onClick={fetchContentData}>
                   再読み込み
                 </Button>
@@ -656,6 +694,7 @@ export default function AnalyticsPage() {
             )}
           </>
         )}
+        </div>
         </div>
       </DashboardLayout>
     </ProtectedRoute>
