@@ -19,7 +19,6 @@ import {
   Star,
   BookOpen,
   Calendar,
-  Eye,
   CheckCircle2,
   Trophy
 } from 'lucide-react'
@@ -31,8 +30,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  LineChart,
-  Line,
   Legend,
 } from 'recharts'
 
@@ -40,11 +37,10 @@ type TabType = 'membership' | 'content'
 
 interface ContentAnalytics {
   kpi: {
-    totalCourseViews: number
+    totalLearners: number
     totalEventRegistrations: number
     totalCompletions: number
     avgCompletionRate: number
-    uniqueViewers: number
     totalCourses: number
     totalEvents: number
   }
@@ -53,9 +49,8 @@ interface ContentAnalytics {
     title: string
     category: string
     level: string
-    views: number
-    completions: number
     learners: number
+    completions: number
     lessonCount: number
     completionRate: number
   }>
@@ -69,9 +64,8 @@ interface ContentAnalytics {
   }>
   monthlyTrends: Array<{
     month: string
-    courseViews: number
-    eventViews: number
-    lessonViews: number
+    activeLearners: number
+    eventRegistrations: number
   }>
 }
 
@@ -690,13 +684,13 @@ export default function AnalyticsPage() {
                   <Card className="border-2 border-violet-100 bg-gradient-to-br from-violet-50 to-white">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm font-medium text-violet-700 flex items-center">
-                        <Eye className="h-4 w-4 mr-2" aria-hidden="true" />
-                        コース閲覧数
+                        <Users className="h-4 w-4 mr-2" aria-hidden="true" />
+                        学習中ユーザー
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-bold text-violet-600">{contentAnalytics.kpi.totalCourseViews}</div>
-                      <p className="text-xs text-violet-500 mt-1">{contentAnalytics.kpi.totalCourses}コース</p>
+                      <div className="text-3xl font-bold text-violet-600">{contentAnalytics.kpi.totalLearners}</div>
+                      <p className="text-xs text-violet-500 mt-1">全期間 / {contentAnalytics.kpi.totalCourses}コース</p>
                     </CardContent>
                   </Card>
 
@@ -709,7 +703,7 @@ export default function AnalyticsPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="text-3xl font-bold text-emerald-600">{contentAnalytics.kpi.totalCompletions}</div>
-                      <p className="text-xs text-emerald-500 mt-1">平均修了率: {contentAnalytics.kpi.avgCompletionRate}%</p>
+                      <p className="text-xs text-emerald-500 mt-1">全期間 / 平均修了率: {contentAnalytics.kpi.avgCompletionRate}%</p>
                     </CardContent>
                   </Card>
 
@@ -722,20 +716,20 @@ export default function AnalyticsPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="text-3xl font-bold text-amber-600">{contentAnalytics.kpi.totalEventRegistrations}</div>
-                      <p className="text-xs text-amber-500 mt-1">{contentAnalytics.kpi.totalEvents}イベント</p>
+                      <p className="text-xs text-amber-500 mt-1">全期間 / {contentAnalytics.kpi.totalEvents}イベント</p>
                     </CardContent>
                   </Card>
 
                   <Card className="border-2 border-blue-100 bg-gradient-to-br from-blue-50 to-white">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm font-medium text-blue-700 flex items-center">
-                        <Users className="h-4 w-4 mr-2" aria-hidden="true" />
-                        ユニーク利用者
+                        <BookOpen className="h-4 w-4 mr-2" aria-hidden="true" />
+                        コース数
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-bold text-blue-600">{contentAnalytics.kpi.uniqueViewers}</div>
-                      <p className="text-xs text-blue-500 mt-1">コンテンツ閲覧ユーザー</p>
+                      <div className="text-3xl font-bold text-blue-600">{contentAnalytics.kpi.totalCourses}</div>
+                      <p className="text-xs text-blue-500 mt-1">公開中のコース</p>
                     </CardContent>
                   </Card>
                 </div>
@@ -745,14 +739,14 @@ export default function AnalyticsPage() {
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <TrendingUp className="h-5 w-5 mr-2 text-blue-600" aria-hidden="true" />
-                      コンテンツ閲覧トレンド（過去6ヶ月）
+                      月別アクティビティ（過去6ヶ月）
                     </CardTitle>
-                    <CardDescription>月別のコンテンツタイプ別閲覧数推移</CardDescription>
+                    <CardDescription>学習アクティブユーザー数とイベント登録数の推移</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="h-64">
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={contentAnalytics.monthlyTrends}>
+                        <BarChart data={contentAnalytics.monthlyTrends}>
                           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                           <XAxis
                             dataKey="month"
@@ -772,10 +766,9 @@ export default function AnalyticsPage() {
                             contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
                           />
                           <Legend />
-                          <Line type="monotone" dataKey="courseViews" name="コース" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 4 }} />
-                          <Line type="monotone" dataKey="lessonViews" name="レッスン" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} />
-                          <Line type="monotone" dataKey="eventViews" name="イベント" stroke="#f59e0b" strokeWidth={2} dot={{ r: 4 }} />
-                        </LineChart>
+                          <Bar dataKey="activeLearners" name="学習ユーザー" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                          <Bar dataKey="eventRegistrations" name="イベント登録" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                        </BarChart>
                       </ResponsiveContainer>
                     </div>
                   </CardContent>
@@ -783,21 +776,21 @@ export default function AnalyticsPage() {
 
                 {/* コース人気ランキング & 修了率 */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* コース人気ランキング（閲覧数） */}
+                  {/* コース人気ランキング（学習者数） */}
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center">
                         <Trophy className="h-5 w-5 mr-2 text-violet-600" aria-hidden="true" />
                         コース人気ランキング
                       </CardTitle>
-                      <CardDescription>閲覧数順</CardDescription>
+                      <CardDescription>学習者数順（全期間）</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      {contentAnalytics.courseRanking.length > 0 ? (
+                      {contentAnalytics.courseRanking.filter(c => c.learners > 0).length > 0 ? (
                         <div className="h-72">
                           <ResponsiveContainer width="100%" height="100%">
                             <BarChart
-                              data={contentAnalytics.courseRanking.slice(0, 8)}
+                              data={contentAnalytics.courseRanking.filter(c => c.learners > 0).slice(0, 8)}
                               layout="vertical"
                               margin={{ left: 0, right: 20 }}
                             >
@@ -813,14 +806,14 @@ export default function AnalyticsPage() {
                               />
                               <Tooltip
                                 contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
-                                formatter={(value: number) => [`${value}回`, '閲覧数']}
+                                formatter={(value: number) => [`${value}人`, '学習者数']}
                               />
-                              <Bar dataKey="views" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
+                              <Bar dataKey="learners" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
                             </BarChart>
                           </ResponsiveContainer>
                         </div>
                       ) : (
-                        <p className="text-sm text-slate-500 text-center py-8">閲覧データがまだありません</p>
+                        <p className="text-sm text-slate-500 text-center py-8">学習データがまだありません</p>
                       )}
                     </CardContent>
                   </Card>
@@ -875,7 +868,7 @@ export default function AnalyticsPage() {
                       <BookOpen className="h-5 w-5 mr-2 text-blue-600" aria-hidden="true" />
                       コース別詳細
                     </CardTitle>
-                    <CardDescription>各コースの閲覧数・学習者数・修了率</CardDescription>
+                    <CardDescription>各コースの学習者数・修了率（全期間）</CardDescription>
                   </CardHeader>
                   <CardContent>
                     {contentAnalytics.courseRanking.length > 0 ? (
@@ -886,7 +879,6 @@ export default function AnalyticsPage() {
                               <th className="text-left py-3 px-2 font-medium text-slate-600">コース名</th>
                               <th className="text-center py-3 px-2 font-medium text-slate-600">カテゴリ</th>
                               <th className="text-center py-3 px-2 font-medium text-slate-600">レッスン数</th>
-                              <th className="text-center py-3 px-2 font-medium text-slate-600">閲覧数</th>
                               <th className="text-center py-3 px-2 font-medium text-slate-600">学習者</th>
                               <th className="text-center py-3 px-2 font-medium text-slate-600">修了数</th>
                               <th className="text-center py-3 px-2 font-medium text-slate-600">修了率</th>
@@ -913,8 +905,7 @@ export default function AnalyticsPage() {
                                   <Badge variant="outline" className="text-xs">{getCourseCategoryLabel(course.category)}</Badge>
                                 </td>
                                 <td className="py-2.5 px-2 text-center text-slate-600">{course.lessonCount}</td>
-                                <td className="py-2.5 px-2 text-center font-medium text-violet-600">{course.views}</td>
-                                <td className="py-2.5 px-2 text-center text-slate-600">{course.learners}</td>
+                                <td className="py-2.5 px-2 text-center font-medium text-violet-600">{course.learners}</td>
                                 <td className="py-2.5 px-2 text-center text-emerald-600">{course.completions}</td>
                                 <td className="py-2.5 px-2 text-center">
                                   <span className={`font-medium ${
@@ -943,7 +934,7 @@ export default function AnalyticsPage() {
                       <Calendar className="h-5 w-5 mr-2 text-amber-600" aria-hidden="true" />
                       イベント参加ランキング
                     </CardTitle>
-                    <CardDescription>登録者数順</CardDescription>
+                    <CardDescription>登録者数順（全期間）</CardDescription>
                   </CardHeader>
                   <CardContent>
                     {contentAnalytics.eventRanking.length > 0 ? (

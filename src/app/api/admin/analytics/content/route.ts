@@ -20,12 +20,12 @@ export async function GET(request: NextRequest) {
     // 並列でデータ取得
     const [
       courses,
-      courseProgressData,
-      lessonProgressData,
-      contentViews,
+      courseCompletionData,
+      courseLearnerData,
       events,
       eventRegistrations,
-      monthlyViews,
+      monthlyLearning,
+      totalActiveLearners,
     ] = await Promise.all([
       // 全コース（公開済み）
       prisma.course.findMany({
@@ -43,24 +43,16 @@ export async function GET(request: NextRequest) {
         orderBy: { order: 'asc' },
       }),
 
-      // コース単位の進捗（isCompleted = true のみ、lessonId = null でコース全体の完了）
+      // コース修了数（isCompleted = true かつ lessonId = null でコース全体の完了）
       prisma.courseProgress.groupBy({
         by: ['courseId'],
         where: { isCompleted: true, lessonId: null },
         _count: { userId: true },
       }),
 
-      // レッスン単位の進捗
+      // コース別のユニーク学習者数（CourseProgressにレコードがあるユーザー = 学習開始済み）
       prisma.courseProgress.groupBy({
-        by: ['courseId'],
-        where: { lessonId: { not: null } },
-        _count: { userId: true },
-      }),
-
-      // コンテンツ閲覧数（タイプ別）
-      prisma.userContentView.groupBy({
-        by: ['contentType', 'contentId'],
-        _count: { userId: true },
+        by: ['courseId', 'userId'],
       }),
 
       // イベント一覧
@@ -80,10 +72,9 @@ export async function GET(request: NextRequest) {
       prisma.eventRegistration.groupBy({
         by: ['eventId'],
         _count: { userId: true },
-        where: {},
       }),
 
-      // 月別コンテンツ閲覧トレンド（過去6ヶ月）
+      // 月別学習アクティビティ（過去6ヶ月）- CourseProgressとEventRegistrationベース
       (() => {
         const months: { month: string; startDate: Date; endDate: Date }[] = []
         const now = new Date()
@@ -98,53 +89,46 @@ export async function GET(request: NextRequest) {
         }
         return Promise.all(
           months.map(async ({ month, startDate, endDate }) => {
-            const [courseViews, eventViews, lessonViews] = await Promise.all([
-              prisma.userContentView.count({
+            const [lessonProgress, eventRegs] = await Promise.all([
+              // その月にレッスン進捗が更新されたユニークユーザー数
+              prisma.courseProgress.groupBy({
+                by: ['userId'],
                 where: {
-                  contentType: 'COURSE',
-                  firstViewedAt: { gte: startDate, lt: endDate },
+                  updatedAt: { gte: startDate, lt: endDate },
                 },
               }),
-              prisma.userContentView.count({
+              // その月のイベント登録数
+              prisma.eventRegistration.count({
                 where: {
-                  contentType: 'EVENT',
-                  firstViewedAt: { gte: startDate, lt: endDate },
-                },
-              }),
-              prisma.userContentView.count({
-                where: {
-                  contentType: 'LESSON',
-                  firstViewedAt: { gte: startDate, lt: endDate },
+                  createdAt: { gte: startDate, lt: endDate },
                 },
               }),
             ])
-            return { month, courseViews, eventViews, lessonViews }
+            return {
+              month,
+              activeLearners: lessonProgress.length,
+              eventRegistrations: eventRegs,
+            }
           })
         )
       })(),
+
+      // 全体のユニーク学習者数（CourseProgressにレコードがあるユーザー）
+      prisma.courseProgress.groupBy({
+        by: ['userId'],
+      }),
     ])
 
-    // コース別閲覧数マップ
-    const courseViewMap = new Map<string, number>()
-    const lessonViewMap = new Map<string, number>()
-    contentViews.forEach((v) => {
-      if (v.contentType === 'COURSE') {
-        courseViewMap.set(v.contentId, v._count.userId)
-      } else if (v.contentType === 'LESSON') {
-        lessonViewMap.set(v.contentId, (lessonViewMap.get(v.contentId) || 0) + v._count.userId)
-      }
-    })
-
-    // コース完了数マップ
-    const courseCompletionMap = new Map<string, number>()
-    courseProgressData.forEach((p) => {
-      courseCompletionMap.set(p.courseId, p._count.userId)
-    })
-
-    // コース学習者数マップ（レッスン進捗があるユーザー数）
+    // コース別ユニーク学習者数マップ
     const courseLearnerMap = new Map<string, number>()
-    lessonProgressData.forEach((p) => {
-      courseLearnerMap.set(p.courseId, p._count.userId)
+    courseLearnerData.forEach((p) => {
+      courseLearnerMap.set(p.courseId, (courseLearnerMap.get(p.courseId) || 0) + 1)
+    })
+
+    // コース修了数マップ
+    const courseCompletionMap = new Map<string, number>()
+    courseCompletionData.forEach((p) => {
+      courseCompletionMap.set(p.courseId, p._count.userId)
     })
 
     // イベント登録数マップ
@@ -153,17 +137,10 @@ export async function GET(request: NextRequest) {
       eventRegMap.set(r.eventId, r._count.userId)
     })
 
-    // ユニークユーザー数（全体）
-    const totalUniqueViewers = await prisma.userContentView.groupBy({
-      by: ['userId'],
-      _count: true,
-    })
-
-    // コース人気ランキング
+    // コース人気ランキング（学習者数順）
     const courseRanking = courses.map((course) => {
-      const views = courseViewMap.get(course.id) || 0
-      const completions = courseCompletionMap.get(course.id) || 0
       const learners = courseLearnerMap.get(course.id) || 0
+      const completions = courseCompletionMap.get(course.id) || 0
       const lessonCount = course.lessons.length
 
       return {
@@ -171,13 +148,12 @@ export async function GET(request: NextRequest) {
         title: course.title,
         category: course.category,
         level: course.level,
-        views,
-        completions,
         learners,
+        completions,
         lessonCount,
         completionRate: learners > 0 ? Math.round((completions / learners) * 100) : 0,
       }
-    }).sort((a, b) => b.views - a.views)
+    }).sort((a, b) => b.learners - a.learners)
 
     // イベント参加ランキング
     const eventRanking = events.map((event) => {
@@ -194,26 +170,26 @@ export async function GET(request: NextRequest) {
     }).sort((a, b) => b.registrations - a.registrations)
 
     // KPIサマリー
-    const totalCourseViews = Array.from(courseViewMap.values()).reduce((a, b) => a + b, 0)
+    const totalLearners = totalActiveLearners.length
     const totalEventRegistrations = Array.from(eventRegMap.values()).reduce((a, b) => a + b, 0)
     const totalCompletions = Array.from(courseCompletionMap.values()).reduce((a, b) => a + b, 0)
-    const avgCompletionRate = courseRanking.length > 0
-      ? Math.round(courseRanking.reduce((sum, c) => sum + c.completionRate, 0) / courseRanking.length)
+    const coursesWithLearners = courseRanking.filter(c => c.learners > 0)
+    const avgCompletionRate = coursesWithLearners.length > 0
+      ? Math.round(coursesWithLearners.reduce((sum, c) => sum + c.completionRate, 0) / coursesWithLearners.length)
       : 0
 
     return NextResponse.json({
       kpi: {
-        totalCourseViews,
+        totalLearners,
         totalEventRegistrations,
         totalCompletions,
         avgCompletionRate,
-        uniqueViewers: totalUniqueViewers.length,
         totalCourses: courses.length,
         totalEvents: events.length,
       },
       courseRanking: courseRanking.slice(0, 20),
       eventRanking: eventRanking.slice(0, 20),
-      monthlyTrends: monthlyViews,
+      monthlyTrends: monthlyLearning,
     })
   } catch (error) {
     console.error('Content analytics error:', error)
