@@ -57,11 +57,13 @@ export async function GET(request: NextRequest) {
 
     // オンボーディングが必要（FPエイドまたは承認済みMEMBER）
     const bankAccountRegistered = !!user.compensationBankAccount
+    // 既にFPロールのユーザーには口座登録をオンボーディング条件に含めない
+    // （口座登録は昇格前のステップであり、既存FPに遡及適用しない）
     const allComplete =
       !!user.managerContactConfirmedAt &&
       user.complianceTestPassed === true &&
       user.fpOnboardingCompleted === true &&
-      bankAccountRegistered
+      (user.role === Roles.FP || bankAccountRegistered)
 
     return NextResponse.json({
       needsOnboarding: !allComplete,
