@@ -31,9 +31,12 @@ export async function GET(request: NextRequest) {
       where.month = monthFilter
     }
 
-    // 自分の報酬を取得（新しい順）
+    // 自分の報酬を取得（新しい順）- 内訳を含む
     const compensations = await prisma.compensation.findMany({
       where,
+      include: {
+        details: true,
+      },
       orderBy: {
         month: 'desc',
       },

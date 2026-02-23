@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
     // すべてのユーザーを統合
     type CombinedUser = {
       id: string
+      memberId: string | null
       name: string
       email: string
       role: string
@@ -63,6 +64,7 @@ export async function GET(request: NextRequest) {
       // 仮登録ユーザー
       ...pendingUsers.map(pending => ({
         id: pending.id,
+        memberId: null,
         name: pending.name,
         email: pending.email,
         role: 'PENDING',
@@ -83,6 +85,7 @@ export async function GET(request: NextRequest) {
         const subscription = user.subscriptions?.[0]
         return {
           id: user.id,
+          memberId: user.memberId,
           name: user.name,
           email: user.email,
           role: user.role,
@@ -139,6 +142,7 @@ export async function GET(request: NextRequest) {
     // CSVヘッダー
     const headers = [
       'ID',
+      '会員番号',
       '名前',
       'メールアドレス',
       'ロール',
@@ -159,6 +163,7 @@ export async function GET(request: NextRequest) {
     const rows = filteredUsers.map(user => {
       return [
         user.id,
+        user.memberId || '',
         user.name,
         user.email,
         user.role,

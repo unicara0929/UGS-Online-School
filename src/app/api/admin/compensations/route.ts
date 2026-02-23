@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
             role: true,
           },
         },
+        details: true,
       },
       orderBy: [{ month: 'desc' }, { createdAt: 'desc' }],
     })

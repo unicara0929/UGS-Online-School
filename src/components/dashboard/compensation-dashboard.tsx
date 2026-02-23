@@ -15,11 +15,32 @@ import {
   Users,
   FileText,
   Loader2,
-  Filter
+  Filter,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react"
 
 interface CompensationDashboardProps {
   userRole: string
+}
+
+interface CompensationDetail {
+  id: string
+  compensationId: string
+  businessType: 'REAL_ESTATE' | 'INSURANCE'
+  amount: number
+  details: {
+    // 不動産
+    number?: string
+    customerName?: string
+    property?: string
+    contractDate?: string
+    // 保険
+    company?: string
+    type?: string
+    insuranceType?: string
+    contractorName?: string
+  }
 }
 
 interface Compensation {
@@ -37,6 +58,7 @@ interface Compensation {
   }
   earnedAsRole: 'FP' | 'MANAGER'
   status: 'PENDING' | 'CONFIRMED' | 'PAID'
+  details?: CompensationDetail[]
   createdAt: string
 }
 
@@ -61,12 +83,25 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
   const [error, setError] = useState<string | null>(null)
   const [monthFilter, setMonthFilter] = useState<string>('')
   const [roleFilter, setRoleFilter] = useState<RoleFilter>('ALL')
+  const [expandedDetails, setExpandedDetails] = useState<Set<string>>(new Set())
 
   // フィルタリングされた報酬一覧
   const filteredCompensations = compensations.filter((c) => {
     if (roleFilter === 'ALL') return true
     return c.earnedAsRole === roleFilter
   })
+
+  const toggleDetails = (id: string) => {
+    setExpandedDetails(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
 
   useEffect(() => {
     if (userRole !== 'member') {
@@ -343,6 +378,91 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
                         <p className="font-medium tabular-nums">{formatCurrency(compensation.breakdown.bonus)}</p>
                       </div>
                     </div>
+
+                    {/* 報酬内訳（CompensationDetail） */}
+                    {compensation.details && compensation.details.length > 0 && (
+                      <div className="mt-3">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleDetails(compensation.id)}
+                          className="text-xs sm:text-sm text-slate-600 hover:text-slate-900 px-2"
+                        >
+                          {expandedDetails.has(compensation.id) ? (
+                            <ChevronUp className="h-4 w-4 mr-1" aria-hidden="true" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 mr-1" aria-hidden="true" />
+                          )}
+                          内訳を見る（{compensation.details.length}件）
+                        </Button>
+
+                        {expandedDetails.has(compensation.id) && (
+                          <div className="mt-2 space-y-3">
+                            {/* 不動産内訳 */}
+                            {compensation.details.filter(d => d.businessType === 'REAL_ESTATE').length > 0 && (
+                              <div>
+                                <p className="text-xs font-semibold text-slate-700 mb-1">不動産</p>
+                                <div className="overflow-x-auto">
+                                  <table className="w-full text-xs">
+                                    <thead>
+                                      <tr className="bg-slate-100">
+                                        <th className="px-2 py-1 text-left">番号</th>
+                                        <th className="px-2 py-1 text-left">紹介顧客</th>
+                                        <th className="px-2 py-1 text-left">成約物件</th>
+                                        <th className="px-2 py-1 text-left">契約日</th>
+                                        <th className="px-2 py-1 text-right">報酬額</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {compensation.details.filter(d => d.businessType === 'REAL_ESTATE').map((detail) => (
+                                        <tr key={detail.id} className="border-b border-slate-100">
+                                          <td className="px-2 py-1">{detail.details.number}</td>
+                                          <td className="px-2 py-1">{detail.details.customerName}</td>
+                                          <td className="px-2 py-1">{detail.details.property}</td>
+                                          <td className="px-2 py-1">{detail.details.contractDate}</td>
+                                          <td className="px-2 py-1 text-right tabular-nums">{formatCurrency(detail.amount)}</td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* 保険内訳 */}
+                            {compensation.details.filter(d => d.businessType === 'INSURANCE').length > 0 && (
+                              <div>
+                                <p className="text-xs font-semibold text-slate-700 mb-1">保険</p>
+                                <div className="overflow-x-auto">
+                                  <table className="w-full text-xs">
+                                    <thead>
+                                      <tr className="bg-slate-100">
+                                        <th className="px-2 py-1 text-left">会社</th>
+                                        <th className="px-2 py-1 text-left">タイプ</th>
+                                        <th className="px-2 py-1 text-left">保険種類</th>
+                                        <th className="px-2 py-1 text-left">契約者名</th>
+                                        <th className="px-2 py-1 text-right">手数料額</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {compensation.details.filter(d => d.businessType === 'INSURANCE').map((detail) => (
+                                        <tr key={detail.id} className="border-b border-slate-100">
+                                          <td className="px-2 py-1">{detail.details.company}</td>
+                                          <td className="px-2 py-1">{detail.details.type}</td>
+                                          <td className="px-2 py-1">{detail.details.insuranceType}</td>
+                                          <td className="px-2 py-1">{detail.details.contractorName}</td>
+                                          <td className="px-2 py-1 text-right tabular-nums">{formatCurrency(detail.amount)}</td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
