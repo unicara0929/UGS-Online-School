@@ -10,7 +10,8 @@ import {
   CheckCircle,
   Circle,
   ArrowRight,
-  X
+  X,
+  Building2
 } from 'lucide-react'
 
 interface FPOnboardingStatus {
@@ -19,6 +20,7 @@ interface FPOnboardingStatus {
   managerContactConfirmed: boolean
   complianceTestPassed: boolean
   fpOnboardingCompleted: boolean
+  bankAccountRegistered: boolean
 }
 
 /**
@@ -69,7 +71,7 @@ export function FPOnboardingBanner() {
   }
 
   // 全てのステップが完了している場合は非表示
-  if (status.managerContactConfirmed && status.complianceTestPassed && status.fpOnboardingCompleted) {
+  if (status.managerContactConfirmed && status.complianceTestPassed && status.fpOnboardingCompleted && status.bankAccountRegistered) {
     return null
   }
 
@@ -77,7 +79,8 @@ export function FPOnboardingBanner() {
   const completedSteps = [
     status.managerContactConfirmed,
     status.complianceTestPassed,
-    status.fpOnboardingCompleted
+    status.fpOnboardingCompleted,
+    status.bankAccountRegistered
   ].filter(Boolean).length
 
   // 次に進むべきページを決定
@@ -90,6 +93,9 @@ export function FPOnboardingBanner() {
     }
     if (!status.fpOnboardingCompleted) {
       return '/dashboard/fp-onboarding'
+    }
+    if (!status.bankAccountRegistered) {
+      return '/dashboard/fp-bank-account'
     }
     return '/dashboard'
   }
@@ -104,6 +110,9 @@ export function FPOnboardingBanner() {
     }
     if (!status.fpOnboardingCompleted) {
       return 'ガイダンス動画の視聴'
+    }
+    if (!status.bankAccountRegistered) {
+      return '口座情報の登録'
     }
     return ''
   }
@@ -151,10 +160,19 @@ export function FPOnboardingBanner() {
                 )}
                 <span className="text-xs text-white/80">動画</span>
               </div>
+              <div className="w-4 h-px bg-white/30" />
+              <div className="flex items-center gap-1">
+                {status.bankAccountRegistered ? (
+                  <CheckCircle className="h-4 w-4 text-green-300" aria-hidden="true" />
+                ) : (
+                  <Circle className="h-4 w-4 text-white/50" aria-hidden="true" />
+                )}
+                <span className="text-xs text-white/80">口座</span>
+              </div>
             </div>
 
             <span className="text-xs sm:text-sm text-white/80 flex-shrink-0">
-              ({completedSteps}/3)
+              ({completedSteps}/4)
             </span>
 
             {/* 閉じるボタン - SP表示では上段右端 */}

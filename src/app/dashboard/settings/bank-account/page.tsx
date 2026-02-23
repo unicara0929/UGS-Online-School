@@ -602,9 +602,7 @@ function BankAccountSettingsPage() {
                       type="text"
                       value={formData.accountHolderName}
                       onChange={(e) => {
-                        // カタカナとスペースのみ入力可能
-                        const value = e.target.value.replace(/[^ァ-ヶー\s]/g, '')
-                        setFormData({...formData, accountHolderName: value})
+                        setFormData({...formData, accountHolderName: e.target.value})
                       }}
                       className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-[box-shadow,border-color] shadow-sm hover:shadow-md"
                       placeholder="例: ヤマダ タロウ"

@@ -30,7 +30,8 @@ export async function GET(request: NextRequest) {
         complianceTestPassed: true,
         complianceTestPassedAt: true,
         fpOnboardingCompleted: true,
-        fpOnboardingCompletedAt: true
+        fpOnboardingCompletedAt: true,
+        compensationBankAccount: { select: { id: true } }
       }
     })
 
@@ -49,15 +50,18 @@ export async function GET(request: NextRequest) {
         managerContactConfirmed: true,
         complianceTestPassed: true,
         fpOnboardingCompleted: true,
+        bankAccountRegistered: true,
         message: 'FP昇格申請が承認されていないため、オンボーディングは不要です'
       })
     }
 
     // オンボーディングが必要（FPエイドまたは承認済みMEMBER）
+    const bankAccountRegistered = !!user.compensationBankAccount
     const allComplete =
       !!user.managerContactConfirmedAt &&
       user.complianceTestPassed === true &&
-      user.fpOnboardingCompleted === true
+      user.fpOnboardingCompleted === true &&
+      bankAccountRegistered
 
     return NextResponse.json({
       needsOnboarding: !allComplete,
@@ -68,6 +72,7 @@ export async function GET(request: NextRequest) {
       complianceTestPassedAt: user.complianceTestPassedAt,
       fpOnboardingCompleted: user.fpOnboardingCompleted || false,
       fpOnboardingCompletedAt: user.fpOnboardingCompletedAt,
+      bankAccountRegistered,
       allComplete
     })
   } catch (error) {

@@ -31,7 +31,8 @@ export async function POST(request: NextRequest) {
         fpPromotionApproved: true,
         fpOnboardingCompleted: true,
         managerContactConfirmedAt: true,
-        complianceTestPassed: true
+        complianceTestPassed: true,
+        compensationBankAccount: { select: { id: true } }
       }
     })
 
@@ -89,7 +90,8 @@ export async function POST(request: NextRequest) {
       // - ガイダンス動画視聴（この関数で完了）
       const allOnboardingComplete =
         user.managerContactConfirmedAt !== null &&
-        user.complianceTestPassed === true
+        user.complianceTestPassed === true &&
+        user.compensationBankAccount !== null
         // fpOnboardingCompleted は今更新するので true とみなす
 
       if (allOnboardingComplete) {
