@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Users, UserCheck, UserX, Mail, Calendar, CreditCard, AlertCircle, Search, Filter, ArrowUpDown, Download, FileCheck, FileX, UserPlus, Eye, EyeOff, Trash2, Upload, CheckCircle, XCircle } from 'lucide-react'
+import { Users, UserCheck, UserX, Mail, Calendar, CreditCard, AlertCircle, Search, Filter, ArrowUpDown, Download, FileCheck, FileX, UserPlus, Eye, EyeOff, Trash2, Upload, CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import { getRoleLabel, getRoleBadgeVariant, formatDate, formatCurrency } from '@/lib/utils/user-helpers'
 import { filterUsersBySearch, filterUsersByStatus, filterUsersByMembershipStatus, filterUsersByRole, sortUsers } from '@/lib/utils/filter-helpers'
 import { getSubscriptionStatus } from '@/lib/utils/subscription-helpers'
@@ -922,23 +922,11 @@ export default function AdminUsersPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="relative">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
-              <Users className="h-10 w-10 text-white animate-pulse" aria-hidden="true" />
-            </div>
-            <div className="absolute inset-0 w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mx-auto animate-ping opacity-20"></div>
-          </div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">ユーザー情報を読み込み中...</h2>
-          <p className="text-slate-600">データを取得しています</p>
-          <div className="mt-6 flex justify-center">
-            <div className="flex space-x-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-            </div>
-          </div>
+          <Loader2 className="h-8 w-8 text-blue-600 animate-spin mx-auto mb-4" aria-hidden="true" />
+          <h2 className="text-lg font-semibold text-slate-900 mb-1">ユーザー情報を読み込み中...</h2>
+          <p className="text-sm text-slate-500">データを取得しています</p>
         </div>
       </div>
     )
@@ -953,103 +941,86 @@ export default function AdminUsersPage() {
     filteredUsers.filter(u => u.type === 'pending').every(u => selectedPendingUserIds.has(u.id))
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className="container mx-auto p-4 sm:p-6 space-y-4 sm:space-y-8">
+    <div className="min-h-screen bg-slate-50">
+      <div className="container mx-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* ヘッダーセクション */}
-        <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 p-4 sm:p-8 text-white shadow-2xl">
-          <div className="absolute inset-0 bg-black/20"></div>
-          <div className="relative z-10">
+        <Card className="border-slate-200 shadow-sm">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-2xl sm:text-4xl font-bold mb-1 sm:mb-2 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
+                <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
                   ユーザー管理
                 </h1>
-                <p className="text-blue-100 text-sm sm:text-lg">登録済みユーザーの一覧と管理</p>
+                <p className="text-slate-500 text-sm mt-1">登録済みユーザーの一覧と管理</p>
               </div>
-              <div className="flex items-center space-x-3 sm:space-x-4 bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 self-start sm:self-auto">
-                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-blue-200" aria-hidden="true" />
-                <div className="text-right">
-                  <div className="text-xl sm:text-2xl font-bold text-white">
-                    {filteredUsers.length}
-                  </div>
-                  <div className="text-xs sm:text-sm text-blue-200">
-                    総ユーザー数
-                  </div>
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="flex items-center gap-3 text-sm text-slate-600">
+                  <span>全 <strong className="text-slate-900">{filteredUsers.length}</strong> 件</span>
+                  <span className="text-slate-300">|</span>
+                  <span>正式 <strong>{users.length}</strong></span>
+                  <span className="text-slate-300">|</span>
+                  <span>仮登録 <strong>{pendingUsers.length}</strong></span>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => setShowBulkCreateModal(true)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Upload className="h-4 w-4 mr-2" aria-hidden="true" />
+                    一括作成
+                  </Button>
+                  <Button
+                    onClick={() => setShowCreateUserModal(true)}
+                    size="sm"
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <UserPlus className="h-4 w-4 mr-2" aria-hidden="true" />
+                    ユーザー作成
+                  </Button>
                 </div>
               </div>
             </div>
-            <div className="mt-4 sm:mt-6 flex items-center justify-between">
-              <div className="flex space-x-3 sm:space-x-6">
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 sm:p-3">
-                  <div className="text-xs sm:text-sm text-blue-200">正式登録</div>
-                  <div className="text-lg sm:text-xl font-semibold text-white">{users.length}名</div>
-                </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 sm:p-3">
-                <div className="text-xs sm:text-sm text-blue-200">仮登録</div>
-                <div className="text-lg sm:text-xl font-semibold text-white">{pendingUsers.length}名</div>
-              </div>
-              </div>
-              {/* ユーザー作成ボタン */}
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => setShowBulkCreateModal(true)}
-                  variant="outline"
-                  className="bg-white/10 hover:bg-white/20 text-white border-white/30"
-                >
-                  <Upload className="h-4 w-4 mr-2" aria-hidden="true" />
-                  一括作成
-                </Button>
-                <Button
-                  onClick={() => setShowCreateUserModal(true)}
-                  className="bg-white/20 hover:bg-white/30 text-white border-white/30 shadow-lg"
-                >
-                  <UserPlus className="h-4 w-4 mr-2" aria-hidden="true" />
-                  ユーザー作成
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* ユーザー統計サマリー */}
         {stats && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             {/* FPエイド数 */}
-            <Card className="border-blue-200 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader className="bg-gradient-to-br from-blue-50 to-indigo-50 p-3 sm:p-6">
-                <CardTitle className="flex items-center justify-between text-sm sm:text-base">
-                  <span className="text-blue-900">FPエイド</span>
-                  <UserCheck className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" aria-hidden="true" />
+            <Card className="border-slate-200 shadow-sm">
+              <CardHeader className="p-3 sm:p-4 pb-1 sm:pb-2">
+                <CardTitle className="flex items-center justify-between text-sm">
+                  <span className="text-slate-600">FPエイド</span>
+                  <UserCheck className="h-4 w-4 text-blue-500" aria-hidden="true" />
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-3 sm:p-6 pt-4 sm:pt-6">
-                <div className="text-2xl sm:text-4xl font-bold text-blue-600 mb-1 sm:mb-2">
+              <CardContent className="p-3 sm:p-4 pt-0">
+                <div className="text-2xl font-bold text-slate-900">
                   {stats.fpCount}
-                  <span className="text-sm sm:text-lg text-slate-500 ml-1 sm:ml-2">名</span>
+                  <span className="text-sm text-slate-500 ml-1">名</span>
                 </div>
-                <p className="text-xs sm:text-sm text-slate-500">現在のFPエイド数</p>
               </CardContent>
             </Card>
 
             {/* UGS会員数 */}
-            <Card className="border-green-200 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader className="bg-gradient-to-br from-green-50 to-emerald-50 p-3 sm:p-6">
-                <CardTitle className="flex items-center justify-between text-sm sm:text-base">
-                  <span className="text-green-900">UGS会員</span>
-                  <Users className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" aria-hidden="true" />
+            <Card className="border-slate-200 shadow-sm">
+              <CardHeader className="p-3 sm:p-4 pb-1 sm:pb-2">
+                <CardTitle className="flex items-center justify-between text-sm">
+                  <span className="text-slate-600">UGS会員</span>
+                  <Users className="h-4 w-4 text-green-500" aria-hidden="true" />
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-3 sm:p-6 pt-4 sm:pt-6">
-                <div className="text-2xl sm:text-4xl font-bold text-green-600 mb-1 sm:mb-2">
+              <CardContent className="p-3 sm:p-4 pt-0">
+                <div className="text-2xl font-bold text-slate-900 mb-2">
                   {stats.memberCount}
-                  <span className="text-sm sm:text-lg text-slate-500 ml-1 sm:ml-2">名</span>
+                  <span className="text-sm text-slate-500 ml-1">名</span>
                 </div>
-                <p className="text-xs sm:text-sm text-slate-500 mb-3">現在のUGS会員数</p>
                 {stats.memberCount > 0 && (
                   <Button
                     onClick={() => setShowBulkRoleChangeModal(true)}
                     size="sm"
-                    className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                    className="w-full bg-green-600 hover:bg-green-700 text-white"
                   >
                     <UserCheck className="h-4 w-4 mr-2" aria-hidden="true" />
                     全員FPに昇格
@@ -1059,67 +1030,60 @@ export default function AdminUsersPage() {
             </Card>
 
             {/* UGS会員→FPエイド昇格数 */}
-            <Card className="border-purple-200 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader className="bg-gradient-to-br from-purple-50 to-pink-50 p-3 sm:p-6">
-                <CardTitle className="flex items-center justify-between text-sm sm:text-base">
-                  <span className="text-purple-900">昇格実績</span>
-                  <UserCheck className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" aria-hidden="true" />
+            <Card className="border-slate-200 shadow-sm">
+              <CardHeader className="p-3 sm:p-4 pb-1 sm:pb-2">
+                <CardTitle className="flex items-center justify-between text-sm">
+                  <span className="text-slate-600">昇格実績</span>
+                  <UserCheck className="h-4 w-4 text-purple-500" aria-hidden="true" />
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-3 sm:p-6 pt-4 sm:pt-6">
-                <div className="text-2xl sm:text-4xl font-bold text-purple-600 mb-1 sm:mb-2">
+              <CardContent className="p-3 sm:p-4 pt-0">
+                <div className="text-2xl font-bold text-slate-900">
                   {stats.memberToFpPromotions}
-                  <span className="text-sm sm:text-lg text-slate-500 ml-1 sm:ml-2">名</span>
+                  <span className="text-sm text-slate-500 ml-1">名</span>
                 </div>
-                <p className="text-xs sm:text-sm text-slate-500">UGS会員→FPエイド累計</p>
+                <p className="text-xs text-slate-500 mt-1">UGS会員→FPエイド累計</p>
               </CardContent>
             </Card>
           </div>
         )}
 
         {error && (
-          <div role="alert" className="relative overflow-hidden rounded-xl bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 shadow-lg">
-            <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 to-pink-500/5"></div>
-            <div className="relative p-6">
-              <div className="flex items-start space-x-3">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                    <AlertCircle className="h-5 w-5 text-red-600" aria-hidden="true" />
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-red-800 mb-2">エラーが発生しました</h3>
-                  <p className="text-red-700 mb-4">{error}</p>
-                  <Button
-                    onClick={() => {
-                      fetchUsers()
-                      fetchPendingUsers()
-                      fetchSubscriptions()
-                      fetchStats()
-                    }}
-                    variant="outline"
-                    size="sm"
-                    className="bg-white hover:bg-red-50 border-red-300 text-red-700 hover:text-red-800"
-                  >
-                    再試行
-                  </Button>
-                </div>
+          <div role="alert" className="rounded-lg bg-red-50 border border-red-200 p-4">
+            <div className="flex items-start space-x-3">
+              <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-red-800 mb-1">エラーが発生しました</h3>
+                <p className="text-sm text-red-700 mb-3">{error}</p>
+                <Button
+                  onClick={() => {
+                    fetchUsers()
+                    fetchPendingUsers()
+                    fetchSubscriptions()
+                    fetchStats()
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="bg-white hover:bg-red-50 border-red-300 text-red-700 hover:text-red-800"
+                >
+                  再試行
+                </Button>
               </div>
             </div>
           </div>
         )}
 
         {/* フィルターと検索 */}
-        <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-slate-50 to-blue-50 px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200">
-            <h2 className="text-base sm:text-lg font-semibold text-slate-800 flex items-center">
-              <Filter className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600" aria-hidden="true" />
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+          <div className="px-4 sm:px-6 py-3 border-b border-slate-200">
+            <h2 className="text-sm font-semibold text-slate-700 flex items-center">
+              <Filter className="h-4 w-4 mr-2 text-slate-500" aria-hidden="true" />
               フィルター・検索
             </h2>
           </div>
           <div className="p-4 sm:p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
-              <div className="relative group">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+              <div className="relative group xl:col-span-2">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" aria-hidden="true" />
                 <input
                   type="text"
@@ -1127,7 +1091,7 @@ export default function AdminUsersPage() {
                   aria-label="名前またはメールで検索"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-[box-shadow,border-color] duration-200"
+                  className="w-full pl-10 pr-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                 />
               </div>
 
@@ -1135,7 +1099,7 @@ export default function AdminUsersPage() {
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as any)}
                 aria-label="決済ステータスで絞り込み"
-                className="px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-[box-shadow,border-color] duration-200"
+                className="px-3 py-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
               >
                 <option value="all">決済ステータス: すべて</option>
                 <option value="pending">仮登録</option>
@@ -1149,7 +1113,7 @@ export default function AdminUsersPage() {
                 value={membershipStatusFilter}
                 onChange={(e) => setMembershipStatusFilter(e.target.value as any)}
                 aria-label="会員ステータスで絞り込み"
-                className="px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-[box-shadow,border-color] duration-200"
+                className="px-3 py-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
               >
                 <option value="all">会員ステータス: すべて</option>
                 {MEMBERSHIP_STATUS_OPTIONS.map(({ value, label }) => (
@@ -1161,7 +1125,7 @@ export default function AdminUsersPage() {
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value as any)}
                 aria-label="ロールで絞り込み"
-                className="px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-[box-shadow,border-color] duration-200"
+                className="px-3 py-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
               >
                 <option value="all">ロール: すべて</option>
                 <option value="PENDING">仮登録</option>
@@ -1175,7 +1139,7 @@ export default function AdminUsersPage() {
                 value={contractFilter}
                 onChange={(e) => setContractFilter(e.target.value as any)}
                 aria-label="契約書で絞り込み"
-                className="px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-[box-shadow,border-color] duration-200"
+                className="px-3 py-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
               >
                 <option value="all">契約書: すべて</option>
                 <option value="completed">完了</option>
@@ -1191,7 +1155,7 @@ export default function AdminUsersPage() {
                   setRoleFilter('all')
                   setContractFilter('all')
                 }}
-                className="flex items-center justify-center space-x-2 bg-gradient-to-r from-slate-50 to-blue-50 hover:from-slate-100 hover:to-blue-100 border-slate-300 text-slate-700 hover:text-slate-800 shadow-sm hover:shadow-md transition-shadow duration-200 rounded-xl py-2.5 sm:py-3 text-sm"
+                className="flex items-center justify-center space-x-2 border-slate-300 text-slate-600 rounded-lg py-2.5 text-sm"
               >
                 <Filter className="h-4 w-4" aria-hidden="true" />
                 <span>リセット</span>
@@ -1200,7 +1164,7 @@ export default function AdminUsersPage() {
               <Button
                 variant="outline"
                 onClick={handleExportCSV}
-                className="flex items-center justify-center space-x-2 bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 border-green-300 text-green-700 hover:text-green-800 shadow-sm hover:shadow-md transition-shadow duration-200 rounded-xl py-2.5 sm:py-3 text-sm"
+                className="flex items-center justify-center space-x-2 border-slate-300 text-slate-600 rounded-lg py-2.5 text-sm"
               >
                 <Download className="h-4 w-4" aria-hidden="true" />
                 <span>CSV出力</span>
@@ -1210,11 +1174,11 @@ export default function AdminUsersPage() {
         </div>
 
         {/* ユーザーテーブル */}
-        <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-slate-50 to-blue-50 px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+          <div className="px-4 sm:px-6 py-3 border-b border-slate-200">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <h2 className="text-base sm:text-lg font-semibold text-slate-800 flex items-center">
-                <Users className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600" aria-hidden="true" />
+              <h2 className="text-sm font-semibold text-slate-700 flex items-center">
+                <Users className="h-4 w-4 mr-2 text-slate-500" aria-hidden="true" />
                 ユーザー一覧
               </h2>
               {(selectedUserIds.size > 0 || selectedPendingUserIds.size > 0) && (
@@ -1224,7 +1188,7 @@ export default function AdminUsersPage() {
                       <Button
                         onClick={() => setShowStatusModal(true)}
                         size="sm"
-                        className="flex items-center space-x-1 sm:space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-md hover:shadow-lg transition-shadow duration-200 text-xs sm:text-sm"
+                        className="flex items-center space-x-1 sm:space-x-2 bg-purple-600 hover:bg-purple-700 text-white text-xs sm:text-sm"
                       >
                         <UserCheck className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
                         <span className="hidden sm:inline">ステータス変更</span>
@@ -1234,7 +1198,7 @@ export default function AdminUsersPage() {
                       <Button
                         onClick={() => setShowEmailModal(true)}
                         size="sm"
-                        className="flex items-center space-x-1 sm:space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-shadow duration-200 text-xs sm:text-sm"
+                        className="flex items-center space-x-1 sm:space-x-2 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm"
                       >
                         <Mail className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
                         <span className="hidden sm:inline">一括メール送信</span>
@@ -1248,7 +1212,7 @@ export default function AdminUsersPage() {
                       onClick={handleBulkDeletePendingUsers}
                       disabled={isDeletingPendingUsers}
                       size="sm"
-                      className="flex items-center space-x-1 sm:space-x-2 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white shadow-md hover:shadow-lg transition-shadow duration-200 text-xs sm:text-sm"
+                      className="flex items-center space-x-1 sm:space-x-2 bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm"
                     >
                       {isDeletingPendingUsers ? (
                         <>
@@ -1271,9 +1235,9 @@ export default function AdminUsersPage() {
           </div>
           <div className="overflow-x-auto">
             <Table className="min-w-[1000px]">
-              <TableHeader>
-                <TableRow className="bg-slate-50/50 hover:bg-slate-50">
-                  <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 w-10 sm:w-12">
+              <TableHeader className="sticky top-0 z-10">
+                <TableRow className="bg-slate-100 hover:bg-slate-100">
+                  <TableHead className="py-3 sm:py-4 px-3 sm:px-4 font-semibold text-slate-700 w-10 sm:w-12">
                     <div className="flex flex-col gap-1">
                       <input
                         type="checkbox"
@@ -1293,9 +1257,9 @@ export default function AdminUsersPage() {
                       )}
                     </div>
                   </TableHead>
-                  <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm">会員番号</TableHead>
+                  <TableHead className="py-3 sm:py-4 px-3 sm:px-4 font-semibold text-slate-700 text-xs sm:text-sm">会員番号</TableHead>
                   <TableHead
-                    className="cursor-pointer hover:bg-slate-100 transition-colors py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm"
+                    className="cursor-pointer hover:bg-slate-100 transition-colors py-3 sm:py-4 px-3 sm:px-4 font-semibold text-slate-700 text-xs sm:text-sm"
                     onClick={() => handleSort('name')}
                   >
                     <div className="flex items-center space-x-1 sm:space-x-2">
@@ -1303,9 +1267,9 @@ export default function AdminUsersPage() {
                       <ArrowUpDown className="h-3 w-3 sm:h-4 sm:w-4 text-slate-500" aria-hidden="true" />
                     </div>
                   </TableHead>
-                  <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm">ステータス</TableHead>
+                  <TableHead className="py-3 sm:py-4 px-3 sm:px-4 font-semibold text-slate-700 text-xs sm:text-sm">ステータス</TableHead>
                   <TableHead
-                    className="cursor-pointer hover:bg-slate-100 transition-colors py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm"
+                    className="cursor-pointer hover:bg-slate-100 transition-colors py-3 sm:py-4 px-3 sm:px-4 font-semibold text-slate-700 text-xs sm:text-sm"
                     onClick={() => handleSort('email')}
                   >
                     <div className="flex items-center space-x-1 sm:space-x-2">
@@ -1313,11 +1277,11 @@ export default function AdminUsersPage() {
                       <ArrowUpDown className="h-3 w-3 sm:h-4 sm:w-4 text-slate-500" aria-hidden="true" />
                     </div>
                   </TableHead>
-                  <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm">決済</TableHead>
-                  <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm">契約</TableHead>
-                  <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm">担当MGR</TableHead>
+                  <TableHead className="py-3 sm:py-4 px-3 sm:px-4 font-semibold text-slate-700 text-xs sm:text-sm">決済</TableHead>
+                  <TableHead className="py-3 sm:py-4 px-3 sm:px-4 font-semibold text-slate-700 text-xs sm:text-sm">契約</TableHead>
+                  <TableHead className="py-3 sm:py-4 px-3 sm:px-4 font-semibold text-slate-700 text-xs sm:text-sm">担当MGR</TableHead>
                   <TableHead
-                    className="cursor-pointer hover:bg-slate-100 transition-colors py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm"
+                    className="cursor-pointer hover:bg-slate-100 transition-colors py-3 sm:py-4 px-3 sm:px-4 font-semibold text-slate-700 text-xs sm:text-sm"
                     onClick={() => handleSort('createdAt')}
                   >
                     <div className="flex items-center space-x-1 sm:space-x-2">
@@ -1326,7 +1290,7 @@ export default function AdminUsersPage() {
                     </div>
                   </TableHead>
                   <TableHead
-                    className="cursor-pointer hover:bg-slate-100 transition-colors py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm"
+                    className="cursor-pointer hover:bg-slate-100 transition-colors py-3 sm:py-4 px-3 sm:px-4 font-semibold text-slate-700 text-xs sm:text-sm"
                     onClick={() => handleSort('lastSignIn')}
                   >
                     <div className="flex items-center space-x-1 sm:space-x-2">
@@ -1334,7 +1298,7 @@ export default function AdminUsersPage() {
                       <ArrowUpDown className="h-3 w-3 sm:h-4 sm:w-4 text-slate-500" aria-hidden="true" />
                     </div>
                   </TableHead>
-                  <TableHead className="py-3 sm:py-4 px-3 sm:px-6 font-semibold text-slate-700 text-xs sm:text-sm">
+                  <TableHead className="py-3 sm:py-4 px-3 sm:px-4 font-semibold text-slate-700 text-xs sm:text-sm">
                     操作
                   </TableHead>
                 </TableRow>
@@ -1343,11 +1307,10 @@ export default function AdminUsersPage() {
                 {filteredUsers.map((user, index) => (
                   <TableRow
                     key={user.id}
-                    className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/50 transition-colors duration-200 border-b border-slate-100"
-                    style={{ animationDelay: `${index * 50}ms` }}
+                    className={`hover:bg-blue-50 transition-colors border-b border-slate-100 ${index % 2 === 1 ? 'bg-slate-50/50' : ''}`}
                   >
                     {/* 1. チェックボックス */}
-                    <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
+                    <TableCell className="py-3 sm:py-4 px-3 sm:px-4">
                       {user.type === 'registered' ? (
                         <input
                           type="checkbox"
@@ -1365,7 +1328,7 @@ export default function AdminUsersPage() {
                       )}
                     </TableCell>
                     {/* 2. 会員番号 */}
-                    <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
+                    <TableCell className="py-3 sm:py-4 px-3 sm:px-4">
                       {user.memberId ? (
                         <div className="font-mono text-xs text-slate-600 bg-slate-50 px-2 py-1 rounded border border-slate-200 inline-block">
                           {user.memberId}
@@ -1375,9 +1338,9 @@ export default function AdminUsersPage() {
                       )}
                     </TableCell>
                     {/* 3. 名前 */}
-                    <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
+                    <TableCell className="py-3 sm:py-4 px-3 sm:px-4">
                       <div className="flex items-center space-x-2 sm:space-x-3">
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm shadow-lg flex-shrink-0">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm flex-shrink-0">
                           {user.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
@@ -1423,7 +1386,7 @@ export default function AdminUsersPage() {
                       </div>
                     </TableCell>
                     {/* 4. ステータス（ロール） */}
-                    <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
+                    <TableCell className="py-3 sm:py-4 px-3 sm:px-4">
                       {user.type === 'registered' ? (
                         <select
                           value={user.role}
@@ -1449,11 +1412,11 @@ export default function AdminUsersPage() {
                       )}
                     </TableCell>
                     {/* 5. メール */}
-                    <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
+                    <TableCell className="py-3 sm:py-4 px-3 sm:px-4">
                       <div className="text-slate-700 text-xs sm:text-sm truncate max-w-[150px]">{user.email}</div>
                     </TableCell>
                     {/* 6. 決済 */}
-                    <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
+                    <TableCell className="py-3 sm:py-4 px-3 sm:px-4">
                       {user.type === 'pending' ? (
                         <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200 shadow-sm text-xs">
                           <CreditCard className="h-3 w-3 mr-1" aria-hidden="true" />
@@ -1483,7 +1446,7 @@ export default function AdminUsersPage() {
                       )}
                     </TableCell>
                     {/* 7. 契約 */}
-                    <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
+                    <TableCell className="py-3 sm:py-4 px-3 sm:px-4">
                       {user.type === 'pending' ? (
                         <Badge variant="secondary" className="bg-gray-100 text-gray-500 border-gray-200 shadow-sm text-xs">
                           <FileX className="h-3 w-3 mr-1" aria-hidden="true" />
@@ -1510,7 +1473,7 @@ export default function AdminUsersPage() {
                       )}
                     </TableCell>
                     {/* 8. 担当MGR */}
-                    <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
+                    <TableCell className="py-3 sm:py-4 px-3 sm:px-4">
                       {user.type === 'pending' ? (
                         <span className="text-slate-500 text-xs">-</span>
                       ) : user.role === 'FP' ? (
@@ -1531,17 +1494,17 @@ export default function AdminUsersPage() {
                       )}
                     </TableCell>
                     {/* 9. 登録日 */}
-                    <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
+                    <TableCell className="py-3 sm:py-4 px-3 sm:px-4">
                       <div className="text-slate-600 text-xs sm:text-sm whitespace-nowrap">{formatDate(user.createdAt)}</div>
                     </TableCell>
                     {/* 10. 最終ログイン */}
-                    <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
+                    <TableCell className="py-3 sm:py-4 px-3 sm:px-4">
                       <div className="text-slate-600 text-xs sm:text-sm whitespace-nowrap">
                         {user.lastSignIn ? formatDate(user.lastSignIn) : '未ログイン'}
                       </div>
                     </TableCell>
                     {/* 11. 操作 */}
-                    <TableCell className="py-3 sm:py-4 px-3 sm:px-6">
+                    <TableCell className="py-3 sm:py-4 px-3 sm:px-4">
                       {user.type === 'registered' && user.role !== 'ADMIN' ? (
                         <button
                           onClick={() => handleDeleteUser(user.id, user.name || user.email, user.role)}
@@ -1571,36 +1534,37 @@ export default function AdminUsersPage() {
         </div>
 
         {filteredUsers.length === 0 && !loading && (
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-            <div className="p-12 text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-slate-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Users className="h-10 w-10 text-slate-400" aria-hidden="true" />
+          <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+            <div className="p-8 text-center">
+              <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="h-6 w-6 text-slate-400" aria-hidden="true" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-3">
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">
                 ユーザーが見つかりません
               </h3>
-              <p className="text-slate-600 text-lg mb-6 max-w-md mx-auto">
+              <p className="text-sm text-slate-500 mb-6 max-w-md mx-auto">
                 フィルター条件に一致するユーザーがいないか、まだユーザーが登録されていません。
               </p>
-              <div className="flex justify-center space-x-4">
+              <div className="flex justify-center space-x-3">
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={() => {
                     setSearchTerm('')
                     setStatusFilter('all')
                     setRoleFilter('all')
                   }}
-                  className="bg-gradient-to-r from-slate-50 to-blue-50 hover:from-slate-100 hover:to-blue-100 border-slate-300 text-slate-700 hover:text-slate-800"
                 >
                   フィルターをリセット
                 </Button>
                 <Button
+                  size="sm"
                   onClick={() => {
                     fetchUsers()
                     fetchPendingUsers()
                     fetchSubscriptions()
                   }}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   データを更新
                 </Button>
@@ -1612,10 +1576,10 @@ export default function AdminUsersPage() {
         {/* 一括ステータス変更モーダル */}
         {showStatusModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4 rounded-t-2xl">
+            <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="bg-slate-900 px-6 py-4 rounded-t-xl">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-white flex items-center">
+                  <h2 className="text-lg font-semibold text-white flex items-center">
                     <UserCheck className="h-5 w-5 mr-2" aria-hidden="true" />
                     一括ステータス変更 ({selectedUserIds.size}名)
                   </h2>
@@ -1624,7 +1588,7 @@ export default function AdminUsersPage() {
                       setShowStatusModal(false)
                       setStatusUpdateResult(null)
                     }}
-                    className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
+                    className="text-white/70 hover:text-white hover:bg-white/10 rounded-lg p-2 transition-colors"
                   >
                     <span className="text-2xl">&times;</span>
                   </button>
@@ -1660,7 +1624,7 @@ export default function AdminUsersPage() {
                         setShowStatusModal(false)
                         setStatusUpdateResult(null)
                       }}
-                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                      className="bg-slate-900 hover:bg-slate-800 text-white"
                     >
                       閉じる
                     </Button>
@@ -1722,7 +1686,7 @@ export default function AdminUsersPage() {
                       </Button>
                       <Button
                         onClick={handleBulkStatusUpdate}
-                        className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                         disabled={isUpdatingStatus || !newMembershipStatus}
                       >
                         {isUpdatingStatus ? (
@@ -1748,10 +1712,10 @@ export default function AdminUsersPage() {
         {/* 一括ロール変更モーダル（MEMBER → FP） */}
         {showBulkRoleChangeModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full">
-              <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4 rounded-t-2xl">
+            <div className="bg-white rounded-xl shadow-xl max-w-lg w-full">
+              <div className="bg-slate-900 px-6 py-4 rounded-t-xl">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-white flex items-center">
+                  <h2 className="text-lg font-semibold text-white flex items-center">
                     <UserCheck className="h-5 w-5 mr-2" aria-hidden="true" />
                     一括ロール変更
                   </h2>
@@ -1760,7 +1724,7 @@ export default function AdminUsersPage() {
                       setShowBulkRoleChangeModal(false)
                       setBulkRoleChangeResult(null)
                     }}
-                    className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
+                    className="text-white/70 hover:text-white hover:bg-white/10 rounded-lg p-2 transition-colors"
                   >
                     <span className="text-2xl">&times;</span>
                   </button>
@@ -1791,7 +1755,7 @@ export default function AdminUsersPage() {
                         setShowBulkRoleChangeModal(false)
                         setBulkRoleChangeResult(null)
                       }}
-                      className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                      className="bg-slate-900 hover:bg-slate-800 text-white"
                     >
                       閉じる
                     </Button>
@@ -1830,7 +1794,7 @@ export default function AdminUsersPage() {
                           setShowBulkRoleChangeModal(false)
                           handleBulkRoleChange()
                         }}
-                        className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                         disabled={isChangingRole}
                       >
                         {isChangingRole ? (
@@ -1856,10 +1820,10 @@ export default function AdminUsersPage() {
         {/* 一括メール送信モーダル */}
         {showEmailModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 rounded-t-2xl">
+            <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="bg-slate-900 px-6 py-4 rounded-t-xl">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-white flex items-center">
+                  <h2 className="text-lg font-semibold text-white flex items-center">
                     <Mail className="h-5 w-5 mr-2" aria-hidden="true" />
                     一括メール送信 ({selectedUserIds.size}名)
                   </h2>
@@ -1868,7 +1832,7 @@ export default function AdminUsersPage() {
                       setShowEmailModal(false)
                       setSendResult(null)
                     }}
-                    className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
+                    className="text-white/70 hover:text-white hover:bg-white/10 rounded-lg p-2 transition-colors"
                   >
                     <span className="text-2xl">&times;</span>
                   </button>
@@ -1904,7 +1868,7 @@ export default function AdminUsersPage() {
                         setShowEmailModal(false)
                         setSendResult(null)
                       }}
-                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                      className="bg-slate-900 hover:bg-slate-800 text-white"
                     >
                       閉じる
                     </Button>
@@ -1994,7 +1958,7 @@ export default function AdminUsersPage() {
                       </Button>
                       <Button
                         onClick={handleSendEmail}
-                        className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                         disabled={isSending || !emailSubject.trim() || !emailBody.trim()}
                       >
                         {isSending ? (
@@ -2020,10 +1984,10 @@ export default function AdminUsersPage() {
         {/* 仮登録ユーザー操作モーダル */}
         {showPendingUserModal && selectedPendingUser && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-              <div className="bg-gradient-to-r from-orange-500 to-amber-600 px-6 py-4 rounded-t-2xl">
+            <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+              <div className="bg-slate-900 px-6 py-4 rounded-t-xl">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-white flex items-center">
+                  <h2 className="text-lg font-semibold text-white flex items-center">
                     <UserX className="h-5 w-5 mr-2" aria-hidden="true" />
                     仮登録ユーザー詳細
                   </h2>
@@ -2032,7 +1996,7 @@ export default function AdminUsersPage() {
                       setShowPendingUserModal(false)
                       setSelectedPendingUser(null)
                     }}
-                    className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
+                    className="text-white/70 hover:text-white hover:bg-white/10 rounded-lg p-2 transition-colors"
                   >
                     <span className="text-2xl">&times;</span>
                   </button>
@@ -2089,7 +2053,7 @@ export default function AdminUsersPage() {
                     <Button
                       onClick={() => handlePendingUserAction('verify')}
                       disabled={isPendingUserActionLoading}
-                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                     >
                       {isPendingUserActionLoading && pendingUserAction === 'verify' ? (
                         <>
@@ -2168,10 +2132,10 @@ export default function AdminUsersPage() {
         {/* ユーザー作成モーダル */}
         {showCreateUserModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-              <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4 rounded-t-2xl">
+            <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+              <div className="bg-slate-900 px-6 py-4 rounded-t-xl">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-white flex items-center">
+                  <h2 className="text-lg font-semibold text-white flex items-center">
                     <UserPlus className="h-5 w-5 mr-2" aria-hidden="true" />
                     ユーザー作成
                   </h2>
@@ -2181,7 +2145,7 @@ export default function AdminUsersPage() {
                       setCreateUserForm({ email: '', password: '', name: '', role: 'MEMBER' })
                       setShowPassword(false)
                     }}
-                    className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
+                    className="text-white/70 hover:text-white hover:bg-white/10 rounded-lg p-2 transition-colors"
                   >
                     <span className="text-2xl">&times;</span>
                   </button>
@@ -2285,7 +2249,7 @@ export default function AdminUsersPage() {
                   </Button>
                   <Button
                     onClick={handleCreateUser}
-                    className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                     disabled={isCreatingUser || !createUserForm.email || !createUserForm.password || !createUserForm.name}
                   >
                     {isCreatingUser ? (
@@ -2309,10 +2273,10 @@ export default function AdminUsersPage() {
         {/* ユーザー一括作成モーダル */}
         {showBulkCreateModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 rounded-t-2xl">
+            <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="bg-slate-900 px-6 py-4 rounded-t-xl">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-white flex items-center">
+                  <h2 className="text-lg font-semibold text-white flex items-center">
                     <Upload className="h-5 w-5 mr-2" aria-hidden="true" />
                     ユーザー一括作成
                   </h2>
@@ -2322,10 +2286,10 @@ export default function AdminUsersPage() {
                       setBulkCreateData('')
                       setBulkCreateResult(null)
                     }}
-                    className="text-white/80 hover:text-white"
+                    className="text-white/70 hover:text-white hover:bg-white/10 rounded-lg p-2 transition-colors"
                     disabled={isBulkCreating}
                   >
-                    <XCircle className="h-6 w-6" aria-hidden="true" />
+                    <XCircle className="h-5 w-5" aria-hidden="true" />
                   </button>
                 </div>
               </div>
@@ -2388,7 +2352,7 @@ user3@example.com,password789,佐藤一郎`}
                       </Button>
                       <Button
                         onClick={handleBulkCreateUsers}
-                        className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                         disabled={isBulkCreating || !bulkCreateData.trim()}
                       >
                         {isBulkCreating ? (
