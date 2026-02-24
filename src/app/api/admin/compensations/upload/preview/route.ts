@@ -91,9 +91,11 @@ export async function POST(request: NextRequest) {
       try {
         const memberId = String(row['会員番号']).trim()
         const month = String(row['対象月']).trim()
-        const grossAmount = parseInt(row['税込報酬'])
-        const withholdingTax = parseInt(row['源泉徴収額'])
-        const transferFee = parseInt(row['振込手数料'])
+        // 数値パース: カンマ・スペース・円記号を除去してからパース
+        const parseNum = (v: any) => parseInt(String(v).replace(/[,\s¥￥]/g, ''))
+        const grossAmount = parseNum(row['税込報酬'])
+        const withholdingTax = parseNum(row['源泉徴収額'])
+        const transferFee = parseNum(row['振込手数料'])
 
         // バリデーション
         if (!memberId) {
@@ -138,7 +140,7 @@ export async function POST(request: NextRequest) {
         }
 
         if (withholdingTax + transferFee > grossAmount) {
-          preview.errors.push({ rowNumber, error: '源泉徴収額+振込手数料が税込報酬を超えています', row })
+          preview.errors.push({ rowNumber, error: `源泉徴収額+振込手数料が税込報酬を超えています（税込: ${grossAmount}, 源泉: ${withholdingTax}, 手数料: ${transferFee}）`, row })
           continue
         }
 
