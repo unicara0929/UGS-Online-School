@@ -7,7 +7,7 @@ import Papa from 'papaparse'
  * 報酬サマリーCSVのプレビュー
  * POST /api/admin/compensations/upload/preview
  *
- * CSVカラム: 会員番号, 対象月, 税込報酬, 源泉徴収額
+ * CSVカラム: 会員番号, 対象月, 税込報酬, 源泉徴収額, 振込手数料
  */
 export async function POST(request: NextRequest) {
   try {
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     const rows = parseResult.data as any[]
 
     // 必須カラムのチェック
-    const requiredColumns = ['会員番号', '対象月', '税込報酬', '源泉徴収額']
+    const requiredColumns = ['会員番号', '対象月', '税込報酬', '源泉徴収額', '振込手数料']
     const firstRow = rows[0] || {}
     const missingColumns = requiredColumns.filter(col => !(col in firstRow))
 
@@ -93,6 +93,7 @@ export async function POST(request: NextRequest) {
         const month = String(row['対象月']).trim()
         const grossAmount = parseInt(row['税込報酬'])
         const withholdingTax = parseInt(row['源泉徴収額'])
+        const transferFee = parseInt(row['振込手数料'])
 
         // バリデーション
         if (!memberId) {
@@ -121,19 +122,29 @@ export async function POST(request: NextRequest) {
           continue
         }
 
+        if (isNaN(transferFee)) {
+          preview.errors.push({ rowNumber, error: '振込手数料が数値ではありません', row })
+          continue
+        }
+
         if (withholdingTax < 0) {
           preview.errors.push({ rowNumber, error: '源泉徴収額は0以上の値にしてください', row })
           continue
         }
 
-        if (withholdingTax > grossAmount) {
-          preview.errors.push({ rowNumber, error: '源泉徴収額が税込報酬を超えています', row })
+        if (transferFee < 0) {
+          preview.errors.push({ rowNumber, error: '振込手数料は0以上の値にしてください', row })
+          continue
+        }
+
+        if (withholdingTax + transferFee > grossAmount) {
+          preview.errors.push({ rowNumber, error: '源泉徴収額+振込手数料が税込報酬を超えています', row })
           continue
         }
 
         const key = `${user.id}:${month}`
         const isUpdate = existingMap.has(key)
-        const netAmount = grossAmount - withholdingTax
+        const netAmount = grossAmount - withholdingTax - transferFee
 
         const compensationData = {
           memberId,
@@ -143,6 +154,7 @@ export async function POST(request: NextRequest) {
           month,
           grossAmount,
           withholdingTax,
+          transferFee,
           netAmount,
         }
 

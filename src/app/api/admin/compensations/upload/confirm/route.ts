@@ -8,6 +8,7 @@ interface CompensationData {
   month: string
   grossAmount: number
   withholdingTax: number
+  transferFee: number
   netAmount: number
 }
 
@@ -56,6 +57,7 @@ export async function POST(request: NextRequest) {
               month: data.month,
               amount: data.grossAmount,
               withholdingTax: data.withholdingTax,
+              transferFee: data.transferFee,
               contractCount: 0,
               breakdown: {
                 memberReferral: 0,
@@ -87,6 +89,7 @@ export async function POST(request: NextRequest) {
             data: {
               amount: data.grossAmount,
               withholdingTax: data.withholdingTax,
+              transferFee: data.transferFee,
               contractCount: 0,
               breakdown: {
                 memberReferral: 0,

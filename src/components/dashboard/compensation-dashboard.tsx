@@ -49,6 +49,7 @@ interface Compensation {
   month: string
   amount: number
   withholdingTax: number
+  transferFee: number
   contractCount: number
   breakdown: {
     memberReferral: number
@@ -415,7 +416,7 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
                         </div>
                       </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-2 sm:gap-3 text-xs sm:text-sm">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 text-xs sm:text-sm">
                       <div className="p-2 bg-slate-50 rounded">
                         <p className="text-slate-600">税込報酬</p>
                         <p className="font-medium tabular-nums">{formatCurrency(compensation.amount)}</p>
@@ -424,9 +425,13 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
                         <p className="text-red-600">源泉徴収額</p>
                         <p className="font-medium text-red-700 tabular-nums">-{formatCurrency(compensation.withholdingTax || 0)}</p>
                       </div>
+                      <div className="p-2 bg-orange-50 rounded">
+                        <p className="text-orange-600">振込手数料</p>
+                        <p className="font-medium text-orange-700 tabular-nums">-{formatCurrency(compensation.transferFee || 0)}</p>
+                      </div>
                       <div className="p-2 bg-green-50 rounded">
                         <p className="text-green-600">差引支給額</p>
-                        <p className="font-medium text-green-700 tabular-nums">{formatCurrency(compensation.amount - (compensation.withholdingTax || 0))}</p>
+                        <p className="font-medium text-green-700 tabular-nums">{formatCurrency(compensation.amount - (compensation.withholdingTax || 0) - (compensation.transferFee || 0))}</p>
                       </div>
                     </div>
 

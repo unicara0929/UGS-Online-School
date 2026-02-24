@@ -360,6 +360,7 @@ model Compensation {
   contractCount Int                @default(0) // その月の契約件数
   earnedAsRole  UserRole           @default(FP) // 報酬発生時のロール（FPエイド/マネージャー）
   withholdingTax Int                @default(0) // 源泉徴収額
+  transferFee    Int                @default(0) // 振込手数料
   payslipPath   String? // Supabase Storage上のパス (例: payslips/userId/2026-02.pdf)
   status        CompensationStatus @default(PENDING)
   createdAt     DateTime           @default(now())

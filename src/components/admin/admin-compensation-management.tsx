@@ -105,9 +105,9 @@ export function AdminCompensationManagement() {
 
 
   const downloadSample = () => {
-    const csv = `会員番号,対象月,税込報酬,源泉徴収額
-UGS0000001,2026-02,150000,15315
-UGS0000002,2026-02,80000,8168`
+    const csv = `会員番号,対象月,税込報酬,源泉徴収額,振込手数料
+UGS0000001,2026-02,150000,15315,660
+UGS0000002,2026-02,80000,8168,660`
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
