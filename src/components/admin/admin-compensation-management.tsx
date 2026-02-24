@@ -10,6 +10,8 @@ import {
   Loader2,
   ChevronDown,
   ChevronUp,
+  Download,
+  FileCheck,
 } from "lucide-react"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { useAuth } from "@/contexts/auth-context"
@@ -44,6 +46,7 @@ interface Compensation {
     bonus: number
     deduction: number
   }
+  payslipPath?: string | null
   status: 'PENDING' | 'CONFIRMED' | 'PAID'
   details?: CompensationDetail[]
   createdAt: string
@@ -101,6 +104,18 @@ export function AdminCompensationManagement() {
   }
 
 
+  const downloadSample = () => {
+    const csv = `会員番号,対象月,税込報酬,源泉徴収額
+UGS0000001,2026-02,150000,15315
+UGS0000002,2026-02,80000,8168`
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = 'compensation_sample.csv'
+    link.click()
+  }
+
   if (user?.role !== 'admin') {
     return (
       <Card>
@@ -131,12 +146,18 @@ export function AdminCompensationManagement() {
               <CardTitle>報酬管理</CardTitle>
               <CardDescription>全ユーザーの報酬を管理します（CSV一括アップロードで更新）</CardDescription>
             </div>
-            <Link href="/dashboard/admin/csv-upload">
-              <Button variant="outline">
-                <Upload className="h-4 w-4 mr-2" aria-hidden="true" />
-                CSV一括アップロード
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={downloadSample}>
+                <Download className="h-4 w-4 mr-2" aria-hidden="true" />
+                サンプルCSV
               </Button>
-            </Link>
+              <Link href="/dashboard/admin/csv-upload">
+                <Button variant="outline">
+                  <Upload className="h-4 w-4 mr-2" aria-hidden="true" />
+                  CSV一括アップロード
+                </Button>
+              </Link>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -259,6 +280,15 @@ export function AdminCompensationManagement() {
                     )}
                   </div>
                   <div className="flex items-center space-x-4">
+                    {compensation.payslipPath ? (
+                      <span title="明細書アップロード済み">
+                        <FileCheck className="h-5 w-5 text-green-600" aria-hidden="true" />
+                      </span>
+                    ) : (
+                      <span title="明細書未アップロード">
+                        <FileCheck className="h-5 w-5 text-slate-300" aria-hidden="true" />
+                      </span>
+                    )}
                     <Badge className="bg-green-100 text-green-800">支払済み</Badge>
                   </div>
                 </div>

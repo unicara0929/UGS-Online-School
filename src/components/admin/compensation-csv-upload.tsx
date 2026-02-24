@@ -89,9 +89,9 @@ export function CompensationCsvUpload() {
   }
 
   const downloadSample = () => {
-    const csv = `userId,month,totalAmount,baseAmount,bonusAmount,contractCount
-user123,2025-01,150000,120000,30000,5
-user456,2025-01,80000,70000,10000,3`
+    const csv = `会員番号,対象月,税込報酬,源泉徴収額
+UGS0000001,2026-02,150000,15315
+UGS0000002,2026-02,80000,8168`
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
@@ -114,13 +114,12 @@ user456,2025-01,80000,70000,10000,3`
           <div className="text-sm space-y-2">
             <p><strong>必須カラム:</strong></p>
             <ul className="list-disc list-inside space-y-1 text-slate-600">
-              <li><code>userId</code> - ユーザーID（変わらない固定ID）</li>
-              <li><code>month</code> - 対象年月（YYYY-MM形式、例: 2025-01）</li>
-              <li><code>totalAmount</code> - 合計報酬額</li>
-              <li><code>baseAmount</code> - 基本報酬額</li>
-              <li><code>bonusAmount</code> - ボーナス報酬額</li>
-              <li><code>contractCount</code> - 契約件数</li>
+              <li><code>会員番号</code> - UGSで始まる会員番号（例: UGS0000001）</li>
+              <li><code>対象月</code> - 対象年月（YYYY-MM形式、例: 2026-02）</li>
+              <li><code>税込報酬</code> - 税込報酬額（源泉徴収前の総額）</li>
+              <li><code>源泉徴収額</code> - 源泉徴収税額</li>
             </ul>
+            <p className="text-xs text-slate-500 mt-1">※ 差引支給額（税込報酬 − 源泉徴収額）は自動計算されます</p>
           </div>
           <Button variant="outline" onClick={downloadSample}>
             <Download className="h-4 w-4 mr-2" aria-hidden="true" />

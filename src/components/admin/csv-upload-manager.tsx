@@ -6,9 +6,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CompensationCsvUpload } from "./compensation-csv-upload"
 import { ContractCsvUpload } from "./contract-csv-upload"
 import { CompensationDetailCsvUpload } from "./compensation-detail-csv-upload"
-import { DollarSign, FileText, Building2, Shield } from "lucide-react"
+import { PayslipPdfUpload } from "./payslip-pdf-upload"
+import { DollarSign, FileText, Building2, Shield, Receipt } from "lucide-react"
 
-type TabValue = 'compensation' | 'contract' | 'detail-real-estate' | 'detail-insurance'
+type TabValue = 'compensation' | 'contract' | 'detail-real-estate' | 'detail-insurance' | 'payslip'
 
 export function CsvUploadManager() {
   const [activeTab, setActiveTab] = useState<TabValue>('compensation')
@@ -24,7 +25,7 @@ export function CsvUploadManager() {
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabValue)}>
-            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+            <TabsList className="grid w-full grid-cols-3 md:grid-cols-5">
               <TabsTrigger value="compensation" className="flex items-center gap-1 text-xs sm:text-sm">
                 <DollarSign className="h-4 w-4" aria-hidden="true" />
                 <span className="hidden sm:inline">報酬サマリー</span>
@@ -45,6 +46,11 @@ export function CsvUploadManager() {
                 <span className="hidden sm:inline">報酬内訳（保険）</span>
                 <span className="sm:hidden">保険</span>
               </TabsTrigger>
+              <TabsTrigger value="payslip" className="flex items-center gap-1 text-xs sm:text-sm">
+                <Receipt className="h-4 w-4" aria-hidden="true" />
+                <span className="hidden sm:inline">支払明細書</span>
+                <span className="sm:hidden">明細書</span>
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="compensation" className="space-y-6 mt-6">
@@ -61,6 +67,10 @@ export function CsvUploadManager() {
 
             <TabsContent value="detail-insurance" className="space-y-6 mt-6">
               <CompensationDetailCsvUpload businessType="INSURANCE" />
+            </TabsContent>
+
+            <TabsContent value="payslip" className="space-y-6 mt-6">
+              <PayslipPdfUpload />
             </TabsContent>
           </Tabs>
         </CardContent>

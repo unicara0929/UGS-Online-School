@@ -6,6 +6,8 @@ import Papa from 'papaparse'
 /**
  * 報酬サマリーCSVのプレビュー
  * POST /api/admin/compensations/upload/preview
+ *
+ * CSVカラム: 会員番号, 対象月, 税込報酬, 源泉徴収額
  */
 export async function POST(request: NextRequest) {
   try {
@@ -46,7 +48,7 @@ export async function POST(request: NextRequest) {
     const rows = parseResult.data as any[]
 
     // 必須カラムのチェック
-    const requiredColumns = ['userId', 'month', 'totalAmount', 'baseAmount', 'bonusAmount', 'contractCount']
+    const requiredColumns = ['会員番号', '対象月', '税込報酬', '源泉徴収額']
     const firstRow = rows[0] || {}
     const missingColumns = requiredColumns.filter(col => !(col in firstRow))
 
@@ -67,11 +69,11 @@ export async function POST(request: NextRequest) {
       errors: [] as any[],
     }
 
-    // 全ユーザーを取得
+    // 全ユーザーをmemberIdで検索
     const allUsers = await prisma.user.findMany({
-      select: { id: true, name: true, email: true }
+      select: { id: true, name: true, email: true, memberId: true }
     })
-    const userMap = new Map(allUsers.map(u => [u.id, u]))
+    const memberIdMap = new Map(allUsers.map(u => [u.memberId, u]))
 
     // 既存の報酬データを取得
     const existingCompensations = await prisma.compensation.findMany({
@@ -87,63 +89,61 @@ export async function POST(request: NextRequest) {
       const rowNumber = i + 2 // ヘッダー行を考慮
 
       try {
-        const userId = String(row.userId).trim()
-        const month = String(row.month).trim()
-        const totalAmount = parseInt(row.totalAmount)
-        const baseAmount = parseInt(row.baseAmount)
-        const bonusAmount = parseInt(row.bonusAmount)
-        const contractCount = parseInt(row.contractCount)
+        const memberId = String(row['会員番号']).trim()
+        const month = String(row['対象月']).trim()
+        const grossAmount = parseInt(row['税込報酬'])
+        const withholdingTax = parseInt(row['源泉徴収額'])
 
         // バリデーション
-        if (!userId) {
-          preview.errors.push({
-            rowNumber,
-            error: 'ユーザーIDが空です',
-            row
-          })
+        if (!memberId) {
+          preview.errors.push({ rowNumber, error: '会員番号が空です', row })
           continue
         }
 
-        if (!userMap.has(userId)) {
-          preview.errors.push({
-            rowNumber,
-            error: `ユーザーID ${userId} が存在しません`,
-            row
-          })
+        const user = memberIdMap.get(memberId)
+        if (!user) {
+          preview.errors.push({ rowNumber, error: `会員番号 ${memberId} のユーザーが見つかりません`, row })
           continue
         }
 
         if (!/^\d{4}-\d{2}$/.test(month)) {
-          preview.errors.push({
-            rowNumber,
-            error: `対象年月の形式が不正です（YYYY-MM形式で入力してください）: ${month}`,
-            row
-          })
+          preview.errors.push({ rowNumber, error: `対象月の形式が不正です（YYYY-MM形式で入力してください）: ${month}`, row })
           continue
         }
 
-        if (isNaN(totalAmount) || isNaN(baseAmount) || isNaN(bonusAmount) || isNaN(contractCount)) {
-          preview.errors.push({
-            rowNumber,
-            error: '金額または契約件数が数値ではありません',
-            row
-          })
+        if (isNaN(grossAmount)) {
+          preview.errors.push({ rowNumber, error: '税込報酬が数値ではありません', row })
           continue
         }
 
-        const user = userMap.get(userId)!
-        const key = `${userId}:${month}`
+        if (isNaN(withholdingTax)) {
+          preview.errors.push({ rowNumber, error: '源泉徴収額が数値ではありません', row })
+          continue
+        }
+
+        if (withholdingTax < 0) {
+          preview.errors.push({ rowNumber, error: '源泉徴収額は0以上の値にしてください', row })
+          continue
+        }
+
+        if (withholdingTax > grossAmount) {
+          preview.errors.push({ rowNumber, error: '源泉徴収額が税込報酬を超えています', row })
+          continue
+        }
+
+        const key = `${user.id}:${month}`
         const isUpdate = existingMap.has(key)
+        const netAmount = grossAmount - withholdingTax
 
         const compensationData = {
-          userId,
+          memberId,
+          userId: user.id,
           userName: user.name,
           userEmail: user.email,
           month,
-          totalAmount,
-          baseAmount,
-          bonusAmount,
-          contractCount,
+          grossAmount,
+          withholdingTax,
+          netAmount,
         }
 
         if (isUpdate) {

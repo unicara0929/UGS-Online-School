@@ -42,6 +42,12 @@ export async function GET(request: NextRequest) {
       },
     })
 
+    // payslipPathは存在有無のみ返す（パスは秘匿）
+    const compensationsWithPayslipFlag = compensations.map(c => ({
+      ...c,
+      payslipPath: c.payslipPath ? true : null,
+    }))
+
     // 統計情報を計算
     const currentMonth = new Date().toISOString().slice(0, 7) // YYYY-MM
     const lastMonth = new Date(new Date().setMonth(new Date().getMonth() - 1))
@@ -103,7 +109,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      compensations,
+      compensations: compensationsWithPayslipFlag,
       stats: {
         currentMonth: currentMonthCompensation || null,
         lastMonth: lastMonthCompensation || null,

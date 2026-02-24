@@ -3,12 +3,12 @@ import { getAuthenticatedUser, checkAdmin } from '@/lib/auth/api-helpers'
 import { prisma } from '@/lib/prisma'
 
 interface CompensationData {
+  memberId: string
   userId: string
   month: string
-  totalAmount: number
-  baseAmount: number
-  bonusAmount: number
-  contractCount: number
+  grossAmount: number
+  withholdingTax: number
+  netAmount: number
 }
 
 /**
@@ -48,29 +48,29 @@ export async function POST(request: NextRequest) {
       // 新規追加
       for (const data of toAdd) {
         try {
-          // ユーザーの現在のロールを取得（見つからない場合はFPをデフォルト）
           const userRole = userRoleMap.get(data.userId) || 'FP'
 
           await tx.compensation.create({
             data: {
               userId: data.userId,
               month: data.month,
-              amount: data.totalAmount,
-              contractCount: data.contractCount,
+              amount: data.grossAmount,
+              withholdingTax: data.withholdingTax,
+              contractCount: 0,
               breakdown: {
                 memberReferral: 0,
                 fpReferral: 0,
-                contract: data.baseAmount,
-                bonus: data.bonusAmount,
+                contract: data.grossAmount,
+                bonus: 0,
                 deduction: 0,
               },
-              earnedAsRole: userRole as 'FP' | 'MANAGER', // 報酬発生時のロールを記録
+              earnedAsRole: userRole as 'FP' | 'MANAGER',
               status: 'PAID',
             },
           })
           addedCount++
         } catch (error: any) {
-          errors.push(`ユーザー${data.userId} 月${data.month}: ${error.message}`)
+          errors.push(`${data.memberId} ${data.month}: ${error.message}`)
         }
       }
 
@@ -85,13 +85,14 @@ export async function POST(request: NextRequest) {
               },
             },
             data: {
-              amount: data.totalAmount,
-              contractCount: data.contractCount,
+              amount: data.grossAmount,
+              withholdingTax: data.withholdingTax,
+              contractCount: 0,
               breakdown: {
                 memberReferral: 0,
                 fpReferral: 0,
-                contract: data.baseAmount,
-                bonus: data.bonusAmount,
+                contract: data.grossAmount,
+                bonus: 0,
                 deduction: 0,
               },
               status: 'PAID',
@@ -99,7 +100,7 @@ export async function POST(request: NextRequest) {
           })
           updatedCount++
         } catch (error: any) {
-          errors.push(`ユーザー${data.userId} 月${data.month}: ${error.message}`)
+          errors.push(`${data.memberId} ${data.month}: ${error.message}`)
         }
       }
     })

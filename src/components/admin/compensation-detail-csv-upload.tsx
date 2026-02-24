@@ -84,7 +84,7 @@ export function CompensationDetailCsvUpload({ businessType }: CompensationDetail
       setResult(data.summary)
       setFile(null)
       setPreview(null)
-      alert(`更新完了: 追加${data.summary.added}件`)
+      alert(`更新完了: 内訳${data.summary.added}件追加、契約${data.summary.contracts}件反映`)
     } catch (error: any) {
       alert(error.message || 'データの保存に失敗しました')
     } finally {
@@ -96,12 +96,12 @@ export function CompensationDetailCsvUpload({ businessType }: CompensationDetail
     let csv: string
     if (isRealEstate) {
       csv = `会員番号,対象月,番号,紹介顧客,成約物件,契約日,報酬額
-UGS0000001,2025-01,RE-001,山田太郎,東京都港区マンション,2025-01-15,150000
-UGS0000002,2025-01,RE-002,田中花子,大阪市中央区一戸建て,2025-01-20,200000`
+UGS0000001,2025-01,RE-001,山田 太郎,東京都港区マンション,2025-01-15,150000
+UGS0000002,2025-01,RE-002,田中 花子,大阪市中央区一戸建て,2025-01-20,200000`
     } else {
       csv = `会員番号,対象月,会社,タイプ,保険種類,契約者名,手数料額
-UGS0000001,2025-01,A生命保険,新規,終身保険,山田太郎,80000
-UGS0000002,2025-01,B損害保険,更新,自動車保険,田中花子,30000`
+UGS0000001,2025-01,A生命保険,新規,終身保険,山田 太郎,80000
+UGS0000002,2025-01,B損害保険,更新,自動車保険,田中 花子,30000`
     }
 
     const bom = '\uFEFF'
@@ -130,7 +130,7 @@ UGS0000002,2025-01,B損害保険,更新,自動車保険,田中花子,30000`
                 <li><code>会員番号</code> - ユーザーの会員番号（例: UGS0000001）</li>
                 <li><code>対象月</code> - 対象年月（YYYY-MM形式、例: 2025-01）</li>
                 <li><code>番号</code> - 物件番号等</li>
-                <li><code>紹介顧客</code> - 紹介した顧客名</li>
+                <li><code>紹介顧客</code> - 紹介した顧客名（姓と名の間にスペース、例: 山田 太郎）</li>
                 <li><code>成約物件</code> - 成約した物件名</li>
                 <li><code>契約日</code> - 契約日</li>
                 <li><code>報酬額</code> - 報酬額（数値）</li>
@@ -142,7 +142,7 @@ UGS0000002,2025-01,B損害保険,更新,自動車保険,田中花子,30000`
                 <li><code>会社</code> - 保険会社名</li>
                 <li><code>タイプ</code> - 契約タイプ（新規/更新等）</li>
                 <li><code>保険種類</code> - 保険の種類</li>
-                <li><code>契約者名</code> - 契約者名</li>
+                <li><code>契約者名</code> - 契約者名（姓と名の間にスペース、例: 山田 太郎）</li>
                 <li><code>手数料額</code> - 手数料額（数値）</li>
               </ul>
             )}
@@ -277,7 +277,8 @@ UGS0000002,2025-01,B損害保険,更新,自動車保険,田中花子,30000`
           </CardHeader>
           <CardContent>
             <div className="space-y-2 text-sm">
-              <p>追加: {result.added}件</p>
+              <p>内訳追加: {result.added}件</p>
+              <p>契約反映: {result.contracts}件</p>
               <p>失敗: {result.failed}件</p>
             </div>
           </CardContent>

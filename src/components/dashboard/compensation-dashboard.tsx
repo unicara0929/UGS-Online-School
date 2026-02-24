@@ -48,6 +48,7 @@ interface Compensation {
   userId: string
   month: string
   amount: number
+  withholdingTax: number
   contractCount: number
   breakdown: {
     memberReferral: number
@@ -57,6 +58,7 @@ interface Compensation {
     deduction: number
   }
   earnedAsRole: 'FP' | 'MANAGER'
+  payslipPath?: boolean | null
   status: 'PENDING' | 'CONFIRMED' | 'PAID'
   details?: CompensationDetail[]
   createdAt: string
@@ -76,6 +78,20 @@ interface CompensationStats {
 
 type RoleFilter = 'ALL' | 'FP' | 'MANAGER'
 
+// 個人情報保護: 名（下の名前）の1文字目を*でマスク
+// 姓名の間にスペース（半角or全角）がある場合: 「高橋 美咲」→「高橋 *咲」
+// スペースがない場合: マスクなし（そのまま表示）
+function maskName(name?: string): string {
+  if (!name || name.length === 0) return ''
+  const spaceIndex = name.search(/[\s\u3000]/)
+  if (spaceIndex === -1) return name
+  const lastName = name.slice(0, spaceIndex)
+  const separator = name[spaceIndex]
+  const firstName = name.slice(spaceIndex + 1)
+  if (firstName.length === 0) return name
+  return lastName + separator + '*' + firstName.slice(1)
+}
+
 export function CompensationDashboard({ userRole }: CompensationDashboardProps) {
   const [compensations, setCompensations] = useState<Compensation[]>([])
   const [stats, setStats] = useState<CompensationStats | null>(null)
@@ -84,6 +100,25 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
   const [monthFilter, setMonthFilter] = useState<string>('')
   const [roleFilter, setRoleFilter] = useState<RoleFilter>('ALL')
   const [expandedDetails, setExpandedDetails] = useState<Set<string>>(new Set())
+  const [loadingPayslip, setLoadingPayslip] = useState<string | null>(null)
+
+  const handleViewPayslip = async (compensationId: string) => {
+    setLoadingPayslip(compensationId)
+    try {
+      const response = await fetch(`/api/compensations/${compensationId}/payslip`, {
+        credentials: 'include',
+      })
+      const data = await response.json()
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || '明細書の取得に失敗しました')
+      }
+      window.open(data.url, '_blank')
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '明細書の取得に失敗しました')
+    } finally {
+      setLoadingPayslip(null)
+    }
+  }
 
   // フィルタリングされた報酬一覧
   const filteredCompensations = compensations.filter((c) => {
@@ -353,29 +388,45 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
                           <p className="text-xs sm:text-sm text-slate-600 tabular-nums">契約件数: {compensation.contractCount}件</p>
                         </div>
                       </div>
-                      <div className="text-left sm:text-right flex sm:flex-col items-center sm:items-end gap-2 sm:gap-0">
+                      <div className="text-left sm:text-right flex sm:flex-col items-center sm:items-end gap-2 sm:gap-1">
                         <p className="text-lg sm:text-xl font-bold text-slate-900 tabular-nums">{formatCurrency(compensation.amount)}</p>
-                        <Badge className="bg-green-100 text-green-800 text-xs">
-                          支払済み
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          {compensation.payslipPath && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewPayslip(compensation.id)}
+                              disabled={loadingPayslip === compensation.id}
+                              className="text-xs h-6 px-2"
+                            >
+                              {loadingPayslip === compensation.id ? (
+                                <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
+                              ) : (
+                                <>
+                                  <FileText className="h-3 w-3 mr-1" aria-hidden="true" />
+                                  明細書
+                                </>
+                              )}
+                            </Button>
+                          )}
+                          <Badge className="bg-green-100 text-green-800 text-xs">
+                            支払済み
+                          </Badge>
+                        </div>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm">
+                    <div className="grid grid-cols-3 gap-2 sm:gap-3 text-xs sm:text-sm">
                       <div className="p-2 bg-slate-50 rounded">
-                        <p className="text-slate-600">会員紹介</p>
-                        <p className="font-medium tabular-nums">{formatCurrency(compensation.breakdown.memberReferral)}</p>
+                        <p className="text-slate-600">税込報酬</p>
+                        <p className="font-medium tabular-nums">{formatCurrency(compensation.amount)}</p>
                       </div>
-                      <div className="p-2 bg-slate-50 rounded">
-                        <p className="text-slate-600">FP紹介</p>
-                        <p className="font-medium tabular-nums">{formatCurrency(compensation.breakdown.fpReferral)}</p>
+                      <div className="p-2 bg-red-50 rounded">
+                        <p className="text-red-600">源泉徴収額</p>
+                        <p className="font-medium text-red-700 tabular-nums">-{formatCurrency(compensation.withholdingTax || 0)}</p>
                       </div>
-                      <div className="p-2 bg-slate-50 rounded">
-                        <p className="text-slate-600">契約報酬</p>
-                        <p className="font-medium tabular-nums">{formatCurrency(compensation.breakdown.contract)}</p>
-                      </div>
-                      <div className="p-2 bg-slate-50 rounded">
-                        <p className="text-slate-600">ボーナス</p>
-                        <p className="font-medium tabular-nums">{formatCurrency(compensation.breakdown.bonus)}</p>
+                      <div className="p-2 bg-green-50 rounded">
+                        <p className="text-green-600">差引支給額</p>
+                        <p className="font-medium text-green-700 tabular-nums">{formatCurrency(compensation.amount - (compensation.withholdingTax || 0))}</p>
                       </div>
                     </div>
 
@@ -417,7 +468,7 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
                                       {compensation.details.filter(d => d.businessType === 'REAL_ESTATE').map((detail) => (
                                         <tr key={detail.id} className="border-b border-slate-100">
                                           <td className="px-2 py-1">{detail.details.number}</td>
-                                          <td className="px-2 py-1">{detail.details.customerName}</td>
+                                          <td className="px-2 py-1">{maskName(detail.details.customerName)}</td>
                                           <td className="px-2 py-1">{detail.details.property}</td>
                                           <td className="px-2 py-1">{detail.details.contractDate}</td>
                                           <td className="px-2 py-1 text-right tabular-nums">{formatCurrency(detail.amount)}</td>
@@ -450,7 +501,7 @@ export function CompensationDashboard({ userRole }: CompensationDashboardProps) 
                                           <td className="px-2 py-1">{detail.details.company}</td>
                                           <td className="px-2 py-1">{detail.details.type}</td>
                                           <td className="px-2 py-1">{detail.details.insuranceType}</td>
-                                          <td className="px-2 py-1">{detail.details.contractorName}</td>
+                                          <td className="px-2 py-1">{maskName(detail.details.contractorName)}</td>
                                           <td className="px-2 py-1 text-right tabular-nums">{formatCurrency(detail.amount)}</td>
                                         </tr>
                                       ))}
