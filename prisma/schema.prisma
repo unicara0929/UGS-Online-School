@@ -99,6 +99,7 @@ model User {
   managerMonthlySales       ManagerMonthlySales[] // 月次売上データ
   managerAssessments        ManagerAssessment[] // 半期査定結果
   eventSurveyResponses      EventSurveyResponse[] // イベントアンケート回答
+  lessonRatings             LessonRating[] // レッスン評価
 
   @@map("users")
 }
@@ -168,6 +169,7 @@ model Lesson {
   updatedAt    DateTime         @updatedAt
   progress     CourseProgress[]
   course       Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  ratings      LessonRating[] // レッスン評価
 
   @@map("lessons")
 }
@@ -1609,4 +1611,25 @@ model ManagerAssessment {
   @@index([status])
   @@index([isDemotionCandidate])
   @@map("manager_assessments")
+}
+
+// =====================
+// レッスン評価機能
+// =====================
+
+model LessonRating {
+  id        String   @id @default(cuid())
+  userId    String
+  lessonId  String
+  rating    Int // 1-5
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@index([lessonId])
+  @@map("lesson_ratings")
 }

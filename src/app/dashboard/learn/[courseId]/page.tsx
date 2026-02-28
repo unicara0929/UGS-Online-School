@@ -9,9 +9,9 @@ import { Progress } from "@/components/ui/progress"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { Sidebar } from "@/components/navigation/sidebar"
 import { useAuth } from "@/contexts/auth-context"
-import { 
-  BookOpen, 
-  Play, 
+import {
+  BookOpen,
+  Play,
   CheckCircle,
   Clock,
   FileText,
@@ -23,6 +23,7 @@ import {
   Bell,
   LogOut
 } from "lucide-react"
+import { LessonRating } from "@/components/lessons/lesson-rating"
 
 interface Lesson {
   id: string
@@ -570,6 +571,12 @@ function LearningPage() {
                       </div>
                     </CardContent>
                   </Card>
+
+                  {/* レッスン評価 */}
+                  <LessonRating
+                    lessonId={currentLesson.id}
+                    isCompleted={currentLesson.isCompleted}
+                  />
                 </div>
               )}
             </div>
