@@ -322,19 +322,13 @@ function ContractTable({
     )
   }
 
-  // 保険タブ: 報酬内訳と同じカラム構成
+  // 保険タブ: 報酬内訳と同じカラム構成（会社, タイプ, 保険種類, 契約者名, 手数料額）
   if (contractType === 'INSURANCE') {
     return (
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-50">
-              <TableHead className="w-[140px]">
-                <div className="flex items-center gap-1">
-                  <Hash className="h-4 w-4" aria-hidden="true" />
-                  契約番号
-                </div>
-              </TableHead>
               <TableHead>会社</TableHead>
               <TableHead>タイプ</TableHead>
               <TableHead>保険種類</TableHead>
@@ -350,13 +344,6 @@ function ContractTable({
                   手数料額
                 </div>
               </TableHead>
-              <TableHead>
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" aria-hidden="true" />
-                  契約日
-                </div>
-              </TableHead>
-              <TableHead>ステータス</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -364,9 +351,6 @@ function ContractTable({
               const { company, type } = parseNoteCompanyType(contract.note)
               return (
                 <TableRow key={contract.id} className="hover:bg-slate-50">
-                  <TableCell className="font-mono text-sm font-medium">
-                    {contract.contractNumber}
-                  </TableCell>
                   <TableCell>{company}</TableCell>
                   <TableCell>{type}</TableCell>
                   <TableCell>{contract.productName || '-'}</TableCell>
@@ -374,10 +358,6 @@ function ContractTable({
                   <TableCell className="text-right font-medium text-orange-600 tabular-nums">
                     {contract.rewardAmount ? formatCurrency(contract.rewardAmount) : '-'}
                   </TableCell>
-                  <TableCell className="text-slate-600">
-                    {formatDate(contract.signedAt)}
-                  </TableCell>
-                  <TableCell>{getStatusBadge(contract.status)}</TableCell>
                 </TableRow>
               )
             })}
