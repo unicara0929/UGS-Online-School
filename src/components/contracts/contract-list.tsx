@@ -17,7 +17,7 @@ import {
   HelpCircle,
   Calendar,
   User,
-  Hash,
+
   Package,
   FileCheck
 } from "lucide-react"
@@ -374,12 +374,6 @@ function ContractTable({
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-50">
-              <TableHead className="w-[140px]">
-                <div className="flex items-center gap-1">
-                  <Hash className="h-4 w-4" aria-hidden="true" />
-                  番号
-                </div>
-              </TableHead>
               <TableHead>
                 <div className="flex items-center gap-1">
                   <User className="h-4 w-4" aria-hidden="true" />
@@ -405,9 +399,6 @@ function ContractTable({
           <TableBody>
             {contracts.map((contract) => (
               <TableRow key={contract.id} className="hover:bg-slate-50">
-                <TableCell className="font-mono text-sm font-medium">
-                  {contract.contractNumber}
-                </TableCell>
                 <TableCell>{maskName(contract.customerName)}</TableCell>
                 <TableCell>{contract.productName || '-'}</TableCell>
                 <TableCell className="text-slate-600">
@@ -431,12 +422,6 @@ function ContractTable({
       <Table>
         <TableHeader>
           <TableRow className="bg-slate-50">
-            <TableHead className="w-[140px]">
-              <div className="flex items-center gap-1">
-                <Hash className="h-4 w-4" aria-hidden="true" />
-                契約番号
-              </div>
-            </TableHead>
             {showType && (
               <TableHead>
                 <div className="flex items-center gap-1">
@@ -479,9 +464,6 @@ function ContractTable({
 
             return (
               <TableRow key={contract.id} className="hover:bg-slate-50">
-                <TableCell className="font-mono text-sm font-medium">
-                  {contract.contractNumber}
-                </TableCell>
                 {showType && (
                   <TableCell>
                     <Badge className={typeConfig.color}>
