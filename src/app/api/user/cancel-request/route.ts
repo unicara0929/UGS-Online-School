@@ -103,9 +103,11 @@ export async function POST(request: NextRequest) {
     if (subscription?.stripeSubscriptionId) {
       try {
         if (isWithinMinimumPeriod) {
-          // 6ヶ月未満：契約満了日（6ヶ月後）でキャンセル
-          // cancel_at はUnixタイムスタンプ（秒）
-          const cancelAtTimestamp = Math.floor(contractEndDate.getTime() / 1000)
+          // 6ヶ月未満：契約満了日（6ヶ月後）の前日でキャンセル
+          // 7回目の決済防止: 満了日と請求日が同日の場合、請求が先に走る可能性があるため
+          const cancelDate = new Date(contractEndDate)
+          cancelDate.setDate(cancelDate.getDate() - 1)
+          const cancelAtTimestamp = Math.floor(cancelDate.getTime() / 1000)
           await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
             cancel_at: cancelAtTimestamp
           })
