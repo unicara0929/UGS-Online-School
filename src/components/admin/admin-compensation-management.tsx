@@ -39,6 +39,8 @@ interface Compensation {
   userId: string
   month: string
   amount: number
+  withholdingTax: number
+  transferFee: number
   breakdown: {
     memberReferral: number
     fpReferral: number
@@ -57,11 +59,27 @@ interface Compensation {
   }
 }
 
+interface MonthGroup {
+  month: string
+  compensations: Compensation[]
+  count: number
+  totalAmount: number
+  totalWithholdingTax: number
+  totalTransferFee: number
+  totalNetAmount: number
+}
+
+function formatMonth(month: string): string {
+  const [year, m] = month.split('-')
+  return `${year}年${m}月`
+}
+
 export function AdminCompensationManagement() {
   const { user } = useAuth()
   const [compensations, setCompensations] = useState<Compensation[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [expandedDetails, setExpandedDetails] = useState<Set<string>>(new Set())
+  const [expandedMonths, setExpandedMonths] = useState<Set<string>>(new Set())
 
   const toggleDetails = (id: string) => {
     setExpandedDetails(prev => {
@@ -74,6 +92,39 @@ export function AdminCompensationManagement() {
       return next
     })
   }
+
+  const toggleMonth = (month: string) => {
+    setExpandedMonths(prev => {
+      const next = new Set(prev)
+      if (next.has(month)) {
+        next.delete(month)
+      } else {
+        next.add(month)
+      }
+      return next
+    })
+  }
+
+  // 月別グループ化
+  const monthGroups: MonthGroup[] = (() => {
+    const grouped = new Map<string, Compensation[]>()
+    for (const c of compensations) {
+      const list = grouped.get(c.month) || []
+      list.push(c)
+      grouped.set(c.month, list)
+    }
+    return Array.from(grouped.entries())
+      .sort(([a], [b]) => b.localeCompare(a))
+      .map(([month, comps]) => ({
+        month,
+        compensations: comps,
+        count: comps.length,
+        totalAmount: comps.reduce((sum, c) => sum + c.amount, 0),
+        totalWithholdingTax: comps.reduce((sum, c) => sum + (c.withholdingTax || 0), 0),
+        totalTransferFee: comps.reduce((sum, c) => sum + (c.transferFee || 0), 0),
+        totalNetAmount: comps.reduce((sum, c) => sum + c.amount - (c.withholdingTax || 0) - (c.transferFee || 0), 0),
+      }))
+  })()
 
   useEffect(() => {
     if (user?.role === 'admin') {
@@ -95,6 +146,12 @@ export function AdminCompensationManagement() {
       }
 
       setCompensations(data.compensations)
+      // 最新月をデフォルト展開
+      if (data.compensations.length > 0) {
+        const months = data.compensations.map((c: Compensation) => c.month)
+        const latestMonth = months.sort((a: string, b: string) => b.localeCompare(a))[0]
+        setExpandedMonths(new Set([latestMonth]))
+      }
     } catch (error) {
       console.error('Error fetching compensations:', error)
       alert(error instanceof Error ? error.message : '報酬情報の取得に失敗しました')
@@ -168,131 +225,189 @@ UGS0000002,2026-02,80000,8168,660`
               <p className="text-sm text-slate-500 mt-2">CSV一括アップロードから報酬データを登録してください</p>
             </div>
           ) : (
-            <div className="space-y-4">
-              {compensations.map((compensation) => (
-                <div
-                  key={compensation.id}
-                  className="flex flex-wrap items-center justify-between gap-2 p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <DollarSign className="h-5 w-5 text-slate-600" aria-hidden="true" />
-                      <div>
-                        <p className="font-medium text-slate-900">
-                          {compensation.user?.name || 'ユーザー'}
-                        </p>
-                        <p className="text-sm text-slate-600">{compensation.user?.email}</p>
+            <div className="space-y-3">
+              {monthGroups.map((group) => {
+                const isExpanded = expandedMonths.has(group.month)
+                return (
+                  <div key={group.month} className="border border-slate-200 rounded-lg overflow-hidden">
+                    {/* 月ヘッダー */}
+                    <button
+                      type="button"
+                      onClick={() => toggleMonth(group.month)}
+                      className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left"
+                    >
+                      <div className="flex items-center gap-3">
+                        {isExpanded ? (
+                          <ChevronUp className="h-5 w-5 text-slate-500 shrink-0" aria-hidden="true" />
+                        ) : (
+                          <ChevronDown className="h-5 w-5 text-slate-500 shrink-0" aria-hidden="true" />
+                        )}
+                        <span className="font-semibold text-slate-900 text-lg">
+                          {formatMonth(group.month)}
+                        </span>
+                        <Badge variant="secondary">{group.count}名</Badge>
                       </div>
-                    </div>
-                    <div className="flex items-center space-x-4 text-sm text-slate-600">
-                      <span>対象月: {compensation.month}</span>
-                      <span className="font-medium text-slate-900">
-                        合計: {formatCurrency(compensation.amount)}
-                      </span>
-                    </div>
-                    <div className="mt-2 text-xs text-slate-500">
-                      内訳: UGS会員紹介 {formatCurrency(compensation.breakdown.memberReferral)} /
-                      FPエイド紹介 {formatCurrency(compensation.breakdown.fpReferral)} /
-                      契約 {formatCurrency(compensation.breakdown.contract)}
-                    </div>
+                      <div className="flex items-center gap-4 text-sm text-slate-600">
+                        <span>税込合計 <span className="font-medium text-slate-900 tabular-nums">{formatCurrency(group.totalAmount)}</span></span>
+                        <span>差引合計 <span className="font-medium text-green-700 tabular-nums">{formatCurrency(group.totalNetAmount)}</span></span>
+                      </div>
+                    </button>
 
-                    {/* 報酬内訳（CompensationDetail） */}
-                    {compensation.details && compensation.details.length > 0 && (
-                      <div className="mt-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleDetails(compensation.id)}
-                          className="text-xs text-slate-600 hover:text-slate-900 px-1 h-auto py-1"
-                        >
-                          {expandedDetails.has(compensation.id) ? (
-                            <ChevronUp className="h-3 w-3 mr-1" aria-hidden="true" />
-                          ) : (
-                            <ChevronDown className="h-3 w-3 mr-1" aria-hidden="true" />
-                          )}
-                          内訳を見る（{compensation.details.length}件）
-                        </Button>
+                    {/* 展開時テーブル */}
+                    {isExpanded && (
+                      <div className="border-t border-slate-200">
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="bg-slate-50 text-slate-600">
+                                <th className="px-4 py-2 text-left font-medium">氏名</th>
+                                <th className="px-4 py-2 text-left font-medium">メール</th>
+                                <th className="px-4 py-2 text-right font-medium">税込報酬</th>
+                                <th className="px-4 py-2 text-right font-medium">源泉徴収額</th>
+                                <th className="px-4 py-2 text-right font-medium">振込手数料</th>
+                                <th className="px-4 py-2 text-right font-medium">差引支給額</th>
+                                <th className="px-4 py-2 text-center font-medium">明細</th>
+                                <th className="px-4 py-2 text-center font-medium">内訳</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {group.compensations.map((compensation) => {
+                                const netAmount = compensation.amount - (compensation.withholdingTax || 0) - (compensation.transferFee || 0)
+                                return (
+                                  <tr key={compensation.id} className="border-t border-slate-100 hover:bg-slate-50 transition-colors">
+                                    <td className="px-4 py-3 font-medium text-slate-900">
+                                      {compensation.user?.name || 'ユーザー'}
+                                    </td>
+                                    <td className="px-4 py-3 text-slate-600 text-xs">
+                                      {compensation.user?.email}
+                                    </td>
+                                    <td className="px-4 py-3 text-right tabular-nums text-slate-900">
+                                      {formatCurrency(compensation.amount)}
+                                    </td>
+                                    <td className="px-4 py-3 text-right tabular-nums text-red-600">
+                                      {(compensation.withholdingTax || 0) > 0
+                                        ? `-${formatCurrency(compensation.withholdingTax)}`
+                                        : formatCurrency(0)}
+                                    </td>
+                                    <td className="px-4 py-3 text-right tabular-nums text-orange-600">
+                                      {(compensation.transferFee || 0) > 0
+                                        ? `-${formatCurrency(compensation.transferFee)}`
+                                        : formatCurrency(0)}
+                                    </td>
+                                    <td className="px-4 py-3 text-right tabular-nums font-medium text-green-700">
+                                      {formatCurrency(netAmount)}
+                                    </td>
+                                    <td className="px-4 py-3 text-center">
+                                      {compensation.payslipPath ? (
+                                        <span title="明細書アップロード済み">
+                                          <FileCheck className="h-4 w-4 text-green-600 inline-block" aria-hidden="true" />
+                                        </span>
+                                      ) : (
+                                        <span title="明細書未アップロード">
+                                          <FileCheck className="h-4 w-4 text-slate-300 inline-block" aria-hidden="true" />
+                                        </span>
+                                      )}
+                                    </td>
+                                    <td className="px-4 py-3 text-center">
+                                      {compensation.details && compensation.details.length > 0 && (
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => toggleDetails(compensation.id)}
+                                          className="text-xs text-slate-600 hover:text-slate-900 px-2 h-auto py-1"
+                                        >
+                                          {expandedDetails.has(compensation.id) ? (
+                                            <ChevronUp className="h-3 w-3 mr-1" aria-hidden="true" />
+                                          ) : (
+                                            <ChevronDown className="h-3 w-3 mr-1" aria-hidden="true" />
+                                          )}
+                                          {compensation.details.length}件
+                                        </Button>
+                                      )}
+                                    </td>
+                                  </tr>
+                                )
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
 
-                        {expandedDetails.has(compensation.id) && (
-                          <div className="mt-2 space-y-3">
-                            {compensation.details.filter(d => d.businessType === 'REAL_ESTATE').length > 0 && (
-                              <div>
-                                <p className="text-xs font-semibold text-slate-700 mb-1">不動産</p>
-                                <div className="overflow-x-auto">
-                                  <table className="w-full text-xs">
-                                    <thead>
-                                      <tr className="bg-slate-100">
-                                        <th className="px-2 py-1 text-left">番号</th>
-                                        <th className="px-2 py-1 text-left">紹介顧客</th>
-                                        <th className="px-2 py-1 text-left">成約物件</th>
-                                        <th className="px-2 py-1 text-left">契約日</th>
-                                        <th className="px-2 py-1 text-right">報酬額</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {compensation.details.filter(d => d.businessType === 'REAL_ESTATE').map((detail) => (
-                                        <tr key={detail.id} className="border-b border-slate-100">
-                                          <td className="px-2 py-1">{detail.details.number}</td>
-                                          <td className="px-2 py-1">{detail.details.customerName}</td>
-                                          <td className="px-2 py-1">{detail.details.property}</td>
-                                          <td className="px-2 py-1">{detail.details.contractDate}</td>
-                                          <td className="px-2 py-1 text-right tabular-nums">{formatCurrency(detail.amount)}</td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
+                        {/* 内訳展開エリア（テーブル外） */}
+                        {group.compensations.map((compensation) =>
+                          expandedDetails.has(compensation.id) && compensation.details && compensation.details.length > 0 ? (
+                            <div key={`detail-${compensation.id}`} className="border-t border-slate-100 bg-slate-50 px-4 py-3">
+                              <p className="text-xs font-medium text-slate-700 mb-2">
+                                {compensation.user?.name} の内訳
+                              </p>
+                              <div className="space-y-3">
+                                {compensation.details.filter(d => d.businessType === 'REAL_ESTATE').length > 0 && (
+                                  <div>
+                                    <p className="text-xs font-semibold text-slate-700 mb-1">不動産</p>
+                                    <div className="overflow-x-auto">
+                                      <table className="w-full text-xs">
+                                        <thead>
+                                          <tr className="bg-slate-100">
+                                            <th className="px-2 py-1 text-left">番号</th>
+                                            <th className="px-2 py-1 text-left">紹介顧客</th>
+                                            <th className="px-2 py-1 text-left">成約物件</th>
+                                            <th className="px-2 py-1 text-left">契約日</th>
+                                            <th className="px-2 py-1 text-right">報酬額</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody>
+                                          {compensation.details.filter(d => d.businessType === 'REAL_ESTATE').map((detail) => (
+                                            <tr key={detail.id} className="border-b border-slate-100">
+                                              <td className="px-2 py-1">{detail.details.number}</td>
+                                              <td className="px-2 py-1">{detail.details.customerName}</td>
+                                              <td className="px-2 py-1">{detail.details.property}</td>
+                                              <td className="px-2 py-1">{detail.details.contractDate}</td>
+                                              <td className="px-2 py-1 text-right tabular-nums">{formatCurrency(detail.amount)}</td>
+                                            </tr>
+                                          ))}
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {compensation.details.filter(d => d.businessType === 'INSURANCE').length > 0 && (
+                                  <div>
+                                    <p className="text-xs font-semibold text-slate-700 mb-1">保険</p>
+                                    <div className="overflow-x-auto">
+                                      <table className="w-full text-xs">
+                                        <thead>
+                                          <tr className="bg-slate-100">
+                                            <th className="px-2 py-1 text-left">会社</th>
+                                            <th className="px-2 py-1 text-left">タイプ</th>
+                                            <th className="px-2 py-1 text-left">保険種類</th>
+                                            <th className="px-2 py-1 text-left">契約者名</th>
+                                            <th className="px-2 py-1 text-right">手数料額</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody>
+                                          {compensation.details.filter(d => d.businessType === 'INSURANCE').map((detail) => (
+                                            <tr key={detail.id} className="border-b border-slate-100">
+                                              <td className="px-2 py-1">{detail.details.company}</td>
+                                              <td className="px-2 py-1">{detail.details.type}</td>
+                                              <td className="px-2 py-1">{detail.details.insuranceType}</td>
+                                              <td className="px-2 py-1">{detail.details.contractorName}</td>
+                                              <td className="px-2 py-1 text-right tabular-nums">{formatCurrency(detail.amount)}</td>
+                                            </tr>
+                                          ))}
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
-                            )}
-
-                            {compensation.details.filter(d => d.businessType === 'INSURANCE').length > 0 && (
-                              <div>
-                                <p className="text-xs font-semibold text-slate-700 mb-1">保険</p>
-                                <div className="overflow-x-auto">
-                                  <table className="w-full text-xs">
-                                    <thead>
-                                      <tr className="bg-slate-100">
-                                        <th className="px-2 py-1 text-left">会社</th>
-                                        <th className="px-2 py-1 text-left">タイプ</th>
-                                        <th className="px-2 py-1 text-left">保険種類</th>
-                                        <th className="px-2 py-1 text-left">契約者名</th>
-                                        <th className="px-2 py-1 text-right">手数料額</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {compensation.details.filter(d => d.businessType === 'INSURANCE').map((detail) => (
-                                        <tr key={detail.id} className="border-b border-slate-100">
-                                          <td className="px-2 py-1">{detail.details.company}</td>
-                                          <td className="px-2 py-1">{detail.details.type}</td>
-                                          <td className="px-2 py-1">{detail.details.insuranceType}</td>
-                                          <td className="px-2 py-1">{detail.details.contractorName}</td>
-                                          <td className="px-2 py-1 text-right tabular-nums">{formatCurrency(detail.amount)}</td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              </div>
-                            )}
-                          </div>
+                            </div>
+                          ) : null
                         )}
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center space-x-4">
-                    {compensation.payslipPath ? (
-                      <span title="明細書アップロード済み">
-                        <FileCheck className="h-5 w-5 text-green-600" aria-hidden="true" />
-                      </span>
-                    ) : (
-                      <span title="明細書未アップロード">
-                        <FileCheck className="h-5 w-5 text-slate-300" aria-hidden="true" />
-                      </span>
-                    )}
-                    <Badge className="bg-green-100 text-green-800">支払済み</Badge>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </CardContent>
