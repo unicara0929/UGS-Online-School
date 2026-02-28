@@ -574,6 +574,7 @@ function LearningPage() {
 
                   {/* レッスン評価 */}
                   <LessonRating
+                    key={currentLesson.id}
                     lessonId={currentLesson.id}
                     isCompleted={currentLesson.isCompleted}
                   />
