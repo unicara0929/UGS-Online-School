@@ -18,6 +18,7 @@ import {
   Trophy,
   BarChart3,
   RefreshCw,
+  Star,
 } from 'lucide-react'
 import {
   BarChart,
@@ -32,8 +33,9 @@ import {
   Legend,
 } from 'recharts'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
+import { AdminRatingsDashboard } from '@/components/admin/admin-ratings-dashboard'
 
-type TabType = 'payment' | 'content'
+type TabType = 'payment' | 'content' | 'ratings'
 
 interface ContentAnalytics {
   kpi: {
@@ -53,6 +55,7 @@ interface ContentAnalytics {
     completions: number
     lessonCount: number
     completionRate: number
+    avgRating: number
   }>
   eventRanking: Array<{
     id: string
@@ -247,6 +250,17 @@ export default function AnalyticsPage() {
           >
             <BookOpen className="h-4 w-4" aria-hidden="true" />
             コンテンツ分析
+          </button>
+          <button
+            onClick={() => setActiveTab('ratings')}
+            className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+              activeTab === 'ratings'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            <Star className="h-4 w-4" aria-hidden="true" />
+            動画評価
           </button>
         </div>
 
@@ -583,6 +597,7 @@ export default function AnalyticsPage() {
                               <th className="text-center py-3 px-2 font-medium text-slate-600">学習者</th>
                               <th className="text-center py-3 px-2 font-medium text-slate-600">修了数</th>
                               <th className="text-center py-3 px-2 font-medium text-slate-600">修了率</th>
+                              <th className="text-center py-3 px-2 font-medium text-slate-600">平均評価</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -616,6 +631,16 @@ export default function AnalyticsPage() {
                                   }`}>
                                     {course.learners > 0 ? `${course.completionRate}%` : '-'}
                                   </span>
+                                </td>
+                                <td className="py-2.5 px-2 text-center">
+                                  {course.avgRating > 0 ? (
+                                    <div className="flex items-center justify-center gap-1">
+                                      <Star className="h-3.5 w-3.5 text-yellow-500 fill-yellow-400" aria-hidden="true" />
+                                      <span className="font-medium text-slate-700">{course.avgRating.toFixed(1)}</span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-slate-400">-</span>
+                                  )}
                                 </td>
                               </tr>
                             ))}
@@ -687,6 +712,11 @@ export default function AnalyticsPage() {
               </div>
             )}
           </>
+        )}
+
+        {/* ===== 動画評価タブ ===== */}
+        {activeTab === 'ratings' && (
+          <AdminRatingsDashboard />
         )}
         </div>
         </div>

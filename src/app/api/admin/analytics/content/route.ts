@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
       eventRegistrations,
       monthlyLearning,
       totalActiveLearners,
+      lessonRatings,
     ] = await Promise.all([
       // 全コース（公開済み）
       prisma.course.findMany({
@@ -117,7 +118,34 @@ export async function GET(request: NextRequest) {
       prisma.courseProgress.groupBy({
         by: ['userId'],
       }),
+
+      // レッスン別の平均評価
+      prisma.lessonRating.groupBy({
+        by: ['lessonId'],
+        _avg: { rating: true },
+        _count: { rating: true },
+      }),
     ])
+
+    // lessonId → courseId のマッピングを作成
+    const lessonToCourseMap = new Map<string, string>()
+    courses.forEach((course) => {
+      course.lessons.forEach((lesson) => {
+        lessonToCourseMap.set(lesson.id, course.id)
+      })
+    })
+
+    // コース別の平均評価を計算
+    const courseRatingMap = new Map<string, { totalWeighted: number; totalCount: number }>()
+    lessonRatings.forEach((lr) => {
+      const courseId = lessonToCourseMap.get(lr.lessonId)
+      if (courseId && lr._avg.rating != null) {
+        const existing = courseRatingMap.get(courseId) || { totalWeighted: 0, totalCount: 0 }
+        existing.totalWeighted += lr._avg.rating * lr._count.rating
+        existing.totalCount += lr._count.rating
+        courseRatingMap.set(courseId, existing)
+      }
+    })
 
     // コース別ユニーク学習者数マップ
     const courseLearnerMap = new Map<string, number>()
@@ -143,6 +171,11 @@ export async function GET(request: NextRequest) {
       const completions = courseCompletionMap.get(course.id) || 0
       const lessonCount = course.lessons.length
 
+      const ratingData = courseRatingMap.get(course.id)
+      const avgRating = ratingData && ratingData.totalCount > 0
+        ? Math.round((ratingData.totalWeighted / ratingData.totalCount) * 10) / 10
+        : 0
+
       return {
         id: course.id,
         title: course.title,
@@ -152,6 +185,7 @@ export async function GET(request: NextRequest) {
         completions,
         lessonCount,
         completionRate: learners > 0 ? Math.round((completions / learners) * 100) : 0,
+        avgRating,
       }
     }).sort((a, b) => b.learners - a.learners)
 

@@ -114,8 +114,11 @@ export function AdminRatingsDashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+      <div className="text-center py-16">
+        <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-yellow-500/20">
+          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+        </div>
+        <p className="text-sm text-slate-500">動画評価データを読み込み中...</p>
       </div>
     )
   }
@@ -140,7 +143,8 @@ export function AdminRatingsDashboard() {
   return (
     <div className="space-y-6">
       {/* 全体サマリー */}
-      <Card>
+      <Card className="relative overflow-hidden border-0 shadow-md bg-white">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-500 to-amber-400"></div>
         <CardHeader>
           <CardTitle className="text-lg">全体サマリー</CardTitle>
         </CardHeader>
@@ -171,7 +175,7 @@ export function AdminRatingsDashboard() {
       </Card>
 
       {/* コース別一覧 */}
-      <Card>
+      <Card className="border-0 shadow-md bg-white">
         <CardHeader>
           <CardTitle className="text-lg">コース別評価</CardTitle>
         </CardHeader>
