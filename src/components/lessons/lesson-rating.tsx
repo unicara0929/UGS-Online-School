@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Star, MessageSquare, Loader2 } from 'lucide-react'
+import { Star, MessageSquare, Loader2, CheckCircle } from 'lucide-react'
 
 interface LessonRatingProps {
   lessonId: string
@@ -19,6 +19,7 @@ export function LessonRating({ lessonId, isCompleted }: LessonRatingProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [savedComment, setSavedComment] = useState('')
+  const [showSavedMessage, setShowSavedMessage] = useState(false)
 
   // 既存の評価を取得
   useEffect(() => {
@@ -64,6 +65,8 @@ export function LessonRating({ lessonId, isCompleted }: LessonRatingProps) {
       const data = await res.json()
       if (data.success) {
         setSavedComment(newComment ?? comment)
+        setShowSavedMessage(true)
+        setTimeout(() => setShowSavedMessage(false), 2000)
       }
     } catch (err) {
       console.error('Failed to save rating:', err)
@@ -131,6 +134,12 @@ export function LessonRating({ lessonId, isCompleted }: LessonRatingProps) {
             {isSaving && (
               <Loader2 className="h-4 w-4 animate-spin text-slate-400 ml-1" />
             )}
+            {showSavedMessage && !isSaving && (
+              <span className="ml-1 text-xs text-green-600 flex items-center gap-0.5">
+                <CheckCircle className="h-3.5 w-3.5" />
+                保存しました
+              </span>
+            )}
           </div>
 
           {/* コメント入力 */}
@@ -154,7 +163,7 @@ export function LessonRating({ lessonId, isCompleted }: LessonRatingProps) {
                 className="text-xs sm:text-sm resize-none"
                 rows={3}
               />
-              {comment !== savedComment && (
+              {comment !== savedComment ? (
                 <Button
                   size="sm"
                   onClick={handleCommentSave}
@@ -166,6 +175,11 @@ export function LessonRating({ lessonId, isCompleted }: LessonRatingProps) {
                   ) : null}
                   コメントを保存
                 </Button>
+              ) : savedComment && (
+                <p className="text-xs text-green-600 flex items-center justify-center gap-1">
+                  <CheckCircle className="h-3.5 w-3.5" />
+                  コメントが保存されています
+                </p>
               )}
             </div>
           )}
