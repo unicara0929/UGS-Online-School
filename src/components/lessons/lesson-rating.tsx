@@ -20,6 +20,7 @@ export function LessonRating({ lessonId, isCompleted }: LessonRatingProps) {
   const [isSaving, setIsSaving] = useState(false)
   const [savedComment, setSavedComment] = useState('')
   const [showSavedMessage, setShowSavedMessage] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
 
   // 既存の評価を取得
   useEffect(() => {
@@ -52,6 +53,7 @@ export function LessonRating({ lessonId, isCompleted }: LessonRatingProps) {
   // 評価を保存
   const saveRating = useCallback(async (newRating: number, newComment?: string) => {
     setIsSaving(true)
+    setErrorMessage('')
     try {
       const res = await fetch(`/api/lessons/${lessonId}/rating`, {
         method: 'POST',
@@ -67,9 +69,12 @@ export function LessonRating({ lessonId, isCompleted }: LessonRatingProps) {
         setSavedComment(newComment ?? comment)
         setShowSavedMessage(true)
         setTimeout(() => setShowSavedMessage(false), 2000)
+      } else {
+        setErrorMessage(data.error || '保存に失敗しました')
       }
     } catch (err) {
       console.error('Failed to save rating:', err)
+      setErrorMessage('通信エラーが発生しました')
     } finally {
       setIsSaving(false)
     }
@@ -141,6 +146,13 @@ export function LessonRating({ lessonId, isCompleted }: LessonRatingProps) {
               </span>
             )}
           </div>
+
+          {/* エラー表示 */}
+          {errorMessage && (
+            <p className="text-xs text-red-600 bg-red-50 rounded-md px-3 py-2">
+              {errorMessage}
+            </p>
+          )}
 
           {/* コメント入力 */}
           {rating && !showComment && (
