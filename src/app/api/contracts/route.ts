@@ -62,11 +62,13 @@ export async function GET(request: NextRequest) {
         userId: contract.userId,
         contractNumber: contract.contractNumber,
         productName: contract.productName,
+        customerName: contract.customerName,
         contractType: contract.contractType,
         status: contract.status,
         signedAt: contract.signedAt,
         amount: contract.amount,
         rewardAmount: contract.rewardAmount,
+        note: contract.note,
         createdAt: contract.createdAt
       }))
     })

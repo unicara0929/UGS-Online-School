@@ -266,6 +266,7 @@ export function ContractList() {
                     contracts={typeContracts}
                     getStatusBadge={getStatusBadge}
                     showType={false}
+                    contractType={key as ContractType}
                   />
                 </TabsContent>
               )
@@ -277,15 +278,39 @@ export function ContractList() {
   )
 }
 
+// 個人情報保護: 姓名の名を一部マスク
+function maskName(name?: string | null): string {
+  if (!name || name.length === 0) return '-'
+  const spaceIndex = name.search(/[\s\u3000]/)
+  if (spaceIndex === -1) return name
+  const lastName = name.slice(0, spaceIndex)
+  const separator = name[spaceIndex]
+  const firstName = name.slice(spaceIndex + 1)
+  if (firstName.length === 0) return name
+  return lastName + separator + '*' + firstName.slice(1)
+}
+
+// note フィールドから「会社 / タイプ」をパース
+function parseNoteCompanyType(note?: string | null): { company: string; type: string } {
+  if (!note) return { company: '-', type: '-' }
+  const parts = note.split(' / ')
+  return {
+    company: parts[0] || '-',
+    type: parts[1] || '-',
+  }
+}
+
 // 契約テーブルコンポーネント
 function ContractTable({
   contracts,
   getStatusBadge,
-  showType = true
+  showType = true,
+  contractType,
 }: {
   contracts: Contract[]
   getStatusBadge: (status: string) => React.ReactNode
   showType?: boolean
+  contractType?: ContractType
 }) {
   if (contracts.length === 0) {
     return (
@@ -297,6 +322,130 @@ function ContractTable({
     )
   }
 
+  // 保険タブ: 報酬内訳と同じカラム構成
+  if (contractType === 'INSURANCE') {
+    return (
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-slate-50">
+              <TableHead className="w-[140px]">
+                <div className="flex items-center gap-1">
+                  <Hash className="h-4 w-4" aria-hidden="true" />
+                  契約番号
+                </div>
+              </TableHead>
+              <TableHead>会社</TableHead>
+              <TableHead>タイプ</TableHead>
+              <TableHead>保険種類</TableHead>
+              <TableHead>
+                <div className="flex items-center gap-1">
+                  <User className="h-4 w-4" aria-hidden="true" />
+                  契約者名
+                </div>
+              </TableHead>
+              <TableHead className="text-right">
+                <div className="flex items-center gap-1 justify-end">
+                  <DollarSign className="h-4 w-4" aria-hidden="true" />
+                  手数料額
+                </div>
+              </TableHead>
+              <TableHead>
+                <div className="flex items-center gap-1">
+                  <Calendar className="h-4 w-4" aria-hidden="true" />
+                  契約日
+                </div>
+              </TableHead>
+              <TableHead>ステータス</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {contracts.map((contract) => {
+              const { company, type } = parseNoteCompanyType(contract.note)
+              return (
+                <TableRow key={contract.id} className="hover:bg-slate-50">
+                  <TableCell className="font-mono text-sm font-medium">
+                    {contract.contractNumber}
+                  </TableCell>
+                  <TableCell>{company}</TableCell>
+                  <TableCell>{type}</TableCell>
+                  <TableCell>{contract.productName || '-'}</TableCell>
+                  <TableCell>{maskName(contract.customerName)}</TableCell>
+                  <TableCell className="text-right font-medium text-orange-600 tabular-nums">
+                    {contract.rewardAmount ? formatCurrency(contract.rewardAmount) : '-'}
+                  </TableCell>
+                  <TableCell className="text-slate-600">
+                    {formatDate(contract.signedAt)}
+                  </TableCell>
+                  <TableCell>{getStatusBadge(contract.status)}</TableCell>
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </Table>
+      </div>
+    )
+  }
+
+  // 不動産タブ: 報酬内訳と同じカラム構成
+  if (contractType === 'REAL_ESTATE') {
+    return (
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-slate-50">
+              <TableHead className="w-[140px]">
+                <div className="flex items-center gap-1">
+                  <Hash className="h-4 w-4" aria-hidden="true" />
+                  番号
+                </div>
+              </TableHead>
+              <TableHead>
+                <div className="flex items-center gap-1">
+                  <User className="h-4 w-4" aria-hidden="true" />
+                  紹介顧客
+                </div>
+              </TableHead>
+              <TableHead>成約物件</TableHead>
+              <TableHead>
+                <div className="flex items-center gap-1">
+                  <Calendar className="h-4 w-4" aria-hidden="true" />
+                  契約日
+                </div>
+              </TableHead>
+              <TableHead className="text-right">
+                <div className="flex items-center gap-1 justify-end">
+                  <DollarSign className="h-4 w-4" aria-hidden="true" />
+                  報酬額
+                </div>
+              </TableHead>
+              <TableHead>ステータス</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {contracts.map((contract) => (
+              <TableRow key={contract.id} className="hover:bg-slate-50">
+                <TableCell className="font-mono text-sm font-medium">
+                  {contract.contractNumber}
+                </TableCell>
+                <TableCell>{maskName(contract.customerName)}</TableCell>
+                <TableCell>{contract.productName || '-'}</TableCell>
+                <TableCell className="text-slate-600">
+                  {formatDate(contract.signedAt)}
+                </TableCell>
+                <TableCell className="text-right font-medium text-orange-600 tabular-nums">
+                  {contract.rewardAmount ? formatCurrency(contract.rewardAmount) : '-'}
+                </TableCell>
+                <TableCell>{getStatusBadge(contract.status)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    )
+  }
+
+  // 全て / その他タブ: 汎用カラム
   return (
     <div className="overflow-x-auto">
       <Table>
@@ -331,12 +480,6 @@ function ContractTable({
             <TableHead className="text-right">
               <div className="flex items-center gap-1 justify-end">
                 <DollarSign className="h-4 w-4" aria-hidden="true" />
-                契約金額
-              </div>
-            </TableHead>
-            <TableHead className="text-right">
-              <div className="flex items-center gap-1 justify-end">
-                <DollarSign className="h-4 w-4" aria-hidden="true" />
                 報酬額
               </div>
             </TableHead>
@@ -347,7 +490,6 @@ function ContractTable({
               </div>
             </TableHead>
             <TableHead>ステータス</TableHead>
-            <TableHead>メモ</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -369,10 +511,7 @@ function ContractTable({
                   </TableCell>
                 )}
                 <TableCell>{contract.productName || '-'}</TableCell>
-                <TableCell>{contract.customerName || '-'}</TableCell>
-                <TableCell className="text-right tabular-nums">
-                  {contract.amount ? formatCurrency(contract.amount) : '-'}
-                </TableCell>
+                <TableCell>{maskName(contract.customerName)}</TableCell>
                 <TableCell className="text-right font-medium text-orange-600 tabular-nums">
                   {contract.rewardAmount ? formatCurrency(contract.rewardAmount) : '-'}
                 </TableCell>
@@ -380,9 +519,6 @@ function ContractTable({
                   {formatDate(contract.signedAt)}
                 </TableCell>
                 <TableCell>{getStatusBadge(contract.status)}</TableCell>
-                <TableCell className="text-slate-500 text-sm max-w-[150px] truncate">
-                  {contract.note || '-'}
-                </TableCell>
               </TableRow>
             )
           })}
