@@ -25,7 +25,9 @@ import {
   Home,
   MoreVertical,
   FolderOpen,
-  FolderInput
+  FolderInput,
+  ExternalLink,
+  Link
 } from 'lucide-react'
 import {
   Dialog,
@@ -57,6 +59,7 @@ interface Material {
   fileName: string
   fileSize: string
   fileType: string
+  externalUrl: string
   category: string
   folderId: string | null
   viewableRoles: string[]
@@ -145,6 +148,7 @@ export default function AdminMaterialsPage() {
   const [selectedMoveFolder, setSelectedMoveFolder] = useState<string>('root')
 
   // フォーム状態
+  const [contentType, setContentType] = useState<'file' | 'link'>('file')
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -152,6 +156,7 @@ export default function AdminMaterialsPage() {
     fileName: '',
     fileSize: '',
     fileType: '',
+    externalUrl: '',
     category: 'general',
     viewableRoles: ['member', 'fp', 'manager', 'admin'] as string[],
   })
@@ -207,6 +212,7 @@ export default function AdminMaterialsPage() {
   const handleOpenDialog = (material?: Material) => {
     if (material) {
       setEditingMaterial(material)
+      setContentType(material.externalUrl ? 'link' : 'file')
       setFormData({
         title: material.title,
         description: material.description,
@@ -214,11 +220,13 @@ export default function AdminMaterialsPage() {
         fileName: material.fileName,
         fileSize: material.fileSize,
         fileType: material.fileType,
+        externalUrl: material.externalUrl || '',
         category: material.category || 'general',
         viewableRoles: material.viewableRoles,
       })
     } else {
       setEditingMaterial(null)
+      setContentType('file')
       setFormData({
         title: '',
         description: '',
@@ -226,6 +234,7 @@ export default function AdminMaterialsPage() {
         fileName: '',
         fileSize: '',
         fileType: '',
+        externalUrl: '',
         category: 'general',
         viewableRoles: ['member', 'fp', 'manager', 'admin'],
       })
@@ -343,11 +352,21 @@ export default function AdminMaterialsPage() {
       return
     }
 
+    if (contentType === 'link' && !formData.externalUrl) {
+      alert('外部リンクURLを入力してください')
+      return
+    }
+
     setSaving(true)
     try {
       const url = editingMaterial
         ? `/api/admin/materials/${editingMaterial.id}`
         : '/api/admin/materials'
+
+      // コンテンツタイプに応じてデータを整理
+      const saveData = contentType === 'link'
+        ? { ...formData, fileUrl: '', fileName: '', fileSize: '', fileType: '', folderId: currentFolderId }
+        : { ...formData, externalUrl: '', folderId: currentFolderId }
 
       const response = await fetch(url, {
         method: editingMaterial ? 'PATCH' : 'POST',
@@ -355,10 +374,7 @@ export default function AdminMaterialsPage() {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({
-          ...formData,
-          folderId: currentFolderId,
-        }),
+        body: JSON.stringify(saveData),
       })
 
       if (!response.ok) {
@@ -690,9 +706,15 @@ export default function AdminMaterialsPage() {
                     key={material.id}
                     className="flex items-center px-4 py-3 hover:bg-slate-50 transition-colors group"
                   >
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                      <FileText className="h-5 w-5 text-blue-600" aria-hidden="true" />
-                    </div>
+                    {material.externalUrl ? (
+                      <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                        <ExternalLink className="h-5 w-5 text-green-600" aria-hidden="true" />
+                      </div>
+                    ) : (
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                        <FileText className="h-5 w-5 text-blue-600" aria-hidden="true" />
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <h3 className="font-medium text-slate-900 truncate">{material.title}</h3>
@@ -703,26 +725,32 @@ export default function AdminMaterialsPage() {
                         )}
                       </div>
                       <div className="flex items-center gap-2 text-sm text-slate-500">
-                        {material.fileName && (
+                        {material.externalUrl ? (
+                          <span className="truncate">{(() => { try { return new URL(material.externalUrl).hostname } catch { return material.externalUrl } })()}</span>
+                        ) : material.fileName ? (
                           <span className="truncate">
                             {material.fileName}
                             {material.fileSize && ` (${formatFileSize(material.fileSize)})`}
                           </span>
-                        )}
+                        ) : null}
                         <span className="shrink-0">
                           {material.viewableRoles.map(r => getRoleLabel(r)).join(', ')}
                         </span>
                       </div>
                     </div>
                     <div className="flex items-center gap-1 ml-2">
-                      {material.fileUrl && (
+                      {(material.fileUrl || material.externalUrl) && (
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => window.open(material.fileUrl, '_blank')}
+                          onClick={() => window.open(material.externalUrl || material.fileUrl, '_blank')}
                           className="opacity-0 group-hover:opacity-100"
                         >
-                          <Download className="h-4 w-4" aria-hidden="true" />
+                          {material.externalUrl ? (
+                            <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                          ) : (
+                            <Download className="h-4 w-4" aria-hidden="true" />
+                          )}
                         </Button>
                       )}
                       <DropdownMenu>
@@ -814,59 +842,104 @@ export default function AdminMaterialsPage() {
               </Select>
             </div>
 
-            {/* ファイルアップロード */}
+            {/* コンテンツタイプ切替 */}
             <div className="space-y-2">
-              <Label>ファイル</Label>
-              <div className="flex items-center gap-2">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-                <Button
+              <Label>コンテンツタイプ</Label>
+              <div className="flex rounded-lg border border-slate-200 overflow-hidden">
+                <button
                   type="button"
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
+                  onClick={() => setContentType('file')}
+                  className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+                    contentType === 'file'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white text-slate-600 hover:bg-slate-50'
+                  }`}
                 >
-                  {uploading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
-                      アップロード中...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-4 w-4 mr-2" aria-hidden="true" />
-                      ファイルを選択
-                    </>
-                  )}
-                </Button>
-                {formData.fileName && (
-                  <div className="flex items-center gap-2 text-sm text-slate-600">
-                    <FileText className="h-4 w-4" aria-hidden="true" />
-                    <span>{formData.fileName}</span>
-                    {formData.fileSize && (
-                      <span className="text-slate-400">({formatFileSize(formData.fileSize)})</span>
-                    )}
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setFormData(prev => ({
-                        ...prev,
-                        fileUrl: '',
-                        fileName: '',
-                        fileSize: '',
-                        fileType: '',
-                      }))}
-                    >
-                      <X className="h-4 w-4" aria-hidden="true" />
-                    </Button>
-                  </div>
-                )}
+                  <Upload className="h-4 w-4 inline mr-1" aria-hidden="true" />
+                  ファイル
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setContentType('link')}
+                  className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+                    contentType === 'link'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-white text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  <Link className="h-4 w-4 inline mr-1" aria-hidden="true" />
+                  外部リンク
+                </button>
               </div>
             </div>
+
+            {contentType === 'file' ? (
+              /* ファイルアップロード */
+              <div className="space-y-2">
+                <Label>ファイル</Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                  >
+                    {uploading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
+                        アップロード中...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 mr-2" aria-hidden="true" />
+                        ファイルを選択
+                      </>
+                    )}
+                  </Button>
+                  {formData.fileName && (
+                    <div className="flex items-center gap-2 text-sm text-slate-600">
+                      <FileText className="h-4 w-4" aria-hidden="true" />
+                      <span>{formData.fileName}</span>
+                      {formData.fileSize && (
+                        <span className="text-slate-400">({formatFileSize(formData.fileSize)})</span>
+                      )}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setFormData(prev => ({
+                          ...prev,
+                          fileUrl: '',
+                          fileName: '',
+                          fileSize: '',
+                          fileType: '',
+                        }))}
+                      >
+                        <X className="h-4 w-4" aria-hidden="true" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* 外部リンクURL入力 */
+              <div className="space-y-2">
+                <Label htmlFor="externalUrl">外部リンクURL *</Label>
+                <Input
+                  id="externalUrl"
+                  type="url"
+                  value={formData.externalUrl}
+                  onChange={(e) => setFormData(prev => ({ ...prev, externalUrl: e.target.value }))}
+                  placeholder="https://example.com"
+                />
+              </div>
+            )}
 
             {/* 閲覧可能ロール */}
             <div className="space-y-2">

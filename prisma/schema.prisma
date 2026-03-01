@@ -837,6 +837,7 @@ model Material {
   fileName      String?
   fileSize      String? // 例: "2.5MB"
   fileType      String? // 例: "PDF", "DOCX"
+  externalUrl   String? // 外部リンクURL
   category      String? // 例: "マニュアル", "テンプレート"
   folderId      String? // フォルダID（nullならルート）
   folder        MaterialFolder?        @relation(fields: [folderId], references: [id], onDelete: SetNull)

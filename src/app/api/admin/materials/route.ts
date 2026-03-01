@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
       fileName: material.fileName ?? '',
       fileSize: material.fileSize ?? '',
       fileType: material.fileType ?? '',
+      externalUrl: material.externalUrl ?? '',
       category: material.category ?? '',
       folderId: material.folderId,
       viewableRoles: material.viewableRoles.map(
@@ -83,6 +84,7 @@ export async function POST(request: NextRequest) {
       fileName,
       fileSize,
       fileType,
+      externalUrl,
       category,
       folderId,
       viewableRoles = [],
@@ -116,6 +118,7 @@ export async function POST(request: NextRequest) {
         fileName,
         fileSize,
         fileType,
+        externalUrl: externalUrl || null,
         category,
         folderId: folderId || null,
         viewableRoles: dbViewableRoles,
@@ -157,6 +160,7 @@ export async function POST(request: NextRequest) {
         fileName: createdMaterial.fileName ?? '',
         fileSize: createdMaterial.fileSize ?? '',
         fileType: createdMaterial.fileType ?? '',
+        externalUrl: createdMaterial.externalUrl ?? '',
         category: createdMaterial.category ?? '',
         folderId: createdMaterial.folderId,
         viewableRoles: createdMaterial.viewableRoles.map(

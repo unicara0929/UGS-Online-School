@@ -74,6 +74,7 @@ export async function GET(request: NextRequest) {
         fileName: material.fileName ?? '',
         fileSize: material.fileSize ?? '',
         fileType: material.fileType ?? '',
+        externalUrl: material.externalUrl ?? '',
         category: material.category ?? '',
         folderId: material.folderId,
         viewableRoles: material.viewableRoles.map(

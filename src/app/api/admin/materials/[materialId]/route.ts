@@ -39,6 +39,7 @@ export async function PATCH(
       fileName,
       fileSize,
       fileType,
+      externalUrl,
       category,
       folderId,
       viewableRoles,
@@ -72,6 +73,7 @@ export async function PATCH(
     if (fileName !== undefined) updateData.fileName = fileName
     if (fileSize !== undefined) updateData.fileSize = fileSize
     if (fileType !== undefined) updateData.fileType = fileType
+    if (externalUrl !== undefined) updateData.externalUrl = externalUrl || null
     if (category !== undefined) updateData.category = category
     if (folderId !== undefined) updateData.folderId = folderId || null
     if (viewableRoles !== undefined) {
@@ -95,6 +97,7 @@ export async function PATCH(
         fileName: updatedMaterial.fileName ?? '',
         fileSize: updatedMaterial.fileSize ?? '',
         fileType: updatedMaterial.fileType ?? '',
+        externalUrl: updatedMaterial.externalUrl ?? '',
         category: updatedMaterial.category ?? '',
         folderId: updatedMaterial.folderId,
         viewableRoles: updatedMaterial.viewableRoles.map(
