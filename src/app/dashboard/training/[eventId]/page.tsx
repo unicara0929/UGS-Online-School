@@ -99,6 +99,7 @@ type EventDetail = {
   externalRegistrationToken: string | null
   // スケジュール関連
   schedules: Schedule[]
+  registeredScheduleIds: string[]
   registeredScheduleId: string | null
 }
 
@@ -112,7 +113,7 @@ function TrainingEventDetailPageContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [selectedScheduleId, setSelectedScheduleId] = useState<string | null>(null)
+  const [selectedScheduleIds, setSelectedScheduleIds] = useState<string[]>([])
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -134,13 +135,12 @@ function TrainingEventDetailPageContent() {
 
         setEvent(data.event)
 
-        // 日程選択の初期化：登録済みスケジュールがあればそれを、なければ最初のOPENスケジュールを選択
+        // 日程選択の初期化：登録済みスケジュールで初期化
         const eventData = data.event as EventDetail
-        if (eventData.registeredScheduleId) {
-          setSelectedScheduleId(eventData.registeredScheduleId)
-        } else if (eventData.schedules && eventData.schedules.length > 0) {
-          const firstOpenSchedule = eventData.schedules.find(s => s.status === 'OPEN')
-          setSelectedScheduleId(firstOpenSchedule?.id ?? eventData.schedules[0].id)
+        if (eventData.registeredScheduleIds && eventData.registeredScheduleIds.length > 0) {
+          setSelectedScheduleIds(eventData.registeredScheduleIds)
+        } else {
+          setSelectedScheduleIds([])
         }
       } catch (err) {
         console.error('Failed to fetch event:', err)
@@ -255,16 +255,56 @@ function TrainingEventDetailPageContent() {
     if (!user?.id) return
 
     if (event.isPaid && !event.isRegistered) {
-      await handleCheckout(event.id, selectedScheduleId)
+      await handleCheckout(event.id, selectedScheduleIds[0] ?? null)
       return
     }
 
     if (event.isPaid && event.paymentStatus === 'PENDING') {
-      await handleCheckout(event.id, selectedScheduleId)
+      await handleCheckout(event.id, selectedScheduleIds[0] ?? null)
       return
     }
 
-    const action = event.isRegistered ? 'unregister' : 'register'
+    // 無料イベント：新規選択分（未登録の日程）を順番に登録
+    const registeredIds = event.registeredScheduleIds ?? []
+    const newScheduleIds = selectedScheduleIds.filter(id => !registeredIds.includes(id))
+
+    if (newScheduleIds.length === 0) return
+
+    setIsSubmitting(true)
+    try {
+      for (const scheduleId of newScheduleIds) {
+        const response = await fetch('/api/events/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            userId: user.id,
+            eventId: event.id,
+            scheduleId,
+            action: 'register',
+          }),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || '処理に失敗しました')
+        }
+      }
+
+      window.location.reload()
+    } catch (err) {
+      console.error('Failed to update registration:', err)
+      alert(err instanceof Error ? err.message : '処理に失敗しました')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // 個別日程のキャンセル
+  const handleCancelSchedule = async (scheduleId: string) => {
+    if (!user?.id || !event) return
+    if (!confirm('この日程の申し込みをキャンセルしますか？')) return
 
     setIsSubmitting(true)
     try {
@@ -275,21 +315,21 @@ function TrainingEventDetailPageContent() {
         body: JSON.stringify({
           userId: user.id,
           eventId: event.id,
-          scheduleId: selectedScheduleId, // 選択された日程ID
-          action,
+          scheduleId,
+          action: 'unregister',
         }),
       })
 
       const data = await response.json()
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || '処理に失敗しました')
+        throw new Error(data.error || 'キャンセルに失敗しました')
       }
 
       window.location.reload()
     } catch (err) {
-      console.error('Failed to update registration:', err)
-      alert(err instanceof Error ? err.message : '処理に失敗しました')
+      console.error('Failed to cancel schedule registration:', err)
+      alert(err instanceof Error ? err.message : 'キャンセルに失敗しました')
     } finally {
       setIsSubmitting(false)
     }
@@ -479,57 +519,102 @@ function TrainingEventDetailPageContent() {
                 })()}
 
                 {/* 日程選択（複数日程がある場合） */}
-                {event.schedules.length > 1 && !event.isRegistered && (
+                {event.schedules.length > 1 && (
                   <div className="pt-4 border-t">
                     <h3 className="font-semibold text-slate-900 mb-3">参加日程を選択してください</h3>
                     <div className="space-y-2">
                       {event.schedules.map((schedule) => {
                         const isOpen = schedule.status === 'OPEN'
-                        const isSelected = selectedScheduleId === schedule.id
+                        const isRegistered = (event.registeredScheduleIds ?? []).includes(schedule.id)
+                        const isSelected = selectedScheduleIds.includes(schedule.id)
                         return (
-                          <label
+                          <div
                             key={schedule.id}
-                            className={`flex items-center p-3 rounded-lg border cursor-pointer transition-[border-color,box-shadow] ${
-                              isSelected
+                            className={`flex items-center p-3 rounded-lg border transition-[border-color,box-shadow] ${
+                              isRegistered
+                                ? 'border-green-500 bg-green-50'
+                                : isSelected
                                 ? 'border-emerald-500 bg-emerald-50'
                                 : isOpen
                                 ? 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                                : 'border-slate-200 bg-slate-100 opacity-60 cursor-not-allowed'
+                                : 'border-slate-200 bg-slate-100 opacity-60'
                             }`}
                           >
-                            <input
-                              type="radio"
-                              name="schedule"
-                              value={schedule.id}
-                              checked={isSelected}
-                              disabled={!isOpen}
-                              onChange={() => setSelectedScheduleId(schedule.id)}
-                              className="sr-only"
-                            />
-                            <div className={`w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center ${
-                              isSelected ? 'border-emerald-500' : 'border-slate-300'
-                            }`}>
-                              {isSelected && <div className="w-2 h-2 rounded-full bg-emerald-500" />}
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium text-slate-900">
-                                  {formatDate(schedule.date)}
-                                </span>
-                                <span className="text-slate-600">{schedule.time}</span>
-                                {!isOpen && (
-                                  <Badge variant="outline" className="text-xs bg-slate-200 text-slate-600">
-                                    募集終了
-                                  </Badge>
-                                )}
-                              </div>
-                              {schedule.location && (
-                                <div className="text-sm text-slate-500 mt-0.5">
-                                  {schedule.location}
+                            {isRegistered ? (
+                              <>
+                                <CheckCircle2 className="h-5 w-5 text-green-600 mr-3 shrink-0" aria-hidden="true" />
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium text-slate-900">
+                                      {formatDate(schedule.date)}
+                                    </span>
+                                    <span className="text-slate-600">{schedule.time}</span>
+                                    <Badge variant="outline" className="text-xs bg-green-100 border-green-300 text-green-700">
+                                      申込済み
+                                    </Badge>
+                                  </div>
+                                  {schedule.location && (
+                                    <div className="text-sm text-slate-500 mt-0.5">
+                                      {schedule.location}
+                                    </div>
+                                  )}
                                 </div>
-                              )}
-                            </div>
-                          </label>
+                                <button
+                                  type="button"
+                                  className="ml-2 p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+                                  onClick={() => handleCancelSchedule(schedule.id)}
+                                  disabled={isSubmitting}
+                                  title="この日程をキャンセル"
+                                >
+                                  <span className="text-lg leading-none">&times;</span>
+                                </button>
+                              </>
+                            ) : (
+                              <label className={`flex items-center flex-1 ${isOpen ? 'cursor-pointer' : 'cursor-not-allowed'}`}>
+                                <input
+                                  type="checkbox"
+                                  value={schedule.id}
+                                  checked={isSelected}
+                                  disabled={!isOpen}
+                                  onChange={() => {
+                                    setSelectedScheduleIds(prev =>
+                                      prev.includes(schedule.id)
+                                        ? prev.filter(id => id !== schedule.id)
+                                        : [...prev, schedule.id]
+                                    )
+                                  }}
+                                  className="sr-only"
+                                />
+                                <div className={`w-4 h-4 rounded border-2 mr-3 flex items-center justify-center shrink-0 ${
+                                  isSelected ? 'border-emerald-500 bg-emerald-500' : 'border-slate-300'
+                                }`}>
+                                  {isSelected && (
+                                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                  )}
+                                </div>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium text-slate-900">
+                                      {formatDate(schedule.date)}
+                                    </span>
+                                    <span className="text-slate-600">{schedule.time}</span>
+                                    {!isOpen && (
+                                      <Badge variant="outline" className="text-xs bg-slate-200 text-slate-600">
+                                        募集終了
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  {schedule.location && (
+                                    <div className="text-sm text-slate-500 mt-0.5">
+                                      {schedule.location}
+                                    </div>
+                                  )}
+                                </div>
+                              </label>
+                            )}
+                          </div>
                         )
                       })}
                     </div>
@@ -578,7 +663,7 @@ function TrainingEventDetailPageContent() {
                         variant="default"
                         className="flex-1"
                         disabled={isSubmitting}
-                        onClick={() => handleCheckout(event.id, selectedScheduleId)}
+                        onClick={() => handleCheckout(event.id, selectedScheduleIds[0] ?? null)}
                       >
                         支払いを完了する
                       </Button>
@@ -598,19 +683,65 @@ function TrainingEventDetailPageContent() {
                       </p>
                     </div>
                   ) : canRegisterForEvent(event) ? (
-                    <Button
-                      size="lg"
-                      variant={event.isRegistered ? 'outline' : 'default'}
-                      className="w-full"
-                      disabled={isSubmitting}
-                      onClick={() => handleToggleRegistration(event)}
-                    >
-                      {event.isRegistered
-                        ? 'キャンセル'
-                        : event.isPaid
-                        ? `¥${event.price?.toLocaleString()}で申し込む`
-                        : '申し込む'}
-                    </Button>
+                    (() => {
+                      const registeredIds = event.registeredScheduleIds ?? []
+                      const newCount = selectedScheduleIds.filter(id => !registeredIds.includes(id)).length
+                      const hasMultipleSchedules = event.schedules.length > 1
+                      return (
+                        <>
+                          {/* 新規選択がある場合：申し込みボタン */}
+                          {newCount > 0 && (
+                            <Button
+                              size="lg"
+                              variant="default"
+                              className="w-full"
+                              disabled={isSubmitting}
+                              onClick={() => handleToggleRegistration(event)}
+                            >
+                              {event.isPaid
+                                ? `¥${event.price?.toLocaleString()}で申し込む`
+                                : hasMultipleSchedules
+                                ? `${newCount}件の日程に申し込む`
+                                : '申し込む'}
+                            </Button>
+                          )}
+                          {/* 新規選択なし＆登録済み：全キャンセルボタン */}
+                          {newCount === 0 && event.isRegistered && !hasMultipleSchedules && (
+                            <Button
+                              size="lg"
+                              variant="outline"
+                              className="w-full"
+                              disabled={isSubmitting}
+                              onClick={() => handleCancelRegistration(event.id)}
+                            >
+                              キャンセル
+                            </Button>
+                          )}
+                          {/* 未登録・未選択の場合 */}
+                          {newCount === 0 && !event.isRegistered && (
+                            <Button
+                              size="lg"
+                              variant="default"
+                              className="w-full"
+                              disabled={isSubmitting || (hasMultipleSchedules && selectedScheduleIds.length === 0)}
+                              onClick={() => handleToggleRegistration(event)}
+                            >
+                              {event.isPaid
+                                ? `¥${event.price?.toLocaleString()}で申し込む`
+                                : '申し込む'}
+                            </Button>
+                          )}
+                          {/* 複数日程で全て登録済みの場合 */}
+                          {newCount === 0 && event.isRegistered && hasMultipleSchedules && (
+                            <div className="w-full text-center py-3 bg-green-50 rounded-lg border border-green-200">
+                              <p className="text-green-600 font-medium">
+                                ✓ {registeredIds.length}件の日程に申込済み
+                              </p>
+                            </div>
+                          )}
+                        </>
+                      )
+                    })()
                   ) : (
                     <Button size="lg" disabled className="w-full">
                       参加不可
