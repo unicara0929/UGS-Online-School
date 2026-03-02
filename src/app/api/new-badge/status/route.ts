@@ -46,13 +46,15 @@ export async function GET(request: NextRequest) {
 
     // 各カテゴリの新着件数をカウント
     const [eventsCount, coursesCount, materialsCount, notificationsCount] = await Promise.all([
-      // イベント: ユーザーの最終閲覧日時より後に更新されたものをカウント
+      // イベント（キャンペーン案内）: REGULAR カテゴリのみカウント（ページ表示と一致させる）
       prisma.event.count({
         where: {
           updatedAt: {
             gt: lastViewedMap.EVENTS || new Date(0),
           },
           status: 'UPCOMING',
+          isArchiveOnly: false,
+          eventCategory: 'REGULAR',
         },
       }),
 

@@ -141,11 +141,12 @@ export async function POST(request: NextRequest) {
       ? event.schedules.find(s => s.id === scheduleId)?.id ?? event.schedules[0]?.id ?? null
       : event.schedules[0]?.id ?? null
 
-    // 既に登録済みかチェック
+    // 既に登録済みかチェック（scheduleId込みで同じ日程のPAIDのみ拒否）
     const existingRegistration = await prisma.eventRegistration.findFirst({
       where: {
         userId: user.id,
         eventId: event.id,
+        scheduleId: targetScheduleId,
       },
     })
 

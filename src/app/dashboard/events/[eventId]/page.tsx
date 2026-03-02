@@ -135,9 +135,12 @@ function EventDetailPageContent() {
 
         setEvent(data.event)
 
-        // 日程選択の初期化：登録済みスケジュールで初期化
+        // 日程選択の初期化
         const eventData = data.event as EventDetail
-        if (eventData.registeredScheduleIds && eventData.registeredScheduleIds.length > 0) {
+        if (eventData.isPaid) {
+          // 有料イベント：登録済み日程は選択不可なので空で初期化
+          setSelectedScheduleIds([])
+        } else if (eventData.registeredScheduleIds && eventData.registeredScheduleIds.length > 0) {
           setSelectedScheduleIds(eventData.registeredScheduleIds)
         } else {
           setSelectedScheduleIds([])
@@ -257,15 +260,13 @@ function EventDetailPageContent() {
   const handleToggleRegistration = async (event: EventDetail) => {
     if (!user?.id) return
 
-    // 有料イベントの場合、決済処理へ
-    if (event.isPaid && !event.isRegistered) {
-      await handleCheckout(event.id, selectedScheduleIds[0] ?? null)
-      return
-    }
-
-    // 有料イベントでPENDING状態の場合も決済処理へ
-    if (event.isPaid && event.paymentStatus === 'PENDING') {
-      await handleCheckout(event.id, selectedScheduleIds[0] ?? null)
+    // 有料イベントの場合：選択中の日程が未登録なら決済処理へ
+    if (event.isPaid) {
+      const registeredIds = event.registeredScheduleIds ?? []
+      const selectedId = selectedScheduleIds[0]
+      if (selectedId && !registeredIds.includes(selectedId)) {
+        await handleCheckout(event.id, selectedId)
+      }
       return
     }
 
@@ -598,7 +599,7 @@ function EventDetailPageContent() {
                                     </span>
                                     <span className="text-slate-600">{schedule.time}</span>
                                     <Badge variant="outline" className="text-xs bg-green-100 border-green-300 text-green-700">
-                                      申込済み
+                                      {event.isPaid ? '支払い済み' : '申込済み'}
                                     </Badge>
                                   </div>
                                   {schedule.location && (
@@ -619,29 +620,52 @@ function EventDetailPageContent() {
                               </>
                             ) : (
                               <label className={`flex items-center flex-1 ${isOpen ? 'cursor-pointer' : 'cursor-not-allowed'}`}>
-                                <input
-                                  type="checkbox"
-                                  value={schedule.id}
-                                  checked={isSelected}
-                                  disabled={!isOpen}
-                                  onChange={() => {
-                                    setSelectedScheduleIds(prev =>
-                                      prev.includes(schedule.id)
-                                        ? prev.filter(id => id !== schedule.id)
-                                        : [...prev, schedule.id]
-                                    )
-                                  }}
-                                  className="sr-only"
-                                />
-                                <div className={`w-4 h-4 rounded border-2 mr-3 flex items-center justify-center shrink-0 ${
-                                  isSelected ? 'border-blue-500 bg-blue-500' : 'border-slate-300'
-                                }`}>
-                                  {isSelected && (
-                                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                    </svg>
-                                  )}
-                                </div>
+                                {event.isPaid ? (
+                                  <>
+                                    <input
+                                      type="radio"
+                                      name={`schedule-${event.id}`}
+                                      value={schedule.id}
+                                      checked={isSelected}
+                                      disabled={!isOpen}
+                                      onChange={() => setSelectedScheduleIds([schedule.id])}
+                                      className="sr-only"
+                                    />
+                                    <div className={`w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center shrink-0 ${
+                                      isSelected ? 'border-blue-500' : 'border-slate-300'
+                                    }`}>
+                                      {isSelected && (
+                                        <div className="w-2 h-2 rounded-full bg-blue-500" />
+                                      )}
+                                    </div>
+                                  </>
+                                ) : (
+                                  <>
+                                    <input
+                                      type="checkbox"
+                                      value={schedule.id}
+                                      checked={isSelected}
+                                      disabled={!isOpen}
+                                      onChange={() => {
+                                        setSelectedScheduleIds(prev =>
+                                          prev.includes(schedule.id)
+                                            ? prev.filter(id => id !== schedule.id)
+                                            : [...prev, schedule.id]
+                                        )
+                                      }}
+                                      className="sr-only"
+                                    />
+                                    <div className={`w-4 h-4 rounded border-2 mr-3 flex items-center justify-center shrink-0 ${
+                                      isSelected ? 'border-blue-500 bg-blue-500' : 'border-slate-300'
+                                    }`}>
+                                      {isSelected && (
+                                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                      )}
+                                    </div>
+                                  </>
+                                )}
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2">
                                     <span className="font-medium text-slate-900">
@@ -815,7 +839,7 @@ function EventDetailPageContent() {
                         </div>
                       )}
                     </div>
-                  ) : event.isPaid && event.paymentStatus === 'PENDING' ? (
+                  ) : event.isPaid && event.schedules.length <= 1 && event.paymentStatus === 'PENDING' ? (
                     <div className="flex gap-2">
                       <Button
                         size="lg"
@@ -835,7 +859,7 @@ function EventDetailPageContent() {
                         キャンセル
                       </Button>
                     </div>
-                  ) : event.isPaid && event.paymentStatus === 'PAID' ? (
+                  ) : event.isPaid && event.schedules.length <= 1 && event.paymentStatus === 'PAID' ? (
                     <div className="w-full text-center py-4 bg-green-50 rounded-lg">
                       <p className="text-green-600 font-medium text-lg">
                         ✓ 参加確定（お支払い完了）
@@ -844,8 +868,41 @@ function EventDetailPageContent() {
                   ) : canRegisterForEvent(event) ? (
                     (() => {
                       const registeredIds = event.registeredScheduleIds ?? []
-                      const newCount = selectedScheduleIds.filter(id => !registeredIds.includes(id)).length
                       const hasMultipleSchedules = event.schedules.length > 1
+
+                      // 有料イベント（複数日程）
+                      if (event.isPaid && hasMultipleSchedules) {
+                        const selectedId = selectedScheduleIds[0]
+                        const isNewSelection = selectedId && !registeredIds.includes(selectedId)
+                        const allOpenRegistered = !event.schedules.some(s => s.status === 'OPEN' && !registeredIds.includes(s.id))
+                        return (
+                          <>
+                            {isNewSelection ? (
+                              <Button
+                                size="lg"
+                                variant="default"
+                                className="w-full"
+                                disabled={isSubmitting}
+                                onClick={() => handleToggleRegistration(event)}
+                              >
+                                ¥{event.price?.toLocaleString()}で申し込む
+                              </Button>
+                            ) : allOpenRegistered && registeredIds.length > 0 ? (
+                              <div className="w-full text-center py-3 bg-green-50 rounded-lg border border-green-200">
+                                <p className="text-green-600 font-medium">
+                                  ✓ {registeredIds.length}件の日程に支払い済み
+                                </p>
+                              </div>
+                            ) : (
+                              <Button size="lg" variant="default" className="w-full" disabled>
+                                ¥{event.price?.toLocaleString()}で申し込む
+                              </Button>
+                            )}
+                          </>
+                        )
+                      }
+
+                      const newCount = selectedScheduleIds.filter(id => !registeredIds.includes(id)).length
                       return (
                         <>
                           {/* 新規選択がある場合：申し込みボタン */}
