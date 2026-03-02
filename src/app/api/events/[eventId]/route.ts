@@ -79,7 +79,6 @@ export async function GET(
             participationIntent: true,
             participationIntentAt: true,
           },
-          take: 1,
         },
         mtgExemptions: {
           where: { userId: authUser!.id },
@@ -203,6 +202,9 @@ export async function GET(
           createdAt: exemption.createdAt.toISOString(),
         } : null,
         // 登録済みスケジュール情報
+        registeredScheduleIds: event.registrations
+          .filter(r => r.scheduleId !== null)
+          .map(r => r.scheduleId as string),
         registeredScheduleId: registration?.scheduleId ?? null,
         registeredSchedule: registeredSchedule ? {
           id: registeredSchedule.id,
