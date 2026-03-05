@@ -266,10 +266,12 @@ function EventDetailPageContent() {
     // 有料イベントの場合：選択中の日程が未登録なら決済処理へ
     if (event.isPaid) {
       const registeredIds = event.registeredScheduleIds ?? []
-      // 選択中のスケジュール、なければ単一日程の場合その日程を使用
-      const selectedId = selectedScheduleIds[0] ?? (event.schedules.length === 1 ? event.schedules[0]?.id : undefined)
+      const selectedId = selectedScheduleIds[0] ?? event.schedules[0]?.id
       if (selectedId && !registeredIds.includes(selectedId)) {
         await handleCheckout(event.id, selectedId)
+      } else if (!selectedId) {
+        // スケジュールなしのイベント
+        await handleCheckout(event.id, null)
       }
       return
     }
@@ -277,6 +279,35 @@ function EventDetailPageContent() {
     // 無料イベント：新規選択分（未登録の日程）を順番に登録
     const registeredIds = event.registeredScheduleIds ?? []
     const newScheduleIds = selectedScheduleIds.filter(id => !registeredIds.includes(id))
+
+    // スケジュールが選択されていないが、日程が1つ以下の場合は直接登録
+    if (newScheduleIds.length === 0 && !event.isRegistered && event.schedules.length <= 1) {
+      setIsSubmitting(true)
+      try {
+        const response = await fetch('/api/events/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            userId: user.id,
+            eventId: event.id,
+            scheduleId: event.schedules[0]?.id ?? null,
+            action: 'register',
+          }),
+        })
+        const data = await response.json()
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || '処理に失敗しました')
+        }
+        window.location.reload()
+      } catch (err) {
+        console.error('Failed to register:', err)
+        alert(err instanceof Error ? err.message : '処理に失敗しました')
+      } finally {
+        setIsSubmitting(false)
+      }
+      return
+    }
 
     if (newScheduleIds.length === 0) return
 
