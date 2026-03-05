@@ -142,6 +142,9 @@ function EventDetailPageContent() {
           setSelectedScheduleIds([])
         } else if (eventData.registeredScheduleIds && eventData.registeredScheduleIds.length > 0) {
           setSelectedScheduleIds(eventData.registeredScheduleIds)
+        } else if (eventData.schedules.length === 1) {
+          // 日程が1つの場合は自動選択
+          setSelectedScheduleIds([eventData.schedules[0].id])
         } else {
           setSelectedScheduleIds([])
         }
