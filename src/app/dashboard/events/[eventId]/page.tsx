@@ -266,7 +266,8 @@ function EventDetailPageContent() {
     // 有料イベントの場合：選択中の日程が未登録なら決済処理へ
     if (event.isPaid) {
       const registeredIds = event.registeredScheduleIds ?? []
-      const selectedId = selectedScheduleIds[0]
+      // 選択中のスケジュール、なければ単一日程の場合その日程を使用
+      const selectedId = selectedScheduleIds[0] ?? (event.schedules.length === 1 ? event.schedules[0]?.id : undefined)
       if (selectedId && !registeredIds.includes(selectedId)) {
         await handleCheckout(event.id, selectedId)
       }
@@ -837,8 +838,8 @@ function EventDetailPageContent() {
                         </div>
                       )}
                       {event.exemption?.status === 'PENDING' && (
-                        <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg text-center">
-                          <p className="text-sm text-green-800">✓ 欠席申請が承認されました</p>
+                        <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
+                          <p className="text-sm text-yellow-800">欠席申請を審査中です</p>
                         </div>
                       )}
                     </div>
@@ -849,7 +850,7 @@ function EventDetailPageContent() {
                         variant="default"
                         className="flex-1"
                         disabled={isSubmitting}
-                        onClick={() => handleCheckout(event.id, selectedScheduleIds[0] ?? null)}
+                        onClick={() => handleCheckout(event.id, selectedScheduleIds[0] ?? event.schedules[0]?.id ?? null)}
                       >
                         支払いを完了する
                       </Button>

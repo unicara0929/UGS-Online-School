@@ -142,6 +142,9 @@ function TrainingEventDetailPageContent() {
           setSelectedScheduleIds([])
         } else if (eventData.registeredScheduleIds && eventData.registeredScheduleIds.length > 0) {
           setSelectedScheduleIds(eventData.registeredScheduleIds)
+        } else if (eventData.schedules.length === 1) {
+          // 日程が1つの場合は自動選択
+          setSelectedScheduleIds([eventData.schedules[0].id])
         } else {
           setSelectedScheduleIds([])
         }
@@ -260,7 +263,8 @@ function TrainingEventDetailPageContent() {
     // 有料イベントの場合：選択中の日程が未登録なら決済処理へ
     if (event.isPaid) {
       const registeredIds = event.registeredScheduleIds ?? []
-      const selectedId = selectedScheduleIds[0]
+      // 選択中のスケジュール、なければ単一日程の場合その日程を使用
+      const selectedId = selectedScheduleIds[0] ?? (event.schedules.length === 1 ? event.schedules[0]?.id : undefined)
       if (selectedId && !registeredIds.includes(selectedId)) {
         await handleCheckout(event.id, selectedId)
       }

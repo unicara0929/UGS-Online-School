@@ -160,6 +160,7 @@ export async function GET(
         attendanceType: EVENT_ATTENDANCE_TYPE_MAP[attendanceTypeKey] ?? 'optional',
         venueType: EVENT_VENUE_TYPE_MAP[venueTypeKey] ?? 'online',
         location: firstSchedule?.location ?? '',
+        maxParticipants: null,
         currentParticipants,
         status: EVENT_STATUS_MAP[statusKey] ?? 'upcoming',
         thumbnailUrl: event.thumbnailUrl ?? null,

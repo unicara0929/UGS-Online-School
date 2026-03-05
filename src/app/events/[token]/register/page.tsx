@@ -75,7 +75,7 @@ export default function ExternalEventRegisterPage() {
         const schedules = data.event.schedules as Schedule[]
         if (schedules && schedules.length > 0) {
           const firstOpen = schedules.find(s => s.status === 'OPEN' && !isScheduleDeadlinePassed(s, data.event.applicationDeadlineDays))
-          setSelectedScheduleId(firstOpen?.id ?? schedules[0].id)
+          setSelectedScheduleId(firstOpen?.id ?? schedules[0]?.id ?? '')
         }
       } catch (err) {
         console.error('Error fetching event:', err)
