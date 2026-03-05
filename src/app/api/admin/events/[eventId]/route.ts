@@ -237,9 +237,9 @@ export async function PUT(
       }
     })
 
-    // スケジュール関連フィールドの更新（全体MTG編集時）
+    // スケジュール関連フィールドの更新（単一日程の場合のみ。複数日程は個別管理）
     const firstScheduleForUpdate = updatedEvent.schedules[0]
-    if (firstScheduleForUpdate) {
+    if (firstScheduleForUpdate && updatedEvent.schedules.length <= 1) {
       const scheduleUpdateData: Record<string, unknown> = {}
       if (attendanceCode !== undefined) scheduleUpdateData.attendanceCode = attendanceCode || null
       if (date !== undefined) scheduleUpdateData.date = new Date(date)
