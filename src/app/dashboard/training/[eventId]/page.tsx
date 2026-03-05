@@ -860,7 +860,7 @@ function TrainingEventDetailPageContent() {
             </Card>
 
             {/* 出席確認セクション */}
-            {event.isRegistered && !event.attendanceCompletedAt && (
+            {event.isRegistered && !event.attendanceCompletedAt && (event.vimeoUrl || event.surveyUrl || event.hasAttendanceCode || event.hasInternalSurvey) && (
               <Card id="attendance-section" className="overflow-hidden">
                 <CardHeader className="p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -950,13 +950,6 @@ function TrainingEventDetailPageContent() {
                     </>
                   )}
 
-                  {!event.vimeoUrl && !event.surveyUrl && !event.hasAttendanceCode && (
-                    <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                      <p className="text-sm text-slate-600">
-                        出席確認の準備中です。動画・アンケートが設定されるまでお待ちください。
-                      </p>
-                    </div>
-                  )}
                 </CardContent>
               </Card>
             )}
