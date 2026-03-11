@@ -252,7 +252,7 @@ export function CourseList() {
       (sum, c) => sum + c.lessons.filter(l => l.isCompleted).length, 0
     )
     const progress = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0
-    const isLocked = categoryCourses.every(c => c.isLocked)
+    const isLocked = categoryCourses.length > 0 && categoryCourses.every(c => c.isLocked)
     return { courseCount: categoryCourses.length, totalLessons, completedLessons, progress, isLocked }
   }
 
