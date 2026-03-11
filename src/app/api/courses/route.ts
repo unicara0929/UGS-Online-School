@@ -12,6 +12,7 @@ function userRoleToViewableRole(role: string): MaterialViewableRole {
     case 'ADMIN': return 'ADMIN'
     case 'MANAGER': return 'MANAGER'
     case 'FP': return 'FP'
+    case 'FP_AIDE': return 'FP'
     case 'MEMBER':
     default: return 'MEMBER'
   }
@@ -32,7 +33,7 @@ function canAccessCourse(
   // viewableRolesが空の場合、旧ロジック（isLockedフィールド）を使用
   // isLocked=true の場合はFPエイド以上のみアクセス可能
   if (isLocked) {
-    return ['FP', 'MANAGER', 'ADMIN'].includes(userRole)
+    return ['FP_AIDE', 'FP', 'MANAGER', 'ADMIN'].includes(userRole)
   }
 
   // それ以外は全員アクセス可能
