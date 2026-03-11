@@ -171,6 +171,7 @@ export default function AnalyticsPage() {
       PRACTICAL_SKILL: '実践スキル',
       STARTUP_SUPPORT: 'スタートアップ支援',
       STARTUP_GUIDE: 'はじめに',
+      ROLEPLAY_VIDEO: 'ロープレ動画',
     }
     return map[category] || category
   }

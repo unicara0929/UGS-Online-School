@@ -122,6 +122,7 @@ export default function NewCoursePage() {
                     <option value="PRACTICAL_SKILL">実践スキル</option>
                     <option value="STARTUP_SUPPORT">スタートアップ支援</option>
                     <option value="STARTUP_GUIDE">はじめに</option>
+                    <option value="ROLEPLAY_VIDEO">ロープレ動画</option>
                   </select>
                 </div>
 

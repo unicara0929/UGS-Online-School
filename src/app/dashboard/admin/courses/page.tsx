@@ -22,7 +22,7 @@ interface Course {
   id: string
   title: string
   description: string | null
-  category: 'MONEY_LITERACY' | 'PRACTICAL_SKILL' | 'STARTUP_SUPPORT' | 'STARTUP_GUIDE'
+  category: 'MONEY_LITERACY' | 'PRACTICAL_SKILL' | 'STARTUP_SUPPORT' | 'STARTUP_GUIDE' | 'ROLEPLAY_VIDEO'
   level: 'BASIC' | 'ADVANCED'
   isLocked: boolean
   viewableRoles: string[]
@@ -38,7 +38,8 @@ const getCategoryLabel = (category: string) => {
     MONEY_LITERACY: '所得を増やすマネーリテラシー全般',
     PRACTICAL_SKILL: '実践スキル',
     STARTUP_SUPPORT: 'スタートアップ支援',
-    STARTUP_GUIDE: 'はじめに'
+    STARTUP_GUIDE: 'はじめに',
+    ROLEPLAY_VIDEO: 'ロープレ動画'
   }
   return labels[category] || category
 }

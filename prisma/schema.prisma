@@ -480,6 +480,7 @@ enum CourseCategory {
   PRACTICAL_SKILL // 実践スキル
   STARTUP_SUPPORT // スタートアップ支援
   STARTUP_GUIDE // はじめに（UGS会員向け）
+  ROLEPLAY_VIDEO // ロープレ動画
 }
 
 enum CourseLevel {

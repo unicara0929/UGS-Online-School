@@ -82,14 +82,14 @@ export async function PUT(
       )
     }
 
-    if (category !== undefined && !['BASIC', 'ADVANCED', 'PRACTICAL'].includes(category)) {
+    if (category !== undefined && !['MONEY_LITERACY', 'PRACTICAL_SKILL', 'STARTUP_SUPPORT', 'STARTUP_GUIDE', 'ROLEPLAY_VIDEO'].includes(category)) {
       return NextResponse.json(
         { error: '有効なカテゴリを選択してください' },
         { status: 400 }
       )
     }
 
-    if (level !== undefined && !['BEGINNER', 'INTERMEDIATE', 'ADVANCED'].includes(level)) {
+    if (level !== undefined && !['BASIC', 'ADVANCED'].includes(level)) {
       return NextResponse.json(
         { error: '有効なレベルを選択してください' },
         { status: 400 }
