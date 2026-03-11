@@ -15,7 +15,9 @@ import {
   Lock,
   Unlock,
   AlertCircle,
-  PlayCircle
+  PlayCircle,
+  Save,
+  Settings
 } from 'lucide-react'
 
 interface Course {
@@ -57,9 +59,20 @@ export default function AdminCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [categoryDescriptions, setCategoryDescriptions] = useState<Record<string, string>>({})
+  const [savingCategory, setSavingCategory] = useState<string | null>(null)
+
+  const defaultDescriptions: Record<string, string> = {
+    MONEY_LITERACY: 'お金の知識を身につけ、資産形成の基礎を学ぶ',
+    PRACTICAL_SKILL: '営業・ビジネススキルを実践的に学ぶ',
+    STARTUP_SUPPORT: '起業・独立に必要な知識とスキルを習得',
+    STARTUP_GUIDE: 'アプリの使い方・UGSの考え方',
+    ROLEPLAY_VIDEO: 'ロールプレイング動画で実践力を磨く',
+  }
 
   useEffect(() => {
     fetchCourses()
+    fetchCategorySettings()
   }, [])
 
   const fetchCourses = async () => {
@@ -79,6 +92,46 @@ export default function AdminCoursesPage() {
       setError(err instanceof Error ? err.message : 'エラーが発生しました')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchCategorySettings = async () => {
+    try {
+      const response = await fetch('/api/admin/category-settings', { credentials: 'include' })
+      const data = await response.json()
+      if (data.success && data.settings) {
+        const map: Record<string, string> = {}
+        data.settings.forEach((s: { category: string; description: string | null }) => {
+          if (s.description) map[s.category] = s.description
+        })
+        setCategoryDescriptions(map)
+      }
+    } catch {
+      // デフォルト値を使う
+    }
+  }
+
+  const handleSaveCategoryDescription = async (category: string) => {
+    setSavingCategory(category)
+    try {
+      const response = await fetch('/api/admin/category-settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          category,
+          description: categoryDescriptions[category] || null
+        })
+      })
+      const data = await response.json()
+      if (!data.success) {
+        throw new Error(data.error || '保存に失敗しました')
+      }
+      alert('カテゴリ説明を保存しました')
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '保存に失敗しました')
+    } finally {
+      setSavingCategory(null)
     }
   }
 
@@ -177,6 +230,40 @@ export default function AdminCoursesPage() {
             新規コース作成
           </Button>
         </div>
+
+        {/* カテゴリ説明設定 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Settings className="h-5 w-5" aria-hidden="true" />
+              カテゴリ説明設定
+            </CardTitle>
+            <CardDescription>各カテゴリのサブタイトル（説明文）を編集できます</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {(['MONEY_LITERACY', 'PRACTICAL_SKILL', 'STARTUP_SUPPORT', 'STARTUP_GUIDE', 'ROLEPLAY_VIDEO'] as const).map((key) => (
+              <div key={key} className="flex items-center gap-3">
+                <span className="text-sm font-medium text-slate-700 w-48 shrink-0">{getCategoryLabel(key)}</span>
+                <input
+                  type="text"
+                  value={categoryDescriptions[key] ?? defaultDescriptions[key] ?? ''}
+                  onChange={(e) => setCategoryDescriptions(prev => ({ ...prev, [key]: e.target.value }))}
+                  className="flex-1 px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="説明文を入力"
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleSaveCategoryDescription(key)}
+                  disabled={savingCategory === key}
+                >
+                  <Save className="h-3.5 w-3.5 mr-1" aria-hidden="true" />
+                  {savingCategory === key ? '保存中...' : '保存'}
+                </Button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
 
         {/* コース一覧 */}
         {courses.length === 0 ? (

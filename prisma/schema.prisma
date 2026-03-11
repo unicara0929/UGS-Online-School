@@ -136,6 +136,16 @@ model Subscription {
   @@map("subscriptions")
 }
 
+model CategorySetting {
+  id          String         @id @default(cuid())
+  category    CourseCategory @unique
+  description String?        // カテゴリのサブタイトル（説明文）
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@map("category_settings")
+}
+
 model Course {
   id            String                 @id @default(cuid())
   title         String

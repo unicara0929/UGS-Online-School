@@ -154,6 +154,7 @@ export function CourseList() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<CategoryType | null>(null)
+  const [categoryDescriptions, setCategoryDescriptions] = useState<Record<string, string>>({})
   const { markCategoryViewed } = useNewBadge()
   const hasMarkedViewed = useRef(false)
 
@@ -167,7 +168,24 @@ export function CourseList() {
 
   useEffect(() => {
     fetchCourses()
+    fetchCategorySettings()
   }, [])
+
+  const fetchCategorySettings = async () => {
+    try {
+      const response = await fetch('/api/category-settings', { credentials: 'include' })
+      const data = await response.json()
+      if (data.success && data.settings) {
+        const map: Record<string, string> = {}
+        data.settings.forEach((s: { category: string; description: string | null }) => {
+          if (s.description) map[s.category] = s.description
+        })
+        setCategoryDescriptions(map)
+      }
+    } catch (err) {
+      // サイレントに失敗（ハードコードのデフォルト値を使う）
+    }
+  }
 
   const fetchCourses = async () => {
     try {
@@ -275,7 +293,7 @@ export function CourseList() {
             </div>
           </div>
           <CardTitle className="text-lg sm:text-xl mt-4">{categoryInfo.label}</CardTitle>
-          <CardDescription className="text-sm">{categoryInfo.description}</CardDescription>
+          <CardDescription className="text-sm">{categoryDescriptions[categoryInfo.key] || categoryInfo.description}</CardDescription>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 pt-0">
           <div className="space-y-3">
@@ -433,7 +451,7 @@ export function CourseList() {
           </div>
           <div className="min-w-0 flex-1">
             <h2 className="text-base sm:text-2xl font-bold text-slate-900 truncate">{categoryInfo.label}</h2>
-            <p className="text-xs sm:text-sm text-slate-500 line-clamp-1">{categoryInfo.description}</p>
+            <p className="text-xs sm:text-sm text-slate-500 line-clamp-1">{categoryDescriptions[categoryInfo.key] || categoryInfo.description}</p>
           </div>
         </div>
 
