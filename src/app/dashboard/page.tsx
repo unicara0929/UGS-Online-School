@@ -13,6 +13,7 @@ import { UpcomingEvents } from "@/components/dashboard/upcoming-events"
 import { NotificationBar } from "@/components/NotificationBar"
 import { FPOnboardingBanner } from "@/components/dashboard/fp-onboarding-banner"
 import { VideoSections } from "@/components/dashboard/video-sections"
+import { VideoSearch } from "@/components/dashboard/video-search"
 import { ManagerDashboard } from "@/components/dashboard/manager-dashboard"
 import { FPDashboard } from "@/components/dashboard/fp-dashboard"
 import { useAuth } from "@/contexts/auth-context"
@@ -75,6 +76,9 @@ function Dashboard() {
 
             {/* ダッシュボード統計 */}
             <DashboardStats userRole={user?.role || 'member'} />
+
+            {/* 動画検索 */}
+            <VideoSearch />
 
             {/* 動画セクション（続きを見る・人気ランキング・新着動画） */}
             <VideoSections />
