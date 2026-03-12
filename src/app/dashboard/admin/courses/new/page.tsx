@@ -123,7 +123,7 @@ export default function NewCoursePage() {
                     <option value="STARTUP_SUPPORT">スタートアップ支援</option>
                     <option value="STARTUP_GUIDE">はじめに</option>
                     <option value="ROLEPLAY_VIDEO">ロープレ動画</option>
-                    <option value="PAST_ROLEPLAY_VIDEO">過去ロープレ動画</option>
+                    <option value="PAST_STUDY_VIDEO">過去勉強会動画</option>
                   </select>
                 </div>
 

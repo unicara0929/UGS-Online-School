@@ -41,7 +41,7 @@ interface Course {
   id: string
   title: string
   description: string | null
-  category: 'MONEY_LITERACY' | 'PRACTICAL_SKILL' | 'STARTUP_SUPPORT' | 'STARTUP_GUIDE' | 'ROLEPLAY_VIDEO' | 'PAST_ROLEPLAY_VIDEO'
+  category: 'MONEY_LITERACY' | 'PRACTICAL_SKILL' | 'STARTUP_SUPPORT' | 'STARTUP_GUIDE' | 'ROLEPLAY_VIDEO' | 'PAST_STUDY_VIDEO'
   level: 'BASIC' | 'ADVANCED'
   isLocked: boolean
   isPublished: boolean
@@ -188,7 +188,7 @@ export default function EditCoursePage() {
   const [courseForm, setCourseForm] = useState({
     title: '',
     description: '',
-    category: 'MONEY_LITERACY' as 'MONEY_LITERACY' | 'PRACTICAL_SKILL' | 'STARTUP_SUPPORT' | 'STARTUP_GUIDE' | 'ROLEPLAY_VIDEO' | 'PAST_ROLEPLAY_VIDEO',
+    category: 'MONEY_LITERACY' as 'MONEY_LITERACY' | 'PRACTICAL_SKILL' | 'STARTUP_SUPPORT' | 'STARTUP_GUIDE' | 'ROLEPLAY_VIDEO' | 'PAST_STUDY_VIDEO',
     level: 'BASIC' as 'BASIC' | 'ADVANCED',
     isLocked: false,
     viewableRoles: [] as string[],
@@ -540,7 +540,7 @@ export default function EditCoursePage() {
                     <option value="STARTUP_SUPPORT">スタートアップ支援</option>
                     <option value="STARTUP_GUIDE">はじめに</option>
                     <option value="ROLEPLAY_VIDEO">ロープレ動画</option>
-                    <option value="PAST_ROLEPLAY_VIDEO">過去ロープレ動画</option>
+                    <option value="PAST_STUDY_VIDEO">過去勉強会動画</option>
                   </select>
                 </div>
 

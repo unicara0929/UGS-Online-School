@@ -172,7 +172,7 @@ export default function AnalyticsPage() {
       STARTUP_SUPPORT: 'スタートアップ支援',
       STARTUP_GUIDE: 'はじめに',
       ROLEPLAY_VIDEO: 'ロープレ動画',
-      PAST_ROLEPLAY_VIDEO: '過去ロープレ動画',
+      PAST_STUDY_VIDEO: '過去勉強会動画',
     }
     return map[category] || category
   }
