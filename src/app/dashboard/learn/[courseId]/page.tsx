@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -68,7 +68,9 @@ function LearningPage() {
   const { user, logout } = useAuth()
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const courseId = params.courseId as string
+  const lessonIdParam = searchParams.get('lesson')
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
   const [course, setCourse] = useState<Course | null>(null)
@@ -104,6 +106,16 @@ function LearningPage() {
 
     fetchCourse()
   }, [courseId])
+
+  // クエリパラムからレッスンを選択
+  useEffect(() => {
+    if (course && lessonIdParam) {
+      const index = course.lessons.findIndex((l) => l.id === lessonIdParam)
+      if (index >= 0) {
+        setCurrentLessonIndex(index)
+      }
+    }
+  }, [course, lessonIdParam])
 
   const currentLesson = course?.lessons[currentLessonIndex]
 
