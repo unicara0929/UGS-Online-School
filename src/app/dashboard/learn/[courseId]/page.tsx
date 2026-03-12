@@ -44,7 +44,7 @@ interface Course {
   id: string
   title: string
   description: string
-  category: 'MONEY_LITERACY' | 'PRACTICAL_SKILL' | 'STARTUP_SUPPORT' | 'STARTUP_GUIDE' | 'ROLEPLAY_VIDEO'
+  category: 'MONEY_LITERACY' | 'PRACTICAL_SKILL' | 'STARTUP_SUPPORT' | 'STARTUP_GUIDE' | 'ROLEPLAY_VIDEO' | 'PAST_ROLEPLAY_VIDEO'
   level: 'BASIC' | 'ADVANCED'
   lessons: Lesson[]
   progress: number
@@ -292,6 +292,7 @@ function LearningPage() {
       case 'STARTUP_SUPPORT': return 'スタートアップ支援'
       case 'STARTUP_GUIDE': return 'はじめに'
       case 'ROLEPLAY_VIDEO': return 'ロープレ動画'
+      case 'PAST_ROLEPLAY_VIDEO': return '過去ロープレ動画'
       default: return category
     }
   }
@@ -311,6 +312,7 @@ function LearningPage() {
       case 'STARTUP_SUPPORT': return 'bg-purple-100 text-purple-800'
       case 'STARTUP_GUIDE': return 'bg-amber-100 text-amber-800'
       case 'ROLEPLAY_VIDEO': return 'bg-rose-100 text-rose-800'
+      case 'PAST_ROLEPLAY_VIDEO': return 'bg-orange-100 text-orange-800'
       default: return 'bg-slate-100 text-slate-800'
     }
   }

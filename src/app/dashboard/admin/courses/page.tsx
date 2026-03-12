@@ -24,7 +24,7 @@ interface Course {
   id: string
   title: string
   description: string | null
-  category: 'MONEY_LITERACY' | 'PRACTICAL_SKILL' | 'STARTUP_SUPPORT' | 'STARTUP_GUIDE' | 'ROLEPLAY_VIDEO'
+  category: 'MONEY_LITERACY' | 'PRACTICAL_SKILL' | 'STARTUP_SUPPORT' | 'STARTUP_GUIDE' | 'ROLEPLAY_VIDEO' | 'PAST_ROLEPLAY_VIDEO'
   level: 'BASIC' | 'ADVANCED'
   isLocked: boolean
   viewableRoles: string[]
@@ -41,7 +41,8 @@ const getCategoryLabel = (category: string) => {
     PRACTICAL_SKILL: '実践スキル',
     STARTUP_SUPPORT: 'スタートアップ支援',
     STARTUP_GUIDE: 'はじめに',
-    ROLEPLAY_VIDEO: 'ロープレ動画'
+    ROLEPLAY_VIDEO: 'ロープレ動画',
+    PAST_ROLEPLAY_VIDEO: '過去ロープレ動画'
   }
   return labels[category] || category
 }
@@ -68,6 +69,7 @@ export default function AdminCoursesPage() {
     STARTUP_SUPPORT: '起業・独立に必要な知識とスキルを習得',
     STARTUP_GUIDE: 'アプリの使い方・UGSの考え方',
     ROLEPLAY_VIDEO: 'ロールプレイング動画で実践力を磨く',
+    PAST_ROLEPLAY_VIDEO: '過去のロープレ動画アーカイブ',
   }
 
   useEffect(() => {
@@ -241,7 +243,7 @@ export default function AdminCoursesPage() {
             <CardDescription>各カテゴリのサブタイトル（説明文）を編集できます</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {(['MONEY_LITERACY', 'PRACTICAL_SKILL', 'STARTUP_SUPPORT', 'STARTUP_GUIDE', 'ROLEPLAY_VIDEO'] as const).map((key) => (
+            {(['MONEY_LITERACY', 'PRACTICAL_SKILL', 'STARTUP_SUPPORT', 'STARTUP_GUIDE', 'ROLEPLAY_VIDEO', 'PAST_ROLEPLAY_VIDEO'] as const).map((key) => (
               <div key={key} className="flex items-center gap-3">
                 <span className="text-sm font-medium text-slate-700 w-48 shrink-0">{getCategoryLabel(key)}</span>
                 <input

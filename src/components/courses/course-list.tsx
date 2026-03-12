@@ -29,7 +29,7 @@ interface Course {
   id: string
   title: string
   description: string
-  category: 'MONEY_LITERACY' | 'PRACTICAL_SKILL' | 'STARTUP_SUPPORT' | 'STARTUP_GUIDE' | 'ROLEPLAY_VIDEO'
+  category: 'MONEY_LITERACY' | 'PRACTICAL_SKILL' | 'STARTUP_SUPPORT' | 'STARTUP_GUIDE' | 'ROLEPLAY_VIDEO' | 'PAST_ROLEPLAY_VIDEO'
   level: 'BASIC' | 'ADVANCED'
   lessons: Lesson[]
   isLocked: boolean
@@ -47,7 +47,7 @@ interface Lesson {
   order: number
 }
 
-type CategoryType = 'MONEY_LITERACY' | 'PRACTICAL_SKILL' | 'STARTUP_SUPPORT' | 'STARTUP_GUIDE' | 'ROLEPLAY_VIDEO'
+type CategoryType = 'MONEY_LITERACY' | 'PRACTICAL_SKILL' | 'STARTUP_SUPPORT' | 'STARTUP_GUIDE' | 'ROLEPLAY_VIDEO' | 'PAST_ROLEPLAY_VIDEO'
 
 interface CategoryInfo {
   key: CategoryType
@@ -106,6 +106,15 @@ const CATEGORIES_FOR_MEMBER: CategoryInfo[] = [
     borderColor: 'border-rose-200',
     iconBg: 'from-rose-400 to-pink-500',
   },
+  {
+    key: 'PAST_ROLEPLAY_VIDEO',
+    label: '過去ロープレ動画',
+    description: '過去のロープレ動画アーカイブ',
+    icon: <Play className="h-6 w-6 text-white" aria-hidden="true" />,
+    bgColor: 'from-orange-50 to-amber-50',
+    borderColor: 'border-orange-200',
+    iconBg: 'from-orange-400 to-amber-500',
+  },
 ]
 
 // FP/MGR/ADMIN用カテゴリー（はじめに除外）
@@ -145,6 +154,15 @@ const CATEGORIES_FOR_OTHERS: CategoryInfo[] = [
     bgColor: 'from-rose-50 to-pink-50',
     borderColor: 'border-rose-200',
     iconBg: 'from-rose-400 to-pink-500',
+  },
+  {
+    key: 'PAST_ROLEPLAY_VIDEO',
+    label: '過去ロープレ動画',
+    description: '過去のロープレ動画アーカイブ',
+    icon: <Play className="h-6 w-6 text-white" aria-hidden="true" />,
+    bgColor: 'from-orange-50 to-amber-50',
+    borderColor: 'border-orange-200',
+    iconBg: 'from-orange-400 to-amber-500',
   },
 ]
 

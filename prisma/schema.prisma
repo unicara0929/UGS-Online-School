@@ -491,6 +491,7 @@ enum CourseCategory {
   STARTUP_SUPPORT // スタートアップ支援
   STARTUP_GUIDE // はじめに（UGS会員向け）
   ROLEPLAY_VIDEO // ロープレ動画
+  PAST_ROLEPLAY_VIDEO // 過去ロープレ動画
 }
 
 enum CourseLevel {
